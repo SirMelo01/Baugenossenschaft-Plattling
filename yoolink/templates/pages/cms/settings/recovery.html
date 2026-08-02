@@ -1,0 +1,915 @@
+{% extends 'cmsbase.html' %}
+{% block title %}{{ block.super }} | CMS | Recovery{% endblock %}
+
+{% block content %}
+<div class="mx-auto mt-6 max-w-7xl px-2 pb-8">
+    <div class="mb-6">
+        <h1 class="text-3xl font-semibold tracking-tight text-slate-900">Recovery</h1>
+        <p class="mt-2 text-slate-600">Erstelle ein YooLink CMS Backup aus Datenbank, optionalen Medien-Dateien und Storage/CDN-Konfiguration.</p>
+    </div>
+
+    <div class="grid gap-6 lg:grid-cols-[260px,minmax(0,1fr)]">
+        {% include 'pages/cms/settings/partials/settings_sidebar.html' with active_page='recovery' %}
+
+        <section class="space-y-6">
+            {% if messages %}
+                <div class="space-y-2">
+                    {% for message in messages %}
+                        <div class="rounded-2xl border px-4 py-3 text-sm font-medium {% if message.tags == 'success' %}border-emerald-200 bg-emerald-50 text-emerald-800{% else %}border-rose-200 bg-rose-50 text-rose-800{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <div class="grid gap-4 sm:grid-cols-3">
+                <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+                    <p class="text-sm font-medium text-slate-500">DB-Objekte</p>
+                    <p class="mt-3 text-3xl font-semibold text-slate-900">{{ overview.total_objects }}</p>
+                    <p class="mt-4 text-sm leading-5 text-slate-600">{{ overview.models_with_data }} Models mit Daten.</p>
+                </div>
+                <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+                    <p class="text-sm font-medium text-slate-500">Medien</p>
+                    <p class="mt-3 text-3xl font-semibold text-slate-900">{{ overview.referenced_media_files }}</p>
+                    <p class="mt-4 text-sm leading-5 text-slate-600">Referenzierte Dateien aus File- und Image-Feldern.</p>
+                </div>
+                <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+                    <p class="text-sm font-medium text-slate-500">Storage</p>
+                    <p class="mt-3 truncate text-base font-semibold text-slate-900">{{ overview.storage.configured_backend|default:overview.storage.default_backend }}</p>
+                    <p class="mt-4 text-sm leading-5 text-slate-600">Aktuelle Medien-Quelle für das Backup.</p>
+                </div>
+            </div>
+
+            <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+                <div class="flex flex-col gap-4 border-b border-slate-200 px-6 py-5 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                        <p class="text-sm font-semibold uppercase tracking-[0.18em] text-blue-700">Backup Download</p>
+                        <h2 class="mt-2 text-xl font-semibold text-slate-900">Vollbackup erstellen</h2>
+                        <p class="mt-1 max-w-3xl text-sm leading-6 text-slate-600">
+                            Der Download enthält einen Django JSON-Datenbankdump, ein Manifest sowie Storage/CDN-Angaben ohne geheime Zugangsdaten.
+                            Medien werden lokal standardmäßig mitgesichert; bei CDN/Spaces-Storage bleiben sie standardmäßig draußen.
+                        </p>
+                    </div>
+                    <button type="button"
+                            id="backupDownloadButton"
+                            data-download-url="{% url 'cms:recovery-backup-download' %}"
+                            class="inline-flex shrink-0 items-center justify-center gap-2 rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-700 disabled:cursor-wait disabled:bg-slate-500">
+                        <span id="backupDownloadSpinner" class="hidden h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white"></span>
+                        <i id="backupDownloadIcon" class="bi bi-download text-base"></i>
+                        <span id="backupDownloadLabel">Backup herunterladen</span>
+                    </button>
+                </div>
+
+                <div class="border-b border-slate-200 px-6 py-5">
+                    <label for="includeMedia" class="flex cursor-pointer flex-col gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:flex-row sm:items-start">
+                        <span class="relative mt-0.5 inline-flex h-6 w-11 shrink-0 items-center">
+                            <input id="includeMedia" type="checkbox" class="peer sr-only" {% if overview.include_media_by_default %}checked{% endif %}>
+                            <span class="absolute inset-0 rounded-full bg-slate-300 transition peer-checked:bg-blue-600"></span>
+                            <span class="absolute left-1 top-1 h-4 w-4 rounded-full bg-white shadow transition peer-checked:translate-x-5"></span>
+                        </span>
+                        <span>
+                            <span class="block text-sm font-semibold text-slate-900">Medien-Dateien im ZIP mitsichern</span>
+                            <span class="mt-1 block text-sm leading-6 text-slate-600">
+                                {% if overview.include_media_by_default %}
+                                    Aktiv, weil dieses System lokale Medien-Dateien nutzt. Deaktivieren erzeugt nur DB + Manifest.
+                                {% else %}
+                                    Standardmäßig aus, weil dieses System einen externen Storage/CDN nutzt. Aktivieren lädt die referenzierten Medien zusätzlich aus dem Storage herunter.
+                                {% endif %}
+                            </span>
+                        </span>
+                    </label>
+                    <p id="backupDownloadStatus" class="mt-3 hidden rounded-2xl border px-4 py-3 text-sm font-medium" role="status" aria-live="polite"></p>
+                </div>
+
+                <div class="grid gap-5 p-6 xl:grid-cols-2">
+                    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                        <h3 class="font-semibold text-slate-900">Enthalten</h3>
+                        <ul class="mt-3 space-y-2 text-sm leading-6 text-slate-600">
+                            <li class="flex gap-2"><i class="bi bi-check-circle-fill mt-0.5 text-emerald-600"></i><span>Datenbankdump aller installierten Django-Apps</span></li>
+                            <li class="flex gap-2"><i class="bi bi-check-circle-fill mt-0.5 text-emerald-600"></i><span>Optional Bilder, Videos, Dokumente, Logos, Favicons und weitere referenzierte Uploads</span></li>
+                            <li class="flex gap-2"><i class="bi bi-check-circle-fill mt-0.5 text-emerald-600"></i><span>Manifest mit Datei-Hashes, Referenzen, Datenbank- und Storage-Metadaten</span></li>
+                            <li class="flex gap-2"><i class="bi bi-check-circle-fill mt-0.5 text-emerald-600"></i><span>CDN/Storage-Verbindungsdaten ohne Access-Keys oder Secrets</span></li>
+                        </ul>
+                    </div>
+
+                    <div class="rounded-2xl border border-amber-200 bg-amber-50 p-4">
+                        <h3 class="font-semibold text-amber-950">Sicherheitshinweis</h3>
+                        <p class="mt-3 text-sm leading-6 text-amber-900">
+                            Das ZIP enthält sensible CMS-Daten wie Benutzer, Rollen, Sessions und Passwort-Hashes.
+                            Lege es nur verschlüsselt ab und teile es nicht über öffentliche Links.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+                <div class="flex flex-col gap-4 border-b border-slate-200 px-6 py-5 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                        <p class="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-700">Automatische Backups</p>
+                        <h2 class="mt-2 text-xl font-semibold text-slate-900">Verschlüsselte Remote-Backups</h2>
+                        <p class="mt-1 max-w-3xl text-sm leading-6 text-slate-600">
+                            In Production erstellt YooLink monatlich ein verschlüsseltes Backup und speichert es privat im konfigurierten DigitalOcean Space.
+                            Es werden zwei Slots rotiert; beim nächsten Lauf wird der ältere Slot überschrieben.
+                        </p>
+                    </div>
+                    <button type="button"
+                            id="remoteBackupStartButton"
+                            data-start-url="{% url 'cms:recovery-remote-backup-start' %}"
+                            data-status-url="{% url 'cms:recovery-remote-backup-status' %}"
+                            data-configured="{% if overview.remote_backup.configured %}1{% else %}0{% endif %}"
+                            {% if not overview.remote_backup.configured %}disabled{% endif %}
+                            class="inline-flex shrink-0 items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500">
+                        <span id="remoteBackupSpinner" class="hidden h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white"></span>
+                        <i id="remoteBackupIcon" class="bi bi-cloud-upload text-base"></i>
+                        <span id="remoteBackupLabel">Remote-Backup starten</span>
+                    </button>
+                </div>
+
+                <div class="grid gap-5 p-6 lg:grid-cols-[minmax(0,1fr),minmax(0,1.5fr)]">
+                    <div class="rounded-2xl border {% if overview.remote_backup.configured %}border-emerald-200 bg-emerald-50{% else %}border-amber-200 bg-amber-50{% endif %} p-4">
+                        <div class="flex items-center gap-3">
+                            <span class="grid h-10 w-10 place-items-center rounded-xl {% if overview.remote_backup.configured %}bg-emerald-100 text-emerald-700{% else %}bg-amber-100 text-amber-700{% endif %}">
+                                <i class="bi {% if overview.remote_backup.configured %}bi-shield-lock-fill{% else %}bi-exclamation-triangle-fill{% endif %}"></i>
+                            </span>
+                            <div>
+                                <p class="text-sm font-semibold {% if overview.remote_backup.configured %}text-emerald-950{% else %}text-amber-950{% endif %}">
+                                    {% if overview.remote_backup.configured %}Bereit und verschlüsselt{% else %}Nicht vollständig konfiguriert{% endif %}
+                                </p>
+                                <p class="mt-1 text-sm {% if overview.remote_backup.configured %}text-emerald-800{% else %}text-amber-900{% endif %}">
+                                    {% if overview.remote_backup.configured %}
+                                        Private Ablage, app-seitig verschlüsselt, {{ overview.remote_backup.slots }} Rotationsslots.
+                                    {% else %}
+                                        Es fehlt Konfiguration. Es wird kein Remote-Backup geschrieben.
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                        <dl class="mt-4 space-y-2 text-sm">
+                            <div class="flex justify-between gap-4">
+                                <dt class="text-slate-600">Bucket</dt>
+                                <dd class="break-all font-mono text-slate-900">{{ overview.remote_backup.bucket|default:"-" }}</dd>
+                            </div>
+                            <div class="flex justify-between gap-4">
+                                <dt class="text-slate-600">Prefix</dt>
+                                <dd class="break-all font-mono text-slate-900">{{ overview.remote_backup.prefix|default:"-" }}</dd>
+                            </div>
+                            <div class="flex justify-between gap-4">
+                                <dt class="text-slate-600">Medien</dt>
+                                <dd class="font-mono text-slate-900">{% if overview.remote_backup.include_media %}inklusive{% else %}ausgeschlossen{% endif %}</dd>
+                            </div>
+                        </dl>
+                    </div>
+
+                    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                        <div class="flex items-center justify-between gap-3">
+                            <h3 class="font-semibold text-slate-900">Letzte Remote-Backups</h3>
+                            <span class="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-500 ring-1 ring-slate-200">max. 2 aktiv</span>
+                        </div>
+                        <div id="remoteBackupList" class="mt-4 space-y-3">
+                            {% for backup in overview.remote_backup_records %}
+                                <div class="rounded-2xl border border-slate-200 bg-white p-4" data-remote-backup-row>
+                                    <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                        <div>
+                                            <p class="font-semibold text-slate-900">
+                                                Slot {{ backup.slot|default:"-" }}
+                                                <span class="ml-2 text-sm font-normal text-slate-500">{{ backup.get_trigger_display }}</span>
+                                            </p>
+                                            <p class="mt-1 break-all font-mono text-xs text-slate-500">{{ backup.object_key|default:"Noch nicht hochgeladen" }}</p>
+                                        </div>
+                                        <span class="inline-flex w-fit items-center rounded-full px-3 py-1 text-xs font-semibold {% if backup.status == 'succeeded' %}bg-emerald-100 text-emerald-700{% elif backup.status == 'failed' %}bg-rose-100 text-rose-700{% elif backup.status == 'running' %}bg-blue-100 text-blue-700{% else %}bg-slate-200 text-slate-600{% endif %}">
+                                            {{ backup.get_status_display }}
+                                        </span>
+                                    </div>
+                                    <p class="mt-3 text-xs text-slate-500">
+                                        {{ backup.created_at|date:"d.m.Y H:i" }}
+                                        {% if backup.size_bytes %} · {{ backup.size_bytes }} Bytes{% endif %}
+                                        · Medien {% if backup.include_media %}enthalten{% else %}nicht enthalten{% endif %}
+                                    </p>
+                                    {% if backup.error_message %}
+                                        <p class="mt-2 text-sm text-rose-700">{{ backup.error_message }}</p>
+                                    {% endif %}
+                                    {% if backup.status == 'succeeded' %}
+                                        <div class="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                            <p class="text-xs text-slate-500">Wiederherstellung nutzt die Sicherheitsphrase im Restore-Bereich.</p>
+                                            <button type="button"
+                                                    class="js-remote-restore inline-flex items-center justify-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:border-rose-300 hover:bg-rose-100 disabled:cursor-wait disabled:opacity-60"
+                                                    data-remote-restore-url="{% url 'cms:recovery-remote-backup-restore' backup.id %}"
+                                                    data-slot="{{ backup.slot|default:'-' }}">
+                                                <i class="bi bi-arrow-counterclockwise"></i>
+                                                <span>Wiederherstellen</span>
+                                            </button>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% empty %}
+                                <div class="rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-center" data-remote-backup-empty>
+                                    <p class="text-sm font-medium text-slate-500">Noch keine Remote-Backups vorhanden.</p>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+                <div class="border-b border-slate-200 px-6 py-5">
+                    <p class="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">Technik</p>
+                    <h2 class="mt-2 text-xl font-semibold text-slate-900">Aktuelle Recovery-Grundlage</h2>
+                </div>
+
+                <div class="grid gap-4 p-6 lg:grid-cols-2">
+                    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Datenbank</p>
+                        <dl class="mt-3 space-y-2 text-sm">
+                            <div class="flex justify-between gap-4">
+                                <dt class="text-slate-500">Engine</dt>
+                                <dd class="break-all font-mono text-slate-900">{{ overview.database.engine }}</dd>
+                            </div>
+                            <div class="flex justify-between gap-4">
+                                <dt class="text-slate-500">Name</dt>
+                                <dd class="break-all font-mono text-slate-900">{{ overview.database.name }}</dd>
+                            </div>
+                            <div class="flex justify-between gap-4">
+                                <dt class="text-slate-500">Host</dt>
+                                <dd class="break-all font-mono text-slate-900">{{ overview.database.host|default:"-" }}</dd>
+                            </div>
+                        </dl>
+                    </div>
+
+                    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Storage / CDN</p>
+                        <dl class="mt-3 space-y-2 text-sm">
+                            <div class="flex justify-between gap-4">
+                                <dt class="text-slate-500">Medien Standard</dt>
+                                <dd class="font-mono text-slate-900">{% if overview.include_media_by_default %}inklusive{% else %}ausgeschlossen{% endif %}</dd>
+                            </div>
+                            <div class="flex justify-between gap-4">
+                                <dt class="text-slate-500">Backend</dt>
+                                <dd class="break-all font-mono text-slate-900">{{ overview.storage.configured_backend|default:overview.storage.default_backend }}</dd>
+                            </div>
+                            <div class="flex justify-between gap-4">
+                                <dt class="text-slate-500">Bucket</dt>
+                                <dd class="break-all font-mono text-slate-900">{{ overview.storage.cdn.AWS_STORAGE_BUCKET_NAME|default:"-" }}</dd>
+                            </div>
+                            <div class="flex justify-between gap-4">
+                                <dt class="text-slate-500">Endpoint</dt>
+                                <dd class="break-all font-mono text-slate-900">{{ overview.storage.cdn.AWS_S3_ENDPOINT_URL|default:"-" }}</dd>
+                            </div>
+                            <div class="flex justify-between gap-4">
+                                <dt class="text-slate-500">Media URL</dt>
+                                <dd class="break-all font-mono text-slate-900">{{ overview.storage.public_media_url|default:"-" }}</dd>
+                            </div>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+
+            <div class="overflow-hidden rounded-3xl border border-rose-200 bg-white shadow-sm">
+                <div class="flex flex-col gap-4 border-b border-slate-200 px-6 py-5 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                        <p class="text-sm font-semibold uppercase tracking-[0.18em] text-rose-700">Restore</p>
+                        <h2 class="mt-2 text-xl font-semibold text-slate-900">Backup laden</h2>
+                        <p class="mt-1 max-w-3xl text-sm leading-6 text-slate-600">
+                            Stellt Datenbankinhalte aus einem YooLink Recovery Backup wieder her. Dieser Schritt ersetzt den aktuellen CMS-Datenbestand.
+                            Nutze ihn nur, wenn du sicher bist, dass du genau dieses Backup laden möchtest.
+                        </p>
+                    </div>
+                    <span class="inline-flex shrink-0 items-center justify-center gap-2 rounded-2xl bg-rose-50 px-5 py-3 text-sm font-semibold text-rose-700 ring-1 ring-rose-200">
+                        <i class="bi bi-exclamation-triangle text-base"></i>
+                        <span>kritische Aktion</span>
+                    </span>
+                </div>
+                <form id="restoreBackupForm" class="space-y-5 p-6" novalidate
+                      data-restore-url="{% url 'cms:recovery-backup-restore' %}"
+                      data-confirmation-phrase="{{ overview.restore_confirmation_phrase }}">
+                    {% csrf_token %}
+
+                    <div class="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm leading-6 text-rose-900">
+                        <p class="font-semibold">Vor dem Restore prüft YooLink ZIP-Struktur, Manifest, Datenbankdump und Datei-Hashes.</p>
+                        <p class="mt-1">Die Sicherheitsphrase muss exakt eingegeben werden:</p>
+                        <p class="mt-3 select-all rounded-xl bg-white px-3 py-2 font-mono text-sm font-semibold text-rose-950 ring-1 ring-rose-200">{{ overview.restore_confirmation_phrase }}</p>
+                    </div>
+
+                    <div class="grid gap-5 lg:grid-cols-2">
+                        <div>
+                            <label for="backupFile" class="mb-2 block text-sm font-medium text-slate-700">Backup-ZIP</label>
+                            <label for="backupFile"
+                                   class="group flex min-h-[8.5rem] cursor-pointer flex-col justify-between rounded-2xl border-2 border-dashed border-blue-200 bg-white p-4 shadow-sm transition hover:border-blue-400 hover:bg-blue-50/70 hover:shadow-md focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-100">
+                                <input id="backupFile" name="backup_file" type="file" accept=".zip,application/zip" required class="sr-only">
+                                <span class="flex items-start gap-3">
+                                    <span class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-blue-100 text-blue-700 transition group-hover:bg-blue-600 group-hover:text-white">
+                                        <i class="bi bi-file-earmark-zip text-xl"></i>
+                                    </span>
+                                    <span class="min-w-0">
+                                        <span class="block text-sm font-semibold text-slate-900">Backup-ZIP auswählen</span>
+                                        <span class="mt-1 block text-sm leading-6 text-slate-600">Klicke hier, um eine YooLink Recovery ZIP-Datei hochzuladen.</span>
+                                    </span>
+                                </span>
+                                <span class="mt-4 flex flex-wrap items-center gap-2">
+                                    <span class="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-3 py-2 text-sm font-semibold text-white transition group-hover:bg-blue-700">
+                                        <i class="bi bi-upload"></i>
+                                        Datei wählen
+                                    </span>
+                                    <span id="backupFileName" class="min-w-0 truncate rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500">Keine Datei ausgewählt</span>
+                                </span>
+                            </label>
+                        </div>
+                        <div>
+                            <label for="confirmationPhrase" class="mb-2 block text-sm font-medium text-slate-700">Sicherheitsphrase</label>
+                            <input id="confirmationPhrase" name="confirmation_phrase" type="text" required autocomplete="off"
+                                   placeholder="{{ overview.restore_confirmation_phrase }}"
+                                   class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:bg-white">
+                            <p id="confirmationPhraseError" class="mt-2 hidden text-sm font-medium text-rose-600">Die Sicherheitsphrase stimmt nicht.</p>
+                        </div>
+                    </div>
+
+                    <label for="restoreMedia" class="flex cursor-pointer flex-col gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:flex-row sm:items-start">
+                        <span class="relative mt-0.5 inline-flex h-6 w-11 shrink-0 items-center">
+                            <input id="restoreMedia" name="restore_media" type="checkbox" class="peer sr-only" checked>
+                            <span class="absolute inset-0 rounded-full bg-slate-300 transition peer-checked:bg-blue-600"></span>
+                            <span class="absolute left-1 top-1 h-4 w-4 rounded-full bg-white shadow transition peer-checked:translate-x-5"></span>
+                        </span>
+                        <span>
+                            <span class="block text-sm font-semibold text-slate-900">Medien aus dem Backup zurückschreiben</span>
+                            <span class="mt-1 block text-sm leading-6 text-slate-600">
+                                Wenn das Backup Medien enthält, werden diese in den aktuellen Storage geschrieben. Bei CDN/Spaces kann das je nach Datenmenge länger dauern.
+                            </span>
+                        </span>
+                    </label>
+
+                    <p id="restoreBackupStatus" class="hidden rounded-2xl border px-4 py-3 text-sm font-medium" role="status" aria-live="polite"></p>
+
+                    <div class="flex flex-col gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:items-center sm:justify-between">
+                        <p class="text-sm leading-6 text-slate-500">
+                            Nach einem erfolgreichen Restore solltest du die Seite neu laden oder dich erneut anmelden.
+                        </p>
+                        <button type="submit"
+                                id="restoreBackupButton"
+                                class="inline-flex items-center justify-center gap-2 rounded-2xl bg-rose-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-rose-700 disabled:cursor-wait disabled:bg-rose-400">
+                            <span id="restoreBackupSpinner" class="hidden h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white"></span>
+                            <i id="restoreBackupIcon" class="bi bi-upload text-base"></i>
+                            <span id="restoreBackupLabel">Backup wiederherstellen</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </div>
+</div>
+
+<div id="recoveryProgressModal" class="fixed inset-0 z-[1200] hidden items-center justify-center bg-slate-950/50 px-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="recoveryProgressTitle">
+    <div class="w-full max-w-lg rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl">
+        <div class="flex items-start gap-4">
+            <span class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-blue-100 text-blue-700">
+                <span class="h-5 w-5 animate-spin rounded-full border-2 border-blue-200 border-t-blue-700"></span>
+            </span>
+            <div class="min-w-0 flex-1">
+                <p id="recoveryProgressEyebrow" class="text-xs font-semibold uppercase tracking-[0.18em] text-blue-700">Recovery</p>
+                <h2 id="recoveryProgressTitle" class="mt-1 text-xl font-semibold text-slate-950">Backup wird verarbeitet</h2>
+                <p id="recoveryProgressDetail" class="mt-2 text-sm leading-6 text-slate-600">Vorbereitung läuft.</p>
+            </div>
+            <span id="recoveryProgressPercent" class="rounded-xl bg-slate-100 px-3 py-1.5 text-sm font-semibold tabular-nums text-slate-700">0%</span>
+        </div>
+        <div class="mt-6 h-3 overflow-hidden rounded-full bg-slate-100">
+            <div id="recoveryProgressBar" class="h-full w-0 rounded-full bg-blue-600 transition-all duration-500 ease-out"></div>
+        </div>
+        <div class="mt-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+            <p id="recoveryProgressStep" class="text-sm font-medium text-slate-800">Backup vorbereiten</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascriptend %}
+{{ block.super }}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const button = document.getElementById("backupDownloadButton");
+    const checkbox = document.getElementById("includeMedia");
+    const spinner = document.getElementById("backupDownloadSpinner");
+    const icon = document.getElementById("backupDownloadIcon");
+    const label = document.getElementById("backupDownloadLabel");
+    const status = document.getElementById("backupDownloadStatus");
+    const restoreForm = document.getElementById("restoreBackupForm");
+    const restoreButton = document.getElementById("restoreBackupButton");
+    const restoreSpinner = document.getElementById("restoreBackupSpinner");
+    const restoreIcon = document.getElementById("restoreBackupIcon");
+    const restoreLabel = document.getElementById("restoreBackupLabel");
+    const restoreStatus = document.getElementById("restoreBackupStatus");
+    const backupFile = document.getElementById("backupFile");
+    const backupFileName = document.getElementById("backupFileName");
+    const confirmationPhrase = document.getElementById("confirmationPhrase");
+    const confirmationPhraseError = document.getElementById("confirmationPhraseError");
+    const progressModal = document.getElementById("recoveryProgressModal");
+    const progressEyebrow = document.getElementById("recoveryProgressEyebrow");
+    const progressTitle = document.getElementById("recoveryProgressTitle");
+    const progressDetail = document.getElementById("recoveryProgressDetail");
+    const progressPercent = document.getElementById("recoveryProgressPercent");
+    const progressBar = document.getElementById("recoveryProgressBar");
+    const progressStep = document.getElementById("recoveryProgressStep");
+    const remoteBackupButton = document.getElementById("remoteBackupStartButton");
+    const remoteBackupSpinner = document.getElementById("remoteBackupSpinner");
+    const remoteBackupIcon = document.getElementById("remoteBackupIcon");
+    const remoteBackupLabel = document.getElementById("remoteBackupLabel");
+    const remoteBackupList = document.getElementById("remoteBackupList");
+    const csrfToken = (document.querySelector('input[name="csrfmiddlewaretoken"]') || {}).value
+        || (document.cookie.match(/csrftoken=([^;]+)/) || [])[1];
+    let progressTimer = null;
+    let progressValue = 0;
+    let progressSteps = [];
+
+    if (!button || !checkbox || !spinner || !icon || !label || !status) return;
+
+    function setPanelStatus(target, message, type) {
+        target.textContent = message;
+        target.classList.remove("hidden", "border-blue-200", "bg-blue-50", "text-blue-800", "border-emerald-200", "bg-emerald-50", "text-emerald-800", "border-rose-200", "bg-rose-50", "text-rose-800");
+        if (type === "success") {
+            target.classList.add("border-emerald-200", "bg-emerald-50", "text-emerald-800");
+        } else if (type === "error") {
+            target.classList.add("border-rose-200", "bg-rose-50", "text-rose-800");
+        } else {
+            target.classList.add("border-blue-200", "bg-blue-50", "text-blue-800");
+        }
+    }
+
+    function setStatus(message, type) {
+        setPanelStatus(status, message, type);
+    }
+
+    function notify(message, type) {
+        if (typeof sendNotif === "function") {
+            sendNotif(message, type);
+            return;
+        }
+        setStatus(message, type);
+    }
+
+    function updateProgress(value, detail) {
+        progressValue = Math.max(0, Math.min(100, Math.round(value)));
+        if (progressBar) progressBar.style.width = progressValue + "%";
+        if (progressPercent) progressPercent.textContent = progressValue + "%";
+        if (progressDetail && detail) progressDetail.textContent = detail;
+
+        if (progressStep && progressSteps.length) {
+            const index = Math.min(progressSteps.length - 1, Math.floor(progressValue / (100 / progressSteps.length)));
+            progressStep.textContent = progressSteps[index];
+        }
+    }
+
+    function openProgressDialog(options) {
+        if (!progressModal) return;
+
+        progressSteps = options.steps || [];
+        progressValue = 0;
+        if (progressEyebrow) progressEyebrow.textContent = options.eyebrow || "Recovery";
+        if (progressTitle) progressTitle.textContent = options.title || "Backup wird verarbeitet";
+        if (progressDetail) progressDetail.textContent = options.detail || "Vorbereitung läuft.";
+        if (progressStep) progressStep.textContent = progressSteps[0] || "Backup vorbereiten";
+        progressModal.classList.remove("hidden");
+        progressModal.classList.add("flex");
+        updateProgress(0);
+
+        clearInterval(progressTimer);
+        progressTimer = setInterval(function () {
+            if (progressValue >= 94) return;
+            const increment = progressValue < 35 ? 7 : progressValue < 72 ? 4 : 2;
+            updateProgress(Math.min(94, progressValue + increment));
+        }, options.interval || 450);
+    }
+
+    function closeProgressDialog() {
+        clearInterval(progressTimer);
+        progressTimer = null;
+        if (!progressModal) return;
+        progressModal.classList.add("hidden");
+        progressModal.classList.remove("flex");
+    }
+
+    function completeProgressDialog(detail) {
+        clearInterval(progressTimer);
+        progressTimer = null;
+        updateProgress(100, detail || "Abgeschlossen.");
+        window.setTimeout(closeProgressDialog, 550);
+    }
+
+    function setPhraseError(hasError) {
+        if (!confirmationPhrase || !confirmationPhraseError) return;
+        confirmationPhraseError.classList.toggle("hidden", !hasError);
+        confirmationPhrase.classList.toggle("border-rose-400", hasError);
+        confirmationPhrase.classList.toggle("bg-rose-50", hasError);
+        confirmationPhrase.classList.toggle("text-rose-800", hasError);
+        confirmationPhrase.classList.toggle("ring-4", hasError);
+        confirmationPhrase.classList.toggle("ring-rose-100", hasError);
+        confirmationPhrase.classList.toggle("border-slate-200", !hasError);
+        confirmationPhrase.classList.toggle("bg-slate-50", !hasError);
+        confirmationPhrase.classList.toggle("text-slate-700", !hasError);
+    }
+
+    function setLoading(isLoading) {
+        button.disabled = isLoading;
+        button.setAttribute("aria-busy", isLoading ? "true" : "false");
+        spinner.classList.toggle("hidden", !isLoading);
+        icon.classList.toggle("hidden", isLoading);
+        label.textContent = isLoading ? "Backup wird erstellt..." : "Backup herunterladen";
+    }
+
+    function setRemoteBackupLoading(isLoading) {
+        if (!remoteBackupButton || !remoteBackupSpinner || !remoteBackupIcon || !remoteBackupLabel) return;
+        remoteBackupButton.disabled = isLoading || remoteBackupButton.dataset.configured === "0";
+        remoteBackupButton.setAttribute("aria-busy", isLoading ? "true" : "false");
+        remoteBackupSpinner.classList.toggle("hidden", !isLoading);
+        remoteBackupIcon.classList.toggle("hidden", isLoading);
+        remoteBackupLabel.textContent = isLoading ? "Remote-Backup wird gestartet..." : "Remote-Backup starten";
+    }
+
+    function statusClass(statusValue) {
+        if (statusValue === "succeeded") return "bg-emerald-100 text-emerald-700";
+        if (statusValue === "failed") return "bg-rose-100 text-rose-700";
+        if (statusValue === "running") return "bg-blue-100 text-blue-700";
+        return "bg-slate-200 text-slate-600";
+    }
+
+    function formatBackupDate(value) {
+        if (!value) return "-";
+        try {
+            return new Intl.DateTimeFormat("de-DE", {
+                dateStyle: "short",
+                timeStyle: "short"
+            }).format(new Date(value));
+        } catch (error) {
+            return value;
+        }
+    }
+
+    function escapeHtml(value) {
+        return String(value || "").replace(/[&<>"']/g, function (char) {
+            return {"&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;"}[char];
+        });
+    }
+
+    function renderRemoteBackups(backups) {
+        if (!remoteBackupList) return;
+        if (!backups || !backups.length) {
+            remoteBackupList.innerHTML = '<div class="rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-center" data-remote-backup-empty><p class="text-sm font-medium text-slate-500">Noch keine Remote-Backups vorhanden.</p></div>';
+            return;
+        }
+
+        remoteBackupList.innerHTML = backups.map(function (backup) {
+            const key = backup.object_key || "Noch nicht hochgeladen";
+            const size = backup.size_bytes ? " · " + backup.size_bytes + " Bytes" : "";
+            const mediaLabel = backup.include_media === null ? "unbekannt" : (backup.include_media ? "enthalten" : "nicht enthalten");
+            const source = backup.source === "storage" ? " · direkt im Storage gefunden" : "";
+            const media = " · Medien " + mediaLabel + source;
+            const error = backup.error_message ? '<p class="mt-2 text-sm text-rose-700">' + escapeHtml(backup.error_message) + '</p>' : "";
+            const actions = backup.restore_url ? [
+                '<div class="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">',
+                    '<p class="text-xs text-slate-500">Wiederherstellung nutzt die Sicherheitsphrase im Restore-Bereich.</p>',
+                    '<button type="button" class="js-remote-restore inline-flex items-center justify-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:border-rose-300 hover:bg-rose-100 disabled:cursor-wait disabled:opacity-60" data-remote-restore-url="' + escapeHtml(backup.restore_url) + '" data-remote-object-key="' + escapeHtml(backup.object_key || "") + '" data-slot="' + escapeHtml(backup.slot || "-") + '">',
+                        '<i class="bi bi-arrow-counterclockwise"></i>',
+                        '<span>Wiederherstellen</span>',
+                    '</button>',
+                '</div>'
+            ].join("") : "";
+            return [
+                '<div class="rounded-2xl border border-slate-200 bg-white p-4" data-remote-backup-row>',
+                    '<div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">',
+                        '<div>',
+                            '<p class="font-semibold text-slate-900">Slot ' + escapeHtml(backup.slot || "-") + '<span class="ml-2 text-sm font-normal text-slate-500">' + escapeHtml(backup.trigger) + '</span></p>',
+                            '<p class="mt-1 break-all font-mono text-xs text-slate-500">' + escapeHtml(key) + '</p>',
+                        '</div>',
+                        '<span class="inline-flex w-fit items-center rounded-full px-3 py-1 text-xs font-semibold ' + statusClass(backup.status) + '">' + escapeHtml(backup.status_label) + '</span>',
+                    '</div>',
+                    '<p class="mt-3 text-xs text-slate-500">' + escapeHtml(formatBackupDate(backup.created_at) + size + media) + '</p>',
+                    error,
+                    actions,
+                '</div>'
+            ].join("");
+        }).join("");
+    }
+
+    async function refreshRemoteBackups() {
+        if (!remoteBackupButton || !remoteBackupButton.dataset.statusUrl) return;
+        try {
+            const response = await fetch(remoteBackupButton.dataset.statusUrl, {
+                credentials: "same-origin",
+                headers: { "X-Requested-With": "fetch" }
+            });
+            const payload = await response.json().catch(() => ({}));
+            if (response.ok && payload.success) renderRemoteBackups(payload.backups);
+        } catch (error) {
+            // Status polling is best-effort; explicit actions still report errors.
+        }
+    }
+
+    if (remoteBackupButton && remoteBackupButton.dataset.configured !== "0") {
+        refreshRemoteBackups();
+    }
+
+    function filenameFromDisposition(headerValue) {
+        if (!headerValue) return "yoolink-backup.zip";
+        const utfMatch = headerValue.match(/filename\*=UTF-8''([^;]+)/i);
+        if (utfMatch) return decodeURIComponent(utfMatch[1].replace(/"/g, ""));
+        const match = headerValue.match(/filename="?([^";]+)"?/i);
+        return match ? match[1] : "yoolink-backup.zip";
+    }
+
+    if (remoteBackupButton) {
+        remoteBackupButton.addEventListener("click", async function () {
+            setRemoteBackupLoading(true);
+            openProgressDialog({
+                eyebrow: "Remote Backup",
+                title: "Remote-Backup wird gestartet",
+                detail: "Der Hintergrundprozess wird vorbereitet.",
+                steps: [
+                    "Konfiguration prüfen",
+                    "Backup-Lauf vormerken",
+                    "Celery-Task starten",
+                    "Statusliste aktualisieren"
+                ],
+                interval: 360
+            });
+
+            try {
+                const response = await fetch(remoteBackupButton.dataset.startUrl, {
+                    method: "POST",
+                    credentials: "same-origin",
+                    headers: {
+                        "X-Requested-With": "fetch",
+                        "X-CSRFToken": csrfToken || ""
+                    }
+                });
+                const payload = await response.json().catch(() => ({}));
+                if (!response.ok || !payload.success) {
+                    throw new Error(payload.error || "Remote-Backup konnte nicht gestartet werden.");
+                }
+
+                completeProgressDialog("Remote-Backup wurde an den Worker übergeben.");
+                notify(payload.message || "Remote-Backup wurde gestartet.", "success");
+                if (payload.backup) renderRemoteBackups([payload.backup]);
+                await refreshRemoteBackups();
+
+                let pollCount = 0;
+                const poller = window.setInterval(async function () {
+                    pollCount += 1;
+                    await refreshRemoteBackups();
+                    if (pollCount >= 12) window.clearInterval(poller);
+                }, 5000);
+            } catch (error) {
+                closeProgressDialog();
+                notify(error.message || "Remote-Backup konnte nicht gestartet werden.", "error");
+            } finally {
+                setRemoteBackupLoading(false);
+            }
+        });
+    }
+
+    button.addEventListener("click", async function () {
+        const url = new URL(button.dataset.downloadUrl, window.location.origin);
+        url.searchParams.set("include_media", checkbox.checked ? "1" : "0");
+
+        setLoading(true);
+        status.classList.add("hidden");
+        openProgressDialog({
+            eyebrow: "Backup Download",
+            title: "Backup wird erstellt",
+            detail: "Daten werden gesammelt und als ZIP vorbereitet.",
+            steps: [
+                "Datenbank exportieren",
+                "Medienreferenzen sammeln",
+                "Manifest und Hashes erstellen",
+                "Archiv komprimieren",
+                "Download vorbereiten"
+            ],
+            interval: 420
+        });
+
+        try {
+            const response = await fetch(url.toString(), {
+                credentials: "same-origin",
+                headers: { "X-Requested-With": "fetch" }
+            });
+
+            if (!response.ok) {
+                throw new Error("Download fehlgeschlagen (" + response.status + ")");
+            }
+
+            const blob = await response.blob();
+            const downloadUrl = window.URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = downloadUrl;
+            link.download = filenameFromDisposition(response.headers.get("Content-Disposition"));
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(downloadUrl);
+            completeProgressDialog("Backup ist bereit. Der Download wurde gestartet.");
+            notify("Backup wurde erstellt und der Download gestartet.", "success");
+        } catch (error) {
+            closeProgressDialog();
+            notify(error.message || "Backup konnte nicht erstellt werden.", "error");
+        } finally {
+            setLoading(false);
+        }
+    });
+
+    if (!restoreForm || !restoreButton || !restoreSpinner || !restoreIcon || !restoreLabel || !restoreStatus) return;
+
+    if (backupFile && backupFileName) {
+        backupFile.addEventListener("change", function () {
+            const file = backupFile.files && backupFile.files[0];
+            backupFileName.textContent = file ? file.name : "Keine Datei ausgewählt";
+            backupFileName.classList.toggle("border-blue-200", Boolean(file));
+            backupFileName.classList.toggle("bg-blue-50", Boolean(file));
+            backupFileName.classList.toggle("text-blue-800", Boolean(file));
+            backupFileName.classList.toggle("border-slate-200", !file);
+            backupFileName.classList.toggle("bg-slate-50", !file);
+            backupFileName.classList.toggle("text-slate-500", !file);
+        });
+    }
+
+    if (confirmationPhrase) {
+        confirmationPhrase.addEventListener("input", function () {
+            setPhraseError(false);
+        });
+    }
+
+    function setRestoreLoading(isLoading) {
+        restoreButton.disabled = isLoading;
+        restoreButton.setAttribute("aria-busy", isLoading ? "true" : "false");
+        restoreSpinner.classList.toggle("hidden", !isLoading);
+        restoreIcon.classList.toggle("hidden", isLoading);
+        restoreLabel.textContent = isLoading ? "Backup wird wiederhergestellt..." : "Backup wiederherstellen";
+    }
+
+    function validateConfirmationPhrase() {
+        const expectedPhrase = (restoreForm.dataset.confirmationPhrase || "").trim();
+        const enteredPhrase = confirmationPhrase ? confirmationPhrase.value.trim() : "";
+        if (expectedPhrase && enteredPhrase !== expectedPhrase) {
+            setPhraseError(true);
+            if (confirmationPhrase) confirmationPhrase.focus();
+            notify("Die Sicherheitsphrase stimmt nicht.", "error");
+            return false;
+        }
+        setPhraseError(false);
+        return true;
+    }
+
+    function setRemoteRestoreButtonsLoading(isLoading, activeButton) {
+        document.querySelectorAll(".js-remote-restore").forEach(function (restoreTrigger) {
+            restoreTrigger.disabled = isLoading;
+            restoreTrigger.setAttribute("aria-busy", isLoading && restoreTrigger === activeButton ? "true" : "false");
+        });
+    }
+
+    async function confirmRemoteRestore(slot) {
+        const text = "Remote-Backup Slot " + slot + " wird aus dem privaten Storage geladen und überschreibt den aktuellen CMS-Datenbestand.";
+        if (typeof Swal !== "undefined" && Swal.fire) {
+            const result = await Swal.fire({
+                title: "Remote-Backup wiederherstellen?",
+                text: text,
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Ja, wiederherstellen",
+                cancelButtonText: "Abbrechen",
+                confirmButtonColor: "#e11d48",
+                reverseButtons: true
+            });
+            return result.isConfirmed;
+        }
+        return window.confirm(text);
+    }
+
+    if (remoteBackupList) {
+        remoteBackupList.addEventListener("click", async function (event) {
+            const trigger = event.target.closest(".js-remote-restore");
+            if (!trigger) return;
+
+            if (!validateConfirmationPhrase()) return;
+            const confirmed = await confirmRemoteRestore(trigger.dataset.slot || "-");
+            if (!confirmed) return;
+
+            const formData = new FormData();
+            formData.append("confirmation_phrase", confirmationPhrase ? confirmationPhrase.value.trim() : "");
+            if (trigger.dataset.remoteObjectKey) {
+                formData.append("object_key", trigger.dataset.remoteObjectKey);
+            }
+            if (restoreForm.querySelector('input[name="restore_media"]:checked')) {
+                formData.append("restore_media", "on");
+            }
+
+            setRestoreLoading(true);
+            setRemoteRestoreButtonsLoading(true, trigger);
+            restoreStatus.classList.add("hidden");
+            openProgressDialog({
+                eyebrow: "Remote Restore",
+                title: "Remote-Backup wird wiederhergestellt",
+                detail: "Das verschlüsselte Backup wird aus dem privaten Storage geladen.",
+                steps: [
+                    "Storage-Objekt laden",
+                    "Hash-Prüfung ausführen",
+                    "Backup entschlüsseln",
+                    "Manifest validieren",
+                    "Datenbestand wiederherstellen",
+                    "Abschluss prüfen"
+                ],
+                interval: 520
+            });
+
+            try {
+                const response = await fetch(trigger.dataset.remoteRestoreUrl, {
+                    method: "POST",
+                    body: formData,
+                    credentials: "same-origin",
+                    headers: {
+                        "X-Requested-With": "fetch",
+                        "X-CSRFToken": csrfToken || ""
+                    }
+                });
+                const payload = await response.json().catch(() => ({}));
+
+                if (!response.ok || !payload.success) {
+                    throw new Error(payload.error || "Remote-Restore fehlgeschlagen (" + response.status + ")");
+                }
+
+                const restoredMedia = payload.summary ? payload.summary.restored_media_files : 0;
+                completeProgressDialog("Remote-Restore abgeschlossen. Abschlussprüfung läuft.");
+                notify(payload.message + " Wiederhergestellte Medien: " + restoredMedia + ".", "success");
+            } catch (error) {
+                closeProgressDialog();
+                const message = error.message || "Remote-Backup konnte nicht wiederhergestellt werden.";
+                if (message.toLowerCase().includes("sicherheitsphrase")) {
+                    setPhraseError(true);
+                    if (confirmationPhrase) confirmationPhrase.focus();
+                }
+                notify(message, "error");
+            } finally {
+                setRestoreLoading(false);
+                setRemoteRestoreButtonsLoading(false, trigger);
+            }
+        });
+    }
+
+    restoreForm.addEventListener("submit", async function (event) {
+        event.preventDefault();
+
+        if (!validateConfirmationPhrase()) return;
+        if (!backupFile || !backupFile.files || !backupFile.files[0]) {
+            notify("Bitte wähle eine Backup-ZIP-Datei aus.", "error");
+            return;
+        }
+
+        const formData = new FormData(restoreForm);
+        setRestoreLoading(true);
+        restoreStatus.classList.add("hidden");
+        openProgressDialog({
+            eyebrow: "Backup Restore",
+            title: "Backup wird wiederhergestellt",
+            detail: "Das Backup wird geprüft und kontrolliert eingespielt.",
+            steps: [
+                "ZIP-Struktur prüfen",
+                "Manifest validieren",
+                "Datenbankdump vorbereiten",
+                "Datenbestand wiederherstellen",
+                "Medien zurückschreiben",
+                "Abschluss prüfen"
+            ],
+            interval: 520
+        });
+
+        try {
+            const response = await fetch(restoreForm.dataset.restoreUrl, {
+                method: "POST",
+                body: formData,
+                credentials: "same-origin",
+                headers: { "X-Requested-With": "fetch" }
+            });
+            const payload = await response.json().catch(() => ({}));
+
+            if (!response.ok || !payload.success) {
+                throw new Error(payload.error || "Restore fehlgeschlagen (" + response.status + ")");
+            }
+
+            const restoredMedia = payload.summary ? payload.summary.restored_media_files : 0;
+            completeProgressDialog("Restore abgeschlossen. Abschlussprüfung läuft.");
+            notify(payload.message + " Wiederhergestellte Medien: " + restoredMedia + ".", "success");
+            restoreForm.reset();
+            if (backupFileName) {
+                backupFileName.textContent = "Keine Datei ausgewählt";
+                backupFileName.classList.remove("border-blue-200", "bg-blue-50", "text-blue-800");
+                backupFileName.classList.add("border-slate-200", "bg-slate-50", "text-slate-500");
+            }
+        } catch (error) {
+            closeProgressDialog();
+            const message = error.message || "Backup konnte nicht wiederhergestellt werden.";
+            if (message.toLowerCase().includes("sicherheitsphrase")) {
+                setPhraseError(true);
+                if (confirmationPhrase) confirmationPhrase.focus();
+            }
+            notify(message, "error");
+        } finally {
+            setRestoreLoading(false);
+        }
+    });
+});
+</script>
+{% endblock javascriptend %}

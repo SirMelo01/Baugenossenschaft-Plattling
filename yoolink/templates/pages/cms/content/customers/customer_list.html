@@ -1,0 +1,244 @@
+{% extends "cmsbase.html" %}
+{% load compress static %}
+{% block title %}{{ block.super }} | CMS | Kunden{% endblock %}
+
+{% block javascript %}
+<script src="{% static 'js/cms/sortable/sortable.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto mt-4 max-w-7xl px-2 sm:mt-8 sm:px-4">
+
+    <!-- Header / Breadcrumb -->
+    <nav class="text-sm text-gray-500" aria-label="Breadcrumb">
+        <ol class="flex flex-wrap items-center gap-1">
+            <li><a href="{% url 'cms:sites' %}" class="text-blue-600 hover:underline">Seiten</a></li>
+            <li class="text-gray-300">/</li>
+            <li><a href="{% url 'cms:site_kunden' %}" class="text-blue-600 hover:underline">Kunden (/kunden)</a></li>
+            <li class="text-gray-300">/</li>
+            <li class="font-semibold text-gray-700">Kundenliste</li>
+        </ol>
+    </nav>
+
+    <!-- Hero Card -->
+    <section class="mt-4 overflow-hidden rounded-3xl bg-gradient-to-br from-blue-900 via-blue-800 to-blue-700 text-white shadow-xl">
+        <div class="relative px-6 py-6 sm:px-8 sm:py-7">
+            <div class="absolute inset-y-0 right-0 hidden w-1/2 bg-[radial-gradient(circle_at_70%_30%,rgba(255,255,255,0.15),transparent_60%)] md:block" aria-hidden="true"></div>
+            <div class="relative flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+                <div class="max-w-2xl">
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-blue-200">Kunden &amp; Referenzen</p>
+                    <h1 class="mt-1.5 text-xl font-bold leading-tight tracking-tight sm:text-2xl">
+                        Verwalte alle Referenzen an einem Ort
+                    </h1>
+                    <p class="mt-2 text-sm text-blue-100 md:text-base">
+                        Lege Kunden an, pflege Bilder, Galerien und Inhalte und veröffentliche sie automatisch
+                        auf <span class="font-semibold text-white">/kunden</span>. Aktive Kunden erhalten zusätzlich eine eigene Detailseite.
+                    </p>
+                </div>
+                <div class="flex flex-col gap-2 md:items-end">
+                    {% csrf_token %}
+                    <a href="{% url 'cms:customer-create' %}"
+                        class="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-bold text-blue-900 shadow-lg transition hover:-translate-y-0.5 hover:bg-blue-50">
+                        <i class="bi bi-plus-circle text-base"></i>
+                        Neuen Kunden anlegen
+                    </a>
+                    <button id="reorder-button"
+                        class="inline-flex items-center justify-center gap-2 rounded-xl border border-white/30 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/20">
+                        <i class="bi bi-arrows-move"></i>
+                        <span data-label-default="Reihenfolge ändern" data-label-active="Reihenfolge speichern">Reihenfolge ändern</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Strip -->
+    <div class="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div class="rounded-2xl border border-gray-200 bg-white px-4 py-4 shadow-sm">
+            <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">Gesamt</p>
+            <p class="mt-1 text-2xl font-bold text-gray-900">{{ total_count }}</p>
+        </div>
+        <div class="rounded-2xl border border-green-100 bg-green-50 px-4 py-4 shadow-sm">
+            <p class="text-xs font-semibold uppercase tracking-wider text-green-700">Aktiv</p>
+            <p class="mt-1 text-2xl font-bold text-green-800">{{ active_count }}</p>
+        </div>
+        <div class="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-4 shadow-sm">
+            <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Mit Detailseite</p>
+            <p class="mt-1 text-2xl font-bold text-blue-800">{{ detail_count }}</p>
+        </div>
+        <div class="rounded-2xl border border-amber-100 bg-amber-50 px-4 py-4 shadow-sm">
+            <p class="text-xs font-semibold uppercase tracking-wider text-amber-700">Inaktiv</p>
+            <p class="mt-1 text-2xl font-bold text-amber-800">{{ inactive_count }}</p>
+        </div>
+    </div>
+
+    <!-- Sektion: Referenzen -->
+    <section class="mt-10">
+        <header class="mb-4 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100 text-blue-700">
+                    <i class="bi bi-stars text-xl"></i>
+                </span>
+                <div>
+                    <h2 class="text-lg font-bold text-gray-900">Referenzen / Kunden</h2>
+                    <p class="text-xs text-gray-500">Werden in der oberen Sektion auf /kunden angezeigt.</p>
+                </div>
+            </div>
+            <span class="hidden rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 sm:inline-flex">
+                {{ references|length }} Eintr{{ references|length|pluralize:"ag,äge" }}
+            </span>
+        </header>
+
+        <div id="card-list-references" class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3"
+            data-section="references">
+            {% for customer in references %}
+                {% include "pages/cms/content/customers/_customer_card.html" with customer=customer %}
+            {% empty %}
+                <div class="col-span-full flex flex-col items-center rounded-2xl border-2 border-dashed border-gray-200 bg-white p-10 text-center">
+                    <span class="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+                        <i class="bi bi-people text-2xl"></i>
+                    </span>
+                    <p class="text-sm font-semibold text-gray-700">Noch keine Kunden in dieser Sektion</p>
+                    <p class="mt-1 max-w-sm text-sm text-gray-500">Lege deinen ersten Kunden an, um Referenzen auf der öffentlichen Seite zu zeigen.</p>
+                    <a href="{% url 'cms:customer-create' %}" class="mt-4 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">
+                        <i class="bi bi-plus-circle"></i> Kunde anlegen
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- Sektion: Spezielle Programmierungen -->
+    <section class="mt-12">
+        <header class="mb-4 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-purple-100 text-purple-700">
+                    <i class="bi bi-braces-asterisk text-xl"></i>
+                </span>
+                <div>
+                    <h2 class="text-lg font-bold text-gray-900">Spezielle Programmierungen</h2>
+                    <p class="text-xs text-gray-500">Werden in der unteren Sektion auf /kunden angezeigt.</p>
+                </div>
+            </div>
+            <span class="hidden rounded-full bg-purple-50 px-3 py-1 text-xs font-semibold text-purple-700 sm:inline-flex">
+                {{ specials|length }} Eintr{{ specials|length|pluralize:"ag,äge" }}
+            </span>
+        </header>
+
+        <div id="card-list-special" class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3"
+            data-section="special">
+            {% for customer in specials %}
+                {% include "pages/cms/content/customers/_customer_card.html" with customer=customer %}
+            {% empty %}
+                <div class="col-span-full flex flex-col items-center rounded-2xl border-2 border-dashed border-gray-200 bg-white p-10 text-center">
+                    <span class="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-full bg-purple-100 text-purple-600">
+                        <i class="bi bi-code-slash text-2xl"></i>
+                    </span>
+                    <p class="text-sm font-semibold text-gray-700">Keine speziellen Programmierungen</p>
+                    <p class="mt-1 max-w-sm text-sm text-gray-500">Wähle beim Erstellen eines Kunden die Sektion <em>Spezielle Programmierungen</em>.</p>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block javascriptend %}
+<script>
+(function () {
+    const reorderBtn = document.getElementById("reorder-button");
+    const reorderLabel = reorderBtn ? reorderBtn.querySelector('span[data-label-default]') : null;
+    const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+    let sorting = false;
+
+    const sortableLists = ["card-list-references", "card-list-special"].map(function (id) {
+        const el = document.getElementById(id);
+        if (!el) return null;
+        return new Sortable(el, {
+            animation: 150,
+            handle: ".drag-handle",
+            disabled: true,
+            ghostClass: "ring-2",
+        });
+    }).filter(Boolean);
+
+    if (reorderBtn) {
+        reorderBtn.addEventListener("click", function () {
+            sorting = !sorting;
+            if (sorting) {
+                if (reorderLabel) reorderLabel.textContent = reorderLabel.dataset.labelActive;
+                reorderBtn.classList.remove("border-white/30", "bg-white/10");
+                reorderBtn.classList.add("bg-green-500", "hover:bg-green-600", "border-transparent");
+                document.querySelectorAll('.drag-handle').forEach(function (h) { h.classList.remove('opacity-0'); h.classList.add('opacity-100'); });
+                sortableLists.forEach(function (s) { s.option("disabled", false); });
+            } else {
+                const order = [];
+                ["card-list-references", "card-list-special"].forEach(function (listId) {
+                    const list = document.getElementById(listId);
+                    if (!list) return;
+                    list.querySelectorAll(".customer-item").forEach(function (item) {
+                        order.push(parseInt(item.dataset.id, 10));
+                    });
+                });
+
+                fetch("{% url 'cms:customer-reorder' %}", {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": csrfToken,
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ order: order }),
+                }).then(function (res) {
+                    if (res.ok) sendNotif("Reihenfolge erfolgreich gespeichert", "success");
+                    else sendNotif("Fehler beim Speichern der Reihenfolge", "error");
+                });
+
+                if (reorderLabel) reorderLabel.textContent = reorderLabel.dataset.labelDefault;
+                reorderBtn.classList.add("border-white/30", "bg-white/10");
+                reorderBtn.classList.remove("bg-green-500", "hover:bg-green-600", "border-transparent");
+                document.querySelectorAll('.drag-handle').forEach(function (h) { h.classList.add('opacity-0'); h.classList.remove('opacity-100'); });
+                sortableLists.forEach(function (s) { s.option("disabled", true); });
+            }
+        });
+    }
+
+    document.querySelectorAll(".delete-customer").forEach(function (btn) {
+        btn.addEventListener("click", function (e) {
+            e.preventDefault();
+            const id = this.dataset.id;
+            const name = this.dataset.name || "Diesen Kunden";
+            const action = function () {
+                fetch("/cms/seiten/kunden/customers/" + id + "/delete/", {
+                    method: "POST",
+                    headers: { "X-CSRFToken": csrfToken },
+                }).then(function (res) {
+                    if (res.ok) {
+                        const card = document.querySelector('.customer-item[data-id="' + id + '"]');
+                        if (card) card.remove();
+                        sendNotif("Kunde gelöscht", "success");
+                    } else {
+                        sendNotif("Löschen fehlgeschlagen", "error");
+                    }
+                });
+            };
+
+            if (typeof Swal !== "undefined") {
+                Swal.fire({
+                    title: name + " löschen?",
+                    text: "Dieser Vorgang kann nicht rückgängig gemacht werden.",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#dc2626",
+                    cancelButtonColor: "#64748b",
+                    confirmButtonText: "Ja, löschen",
+                    cancelButtonText: "Abbrechen",
+                    reverseButtons: true,
+                }).then(function (result) { if (result.isConfirmed) action(); });
+            } else if (window.confirm(name + " wirklich löschen?")) {
+                action();
+            }
+        });
+    });
+})();
+</script>
+{% endblock %}

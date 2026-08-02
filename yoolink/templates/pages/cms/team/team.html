@@ -1,0 +1,215 @@
+{% extends 'cmsbase.html' %} {% load compress static %} {% block title %}
+{{block.super}} | CMS | Team{% endblock %} {% block css %}
+<style>
+  #activeSwitch:checked~.dot {
+    transform: translateX(100%);
+    background-color: #2563eb;
+  }
+  #activeSwitch:checked~.toggle-track {
+    background-color: #bfdbfe;
+  }
+</style>
+{% endblock css %} {% block content %} {% include "pages/cms/components/ImageSelectModal.html" %}
+<div class="mx-auto max-w-7xl">
+
+  <!-- Header -->
+  <div class="mb-6 mt-2 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <h1 class="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">Mitarbeiter</h1>
+      <p class="mt-1.5 text-slate-500">Pflege dein Team – Reihenfolge per Drag &amp; Drop, Anzeige in der Team-Sektion deiner Website.</p>
+    </div>
+
+    <div class="flex flex-col gap-2 sm:flex-row">
+      <button id="bSaveTeamOrder" disabled
+        class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto">
+        <i class="bi bi-arrow-down-up"></i> Sortierung speichern
+      </button>
+      <button id="bCreateNewMember"
+        class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 sm:w-auto">
+        <i class="bi bi-plus-lg"></i> Teammitglied hinzufügen
+      </button>
+    </div>
+  </div>
+
+  <div id="teamSortableGrid" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    {% for member in team_members %}
+    <div class="team-card group relative flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:border-slate-300 hover:shadow"
+      data-member-id="{{ member.id }}">
+
+      <span class="member-id hidden">{{ member.id }}</span>
+
+      <!-- Bild -->
+      <div class="relative aspect-[4/5] w-full overflow-hidden bg-slate-100">
+        <img src="{{ member.image }}" alt="{{ member.full_name }}" class="member-image h-full w-full object-cover" />
+
+        <!-- Drag Handle -->
+        <button type="button"
+          class="drag-handle absolute left-2 top-2 z-10 inline-flex cursor-move items-center justify-center rounded-lg bg-white/90 p-1.5 text-slate-600 shadow-sm backdrop-blur transition hover:bg-white"
+          title="Zum Sortieren ziehen">
+          <i class="bi bi-grip-vertical text-base leading-none"></i>
+        </button>
+
+        <!-- Status -->
+        {% if member.active %}
+        <span class="member-status absolute right-2 top-2 z-10 inline-flex items-center gap-1 rounded-full bg-emerald-500 px-2.5 py-0.5 text-xs font-semibold text-white shadow-sm">
+          Aktiv
+        </span>
+        {% else %}
+        <span class="member-status absolute right-2 top-2 z-10 inline-flex items-center gap-1 rounded-full bg-amber-500 px-2.5 py-0.5 text-xs font-semibold text-white shadow-sm">
+          Inaktiv
+        </span>
+        {% endif %}
+      </div>
+
+      <!-- Infos -->
+      <div class="flex flex-1 flex-col p-4">
+        <h3 class="member-name truncate font-semibold text-slate-900">{{ member.full_name }}</h3>
+        <p class="member-position truncate text-sm font-medium text-blue-600">{{ member.position }}</p>
+        <p class="member-years mt-1 text-xs text-slate-400">Dabei seit {{ member.years_with_team }}</p>
+
+        <div class="mt-auto flex gap-2 pt-4">
+          <button type="button"
+            class="edit-member inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-blue-600 px-3 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700">
+            <i class="bi bi-pencil-square"></i> Verwalten
+          </button>
+          <button type="button"
+            class="delete-member inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-red-600 transition hover:border-red-200 hover:bg-red-50"
+            title="Löschen">
+            <i class="bi bi-trash"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+
+    <!-- Empty State -->
+    <div id="teamEmptyState" class="{% if team_members %}hidden{% endif %} col-span-full flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center">
+      <span class="grid h-12 w-12 place-items-center rounded-xl bg-blue-100 text-blue-600"><i class="bi bi-people text-2xl"></i></span>
+      <h3 class="mt-4 font-semibold text-slate-900">Noch keine Teammitglieder</h3>
+      <p class="mt-1 text-sm text-slate-500">Lege dein erstes Teammitglied an, damit es in der Team-Sektion erscheint.</p>
+      <button type="button" onclick="document.getElementById('bCreateNewMember').click()"
+        class="mt-5 inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700">
+        <i class="bi bi-plus-lg"></i> Teammitglied hinzufügen
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal zum Erstellen/Bearbeiten eines Teammitglieds -->
+<div id="teamMemberModal" class="fixed inset-0 z-[75] hidden items-center justify-center overflow-y-auto bg-slate-900/60 p-3 backdrop-blur-sm sm:p-6">
+  <div class="flex max-h-[calc(100dvh-1.5rem)] w-full max-w-5xl flex-col overflow-y-auto rounded-2xl bg-white shadow-xl sm:max-h-[calc(100dvh-3rem)] lg:flex-row">
+
+    <!-- Eingabeformular -->
+    <form id="teamMemberForm" class="w-full space-y-4 p-5 sm:p-6 lg:w-2/3">
+      {% csrf_token %}
+      <div class="flex items-start justify-between">
+        <h2 id="modalTitle" class="text-xl font-semibold tracking-tight text-slate-900">
+          Teammitglied erstellen
+        </h2>
+        <button type="button" onclick="closeModal()"
+          class="-mr-1 -mt-1 inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+      <input type="hidden" id="memberId" name="memberId" />
+
+      <div>
+        <label for="full_name" class="mb-1 block text-sm font-medium text-slate-700">Voller Name</label>
+        <input type="text" id="full_name" name="full_name" required
+          class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-900 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100" />
+      </div>
+
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div>
+          <label for="position" class="mb-1 block text-sm font-medium text-slate-700">Position</label>
+          <input type="text" id="position" name="position"
+            class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-900 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100" />
+        </div>
+        <div>
+          <label for="years_with_team" class="mb-1 block text-sm font-medium text-slate-700">Dabei seit (Jahr)</label>
+          <input type="number" id="years_with_team" name="years_with_team"
+            class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-900 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100" />
+        </div>
+        <div>
+          <label for="age" class="mb-1 block text-sm font-medium text-slate-700">Alter</label>
+          <input type="number" id="age" name="age"
+            class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-900 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100" />
+        </div>
+      </div>
+
+      <div>
+        <label for="email" class="mb-1 block text-sm font-medium text-slate-700">E-Mail</label>
+        <input type="email" id="email" name="email"
+          class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-900 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100" />
+      </div>
+
+      <div>
+        <label for="notes" class="mb-1 block text-sm font-medium text-slate-700">Notizen</label>
+        <textarea id="notes" name="note" rows="3"
+          class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-900 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"></textarea>
+      </div>
+
+      <label for="activeSwitch" class="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
+        <div class="relative">
+          <input id="activeSwitch" type="checkbox" class="peer sr-only" />
+          <div class="toggle-track h-5 w-10 rounded-full bg-slate-300 transition"></div>
+          <div class="dot absolute -top-0.5 left-0 h-6 w-6 rounded-full bg-white shadow transition"></div>
+        </div>
+        <span class="text-sm font-medium text-slate-700">Aktiv (in Team-Sektion anzeigen)</span>
+      </label>
+
+      <div class="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
+        <button type="button" onclick="closeModal()"
+          class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+          Abbrechen
+        </button>
+        <button type="submit"
+          class="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700">
+          <i class="bi bi-check-lg"></i> <span id="modalSubmitLabel">Speichern</span>
+        </button>
+      </div>
+    </form>
+
+    <!-- Bildvorschau -->
+    <div class="flex w-full flex-col border-t border-slate-200 bg-slate-50 p-5 pb-[calc(6rem_+_env(safe-area-inset-bottom))] sm:p-6 sm:pb-6 lg:w-1/3 lg:border-l lg:border-t-0">
+      <span class="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">Profilbild</span>
+      <div class="flex aspect-[4/5] w-full items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-white">
+        <img id="imagePreview" src="" alt="Vorschau" class="hidden h-full w-full object-cover" />
+        <div id="imagePreviewPlaceholder" class="flex flex-col items-center text-slate-300">
+          <i class="bi bi-image text-4xl"></i>
+          <span class="mt-2 text-xs text-slate-400">Kein Bild ausgewählt</span>
+        </div>
+      </div>
+      <button type="button" id="bImageSelect"
+        class="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100">
+        <i class="bi bi-images"></i> Bild auswählen
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Bestätigungs-Modal für das Löschen -->
+<div id="confirmDeleteModal" class="fixed inset-0 z-[90] hidden bg-slate-900/60 p-3 backdrop-blur-sm">
+  <div class="mx-auto mt-[20vh] w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-xl">
+    <span class="mx-auto grid h-12 w-12 place-items-center rounded-full bg-red-100 text-red-600"><i class="bi bi-exclamation-triangle text-2xl"></i></span>
+    <h3 class="mt-4 text-lg font-semibold text-slate-900">Löschen bestätigen</h3>
+    <p class="mt-1.5 text-sm text-slate-500">
+      Möchtest du dieses Teammitglied wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.
+    </p>
+    <div class="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-center">
+      <button id="bDeclineDelete"
+        class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+        Abbrechen
+      </button>
+      <button id="bConfirmDelete"
+        class="inline-flex items-center justify-center gap-2 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700">
+        <i class="bi bi-trash"></i> Ja, löschen
+      </button>
+    </div>
+  </div>
+</div>
+
+{% endblock %} {% block javascriptend %} {% compress js %}
+<script src="{% static 'js/cms/sortable/sortable.js' %}"></script>
+<script src="{% static 'js/cms/team/team.js' %}"></script>
+{% endcompress js %} {% endblock javascriptend %}

@@ -1,0 +1,83 @@
+{% extends "cmsbase.html" %}
+{% load compress static %}
+{% block title %} {{ block.super }} | CMS - Datenschutz {% endblock %}
+
+{% block content %}
+<div class="container mx-auto mt-4 sm:mt-8">
+  <div class="sticky top-[4.25rem] z-30 mb-6 rounded-2xl border border-gray-200 bg-white/95 px-5 py-4 shadow-sm backdrop-blur flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <h1 class="text-2xl">
+      <a href="{% url 'cms:sites' %}" class="text-blue-500">Seiten</a>
+      / <span>Datenschutz (/datenschutz)</span>
+    </h1>
+    <div>
+      {% csrf_token %}
+      <a class="block w-full rounded bg-green-500 px-4 py-3 text-center font-bold text-white hover:cursor-pointer hover:bg-green-700 sm:w-auto sm:py-2"
+         id="savePrivacyPolicy">
+        Speichern
+      </a>
+    </div>
+  </div>
+
+  <div class="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="lg:col-span-2 bg-white border border-gray-200 rounded-2xl shadow p-6">
+      <h2 class="text-lg font-bold mb-2">Inhalt</h2>
+      <p class="text-sm text-gray-600 mb-4">
+        Bitte füge hier den HTML-Block ein, z. B. aus E-Recht24.
+      </p>
+
+      <div id="htmlTextWrapper" class="mb-2">
+        <label class="text-sm font-semibold block mb-2">
+          HTML (z. B. von E-Recht24)
+          <span class="ml-2 inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700">
+            <span class="fi fi-{% if cms_language == 'de' %}de{% else %}gb{% endif %}"></span>
+            {% if cms_language == 'de' %}Deutsch{% else %}English{% endif %}
+          </span>
+        </label>
+        <textarea id="privacyContentHtml" rows="18"
+          class="w-full rounded-lg border border-gray-300 p-3 font-mono text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">{{ privacy_content_html }}</textarea>
+      </div>
+    </div>
+
+    <div class="bg-white border border-gray-200 rounded-2xl shadow p-6">
+      <h2 class="text-lg font-bold mb-3">Dynamische Platzhalter</h2>
+      <p class="text-sm text-gray-600 mb-4">
+        Diese Werte werden automatisch aus den Website-Daten ersetzt und können nicht frei überschrieben werden.
+        Falls sie im eingefügten HTML vorkommen, werden sie automatisch als Platzhalter gespeichert.
+      </p>
+      <div class="space-y-2 text-sm font-mono">
+        <div>[[OWNER_NAME]] <span class="font-sans text-xs text-gray-500">(Inhaber)</span></div>
+        <div>[[ADDRESS]]</div>
+        <div>[[EMAIL]]</div>
+        <div>[[TEL]]</div>
+        <div>[[FAX]]</div>
+        <div>[[MOBILE]]</div>
+        <div>[[WEBSITE]]</div>
+      </div>
+
+      <h3 class="text-lg font-bold mt-6 mb-3">Aktuelle Daten</h3>
+      {% if owner_data %}
+        <div class="text-sm text-gray-700 space-y-2">
+          <div><span class="font-semibold">Inhaber:</span> {{ owner_data.owner_name|default:"-" }}</div>
+          <div><span class="font-semibold">Firma:</span> {{ owner_data.company_name|default:"-" }}</div>
+          <div><span class="font-semibold">Adresse:</span> {{ owner_data.address|default:"-" }}</div>
+          <div><span class="font-semibold">E-Mail:</span> {{ owner_data.email|default:"-" }}</div>
+          <div><span class="font-semibold">Telefon:</span> {{ owner_data.tel_number|default:"-" }}</div>
+          <div><span class="font-semibold">Fax:</span> {{ owner_data.fax_number|default:"-" }}</div>
+          <div><span class="font-semibold">Mobil:</span> {{ owner_data.mobile_number|default:"-" }}</div>
+          <div><span class="font-semibold">Website:</span> {{ owner_data.website|default:"-" }}</div>
+        </div>
+      {% else %}
+        <p class="text-sm text-gray-500">Keine Website-Daten gefunden.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block javascriptend %}
+{% compress js %}
+<script defer src="{% static 'js/cms.js' %}"></script>
+<script defer src="{% static 'js/cms/content/privacy.js' %}"></script>
+<script defer src="{% static 'js/cms/unsaved-guard.js' %}"></script>
+{% endcompress js %}
+{% endblock %}

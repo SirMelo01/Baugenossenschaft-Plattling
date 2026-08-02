@@ -1,0 +1,219 @@
+{% extends 'cmsbase.html' %}
+{% load static %}
+{% block title %}{{ block.super }} | CMS | Impressum{% endblock %}
+
+{% block javascript %}
+<script src="{% static 'js/cms/sortable/sortable.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-4xl">
+
+  <!-- Backlink -->
+  <a href="{% url 'cms:sites' %}"
+     class="mb-3 inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 transition hover:text-blue-600">
+    <i class="bi bi-arrow-left"></i> Zur Seitenübersicht
+  </a>
+
+  <!-- Sticky header -->
+  <div class="sticky top-[4.25rem] z-30 mb-6 rounded-2xl border border-gray-200 bg-white/95 px-5 py-4 shadow-sm backdrop-blur">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div class="min-w-0 sm:max-w-sm">
+        <h1 class="text-xl font-semibold text-gray-900 sm:text-2xl">Impressum verwalten</h1>
+        <p class="mt-0.5 text-sm text-gray-500">Pflichtangaben aus den Unternehmensdaten – den Rest baust du frei zusammen.</p>
+      </div>
+      <div class="flex flex-shrink-0 gap-2">
+        <button id="addBlock" type="button"
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm font-semibold text-blue-700 transition hover:bg-blue-100">
+          <i class="bi bi-plus-lg"></i> Block hinzufügen
+        </button>
+        <button id="saveImpressum" type="button"
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-green-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-green-700">
+          <i class="bi bi-check2"></i> Speichern
+        </button>
+      </div>
+    </div>
+  </div>
+
+  {% csrf_token %}
+
+  <!-- Sprach-Hinweis -->
+  <div class="mb-6 flex flex-wrap items-center gap-3 rounded-2xl border border-indigo-200 bg-indigo-50 px-5 py-3.5">
+    <span class="grid h-9 w-9 flex-shrink-0 place-items-center rounded-xl bg-indigo-100 text-indigo-600"><i class="bi bi-translate"></i></span>
+    <p class="min-w-0 flex-1 text-sm text-indigo-900">
+      Du bearbeitest gerade die Sprache
+      <span class="inline-flex items-center gap-1 rounded-full bg-indigo-600 px-2.5 py-0.5 text-xs font-semibold text-white">
+        <span class="fi fi-{% if cms_language == 'de' %}de{% else %}gb{% endif %}"></span>
+        {% if cms_language == 'de' %}Deutsch{% else %}English{% endif %}
+      </span>.
+      Titel &amp; Inhalt der Blöcke werden pro Sprache gespeichert – wechsle die Sprache oben rechts, um die Übersetzung zu pflegen.
+      <span class="text-indigo-700">(Pflichtangaben oben kommen sprachneutral aus den Unternehmensdaten.)</span>
+    </p>
+  </div>
+
+  <!-- Auto-Daten aus Unternehmensdaten -->
+  <div class="mb-6 rounded-2xl border border-blue-200 bg-blue-50/70 p-5">
+    <div class="flex items-start gap-3">
+      <span class="grid h-9 w-9 flex-shrink-0 place-items-center rounded-xl bg-blue-100 text-blue-600"><i class="bi bi-building"></i></span>
+      <div class="min-w-0">
+        <h2 class="text-sm font-semibold text-blue-900">Pflichtangaben (automatisch aus den Unternehmensdaten)</h2>
+        <p class="mt-1 text-sm text-blue-800">
+          Unternehmen, Inhaber, Anschrift und Kontakt werden direkt aus den
+          <a href="{% url 'cms:settings-view' %}" class="font-semibold underline">Einstellungen → Unternehmensdaten</a>
+          gezogen und oben im Impressum angezeigt.
+        </p>
+        <div class="mt-3 grid grid-cols-1 gap-x-6 gap-y-1 text-sm text-blue-900 sm:grid-cols-2">
+          <p><span class="font-medium">Unternehmen:</span> {{ owner_data.company_name|default:"—" }}</p>
+          <p><span class="font-medium">Inhaber:</span> {{ owner_data.owner_name|default:"—" }}</p>
+          <p><span class="font-medium">Anschrift:</span> {{ owner_data.address|default:"—" }}</p>
+          <p><span class="font-medium">E-Mail:</span> {{ owner_data.email|default:"—" }}</p>
+          <p><span class="font-medium">Telefon:</span> {{ owner_data.tel_number|default:owner_data.mobile_number|default:"—" }}</p>
+          <p><span class="font-medium">Website:</span> {{ owner_data.website|default:"—" }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hinweis Formatierung -->
+  <div class="mb-4 flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-900">
+    <i class="bi bi-lightbulb-fill mt-0.5 text-sm text-amber-500"></i>
+    <p>
+      <span class="font-semibold">Tipp:</span>
+      Mit <code class="rounded bg-white px-1 py-0.5 ring-1 ring-amber-200">**Text**</code> schreibst du <strong>fett</strong>.
+      Platzhalter werden automatisch ersetzt:
+      <code class="rounded bg-white px-1 py-0.5 ring-1 ring-amber-200">[[COMPANY]]</code>,
+      <code class="rounded bg-white px-1 py-0.5 ring-1 ring-amber-200">[[OWNER_NAME]]</code>,
+      <code class="rounded bg-white px-1 py-0.5 ring-1 ring-amber-200">[[ADDRESS]]</code>,
+      <code class="rounded bg-white px-1 py-0.5 ring-1 ring-amber-200">[[EMAIL]]</code>,
+      <code class="rounded bg-white px-1 py-0.5 ring-1 ring-amber-200">[[TEL]]</code>,
+      <code class="rounded bg-white px-1 py-0.5 ring-1 ring-amber-200">[[WEBSITE]]</code>.
+    </p>
+  </div>
+
+  <!-- Block-Liste -->
+  <div id="impressumBlocks" class="space-y-4">
+    {% for block in blocks %}
+    <div class="impressum-block rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5" data-id="{{ block.id }}">
+      <div class="flex items-start gap-3">
+        <span class="block-handle mt-1 grid h-8 w-8 flex-shrink-0 cursor-grab place-items-center rounded-lg text-slate-300 transition hover:bg-slate-100 hover:text-slate-500 active:cursor-grabbing" title="Zum Sortieren ziehen">
+          <i class="bi bi-grip-vertical text-xl"></i>
+        </span>
+        <div class="min-w-0 flex-1 space-y-3">
+          <input type="text" value="{{ block.title }}" placeholder="Überschrift (z. B. Haftungshinweis)"
+            class="block-title w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
+          <textarea rows="4" placeholder="Inhalt des Abschnitts …"
+            class="block-content w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm leading-relaxed text-slate-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">{{ block.content }}</textarea>
+          <div class="flex items-center justify-between">
+            <label class="inline-flex cursor-pointer items-center gap-3 text-sm font-medium text-slate-600">
+              <input type="checkbox" class="block-active peer sr-only" {% if block.active %}checked{% endif %}>
+              <span class="cms-switch-track"></span>
+              Sichtbar
+            </label>
+            <button type="button" class="delete-block inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-sm font-semibold text-rose-600 transition hover:bg-rose-100">
+              <i class="bi bi-trash"></i> Entfernen
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div id="impressumEmpty" class="{% if blocks %}hidden {% endif %}mt-4 rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center">
+    <span class="mx-auto grid h-12 w-12 place-items-center rounded-full bg-slate-100 text-slate-400"><i class="bi bi-file-text text-2xl"></i></span>
+    <p class="mt-3 text-slate-500">Noch keine zusätzlichen Blöcke.</p>
+    <p class="mt-1 text-sm text-slate-400">Klicke auf „Block hinzufügen", um einen Abschnitt anzulegen.</p>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block javascriptend %}
+<script defer src="{% static 'js/cms/unsaved-guard.js' %}"></script>
+<script>
+(function () {
+  var csrftoken = $('input[name="csrfmiddlewaretoken"]').val();
+
+  Sortable.create(document.getElementById('impressumBlocks'), { animation: 150, handle: '.block-handle' });
+
+  function blockRow() {
+    return `
+      <div class="impressum-block rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5" data-id="">
+        <div class="flex items-start gap-3">
+          <span class="block-handle mt-1 grid h-8 w-8 flex-shrink-0 cursor-grab place-items-center rounded-lg text-slate-300 transition hover:bg-slate-100 hover:text-slate-500 active:cursor-grabbing" title="Zum Sortieren ziehen">
+            <i class="bi bi-grip-vertical text-xl"></i>
+          </span>
+          <div class="min-w-0 flex-1 space-y-3">
+            <input type="text" value="" placeholder="Überschrift (z. B. Haftungshinweis)"
+              class="block-title w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
+            <textarea rows="4" placeholder="Inhalt des Abschnitts …"
+              class="block-content w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm leading-relaxed text-slate-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"></textarea>
+            <div class="flex items-center justify-between">
+              <label class="inline-flex cursor-pointer items-center gap-3 text-sm font-medium text-slate-600">
+                <input type="checkbox" class="block-active peer sr-only" checked>
+                <span class="cms-switch-track"></span>
+                Sichtbar
+              </label>
+              <button type="button" class="delete-block inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-sm font-semibold text-rose-600 transition hover:bg-rose-100">
+                <i class="bi bi-trash"></i> Entfernen
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function refreshEmptyState() {
+    var has = $('#impressumBlocks .impressum-block').length > 0;
+    $('#impressumEmpty').toggleClass('hidden', has);
+  }
+
+  $('#addBlock').on('click', function () {
+    $('#impressumEmpty').addClass('hidden');
+    $('#impressumBlocks').append(blockRow());
+  });
+
+  $(document).on('click', '.delete-block', function () {
+    $(this).closest('.impressum-block').remove();
+    refreshEmptyState();
+  });
+
+  $('#saveImpressum').on('click', function () {
+    var $btn = $(this);
+    var original = $btn.html();
+    var blocks = [];
+    $('#impressumBlocks .impressum-block').each(function (index) {
+      var $b = $(this);
+      blocks.push({
+        id: $b.attr('data-id') || null,
+        title: $b.find('.block-title').val(),
+        content: $b.find('.block-content').val(),
+        active: $b.find('.block-active').is(':checked'),
+        order: index
+      });
+    });
+
+    $btn.prop('disabled', true).html('<i class="bi bi-arrow-repeat"></i> Speichern …');
+    $.ajax({
+      url: "{% url 'cms:save_impressum' %}",
+      method: 'POST',
+      headers: { 'X-CSRFToken': csrftoken },
+      contentType: 'application/json',
+      data: JSON.stringify({ blocks: blocks }),
+      success: function (res) {
+        sendNotif(res.success || 'Impressum wurde gespeichert', 'success');
+        if (window.UnsavedGuard) UnsavedGuard.markClean();
+        // IDs zuweisen, damit erneutes Speichern aktualisiert statt dupliziert
+        window.location.reload();
+      },
+      error: function (xhr) {
+        var msg = (xhr.responseJSON && xhr.responseJSON.error) ? xhr.responseJSON.error : 'Fehler beim Speichern des Impressums.';
+        sendNotif(msg, 'error');
+        $btn.prop('disabled', false).html(original);
+        $(document).trigger('textContentSaveError');
+      }
+    });
+  });
+})();
+</script>
+{% endblock javascriptend %}

@@ -1,0 +1,76 @@
+{% extends "cmsbase.html" %}
+{% load compress static %}
+{% block title %} {{block.super}} | CMS - Seiteninhalt {% endblock %}
+
+{% block content %}
+
+<div class="container mx-auto mt-8">
+    <div class="sticky top-[4.25rem] z-30 mb-6 rounded-2xl border border-gray-200 bg-white/95 px-5 py-4 shadow-sm backdrop-blur flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h1 class="text-2xl">
+            <a href="{% url 'cms:sites' %}" class="text-blue-500">Seiten</a> /
+            <a href="{% url 'cms:site_hauptseite' %}" class="text-blue-500">Hauptseite</a> /
+            <span>Team</span>
+        </h1>
+        <div>
+            {% csrf_token %}
+            <a class="block w-full rounded bg-green-500 px-4 py-3 text-center font-bold text-white hover:cursor-pointer hover:bg-green-700 sm:w-auto sm:py-2"
+                id="saveTextData" name="main_team">
+                Speichern
+            </a>
+        </div>
+    </div>
+
+    <div class="mt-8 grid gap-8 lg:grid-cols-2">
+        <!-- Texte -->
+        <div class="rounded-xl bg-white p-6 shadow-sm border border-gray-200">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">Texte</h2>
+
+            <div class="mb-5">
+                <label for="header" class="block text-sm font-medium text-gray-600 mb-1">Header / Badge</label>
+                <input
+                    class="bg-gray-50 appearance-none border-2 border-gray-200 rounded-lg w-full py-2 px-4 text-xs font-semibold tracking-wider text-gray-900 uppercase leading-tight focus:outline-none focus:bg-white focus:border-blue-500"
+                    id="header" type="text"
+                    value="{% if textContent and textContent.header %}{{textContent.header}}{% else %}Team{% endif %}">
+            </div>
+
+            <div class="mb-5">
+                <label for="title" class="block text-sm font-medium text-gray-600 mb-1">Überschrift</label>
+                <input
+                    class="bg-gray-50 appearance-none border-2 border-gray-200 rounded-lg w-full py-2 px-4 text-lg font-bold tracking-tight text-gray-900 leading-tight focus:outline-none focus:bg-white focus:border-blue-500"
+                    id="title" type="text"
+                    value="{% if textContent and textContent.title %}{{textContent.title}}{% else %}Die Köpfe hinter YooLink{% endif %}">
+            </div>
+
+            <div>
+                <label for="description" class="block text-sm font-medium text-gray-600 mb-1">Beschreibung</label>
+                <textarea rows="7"
+                    class="bg-gray-50 rounded-lg appearance-none border-2 border-gray-200 w-full py-2 px-4 text-base text-gray-800 leading-relaxed focus:outline-none focus:bg-white focus:border-blue-500"
+                    id="description">{% if textContent and textContent.description %}{{textContent.description}}{% else %}Ein eingespieltes Team aus Niederbayern mit langjähriger Erfahrung in Webentwicklung, Design und SEO. Persönlicher Kontakt, kurze Wege und volle Verantwortung für Ihr Projekt – von der ersten Skizze bis zum Go-Live.{% endif %}</textarea>
+            </div>
+        </div>
+
+        <!-- Mitarbeiter-Verwaltung -->
+        <div class="rounded-xl bg-white p-6 shadow-sm border border-gray-200 flex flex-col">
+            <h2 class="text-lg font-semibold text-gray-800 mb-1 flex items-center justify-between">
+                Mitarbeiter <i class="bi bi-people text-gray-500"></i>
+            </h2>
+            <p class="text-sm text-gray-500 mb-4">Hier kannst du deine Mitarbeiter verwalten.</p>
+            <p class="text-gray-700 mb-4">Aktuelle Mitarbeiter: <strong>{{member_count}}</strong></p>
+            <div class="flex-grow"></div>
+            <a href="{% url 'cms:team-list' %}"
+                class="self-start bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                Verwalten
+            </a>
+        </div>
+    </div>
+</div>
+
+{% block javascriptend %}
+{% compress js %}
+<script defer src="{% static 'js/cms.js' %}"></script>
+<script src="{% static 'js/cms/content/save-text.js' %}"></script>
+<script defer src="{% static 'js/cms/unsaved-guard.js' %}"></script>
+{% endcompress js %}
+{% endblock javascriptend %}
+
+{% endblock content %}

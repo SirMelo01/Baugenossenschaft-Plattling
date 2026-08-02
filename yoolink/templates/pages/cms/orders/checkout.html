@@ -1,0 +1,22 @@
+{% extends "base.html" %} {% load compress static %}
+
+{% block title %}{{block.super}} | Kontakt{% endblock title %}
+
+{% block content %}
+
+<section class="bg-blue-50 w-full h-full">
+    <div class="container mt-8 mx-auto h-screen max-w-screen-xl p-3">
+        <h2 class="text-xl font-medium">Auftrag #{{order.id}}</h2>
+        <div class="mt-3">
+            
+        </div>
+    </div>
+</section>
+
+
+
+{%endblock content%}
+{% block javascriptend %}
+{% compress js %}
+{% endcompress js %}
+{% endblock javascriptend %}

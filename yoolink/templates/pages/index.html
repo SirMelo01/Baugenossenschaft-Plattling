@@ -1,0 +1,950 @@
+{% extends "base.html" %} {% load compress static custom_filters %} {% block title%}{{block.super}} | Webdesign Agentur{% endblock title %}
+
+{% block css %}
+{% compress css %}
+<link href="{% static 'css/cardslider.css' %}" rel="stylesheet" />
+<link href="{% static 'css/wellen.css' %}" rel="stylesheet" />
+<link href="{% static 'css/uboot.css' %}" rel="stylesheet" />
+<link rel="stylesheet" href="{% static 'css/aos.css' %}" />
+<style>
+  /* overflow auf body (nicht html) -> wird auf den Viewport propagiert,
+     erzeugt keinen Scroll-Container -> sticky Navbar funktioniert.
+     "clip" statt "hidden", weil "hidden" auf iOS Safari weiterhin einen
+     pannbaren Scrollport erzeugt -> die 3D-transformierten Cards des
+     Heros (translateZ/perspective) ragen seitlich heraus und lassen sich
+     leicht nach rechts ziehen. "clip" schneidet hart ab, ohne Scrollport,
+     und lässt sticky weiterhin funktionieren. */
+  html,
+  body.overflow-x-hidden {
+    overflow-x: clip;
+  }
+
+  @media (max-width: 1023px) {
+    [data-aos="fade-left"],
+    [data-aos="fade-right"],
+    [data-aos="fade-up-left"],
+    [data-aos="fade-up-right"] {
+      transform: translate3d(0, 60px, 0);
+    }
+  }
+</style>
+{% endcompress css %} 
+{% endblock css %}
+
+{% block javascript %}
+{% compress js %}
+<script defer src="{% static 'js/aos.js' %}"></script>
+{% endcompress %}
+{% endblock javascript %}
+
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "VideoObject",
+  "name": "Yoolink CMS – Demo",
+  "description": "Kurzes Produktvideo, das zeigt, wie unser CMS Tool aussieht.",
+  "thumbnailUrl": "https://fra1.digitaloceanspaces.com/yoolink/media/yoolink/images/cms_landingpage_20251227115013.jpeg",
+  "uploadDate": "2025-12-01T09:30:00Z",
+  "duration": "PT1M38S",
+  "contentUrl": "https://yoolink.fra1.digitaloceanspaces.com/media/yoolink/video/CMS-20Preview.mp4",
+  "embedUrl": "{{ request.build_absolute_uri }}"
+}
+</script>
+{% endblock %}
+
+{% block content %}
+{% load i18n %}
+<!--Kontaktbuttons Beginn-->
+
+{% block kontaktbuttons %}
+<a href="{% url 'kontakt' %}" aria-label="Kontakt per E-Mail">
+    <div
+      class="hidden md:block fixed z-50 bottom-12 right-8 bg-blue-900 rounded-full shadow-2xl p-3"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="white"
+        class="w-7 h-7"
+      >
+        <path
+          d="M1.5 8.67v8.58a3 3 0 003 3h15a3 3 0 003-3V8.67l-8.928 5.493a3 3 0 01-3.144 0L1.5 8.67z"
+        />
+        <path
+          d="M22.5 6.908V6.75a3 3 0 00-3-3h-15a3 3 0 00-3 3v.158l9.714 5.978a1.5 1.5 0 001.572 0L22.5 6.908z"
+        />
+      </svg>
+    </div>
+</a>
+<a href="tel:{% if owner_data and owner_data.tel_number %}{{ owner_data.tel_number }}{% elif owner_data and owner_data.mobile_number %}{{ owner_data.mobile_number }}{% else %}+491705977862{% endif %}" aria-label="Kontakt per Telefon">
+    <div
+      class="hidden md:block fixed z-50 bottom-28 right-8 bg-blue-900 rounded-full shadow-2xl p-3"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="white"
+        class="w-7 h-7"
+      >
+        <path
+          fill-rule="evenodd"
+          d="M1.5 4.5a3 3 0 013-3h1.372c.86 0 1.61.586 1.819 1.42l1.105 4.423a1.875 1.875 0 01-.694 1.955l-1.293.97c-.135.101-.164.249-.126.352a11.285 11.285 0 006.697 6.697c.103.038.25.009.352-.126l.97-1.293a1.875 1.875 0 011.955-.694l4.423 1.105c.834.209 1.42.959 1.42 1.82V19.5a3 3 0 01-3 3h-2.25C8.552 22.5 1.5 15.448 1.5 6.75V4.5z"
+          clip-rule="evenodd"
+        />
+      </svg>
+    </div>
+</a>
+{% endblock kontaktbuttons %}
+
+<!--Kontaktbuttons Ende-->
+
+<!--Templates Beginn-->
+{% block Templates %}
+<section class="bg-white mb-20">
+  <div
+    class="flex flex-col items-center justify-center px-4 pt-6 mx-auto sm:max-w-xl md:max-w-full lg:pt-6 md:px-0"
+  >
+    <div class="flex flex-col items-center max-w-4xl md:px-8">
+      <div
+        class="max-w-xl mb-10 md:mx-auto sm:text-center lg:max-w-4xl md:mb-12"
+      >
+        <h1
+          class="mb-6 mt-6 text-3xl font-bold leading-none tracking-tight text-gray-900 sm:text-5xl xl:text-6xl md:mx-auto text-center"
+        >
+          {{ heroText.title|default:"Webdesign - YooLink" }}
+        </h1>
+        <p class="text-base leading-7 text-gray-600 md:text-lg xl:text-xl">
+          {{ heroText.description|default:"Wir entwickeln moderne Websites, die Ihre Marke stärken und Besucher zu Kunden machen. Als Webdesign-Agentur aus Niederbayern setzen wir auf klares Design, schnelle Ladezeiten und durchdachte SEO." }}
+        </p>
+      </div>
+    </div>
+
+    <!--Cardslider Beginn-->
+    <figure class="icon-cards mt-3">
+      <div class="icon-cards__content">
+        {% for img in heroImages %}
+        <div
+          class="icon-cards__item d-flex align-items-center justify-content-center"
+        >
+          <img src="{{img.upload.url}}" fetchpriority="high" alt="{{img.title}}" />
+        </div>
+        {% empty %}
+        <div class="icon-cards__item d-flex align-items-center justify-content-center">
+          <img src="{% static 'images/Template1.png' %}" fetchpriority="high" alt="Template 1" />
+        </div>
+        <div class="icon-cards__item d-flex align-items-center justify-content-center">
+          <img src="{% static 'images/Template2.png' %}" fetchpriority="high" alt="Template 2" />
+        </div>
+        <div class="icon-cards__item d-flex align-items-center justify-content-center">
+          <img src="{% static 'images/Template3.png' %}" fetchpriority="high" alt="Template 3" />
+        </div>
+        {% endfor %}
+      </div>
+    </figure>
+    <div
+    class="inline-flex items-center justify-center mx-auto bg-blue-900 hover:bg-blue-700 rounded-xl mt-12 transition-transform duration-300 ease-in-out hover:scale-105 hover:-translate-y-1"
+    >
+      <a
+        href="{% url 'kontakt' %}"
+        aria-label="{{ heroText.buttonText|default:'Kontakt' }}"
+        class="flex items-center justify-center h-[3.3rem] px-[1.65rem] text-[1.1rem] font-medium text-white"
+      >
+        {{ heroText.buttonText|default:"Kontakt" }}
+      </a>
+    </div>
+  
+    <!--Cardslider End-->
+  </div>
+</section>
+{% endblock Templates %}
+<!--Templates End-->
+
+<!--Wellen Beginn-->
+{% block Wellen %}
+<section class="bg-white">
+  <div>
+    <svg
+      class="waves"
+      xmlns="http://www.w3.org/2000/svg"
+      xmlns:xlink="http://www.w3.org/1999/xlink"
+      viewBox="0 24 150 28"
+      preserveAspectRatio="none"
+      shape-rendering="auto"
+    >
+      <defs>
+        <path
+          id="gentle-wave"
+          d="M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v44h-352z"
+        />
+      </defs>
+      <g class="parallax">
+        <use
+          xlink:href="#gentle-wave"
+          x="48"
+          y="0"
+          fill="rgba(239,246,255,0.7)"
+        />
+        <use
+          xlink:href="#gentle-wave"
+          x="48"
+          y="3"
+          fill="rgba(239,246,255,0.5)"
+        />
+        <use
+          xlink:href="#gentle-wave"
+          x="48"
+          y="5"
+          fill="rgba(239,246,255,0.3)"
+        />
+        <use xlink:href="#gentle-wave" x="48" y="7" fill="#eff6ff" />
+      </g>
+    </svg>
+  </div>
+</section>
+{% endblock Wellen %}
+<!--Wellen End-->
+
+<!--Background-->
+<div class="bg-blue-50">
+  <!--ResponsiveDesign Beginn -->
+  {% block ResponsiveDesign %}
+  <section class="scroll-my-4 -mb-0 xs:-mb-48 lg:-mb-0" id="Responsive">
+    <div
+      class="flex flex-col justify-between max-w-xl px-4 mx-auto lg:pt-16 lg:flex-row md:px-8 lg:max-w-screen-xl"
+    >
+      <div 
+        class="pt-14 mb-5 lg:mb-0 lg:pt-32 lg:max-w-lg lg:pr-1 xl:ml-10"
+        data-aos="fade-right"
+        data-aos-delay="100">
+        <div class="w-6xl mb-5">
+          <p class="mb-4 text-sm font-semibold uppercase tracking-widest text-blue-900">
+            {{ responsiveText.header|default:"Optimiert für alle Geräte" }}
+          </p>
+          <h2
+            class="max-w-lg mb-6 font-sans text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl sm:leading-none"
+          >
+            {{ responsiveText.title|default:"Responsive Webdesign" }}
+          </h2>
+          <p class="text-base leading-7 text-gray-600 md:text-lg xl:text-xl">
+            {{ responsiveText.description|default:"Mehr als die Hälfte aller Aufrufe kommen heute vom Smartphone. Unsere Websites passen sich automatisch an jedes Display an – vom Desktop über das Tablet bis zum Handy. So überzeugen Sie Kunden auf jedem Gerät." }}
+          </p>
+          <br />
+          <div class="flex" data-aos="fade-up" data-aos-delay="200">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="currentColor"
+              class="w-10 h-10"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0V12a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 12V5.25"
+              />
+            </svg>
+            <label
+              class="relative inline-flex items-center mb-5 mx-3 cursor-pointer"
+            >
+              <input
+                type="checkbox"
+                value=""
+                class="sr-only peer"
+                onclick="toggleResponsive()"
+                aria-label="Ansicht wechseln zwischen Desktop und Mobile"
+              />
+              <div
+                class="w-14 h-7 bg-blue-300 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-blue-900"
+              ></div>
+            </label>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="currentColor"
+              class="w-10 h-10"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3"
+              />
+            </svg>
+          </div>
+        </div>
+      </div>
+      <!--Imageslider-->
+      <div class="container content-center px-1" data-aos="fade-left" data-aos-delay="200">
+        <!--Browser-->
+        <div
+          class="container animate-fade-in-down xs:h-129 sm:h-130 md:h-131 relative"
+          id="browser"
+        >
+          <img
+            src="{% static 'images/MacBookPro16.png' %}" loading="lazy"
+            class="absolute xs:object-top lg:object-center h-full w-full object-contain z-10"
+            alt="MacBookPro16 Bezel"
+          />
+          <span id="desktopSlider">
+            {% if responsiveDesktopImages %} {% for image in responsiveDesktopImages %} {% if forloop.first %}
+            <img
+              src="{{image.upload.url}}" loading="lazy"
+              class="relative h-full w-full object-contain xs:object-top lg:object-center"
+              title="{{image.title}}"
+              alt="{{image.title}}"
+            />
+            {% else %}
+            <img
+              src="{{image.upload.url}}" loading="lazy"
+              class="hidden relative h-full w-full object-contain xs:object-top lg:object-center"
+              title="{{image.title}}"
+              alt="{{image.title}}"
+            />
+            {% endif %} {% endfor %} {% else %}
+            <img
+              src="{% static 'images/MacBook-RSAutoglas1.png' %}" loading="lazy"
+              class="relative h-full w-full object-contain xs:object-top lg:object-center"
+              alt="MacBookPro16 Bezel RS-Autoglas"
+            />
+            <img
+              src="{% static 'images/MacBook-RSAutoglas2.png' %}" loading="lazy"
+              class="hidden relative h-full w-full object-contain xs:object-top lg:object-center"
+              alt="MacBookPro16 Bezel RS-Autoglas"
+            />
+            {% endif %}
+          </span>
+        </div>
+        <!--Phone-->
+        <div
+          class="hidden container animate-fade-in-down xs:h-129 sm:h-130 md:h-131 relative"
+          id="phone"
+          data-aos="fade-up"
+          data-aos-delay="300"
+        >
+          <img 
+            src="{% static 'images/iPhone-Frame.png' %}" loading="lazy"
+            class="absolute h-full w-full object-contain z-10"
+            alt="iPhone-Frame Bezel"
+          />
+          <span id="handySlider">
+            {% if responsiveHandyImages %} {% for image in responsiveHandyImages %} {% if forloop.first %}
+            <img
+              src="{{image.upload.url}}" loading="lazy"
+              class="relative h-full w-full object-contain"
+              title="{{image.title}}"
+              alt="{{image.title}}"
+            />
+            {% else %}
+            <img
+              src="{{image.upload.url}}" loading="lazy"
+              class="hidden relative h-full w-full object-contain"
+              title="{{image.title}}"
+              alt="{{image.title}}"
+            />
+            {% endif %} {% endfor %} {% else %}
+            <img
+              src="{% static 'images/iPhone-RSAutoglas.png' %}" loading="lazy"
+              class="relative h-full w-full object-contain"
+              alt="iPhone-Frame Bezel RS-Autoglas"
+            />
+            <img
+              src="{% static 'images/iPhone-RSAutoglas2.png' %}" loading="lazy"
+              class="hidden relative h-full w-full object-contain"
+              alt="iPhone-Frame Bezel RS-Autoglas"
+            />
+            {% endif %}
+          </span>
+        </div>
+      </div>
+    </div>
+  </section>
+  {% endblock ResponsiveDesign %}
+  <!--ResponsiveDesign End-->
+
+
+  <!--CMS Beginn-->
+  {% block CMSDetail %}
+  <section class="-scroll-my-14 lg:mt-24" id="Cms">
+    <div class="mx-auto max-w-7xl py-24 sm:px-6 sm:py-32 lg:px-4">
+      <div class="relative isolate overflow-visible px-6 sm:px-16 lg:flex lg:items-center lg:gap-x-20 lg:px-8">
+        
+  
+        <!-- Foto-PC -->
+        <div 
+        class="relative w-full lg:w-1/2 overflow-hidden rounded-md shadow-2xl hidden lg:block"
+        data-aos="fade-right" data-aos-delay="100">
+          <video autoplay muted loop playsinline preload="none" poster="https://fra1.digitaloceanspaces.com/yoolink/media/yoolink/images/cms_landingpage_20251227115013.jpeg" class="w-full h-auto object-cover rounded-md" title="Demo: CMS-Seite bearbeiten">
+            <source src="https://yoolink.fra1.digitaloceanspaces.com/media/yoolink/video/CMS-Preview.mp4" type="video/mp4" />
+            Dein Browser unterstützt kein HTML5-Video.
+          </video>
+        </div>
+  
+        <!-- Text -->
+        <div 
+          class="w-full lg:w-1/2 mt-10 lg:mt-0"
+          data-aos="fade-left"
+          data-aos-delay="100">
+          <p class="mb-4 text-sm font-semibold uppercase tracking-widest text-blue-900">
+            {{ cmsText.header|default:"Eigenes CMS" }}
+          </p>
+          <h2 class="text-3xl font-bold tracking-tight sm:text-4xl text-gray-900">
+            {{ cmsText.title|default:"Inhalte selbst pflegen – ganz ohne Code" }}
+          </h2>
+          <p class="mt-6 text-base leading-7 md:text-lg xl:text-xl text-gray-600">
+            {{ cmsText.description|default:"Mit unserem Content-Management-System aktualisieren Sie Texte, Bilder und Blogartikel jederzeit selbst. Schnell, intuitiv und ohne laufende Kosten für jede kleine Änderung." }}
+          </p>
+          <div class="mt-10 flex items-center justify-center gap-x-6 lg:justify-start">
+            <a href="{% url 'home' %}#Preise" class="rounded-md bg-blue-900 text-white px-3.5 py-2.5 text-sm font-semibold shadow-sm">
+              {{ cmsText.buttonText|default:"Angebot ansehen" }}
+            </a>
+            <a href="{% url 'leistungen_cms' %}" class="text-sm font-semibold leading-6">
+              {% trans "learn_more" %} <span aria-hidden="true">→</span>
+            </a>
+          </div>
+  
+          <!-- Mobile Bild -->
+          <div 
+          class="relative h-80 mt-16 overflow-hidden rounded-md block lg:hidden"
+          data-aos="fade-right" data-aos-delay="100">
+            <video autoplay muted loop playsinline preload="none" poster="https://fra1.digitaloceanspaces.com/yoolink/media/yoolink/images/cms_landingpage_20251227115013.jpeg" class="w-full h-auto object-cover rounded-md" title="Demo: CMS-Seite bearbeiten">
+              <source src="https://yoolink.fra1.digitaloceanspaces.com/media/yoolink/video/CMS-Preview.mp4" type="video/mp4" />
+              Dein Browser unterstützt kein HTML5-Video.
+            </video>
+          <!--<div
+             class="relative h-80 mt-16 overflow-hidden rounded-md block lg:hidden">
+             <img
+               class="absolute left-0 top-0 w-[50rem] max-w-none"
+               title="{% if cmsImage %}{{cmsImage.title}}{% endif %}"
+               src="{% if cmsImage %}{{cmsImage.file.url}}{% else %}{% static 'images/cms-screen.png' %}{% endif %}"
+               alt="{% if cmsImage %}{{cmsImage.title}}{% endif %}"
+             />-->
+          </div>
+        </div>
+        
+      </div>
+    </div>
+  </section>
+  
+  {% endblock CMSDetail %}
+  <!--CMS End-->
+  <div class="h-20 bg-gradient-to-b from-blue-50 to-blue-100"></div>
+  <!--Skills Beginn-->
+  {% block Skills %}
+  <section class="scroll-my-4 bg-blue-100" id="Skills">
+    <div class="pb-20 sm:pb-32 pt-20 sm:pt-20">
+      <div class="mx-auto max-w-7xl px-6 lg:px-8">
+        <!-- Headline und Text -->
+        <div class="mx-auto max-w-2xl lg:text-center" data-aos="fade-up">
+          <p class="mb-4 text-sm font-semibold uppercase tracking-widest text-blue-900">
+            {{ knowHowContent.header|default:"Know-how" }}
+          </p>
+          <h2 class="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+            {{ knowHowContent.title|default:"Was wir richtig gut können" }}
+          </h2>
+          <p class="mt-6 text-base md:text-lg xl:text-xl leading-7 text-gray-600">
+            {{ knowHowContent.description|default:"Webdesign ist mehr als hübsche Bilder. Wir verbinden ansprechendes Design mit technischer Performance und gezielter SEO – damit Ihre Website nicht nur gefällt, sondern auch gefunden wird und konvertiert." }}
+          </p>
+        </div>
+        <div class="mx-auto mt-12 max-w-2xl sm:mt-14 lg:mt-16 lg:max-w-5xl">
+          <dl
+            class="grid max-w-xl grid-cols-1 gap-x-8 gap-y-10 md:max-w-none lg:grid-cols-3 lg:gap-y-16"
+          >
+            <div class="relative" data-aos="fade-up" data-aos-delay="100">
+              <div class="flex justify-center">
+                <div
+                  class="mx-auto mb-6 grid h-16 w-16 place-items-center rounded-full bg-blue-200/60 shadow-lg shadow-gray-500/20">
+                  <i class="bi bi-columns-gap text-4xl text-blue-900 p-1"></i>
+                </div>
+              </div>
+              <dt class="text-2xl text-center font-semibold leading-7 text-gray-900">
+                {{ knowHowContentCard1.title|default:"Individuelles Design" }}
+              </dt>
+              <dd class="mt-2 text-base text-center leading-7 text-gray-600">
+                {{ knowHowContentCard1.description|default:"Jede Website entsteht maßgeschneidert für Ihre Marke. Klare Strukturen, durchdachte Nutzerführung und ein Design, das im Gedächtnis bleibt – keine Templates von der Stange." }}
+              </dd>
+            </div>
+            <div class="relative" data-aos="fade-up" data-aos-delay="200">
+              <div class="flex justify-center">
+                <div
+                  class="mx-auto mb-6 grid h-16 w-16 place-items-center rounded-full bg-blue-200/60 shadow-lg shadow-gray-500/20">
+                  <i class="bi bi-bar-chart text-4xl text-blue-900 p-1"></i>
+                </div>
+              </div>
+              <dt class="text-2xl font-semibold leading-7 text-gray-900 text-center">
+                {{ knowHowContentCard2.title|default:"SEO & Sichtbarkeit" }}
+              </dt>
+              <dd class="mt-2 text-base leading-7 text-gray-600 text-center">
+                {{ knowHowContentCard2.description|default:"Wir bauen Ihre Website so, dass Google sie liebt: saubere Struktur, schnelle Ladezeiten und gezielte On-Page-Optimierung für bessere Rankings und mehr organischen Traffic." }}
+              </dd>
+            </div>
+            <div class="relative" data-aos="fade-up" data-aos-delay="300">
+              <div class="flex justify-center">
+                <div
+                  class="mx-auto mb-6 grid h-16 w-16 place-items-center rounded-full bg-blue-200/60 shadow-lg shadow-gray-500/20">
+                  <i class="bi bi-code-slash text-4xl text-blue-900 p-1"></i>
+                </div>
+              </div>
+              <dt class="text-2xl font-semibold leading-7 text-gray-900 text-center">
+                {{ knowHowContentCard3.title|default:"Saubere Technik" }}
+              </dt>
+              <dd class="mt-2 text-base leading-7 text-gray-600 text-center">
+                {{ knowHowContentCard3.description|default:"Modernes Frontend trifft auf solides Backend. Wir setzen auf bewährte Tools, sauberen Code und nachhaltige Architektur – für eine Website, die schnell läuft und langfristig wartbar bleibt." }}
+              </dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </section>
+  {% endblock Skills %}
+  <!--Skills End-->
+
+  <!-- Section References -->
+  <section id="references" class="bg-blue-100 pb-16 pt-10">
+    <div class="container mx-auto">
+      <div class="flex justify-center mb-12">
+        <div class="max-w-2xl lg:text-center" data-aos="fade-up">
+          <p class="mb-4 text-sm font-semibold uppercase tracking-widest text-blue-900">
+            {{ kundenText.header|default:"Referenzen" }}
+          </p>
+          <h2
+            class="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl"
+          >
+            {{ kundenText.title|default:"Websites, die wir umgesetzt haben" }}
+          </h2>
+          <p class="mt-6 text-base md:text-lg xl:text-xl leading-7 text-gray-600">
+            {{ kundenText.description|default:"Vom Zahnarzt bis zum Reiseanbieter – unsere Kunden kommen aus den unterschiedlichsten Branchen. Was sie verbindet: der Wunsch nach einer modernen Website, die ihr Geschäft sichtbar voranbringt." }}
+          </p>
+        </div>
+      </div>
+      {% if customers_references %}
+      <div class="mx-auto grid grid-cols-1 gap-6 px-2 md:grid-cols-2 lg:grid-cols-3">
+        {% for customer in customers_references %}
+          {% include "pages/components/customer_card.html" with customer=customer aos_delay=forloop.counter0|add:"100" %}
+        {% endfor %}
+      </div>
+      {% endif %}
+      <div class="flex justify-center">
+        <div
+          class="inline-flex items-center justify-center mx-auto bg-blue-900 hover:bg-blue-700 rounded-xl mt-12 transition-transform duration-300 ease-in-out hover:scale-105 hover:-translate-y-1"
+          data-aos="fade-up"
+          data-aos-delay="400">
+            <a
+              href="{% url 'kunden' %}"
+              aria-label="Alle unsere Kunden ansehen"
+              class="flex items-center justify-center h-12 px-6 font-medium text-white"
+            >
+            {{ kundenText.buttonText|default:"Alle Kunden ansehen" }}
+            </a>
+          </div>
+      </div>
+    </div>
+    
+  </section>
+
+  <!-- Standorte / Einzugsgebiet Beginn -->
+  {% block Standorte %}
+  {% if service_locations %}
+  <section id="Standorte" class="scroll-my-4 bg-blue-100 pb-20 pt-8">
+    <div class="px-4 mx-auto sm:max-w-xl md:max-w-full lg:max-w-screen-xl md:px-24 lg:px-8">
+      <div class="grid gap-12 lg:grid-cols-2 lg:items-center lg:gap-16">
+
+        <!-- Text + Chips -->
+        <div data-aos="fade-right" data-aos-delay="100">
+          <p class="mb-4 text-sm font-semibold uppercase tracking-widest text-blue-900">
+            {{ standorteText.header|default:"Einzugsgebiet" }}
+          </p>
+          <h2 class="mb-6 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+            {{ standorteText.title|default:"Webdesign für Niederbayern – von Regensburg bis Passau" }}
+          </h2>
+          <p class="text-base leading-7 text-gray-600 md:text-lg xl:text-xl">
+            {{ standorteText.description|default:"Unser Sitz ist in Deggendorf – mitten in Niederbayern. Von hier aus betreuen wir Unternehmen in der gesamten Region: persönlich, vor Ort und mit kurzen Wegen. Für ausgewählte Städte finden Sie eigene Seiten mit allen Infos zu Webdesign in Ihrer Nähe." }}
+          </p>
+
+          {% if standorte_linked %}
+          <p class="mt-8 mb-3 text-xs font-semibold uppercase tracking-widest text-blue-900/70">
+            Direkt zu Ihrer Region
+          </p>
+          <div class="flex flex-wrap gap-3" data-aos="fade-up" data-aos-delay="150">
+            {% for loc in standorte_linked %}
+            <a href="{{ loc.url }}"
+               data-standort-chip="{{ loc.id }}"
+               class="standort-chip group inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white px-4 py-2 text-sm font-semibold text-blue-900 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:bg-blue-900 hover:text-white hover:shadow-md">
+              <i class="bi bi-geo-alt-fill text-blue-700 transition group-hover:text-white"></i>
+              Webdesign {{ loc.name }}
+              <span aria-hidden="true" class="transition-transform duration-200 group-hover:translate-x-0.5">&rarr;</span>
+            </a>
+            {% endfor %}
+          </div>
+          {% endif %}
+
+          <!-- Deutschlandweit-Hinweis -->
+          <div class="mt-8 flex items-start gap-4 rounded-2xl border border-blue-200/80 bg-white/80 p-5 shadow-sm"
+               data-aos="fade-up" data-aos-delay="200">
+            <span class="grid h-11 w-11 flex-shrink-0 place-items-center rounded-full bg-blue-200/60 text-blue-900">
+              <i class="bi bi-globe-europe-africa text-xl"></i>
+            </span>
+            <div>
+              <p class="font-semibold text-gray-900">Deutschlandweit im Einsatz</p>
+              <p class="mt-1 text-sm leading-6 text-gray-600">
+                {{ standorteText.buttonText|default:"Niederbayern ist unser Zuhause – Projekte setzen wir deutschlandweit um, remote genauso persönlich wie vor Ort." }}
+              </p>
+              <a href="{% url 'kontakt' %}" class="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-blue-900 hover:underline">
+                Projekt anfragen <span aria-hidden="true">&rarr;</span>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Interaktive Karte -->
+        <div data-aos="fade-left" data-aos-delay="200">
+          {% include "pages/components/standorte_map.html" with locations=service_locations %}
+        </div>
+
+      </div>
+    </div>
+  </section>
+  {% endif %}
+  {% endblock Standorte %}
+  <!-- Standorte / Einzugsgebiet End -->
+
+  <div class="h-20 bg-gradient-to-b from-blue-100 to-blue-200"></div>
+  <!--Pricing Beginn-->
+  {% block Pricing %}
+  <section class="scroll-my-4 bg-blue-200" id="Preise">
+    <div
+      class="px-4 py-16 mx-auto sm:max-w-xl md:max-w-full lg:max-w-screen-xl md:px-24 lg:px-8 lg:py-20"
+    >
+      <div
+        class="max-w-xl mb-10 md:mx-auto sm:text-center lg:max-w-2xl md:mb-12"
+        data-aos="fade-up"
+      >
+        <p class="mb-4 text-sm font-semibold uppercase tracking-widest text-blue-900">
+          {{ priceText.header|default:"Preise" }}
+        </p>
+        <h2
+          class="max-w-lg mb-6 font-sans text-3xl font-bold leading-none tracking-tight sm:text-4xl md:mx-auto"
+        >
+          <span class="relative inline-block">
+            <span class="relative text-gray-900">{{ priceText.title|default:"Faire Preise ohne Überraschungen" }}</span>
+          </span>
+        </h2>
+        <p class="text-base leading-7 text-gray-600 md:text-lg xl:text-xl">
+          {{ priceText.description|default:"Sie wissen vorher genau, was Sie investieren. Keine versteckten Kosten, keine Folgegebühren für Änderungen – nur transparente Pakete, die zu Ihrem Unternehmen passen." }}
+        </p>
+      </div>
+      <div class="mx-auto grid max-w-5xl gap-8 md:grid-cols-3">
+        {% for card in pricing_cards %}
+          <div data-aos="{{ card.animation }}" data-aos-delay="{{ card.animation_delay }}"
+               class="{% if forloop.counter0 == 1 %}lg:z-10 lg:scale-105{% endif %}">
+            {% if forloop.counter0 == 1 %}
+              {% include "pages/components/pricing_card.html" with card=card featured=True %}
+            {% else %}
+              {% include "pages/components/pricing_card.html" with card=card featured=False %}
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  {% endblock Pricing %}
+  <!--Pricing End-->
+
+  <!--Team Beginn-->
+  {% block Team %}
+  <section class="scroll-my-4 bg-blue-200" id="Team">
+    <div
+      class="px-4 py-16 mx-auto sm:max-w-xl md:max-w-full lg:max-w-screen-xl md:px-24 lg:px-8 lg:py-20"
+    >
+    <div class="mx-auto mb-10 lg:max-w-xl text-center" data-aos="fade-up" data-aos-delay="100">
+      <p class="mb-4 text-sm font-semibold uppercase tracking-widest text-blue-900">
+        {{ teamText.header|default:"Team" }}
+      </p>
+      <h2 class="max-w-xl my-4 text-3xl font-bold leading-none tracking-tight text-gray-900 sm:text-4xl md:mx-auto text-center">
+        {{ teamText.title|default:"Die Köpfe hinter YooLink" }}
+      </h2>
+      <p class="text-base leading-7 text-gray-600 md:text-lg xl:text-xl">
+        {{ teamText.description|default:"Ein eingespieltes Team aus Niederbayern mit langjähriger Erfahrung in Webentwicklung, Design und SEO. Persönlicher Kontakt, kurze Wege und volle Verantwortung für Ihr Projekt – von der ersten Skizze bis zum Go-Live." }}
+      </p>
+    </div>
+    
+      {% if teamMembers %}
+      <div class="grid gap-10 mx-auto sm:grid-cols-2 lg:max-w-screen-md">
+        {% for member in teamMembers %}
+          {% if forloop.counter|divisibleby:2 %}
+            <div class="hey" data-aos="fade-up-left" data-aos-delay="{{ forloop.counter0|add:1 }}00">
+              <div class="relative pb-56 mb-4 rounded shadow lg:pb-64">
+                <img
+                  src="{{ member.image }}" loading="lazy"
+                  class="absolute object-cover w-full h-full rounded-xl"
+                  alt="{{ member.full_name }}"
+                />
+              </div>
+              <div class="flex flex-col sm:text-center">
+                <p class="text-lg font-bold text-blue-900">
+                  {{ member.full_name }}
+                </p>
+                <p class="mb-5 text-xs text-gray-800">{{ member.position }}</p>
+              </div>
+            </div>
+          {% else %}
+            <div class="hey" data-aos="fade-up-right" data-aos-delay="{{ forloop.counter0|add:1 }}00">
+              <div>
+                <div class="relative pb-56 mb-4 rounded shadow lg:pb-64">
+                  <img
+                    class="absolute object-cover w-full h-full rounded-xl"
+                    src="{{ member.image }}" loading="lazy"
+                    alt="{{ member.full_name }}"
+                  />
+                </div>
+                <div class="flex flex-col sm:text-center">
+                  <p class="text-lg font-bold text-blue-900">
+                    {{ member.full_name }}
+                  </p>
+                  <p class="mb-5 text-xs text-gray-800">{{ member.position }}</p>
+                </div>
+              </div>
+            </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="grid gap-10 mx-auto sm:grid-cols-2 lg:max-w-screen-md">
+        <div data-aos="fade-up-right" data-aos-delay="100">
+          <div class="relative pb-56 mb-4 rounded shadow lg:pb-64">
+            <img
+              class="absolute object-cover w-full h-full rounded-xl"
+              src="{% static 'images/Sebastian.jpeg' %}" loading="lazy"
+              alt="Sebastian Rauch"
+            />
+          </div>
+          <div class="flex flex-col sm:text-center">
+            <p class="text-lg font-bold text-blue-900">Sebastian Rauch</p>
+            <p class="mb-5 text-xs text-gray-800">Produkt Manager</p>
+          </div>
+        </div>
+        <div data-aos="fade-up-left" data-aos-delay="200">
+          <div class="relative pb-56 mb-4 rounded shadow lg:pb-64">
+            <img
+              class="absolute object-cover w-full h-full rounded-xl"
+              src="{% static 'images/Lennert.jpg' %}" loading="lazy"
+              alt="Lennert Meißner"
+            />
+          </div>
+          <div class="flex flex-col sm:text-center">
+            <p class="text-lg font-bold text-blue-900">Lennert Meißner</p>
+            <p class="mb-5 text-xs text-gray-800">Entwickler</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </section>
+  {% endblock Team %}
+  <!--Team End-->
+
+  <!--U-Boot Beginn-->
+  {% block UBoot %}
+  <section class="h-72 bg-blue-200">
+    <div class="seaContainer">
+      <div class="submarine__container">
+        <div class="light"></div>
+        <div class="submarine__periscope"></div>
+        <div class="submarine__periscope-glass"></div>
+        <div class="submarine__sail">
+          <div class="submarine__sail-shadow dark1"></div>
+          <div class="submarine__sail-shadow light1"></div>
+          <div class="submarine__sail-shadow dark2"></div>
+        </div>
+        <div class="submarine__body">
+          <div class="submarine__window one"></div>
+          <div class="submarine__window two"></div>
+          <div class="submarine__shadow-dark"></div>
+          <div class="submarine__shadow-light"></div>
+          <div class="submarine__shadow-arcLight"></div>
+        </div>
+        <div class="submarine__propeller">
+          <div class="propeller__perspective">
+            <div class="submarine__propeller-parts darkOne"></div>
+            <div class="submarine__propeller-parts lightOne"></div>
+          </div>
+        </div>
+      </div>
+      <div class="bubbles__container">
+        <span class="bubbles bubble-1"></span>
+        <span class="bubbles bubble-2"></span>
+        <span class="bubbles bubble-3"></span>
+        <span class="bubbles bubble-4"></span>
+      </div>
+      <div class="ground__container">
+        <div class="ground ground1">
+          <span class="up-1"></span>
+          <span class="up-2"></span>
+          <span class="up-3"></span>
+          <span class="up-4"></span>
+          <span class="up-5"></span>
+          <span class="up-6"></span>
+          <span class="up-7"></span>
+          <span class="up-8"></span>
+          <span class="up-9"></span>
+          <span class="up-10"></span>
+        </div>
+        <div class="ground ground2">
+          <span class="up-1"></span>
+          <span class="up-2"></span>
+          <span class="up-3"></span>
+          <span class="up-4"></span>
+          <span class="up-5"></span>
+          <span class="up-6"></span>
+          <span class="up-7"></span>
+          <span class="up-8"></span>
+          <span class="up-9"></span>
+          <span class="up-10"></span>
+          <span class="up-11"></span>
+          <span class="up-12"></span>
+          <span class="up-13"></span>
+          <span class="up-14"></span>
+          <span class="up-15"></span>
+          <span class="up-16"></span>
+          <span class="up-17"></span>
+          <span class="up-18"></span>
+          <span class="up-19"></span>
+          <span class="up-20"></span>
+        </div>
+      </div>
+    </div>
+  </section>
+  {% endblock UBoot %}
+  <!--U-Boot End-->
+</div>
+
+<!--FAQ Beginn-->
+{% block FAQ %}
+<section
+  itemscope
+  itemtype="https://schema.org/FAQPage"
+  class="bg-gray-700 text-white -mt-5"
+>
+  <div
+    class="px-4 py-16 mx-auto sm:max-w-xl md:max-w-full lg:max-w-screen-xl md:px-24 lg:px-8 lg:py-20"
+  >
+    <div class="max-w-xl sm:mx-auto lg:max-w-2xl">
+      <div
+        class="max-w-xl mb-10 md:mx-auto sm:text-center lg:max-w-2xl md:mb-12"
+        data-aos="fade-up"
+        data-aos-delay="100"
+      >
+        <p class="mb-4 text-sm font-semibold uppercase tracking-widest text-white">
+          {{ faqText.header|default:"FAQ" }}
+        </p>
+        <h2
+          class="max-w-lg mb-6 font-sans text-3xl font-bold leading-none tracking-tight text-white sm:text-4xl md:mx-auto"
+        >
+          <span class="relative inline-block">
+            <span class="relative">{{ faqText.title|default:"Antworten auf die häufigsten Fragen" }}</span>
+          </span>
+        </h2>
+        <p class="text-base leading-7 text-white md:text-lg xl:text-xl">
+          {{ faqText.description|default:"Sie haben Fragen zu Ablauf, Preisen oder Technik? Hier finden Sie die wichtigsten Antworten. Wenn etwas fehlt, melden Sie sich gerne direkt bei uns." }}
+        </p>
+      </div>
+      <div class="space-y-4">
+        {% csrf_token %} {% for faq in FAQ %}
+
+        <div 
+          itemscope itemprop="mainEntity" itemtype="https://schema.org/Question"
+          class="border border-gray-600 bg-gray-800 rounded-xl shadow-lg hover:shadow-none"
+          data-aos="{% if forloop.counter0|divisibleby:2 %}fade-left{% else %}fade-right{% endif %}"
+          data-aos-delay='{{ forloop.counter0|add:"1" }}00'>
+          <button
+            class="faq-question w-full flex justify-between gap-4 items-start px-6 py-5 text-left text-lg sm:text-xl font-medium text-gray-100 transition"
+            onclick="toggleFaq(this)"
+          >
+            <span itemprop="name" class="flex-1">{{faq.question}}</span>
+            <svg
+              class="faq-icon w-6 h-6 flex-shrink-0 transition-transform duration-300 mt-1"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+          </button>
+
+          <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer" class="faq-content max-h-0 overflow-hidden px-6 text-gray-300 transition-all duration-500">
+            <p itemprop="text" class="py-4">
+              {{faq.answer}}
+            </p>
+          </div>
+        </div>
+        
+        
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock FAQ %}
+<!--FAQ End-->
+
+{% endblock content %} {% block javascriptend %} {% compress js %}
+<script defer src="{% static 'js/home.js' %}"></script>
+<script>
+  function toggleFaq(button) {
+    const content = button.nextElementSibling;
+    const icon = button.querySelector("svg");
+
+    const isOpen = content.style.maxHeight && content.style.maxHeight !== "0px";
+
+    // Alle schließen (optional)
+    document.querySelectorAll(".faq-content").forEach((el) => {
+      el.style.maxHeight = null;
+    });
+    document.querySelectorAll(".faq-icon").forEach((svg) => {
+      svg.innerHTML = `
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+      `;
+    });
+
+    // Wenn gerade geschlossen, dann öffnen
+    if (!isOpen) {
+      content.style.maxHeight = content.scrollHeight + "px";
+      icon.innerHTML = `
+        <path stroke-linecap="round" stroke-linejoin="round" d="M20 12H4" />
+      `;
+    }
+  }
+
+  // Standorte: Chip-Hover hebt den zugehörigen Pin auf der Karte hervor (und umgekehrt)
+  document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll("[data-standort-chip]").forEach(function (chip) {
+      const pin = document.querySelector('[data-standort-pin="' + chip.dataset.standortChip + '"]');
+      if (!pin) return;
+      chip.addEventListener("mouseenter", function () { pin.classList.add("standort-pin-active"); });
+      chip.addEventListener("mouseleave", function () { pin.classList.remove("standort-pin-active"); });
+      pin.addEventListener("mouseenter", function () { chip.classList.add("-translate-y-0.5", "shadow-md"); });
+      pin.addEventListener("mouseleave", function () { chip.classList.remove("-translate-y-0.5", "shadow-md"); });
+    });
+  });
+</script>
+
+{% endcompress js %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    if (!window.AOS) return;
+
+    AOS.init({
+      duration: 800, // Dauer der Animation in ms
+      once: true,     // Animation nur beim ersten Scroll
+      easing: 'ease-out',
+      disable: "phone"
+    });
+  });
+</script>
+{% endblock javascriptend %}

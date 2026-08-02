@@ -1,0 +1,150 @@
+{% extends "cmsbase.html" %}
+{% load compress static %}
+{% block title %} {{block.super}} | CMS - Kundenauftrag {% endblock %}
+
+{% block content %}
+
+<!-- Delete Modal -->
+{% include "pages/cms/components/DeleteModal.html" %}
+
+<div class="container mx-auto mt-4 max-w-5xl px-2 sm:mt-8 sm:px-4">
+    {% csrf_token %}
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <h1 class="text-xl"><a href="{% url 'cms:order-overview' %}" class="text-blue-500">Aufträge</a> / <span id="titleSpan">{{order.id}}</span></h1>
+      <div>
+        <a class="block w-full rounded bg-red-500 px-4 py-3 text-center font-bold text-white hover:cursor-pointer hover:bg-red-700 sm:w-auto sm:py-2" id="deleteOrder"> Löschen </a>
+      </div>
+    </div>
+    <h2 class="my-6 text-2xl font-medium">Auftragsdetails</h2>
+    <div id="galeryForm" class="w-full rounded-2xl bg-blue-50 px-3 py-3 shadow-lg sm:px-4">
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div class="space-y-1">
+          <p class="font-medium text-lg">Auftragsnummer: #{{order.id}}</p>
+          <p class="my-2">{{order.created_at}}</p>
+          <div class="flex flex-wrap gap-1">
+            {% if order.status == 'OPEN' %}
+            <p class="w-fit rounded-2xl bg-yellow-400 px-2 text-sm font-medium text-gray-700">{{order.get_status_display}}</p>
+            {% elif order.status == 'PAID' %}
+            <p class="w-fit rounded-2xl bg-orange-400 px-2 text-sm font-medium text-gray-700">{{order.get_status_display}}</p>
+            {% elif order.status == 'READY_FOR_PICKUP' %}
+            <p class="w-fit rounded-2xl bg-blue-400 px-2 text-sm font-medium text-gray-700">{{order.get_status_display}}</p>
+            {% elif order.status == 'SHIPPED' %}
+            <p class="w-fit rounded-2xl bg-purple-400 px-2 text-sm font-medium text-gray-700">{{order.get_status_display}}</p>
+            {% elif order.status == 'COMPLETED' %}
+            <p class="w-fit rounded-2xl bg-green-500 px-2 text-sm font-medium text-gray-700">{{order.get_status_display}}</p>
+            {% endif %}
+            <p class="w-fit rounded-2xl bg-orange-400 px-2 text-sm font-medium text-gray-700">{{order.total}}€</p>
+            {% if order.paid %}
+            <p class="w-fit rounded-2xl bg-orange-600 px-2 text-sm font-medium text-gray-800">Bezahlt</p>
+            {% else %}
+            <p class="w-fit rounded-2xl bg-gray-700 px-2 text-sm font-medium text-white">Nicht bezahlt</p>
+            {% endif %}
+          </div>
+        </div>
+        <div class="flex flex-col justify-center gap-2 sm:flex-row sm:items-center">
+          <div class="relative h-10 w-full sm:w-40">
+            <select id="status" class="border-blue-gray-200 text-blue-gray-700 placeholder-shown:border-blue-gray-200 placeholder-shown:border-t-blue-gray-200 disabled:bg-blue-gray-50 peer z-40 h-full w-full rounded-[7px] border border-t-transparent bg-transparent px-3 py-2.5 font-sans text-sm font-normal outline outline-0 transition-all placeholder-shown:border empty:!bg-red-500 focus:border-2 focus:border-blue-500 focus:border-t-transparent focus:outline-0 disabled:border-0">
+              <option value="OPEN" {% if order.status == 'OPEN' %}selected{% endif %}>Offen</option>
+              <option value="PAID" {% if order.status == 'PAID' %}selected{% endif %}>Bezahlt</option>
+              {% if order.shipping == 'PICKUP' %}
+              <option value="READY_FOR_PICKUP" {% if order.status == 'READY_FOR_PICKUP' %}selected{% endif %}>Bereit zur Abholung</option>
+              {% else %}
+              <option value="SHIPPED" {% if order.status == 'SHIPPED' %}selected{% endif %}>Verschickt</option>
+              {% endif %}
+              <option value="COMPLETED" {% if order.status == 'COMPLETED' %}selected{% endif %}>Abgeschlossen</option>
+            </select>
+            <label class="before:content[' '] after:content[' '] text-blue-gray-400 before:border-blue-gray-200 after:border-blue-gray-200 peer-placeholder-shown:text-blue-gray-500 peer-disabled:peer-placeholder-shown:text-blue-gray-500 pointer-events-none absolute -top-1.5 left-0 flex h-full w-full select-none text-[11px] font-normal leading-tight transition-all before:pointer-events-none before:mr-1 before:mt-[6.5px] before:box-border before:block before:h-1.5 before:w-2.5 before:rounded-tl-md before:border-l before:border-t before:transition-all after:pointer-events-none after:ml-1 after:mt-[6.5px] after:box-border after:block after:h-1.5 after:w-2.5 after:flex-grow after:rounded-tr-md after:border-r after:border-t after:transition-all peer-placeholder-shown:text-sm peer-placeholder-shown:leading-[3.75] peer-placeholder-shown:before:border-transparent peer-placeholder-shown:after:border-transparent peer-focus:text-[11px] peer-focus:leading-tight peer-focus:text-blue-500 peer-focus:before:border-l-2 peer-focus:before:border-t-2 peer-focus:before:border-blue-500 peer-focus:after:border-r-2 peer-focus:after:border-t-2 peer-focus:after:border-blue-500 peer-disabled:text-transparent peer-disabled:before:border-transparent peer-disabled:after:border-transparent"> Status auswählen </label>
+          </div>
+          <button class="w-full rounded bg-green-500 px-4 py-3 font-medium text-white hover:cursor-pointer hover:bg-green-700 sm:ml-2 sm:w-auto sm:py-2" id="updateStatus"> Status ändern </button>
+        </div>
+      </div>
+      <!-- Order Info -->
+      <div class="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-2">
+        <!-- Kunden -->
+        <div class="rounded-2xl bg-white p-2">
+          <div class="flex">
+            <div class="mr-2 h-fit rounded-full bg-slate-100 p-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person" viewBox="0 0 16 16">
+                <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6m2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0m4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4m-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10s-3.516.68-4.168 1.332c-.678.678-.83 1.418-.832 1.664z" />
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-lg font-medium mb-2">Kunde</h3>
+              <p class="text-sm text-slate-500">Name: <span class="text-black">{{order.buyer_address.get_buyer_name}}</span></p>
+              <p class="text-sm text-slate-500">Email: <span class="text-black">{{order.buyer_email}}</span></p>
+              <p class="text-sm text-slate-500">Telefon: <span class="text-black">{{order.buyer_address.phone_number}}</span></p>
+              <p class="text-sm text-slate-500">Adresse: <span class="text-black">{{order.buyer_address.get_shipping_address}}</span></p>
+              <p class="text-sm text-slate-500">Liefermethode: <span class="text-black font-semibold">{{order.get_shipping_display}}</span></p>
+              <p class="text-sm text-slate-500">Bezahlmethode: <span class="text-black font-semibold">{{order.get_payment_display}}</span></p>
+            </div>
+          </div>
+        </div>
+        <!-- Auftrag -->
+        <div class="rounded-2xl bg-white p-2">
+          <div class="flex">
+            <div class="mr-2 h-fit rounded-full bg-slate-100 p-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bag-check" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M10.854 8.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 0 1 .708-.708L7.5 10.793l2.646-2.647a.5.5 0 0 1 .708 0" />
+                <path d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1m3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z" />
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-lg font-medium mb-2">Auftrag</h3>
+              <p class="text-sm text-slate-500">Anzahl Produkte: <span class="text-black">{{order.orderitem_set.count}}</span></p>
+              <p class="text-sm text-slate-500">Anzahl Items: <span class="text-black">{{order.total_quantity}}</span></p>
+              <p class="text-sm text-slate-500">Nettosumme: <span class="text-orange-600 font-semibold">{{order.total_with_tax}}€</span></p>
+              {% if order.shipping == 'SHIPPING' %}
+              <p class="text-sm text-slate-500">Lieferkosten: <span class="text-orange-600 font-semibold">{{order.shipping_price}}€</span></p>
+              <hr class="my-1">
+              <p class="text-base text-slate-500">Summe (mit 19% Steuern): <span class="text-green-700 font-semibold">{{order.total}}€</span></p>
+              {% else %}
+              <p class="text-sm text-slate-500">Lieferkosten: 0€</span></p>
+              <hr class="my-1">
+              <p class="text-base text-slate-500">Summe (mit 19% Steuern): <span class="text-green-700 font-semibold">{{order.total_without_shipping}}€</span></p>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Order Item Table -->
+      <div class="mt-8 max-h-screen space-y-2 overflow-auto rounded-2xl bg-white p-2 shadow-lg">
+        <h2 class="text-lg font-medium">Produkte</h2>
+        {% for item in order.orderitem_set.all %}
+        <div class="grid w-full grid-cols-2 gap-3 rounded-2xl bg-slate-50 p-3 sm:grid-cols-3 lg:grid-cols-5">
+          <div>
+            <p class="text-sm text-gray-500">Produkt:</p>
+            <p class="font-medium text-gray-700">{{item.product.title}}</p>
+          </div>
+          <div class="flex flex-col items-center">
+            <p class="text-sm text-gray-500">Anzahl:</p>
+            <p class="font-medium text-gray-700">{{item.quantity}}</p>
+          </div>
+          <div class="flex flex-col items-center">
+            <p class="text-sm text-gray-500">Stückkosten</p>
+            {% if item.is_discounted %}
+            <p class="font-medium text-red-700">{{item.discounted_price}}€</p>
+            {% else %}
+            <p class="font-medium text-green-700">{{item.unit_price}}€</p>
+            {% endif %}
+          </div>
+          <div class="flex flex-col items-center">
+            <p class="text-sm text-gray-500">Umsatz</p>
+            <p class="font-medium {% if item.is_discounted %}text-red-700{% else %}text-green-700{% endif %}">{{item.subtotal}}€</p>
+          </div>
+          <div class="flex flex-col items-center">
+            <p class="text-sm text-gray-500">Reduziert?</p>
+            <p class="font-medium text-gray-700">{% if item.is_discounted %}Ja{% else %}Nein{% endif %}</p>
+          </div>
+          
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  
+
+{% endblock %}
+
+{% block javascriptend %}
+<script src="{% static 'js/cms/orders/order.js' %}"></script>
+{% endblock javascriptend %}

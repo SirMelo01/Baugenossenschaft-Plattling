@@ -1,0 +1,154 @@
+<!-- Image Select Modal -->
+<div class="fixed inset-0 z-[80] hidden items-center justify-center bg-slate-950/70 p-2 backdrop-blur-sm sm:p-4"
+    id="imageModal">
+    <div class="modal-container image-modal-container flex h-[calc(100dvh-1rem)] w-full max-w-6xl flex-col overflow-hidden rounded-lg bg-white shadow-2xl ring-1 ring-slate-200 sm:h-auto sm:max-h-[90vh]">
+        <div class="flex flex-shrink-0 items-start justify-between border-b border-slate-200 px-4 py-4 sm:px-6 sm:py-5">
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-wide text-blue-700">Mediathek</p>
+                <h3 class="mt-1 text-2xl font-semibold text-slate-950" id="infoTitle">
+                    Bild auswählen
+                </h3>
+                <p class="mt-1 text-sm text-slate-500">Wähle ein vorhandenes Bild oder lade direkt ein neues hoch.</p>
+            </div>
+            <button type="button" id="closeImageModal"
+                class="rounded-md p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-900"
+                data-modal-hide="defaultModal">
+                <svg aria-hidden="true" class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd"
+                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                        clip-rule="evenodd"></path>
+                </svg>
+                <span class="sr-only">Schließen</span>
+            </button>
+        </div>
+
+        <div class="image-modal-body grid min-h-0 flex-1 grid-cols-1 overflow-y-auto lg:grid-cols-[17rem_minmax(0,1fr)]">
+            <aside class="image-modal-sidebar border-b border-slate-200 bg-slate-50 p-3 sm:p-4 lg:border-b-0 lg:border-r">
+                <div class="grid grid-cols-2 gap-2 lg:grid-cols-1">
+                    <button type="button" id="imageLibraryTab"
+                        class="image-modal-tab rounded-md bg-blue-900 px-4 py-3 text-left text-sm font-semibold text-white shadow-sm"
+                        data-target="imageLibraryPanel">
+                        <span class="block">Bilder auswählen</span>
+                        <span class="mt-1 block text-xs font-normal text-blue-100">Aus deiner Mediathek</span>
+                    </button>
+                    <button type="button" id="imageUploadTab"
+                        class="image-modal-tab rounded-md px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:bg-white hover:text-slate-950"
+                        data-target="imageUploadPanel">
+                        <span class="block">Neu hochladen</span>
+                        <span class="mt-1 block text-xs font-normal text-slate-500">Drag & Drop oder Datei wählen</span>
+                    </button>
+                </div>
+
+                <div class="mt-6 rounded-lg border border-slate-200 bg-white p-4">
+                    <p class="text-sm font-semibold text-slate-900">Aktuelle Auswahl</p>
+                    <div class="mt-3 aspect-video overflow-hidden rounded-md bg-slate-100">
+                        <img id="selectedImagePreview" src="" alt="Aktuell ausgewähltes Bild"
+                            class="hidden h-full w-full object-cover" />
+                        <div id="selectedImagePlaceholder"
+                            class="flex h-full items-center justify-center px-4 text-center text-sm text-slate-400">
+                            Noch kein Zielbild ausgewählt
+                        </div>
+                    </div>
+                    <div class="mt-4 space-y-3">
+                        <div>
+                            <label for="selectedImageTitleInput" class="text-xs font-semibold uppercase tracking-wide text-slate-500">Bildtitel</label>
+                            <input id="selectedImageTitleInput" type="text" disabled
+                                class="mt-1 w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:text-slate-400">
+                        </div>
+                        <div class="grid grid-cols-1 gap-2">
+                            <button id="selectedImageApply" type="button" disabled
+                                class="inline-flex items-center justify-center rounded-md bg-blue-900 px-3 py-2 text-sm font-semibold text-white transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:bg-slate-300">
+                                Bild übernehmen
+                            </button>
+                            <button id="selectedImageTitleSave" type="button" disabled
+                                class="inline-flex items-center justify-center rounded-md border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:text-slate-400">
+                                Titel speichern
+                            </button>
+                        </div>
+                        <div id="selectedImageMeta" class="rounded-md bg-slate-50 px-3 py-2 text-xs leading-relaxed text-slate-500">
+                            Wähle ein Bild aus der Mediathek, um Details zu sehen.
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <div class="min-h-0 p-4 sm:p-6">
+                <section id="imageLibraryPanel" class="image-modal-panel flex min-h-0 flex-col lg:h-full">
+                    <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <h4 class="text-lg font-semibold text-slate-950">Mediathek</h4>
+                            <p class="text-sm text-slate-500">Klicke ein Bild an, prüfe Details und übernimm es danach in den Inhalt.</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <input id="imageSearchInput" type="search" placeholder="Bilder suchen"
+                                class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:w-56">
+                            <button id="convertImagesToWebp" type="button"
+                                class="hidden rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-400">
+                                WebP
+                            </button>
+                            <button id="reloadImages" type="button"
+                                class="rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700">
+                                Neu laden
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="min-h-[18rem] flex-1 overflow-auto rounded-lg border border-slate-200 bg-slate-50 p-3">
+                        <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 xl:grid-cols-4" id="possibleImages">
+                            <!-- Images will be loaded here -->
+                        </div>
+                        <div id="imageEmptyState" class="hidden py-16 text-center">
+                            <p class="text-base font-semibold text-slate-700">Keine Bilder gefunden</p>
+                            <p class="mt-1 text-sm text-slate-500">Lade ein neues Bild hoch oder ändere deine Suche.</p>
+                        </div>
+                    </div>
+                    <div id="imagePagination" class="mt-3 flex flex-col gap-2 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+                        <span id="imagePaginationInfo">Seite 1</span>
+                        <div class="flex gap-2">
+                            <button id="imagePrevPage" type="button"
+                                class="rounded-md border border-slate-300 px-3 py-2 font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:text-slate-400">
+                                Zurück
+                            </button>
+                            <button id="imageNextPage" type="button"
+                                class="rounded-md border border-slate-300 px-3 py-2 font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:text-slate-400">
+                                Weiter
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="imageUploadPanel" class="image-modal-panel hidden min-h-0 flex-col lg:h-full">
+                    <div class="mb-4">
+                        <h4 class="text-lg font-semibold text-slate-950">Bild hochladen</h4>
+                        <p class="text-sm text-slate-500">Neue Uploads landen automatisch in der Mediathek und können sofort genutzt werden.</p>
+                    </div>
+
+                    <div id="imageUploadDropzone"
+                        class="flex min-h-[18rem] flex-1 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-blue-200 bg-blue-50/60 px-6 py-10 text-center transition hover:border-blue-400 hover:bg-blue-50">
+                        <div class="flex h-14 w-14 items-center justify-center rounded-full bg-white text-blue-700 shadow-sm">
+                            <i class="bi bi-cloud-arrow-up text-3xl"></i>
+                        </div>
+                        <p class="mt-5 text-lg font-semibold text-slate-950">Bilder hier ablegen</p>
+                        <p class="mt-2 max-w-md text-sm text-slate-500">oder klicken, um eine Datei auszuwählen. JPG, PNG, GIF und WebP werden vom CMS verarbeitet.</p>
+                        <p class="mt-2 max-w-md text-xs text-blue-700">Neue statische Bilder werden automatisch als WebP gespeichert und für Mobil verkleinert.</p>
+                        <input id="imageUploadInput" class="hidden" type="file" accept="image/*" multiple>
+                    </div>
+
+                    <div id="imageUploadQueue" class="mt-4 hidden rounded-lg border border-slate-200 bg-white p-3">
+                        <p class="mb-2 text-sm font-semibold text-slate-900">Upload-Verlauf</p>
+                        <div id="imageUploadItems" class="space-y-2"></div>
+                    </div>
+                </section>
+            </div>
+        </div>
+        <div class="image-modal-footer flex flex-shrink-0 flex-col gap-3 border-t border-slate-200 bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-4">
+            <a href="{% url 'cms:upload' %}" target="_blank"
+                class="inline-flex items-center justify-center rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 hover:text-slate-950">
+                <i class="bi bi-box-arrow-up-right mr-2"></i>
+                Klassische Upload-Seite öffnen
+            </a>
+            <p class="text-sm text-slate-500">Bilder können hier direkt hochgeladen, ausgewählt oder aus der Mediathek gelöscht werden.</p>
+        </div>
+    </div>
+</div>

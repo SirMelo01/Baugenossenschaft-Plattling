@@ -1,0 +1,141 @@
+{% extends "cmsbase.html" %}
+{% load compress static %}
+{% block title %} {{block.super}} | CMS - Seiteninhalt {% endblock %}
+
+{% block content %}
+
+<div class="container mx-auto mt-8">
+    <div class="sticky top-[4.25rem] z-30 mb-6 rounded-2xl border border-gray-200 bg-white/95 px-5 py-4 shadow-sm backdrop-blur flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h1 class="text-2xl">
+            <a href="{% url 'cms:sites' %}" class="text-blue-500">Seiten</a> /
+            <a href="{% url 'cms:site_hauptseite' %}" class="text-blue-500">Hauptseite</a> /
+            <span>Know How</span>
+        </h1>
+        <div>
+            {% csrf_token %}
+            <a class="block w-full rounded bg-green-500 px-4 py-3 text-center font-bold text-white hover:cursor-pointer hover:bg-green-700 sm:w-auto sm:py-2"
+                id="saveTextData" name="main_know_how">
+                Speichern
+            </a>
+        </div>
+    </div>
+
+    <div class="mt-8 grid gap-8">
+        <!-- Hauptbereich Texte -->
+        <div class="rounded-xl bg-white p-6 shadow-sm border border-gray-200">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">Texte</h2>
+
+            <div class="mb-5">
+                <label for="header" class="block text-sm font-medium text-gray-600 mb-1">Header / Badge</label>
+                <input
+                    class="bg-gray-50 appearance-none border-2 border-gray-200 rounded-lg w-full py-2 px-4 text-xs font-semibold tracking-wider text-gray-900 uppercase leading-tight focus:outline-none focus:bg-white focus:border-blue-500"
+                    id="header" type="text"
+                    value="{% if textContent and textContent.header %}{{textContent.header}}{% else %}Know-how{% endif %}">
+            </div>
+
+            <div class="mb-5">
+                <label for="title" class="block text-sm font-medium text-gray-600 mb-1">Überschrift</label>
+                <input
+                    class="bg-gray-50 appearance-none border-2 border-gray-200 rounded-lg w-full py-2 px-4 text-lg font-bold tracking-tight text-gray-900 leading-tight focus:outline-none focus:bg-white focus:border-blue-500"
+                    id="title" type="text"
+                    value="{% if textContent and textContent.title %}{{textContent.title}}{% else %}Was wir richtig gut können{% endif %}">
+            </div>
+
+            <div>
+                <label for="description" class="block text-sm font-medium text-gray-600 mb-1">Beschreibung</label>
+                <textarea rows="6"
+                    class="bg-gray-50 rounded-lg appearance-none border-2 border-gray-200 w-full py-2 px-4 text-base text-gray-800 leading-relaxed focus:outline-none focus:bg-white focus:border-blue-500"
+                    id="description">{% if textContent and textContent.description %}{{textContent.description}}{% else %}Webdesign ist mehr als hübsche Bilder. Wir verbinden ansprechendes Design mit technischer Performance und gezielter SEO – damit Ihre Website nicht nur gefällt, sondern auch gefunden wird und konvertiert.{% endif %}</textarea>
+            </div>
+        </div>
+
+        <!-- Karten -->
+        <div>
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">Karten</h2>
+            <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                <!-- Karte 1 -->
+                <div class="rounded-xl bg-white p-6 shadow-sm border border-gray-200 text-content" key="main_know_how_card_1">
+                    <div class="flex justify-center mb-4">
+                        <div class="grid h-14 w-14 place-items-center rounded-full bg-blue-200/60 shadow">
+                            <i class="bi bi-columns-gap text-3xl text-blue-900"></i>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-gray-600 mb-1">Titel</label>
+                        <input
+                            class="bg-gray-50 appearance-none border-2 border-gray-200 rounded-lg w-full py-2 px-4 text-base font-semibold text-center text-gray-900 leading-tight focus:outline-none focus:bg-white focus:border-blue-500"
+                            inputType="title" type="text"
+                            value="{% if textContentCard1 and textContentCard1.title %}{{textContentCard1.title}}{% else %}Individuelles Design{% endif %}">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-1">Beschreibung</label>
+                        <textarea rows="10"
+                            class="bg-gray-50 rounded-lg appearance-none border-2 border-gray-200 w-full py-2 px-4 text-sm text-gray-800 leading-relaxed focus:outline-none focus:bg-white focus:border-blue-500"
+                            inputType="description">{% if textContentCard1 and textContentCard1.description %}{{textContentCard1.description}}{% else %}Jede Website entsteht maßgeschneidert für Ihre Marke. Klare Strukturen, durchdachte Nutzerführung und ein Design, das im Gedächtnis bleibt – keine Templates von der Stange.{% endif %}</textarea>
+                    </div>
+                </div>
+
+                <!-- Karte 2 -->
+                <div class="rounded-xl bg-white p-6 shadow-sm border border-gray-200 text-content" key="main_know_how_card_2">
+                    <div class="flex justify-center mb-4">
+                        <div class="grid h-14 w-14 place-items-center rounded-full bg-blue-200/60 shadow">
+                            <i class="bi bi-bar-chart text-3xl text-blue-900"></i>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-gray-600 mb-1">Titel</label>
+                        <input
+                            class="bg-gray-50 appearance-none border-2 border-gray-200 rounded-lg w-full py-2 px-4 text-base font-semibold text-center text-gray-900 leading-tight focus:outline-none focus:bg-white focus:border-blue-500"
+                            inputType="title" type="text"
+                            value="{% if textContentCard2 and textContentCard2.title %}{{textContentCard2.title}}{% else %}SEO & Sichtbarkeit{% endif %}">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-1">Beschreibung</label>
+                        <textarea rows="10"
+                            class="bg-gray-50 rounded-lg appearance-none border-2 border-gray-200 w-full py-2 px-4 text-sm text-gray-800 leading-relaxed focus:outline-none focus:bg-white focus:border-blue-500"
+                            inputType="description">{% if textContentCard2 and textContentCard2.description %}{{textContentCard2.description}}{% else %}Wir bauen Ihre Website so, dass Google sie liebt: saubere Struktur, schnelle Ladezeiten und gezielte On-Page-Optimierung für bessere Rankings und mehr organischen Traffic.{% endif %}</textarea>
+                    </div>
+                </div>
+
+                <!-- Karte 3 -->
+                <div class="rounded-xl bg-white p-6 shadow-sm border border-gray-200 text-content" key="main_know_how_card_3">
+                    <div class="flex justify-center mb-4">
+                        <div class="grid h-14 w-14 place-items-center rounded-full bg-blue-200/60 shadow">
+                            <i class="bi bi-code-slash text-3xl text-blue-900"></i>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-gray-600 mb-1">Titel</label>
+                        <input
+                            class="bg-gray-50 appearance-none border-2 border-gray-200 rounded-lg w-full py-2 px-4 text-base font-semibold text-center text-gray-900 leading-tight focus:outline-none focus:bg-white focus:border-blue-500"
+                            inputType="title" type="text"
+                            value="{% if textContentCard3 and textContentCard3.title %}{{textContentCard3.title}}{% else %}Saubere Technik{% endif %}">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-1">Beschreibung</label>
+                        <textarea rows="10"
+                            class="bg-gray-50 rounded-lg appearance-none border-2 border-gray-200 w-full py-2 px-4 text-sm text-gray-800 leading-relaxed focus:outline-none focus:bg-white focus:border-blue-500"
+                            inputType="description">{% if textContentCard3 and textContentCard3.description %}{{textContentCard3.description}}{% else %}Modernes Frontend trifft auf solides Backend. Wir setzen auf bewährte Tools, sauberen Code und nachhaltige Architektur – für eine Website, die schnell läuft und langfristig wartbar bleibt.{% endif %}</textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block javascriptend %}
+{% compress js %}
+<script defer src="{% static 'js/cms.js' %}"></script>
+<script src="{% static 'js/cms/content/save-text.js' %}"></script>
+<script defer src="{% static 'js/cms/unsaved-guard.js' %}"></script>
+<script defer src="{% static 'js/cms/content/siteManager.js' %}"></script>
+{% endcompress js %}
+{% endblock javascriptend %}
+
+{% endblock content %}

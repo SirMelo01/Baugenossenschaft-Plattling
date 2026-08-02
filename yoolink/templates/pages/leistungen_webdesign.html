@@ -1,0 +1,827 @@
+{% extends "base.html" %} {% load compress static i18n %}
+
+{% block title %}{{ block.super }} | Webdesign Agentur - moderne Website erstellen lassen{% endblock title %}
+
+{% block meta_description %}Professionelle Webdesign Agentur aus Bayern: Wir entwickeln moderne Websites mit Django und Tailwind CSS, gehostet bei Hetzner in Deutschland. DSGVO-konform, schnell, sicher und nachhaltig skalierbar. Jetzt Website erstellen lassen.{% endblock %}
+
+{% block og_title %}Webdesign Agentur YooLink - Website erstellen lassen mit Django & Tailwind{% endblock %}
+{% block og_description %}Moderne Website Entwicklung mit Django, Tailwind CSS und DSGVO-konformem Hosting bei Hetzner. Strategisch geplant, technisch sauber umgesetzt.{% endblock %}
+{% block twitter_title %}Webdesign Agentur YooLink - moderne Website erstellen lassen{% endblock %}
+{% block twitter_description %}Moderne Website Entwicklung mit Django, Tailwind CSS und DSGVO-konformem Hosting bei Hetzner.{% endblock %}
+
+{% block css %}
+{% compress css %}
+<link href="{% static 'css/wellen.css' %}" rel="stylesheet" />
+<link rel="stylesheet" href="{% static 'css/aos.css' %}" />
+<style>
+  /* ============================================
+     HERO STAGE - Browser mockup with floating tech badges
+  ============================================ */
+  .wd-stage {
+    position: relative;
+    width: 100%;
+    max-width: 32rem;
+    margin: 0 auto;
+    aspect-ratio: 1 / 1;
+  }
+
+  .wd-stage-glow {
+    position: absolute;
+    inset: 5%;
+    background: radial-gradient(ellipse at 50% 50%,
+      rgba(59, 130, 246, 0.28) 0%,
+      rgba(147, 197, 253, 0.10) 40%,
+      rgba(255, 255, 255, 0) 75%);
+    filter: blur(40px);
+    border-radius: 9999px;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .wd-browser {
+    position: absolute;
+    left: 6%;
+    right: 6%;
+    top: 14%;
+    bottom: 14%;
+    background: #ffffff;
+    border-radius: 0.85rem;
+    overflow: hidden;
+    box-shadow:
+      0 30px 60px -25px rgba(15, 23, 42, 0.45),
+      0 10px 20px -8px rgba(15, 23, 42, 0.20),
+      inset 0 0 0 1px rgba(15, 23, 42, 0.06);
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    animation: wdBrowserFloat 6s ease-in-out infinite;
+  }
+
+  .wd-browser-chrome {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 0.85rem;
+    background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .wd-browser-dot {
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 9999px;
+    background: #cbd5e1;
+  }
+  .wd-browser-dot:nth-child(1) { background: #f87171; }
+  .wd-browser-dot:nth-child(2) { background: #fbbf24; }
+  .wd-browser-dot:nth-child(3) { background: #34d399; }
+  .wd-browser-url {
+    flex: 1;
+    height: 0.85rem;
+    margin-left: 0.4rem;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.7);
+    box-shadow: inset 0 0 0 1px #e2e8f0;
+    position: relative;
+  }
+  .wd-browser-url::before {
+    content: "";
+    position: absolute;
+    left: 0.45rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1.6rem;
+    height: 0.32rem;
+    border-radius: 9999px;
+    background: #cbd5e1;
+  }
+
+  .wd-browser-body {
+    flex: 1;
+    display: flex;
+    padding: 0.9rem;
+    gap: 0.7rem;
+  }
+
+  .wd-sidebar {
+    flex: 0 0 28%;
+    background: #1e3a8a;
+    border-radius: 0.55rem;
+    padding: 0.7rem 0.55rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .wd-sidebar-item {
+    height: 0.42rem;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.22);
+  }
+  .wd-sidebar-item--active { background: rgba(255, 255, 255, 0.75); }
+
+  .wd-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .wd-content-hero {
+    height: 28%;
+    border-radius: 0.5rem;
+    background: linear-gradient(135deg, #dbeafe 0%, #93c5fd 100%);
+  }
+  .wd-content-row {
+    display: flex;
+    gap: 0.45rem;
+  }
+  .wd-content-card {
+    flex: 1;
+    aspect-ratio: 1 / 1;
+    border-radius: 0.4rem;
+    background: #eff6ff;
+    border: 1px solid #dbeafe;
+  }
+  .wd-content-lines {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin-top: 0.15rem;
+  }
+  .wd-line {
+    height: 0.34rem;
+    border-radius: 9999px;
+    background: #e5e7eb;
+  }
+  .wd-line--80 { width: 80%; }
+  .wd-line--60 { width: 60%; }
+  .wd-line--45 { width: 45%; }
+
+  /* Floating tech badges */
+  .wd-badge {
+    position: absolute;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.55rem 0.9rem;
+    border-radius: 9999px;
+    background: #ffffff;
+    box-shadow: 0 18px 35px -15px rgba(15, 23, 42, 0.4);
+    border: 1px solid #e5e7eb;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #1e3a8a;
+    z-index: 3;
+    white-space: nowrap;
+  }
+  .wd-badge i { font-size: 1rem; }
+  .wd-badge--tr {
+    top: 4%;
+    right: -4%;
+    animation: wdBadgeFloat1 6s ease-in-out infinite;
+  }
+  .wd-badge--bl {
+    bottom: 8%;
+    left: -4%;
+    animation: wdBadgeFloat2 7s ease-in-out infinite;
+  }
+  .wd-badge--br {
+    bottom: 18%;
+    right: -3%;
+    background: #1e3a8a;
+    color: #ffffff;
+    border-color: #1e3a8a;
+    animation: wdBadgeFloat3 5.5s ease-in-out infinite;
+  }
+
+  @keyframes wdBrowserFloat {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-8px); }
+  }
+  @keyframes wdBadgeFloat1 {
+    0%, 100% { transform: translateY(0) rotate(3deg); }
+    50%      { transform: translateY(-10px) rotate(3deg); }
+  }
+  @keyframes wdBadgeFloat2 {
+    0%, 100% { transform: translateY(0) rotate(-4deg); }
+    50%      { transform: translateY(10px) rotate(-4deg); }
+  }
+  @keyframes wdBadgeFloat3 {
+    0%, 100% { transform: translateY(0) rotate(-2deg); }
+    50%      { transform: translateY(-8px) rotate(-2deg); }
+  }
+
+  /* Hero accent blob */
+  .hero-wd-blob {
+    background: radial-gradient(ellipse at 50% 55%, rgba(59, 130, 246, 0.32) 0%, rgba(147, 197, 253, 0.12) 35%, rgba(255, 255, 255, 0) 70%);
+    filter: blur(48px);
+    border-radius: 9999px;
+  }
+
+  /* ============================================
+     CODE PREVIEW - decorative for tech-stack section
+  ============================================ */
+  .wd-code-card {
+    background: #0f172a;
+    border-radius: 1rem;
+    box-shadow: 0 25px 50px -20px rgba(15, 23, 42, 0.55);
+    overflow: hidden;
+    border: 1px solid #1e293b;
+  }
+  .wd-code-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1rem;
+    background: #1e293b;
+    border-bottom: 1px solid #334155;
+  }
+  .wd-code-dot {
+    width: 0.6rem;
+    height: 0.6rem;
+    border-radius: 9999px;
+    background: #475569;
+  }
+  .wd-code-dot:nth-child(1) { background: #f87171; }
+  .wd-code-dot:nth-child(2) { background: #fbbf24; }
+  .wd-code-dot:nth-child(3) { background: #34d399; }
+  .wd-code-filename {
+    margin-left: 0.5rem;
+    font-family: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", monospace;
+    font-size: 0.8rem;
+    color: #94a3b8;
+  }
+  .wd-code-body {
+    padding: 1.25rem 1.5rem;
+    font-family: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", monospace;
+    font-size: 0.82rem;
+    line-height: 1.7;
+    color: #e2e8f0;
+    overflow-x: auto;
+  }
+  .wd-code-keyword { color: #c084fc; }
+  .wd-code-string  { color: #86efac; }
+  .wd-code-tag     { color: #60a5fa; }
+  .wd-code-attr    { color: #fbbf24; }
+  .wd-code-comment { color: #64748b; font-style: italic; }
+  .wd-code-line    { display: block; }
+  .wd-code-indent  { padding-left: 1.5rem; }
+  .wd-code-indent2 { padding-left: 3rem; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .wd-browser,
+    .wd-badge--tr,
+    .wd-badge--bl,
+    .wd-badge--br {
+      animation: none !important;
+    }
+  }
+</style>
+{% endcompress css %}
+{% endblock css %}
+
+{% block javascript %}
+{% compress js %}
+<script defer src="{% static 'js/aos.js' %}"></script>
+{% endcompress %}
+{% endblock javascript %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "serviceType": "Webdesign und Website Entwicklung",
+  "provider": {
+    "@type": "Organization",
+    "name": "YooLink",
+    "url": "https://yoolink.de",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "Schanzenweg 53",
+      "postalCode": "94469",
+      "addressLocality": "Deggendorf",
+      "addressCountry": "DE"
+    }
+  },
+  "areaServed": "DE",
+  "name": "Webdesign Agentur YooLink",
+  "description": "Professionelle Webdesign Agentur: moderne Website Entwicklung mit Django Framework und Tailwind CSS, DSGVO-konformes Hosting bei Hetzner in Deutschland, fokussiert auf Performance, Sicherheit und Skalierbarkeit.",
+  "url": "https://yoolink.de/leistungen/webdesign/"
+}
+</script>
+{% endblock %}
+
+{% block content %}
+
+<!-- HERO SECTION -->
+<section class="bg-white px-4 pt-20 pb-10 lg:pt-28 lg:pb-20">
+  <div class="mx-auto grid max-w-6xl items-center gap-10 px-4 md:grid-cols-2">
+    <div data-aos="fade-right">
+      <p class="mb-4 text-sm font-semibold uppercase tracking-widest text-blue-900">
+        {{ textContent_hero.header|default:"Webdesign Agentur" }}
+      </p>
+      <h1 class="mb-6 text-3xl font-bold leading-none tracking-tight text-gray-900 sm:text-5xl xl:text-6xl">
+        {{ textContent_hero.title|default:"Moderne Website erstellen lassen - mit Strategie, Design und solider Technik" }}
+      </h1>
+      <p class="mb-8 text-base leading-7 text-gray-600 md:text-lg xl:text-xl">
+        {{ textContent_hero.description|default:"Wir entwickeln professionelle Websites, die deine Marke sichtbar machen, deine Kunden überzeugen und über Jahre hinweg performant bleiben. Vom ersten Konzept bis zur fertigen Seite - durchdacht, sauber programmiert und nachhaltig betrieben." }}
+      </p>
+      <div class="flex flex-wrap gap-4">
+        <a href="{% url 'kontakt' %}"
+          class="inline-block rounded-md border-t border-gray-200 bg-blue-900 px-8 py-4 text-base font-bold text-white shadow-xl transition-transform duration-300 ease-in-out hover:-translate-y-1 hover:scale-105 hover:bg-blue-700">
+          {{ textContent_hero.buttonText|default:"Projekt jetzt anfragen" }}
+        </a>
+        <a href="#prozess"
+          class="inline-block rounded-md border border-blue-900 bg-white px-8 py-4 text-base font-bold text-blue-900 shadow-md transition-transform duration-300 ease-in-out hover:-translate-y-1 hover:scale-105 hover:bg-blue-50">
+          {{ textContent_hero_secondary.title|default:"So arbeiten wir" }}
+        </a>
+      </div>
+    </div>
+    <div data-aos="fade-left" class="relative flex justify-center">
+      <div class="hero-wd-blob pointer-events-none absolute inset-0" aria-hidden="true"></div>
+      <div class="wd-stage relative z-10" aria-hidden="true">
+        <div class="wd-stage-glow"></div>
+
+        <div class="wd-browser">
+          <div class="wd-browser-chrome">
+            <span class="wd-browser-dot"></span>
+            <span class="wd-browser-dot"></span>
+            <span class="wd-browser-dot"></span>
+            <span class="wd-browser-url"></span>
+          </div>
+          <div class="wd-browser-body">
+            <div class="wd-sidebar">
+              <span class="wd-sidebar-item wd-sidebar-item--active"></span>
+              <span class="wd-sidebar-item"></span>
+              <span class="wd-sidebar-item"></span>
+              <span class="wd-sidebar-item"></span>
+              <span class="wd-sidebar-item"></span>
+            </div>
+            <div class="wd-content">
+              <div class="wd-content-hero"></div>
+              <div class="wd-content-row">
+                <div class="wd-content-card"></div>
+                <div class="wd-content-card"></div>
+                <div class="wd-content-card"></div>
+              </div>
+              <div class="wd-content-lines">
+                <span class="wd-line wd-line--80"></span>
+                <span class="wd-line wd-line--60"></span>
+                <span class="wd-line wd-line--45"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <span class="wd-badge wd-badge--tr"><i class="bi bi-code-slash"></i> {{ textContent_hero_badge1.title|default:"Django" }}</span>
+        <span class="wd-badge wd-badge--br"><i class="bi bi-wind"></i> {{ textContent_hero_badge2.title|default:"Tailwind CSS" }}</span>
+        <span class="wd-badge wd-badge--bl"><i class="bi bi-shield-lock"></i> {{ textContent_hero_badge3.title|default:"DSGVO-konform" }}</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WELLEN -->
+{% block Wellen %}
+<section class="bg-white">
+  <div>
+    <svg class="waves" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 24 150 28" preserveAspectRatio="none" shape-rendering="auto">
+      <defs>
+        <path id="gentle-wave" d="M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v44h-352z" />
+      </defs>
+      <g class="parallax">
+        <use xlink:href="#gentle-wave" x="48" y="0" fill="rgba(239,246,255,0.7)" />
+        <use xlink:href="#gentle-wave" x="48" y="3" fill="rgba(239,246,255,0.5)" />
+        <use xlink:href="#gentle-wave" x="48" y="5" fill="rgba(239,246,255,0.3)" />
+        <use xlink:href="#gentle-wave" x="48" y="7" fill="#eff6ff" />
+      </g>
+    </svg>
+  </div>
+</section>
+{% endblock Wellen %}
+
+<!-- UNSER ANSATZ -->
+<section class="bg-blue-50 px-4 py-20">
+  <div class="mx-auto max-w-6xl px-4">
+    <div class="mx-auto mb-16 max-w-3xl text-center" data-aos="fade-up">
+      <p class="mb-4 text-sm font-semibold uppercase tracking-widest text-blue-900">
+        {{ textContent_ansatz.header|default:"Unser Ansatz" }}
+      </p>
+      <h2 class="mb-6 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl sm:leading-none">
+        {{ textContent_ansatz.title|default:"Wie wir moderne Websites konzipieren und umsetzen" }}
+      </h2>
+      <p class="text-base leading-7 text-gray-600 md:text-lg xl:text-xl">
+        {{ textContent_ansatz.description|default:"Eine erfolgreiche Website entsteht nicht aus einer guten Idee allein - sie ist das Ergebnis von strategischer Planung, durchdachtem Design und sauberer technischer Umsetzung. Wir verbinden alle drei Disziplinen und liefern dir eine Website, die nicht nur gut aussieht, sondern messbar funktioniert." }}
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 gap-8 md:grid-cols-3">
+      <div class="rounded-xl bg-white p-8 shadow-md ring-1 ring-gray-200" data-aos="fade-up" data-aos-delay="0">
+        <div class="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-900">
+          <i class="bi bi-compass text-2xl"></i>
+        </div>
+        <h3 class="mb-3 text-xl font-bold tracking-tight text-gray-900">{{ textContent_ansatz_card1.title|default:"Strategische Planung" }}</h3>
+        <p class="text-base leading-7 text-gray-600">
+          {{ textContent_ansatz_card1.description|default:"Bevor die erste Zeile Code entsteht, klären wir Ziele, Zielgruppe und Inhalte. So entstehen Websites, die echte Geschäftsergebnisse liefern - nicht nur Klicks." }}
+        </p>
+      </div>
+      <div class="rounded-xl bg-white p-8 shadow-md ring-1 ring-gray-200" data-aos="fade-up" data-aos-delay="100">
+        <div class="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-900">
+          <i class="bi bi-vector-pen text-2xl"></i>
+        </div>
+        <h3 class="mb-3 text-xl font-bold tracking-tight text-gray-900">{{ textContent_ansatz_card2.title|default:"Modernes Webdesign" }}</h3>
+        <p class="text-base leading-7 text-gray-600">
+          {{ textContent_ansatz_card2.description|default:"Wir gestalten klare, zeitgemäße Oberflächen mit Fokus auf Lesbarkeit, Hierarchie und Benutzerführung - perfekt abgestimmt auf deine Marke." }}
+        </p>
+      </div>
+      <div class="rounded-xl bg-white p-8 shadow-md ring-1 ring-gray-200" data-aos="fade-up" data-aos-delay="200">
+        <div class="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-900">
+          <i class="bi bi-cpu text-2xl"></i>
+        </div>
+        <h3 class="mb-3 text-xl font-bold tracking-tight text-gray-900">{{ textContent_ansatz_card3.title|default:"Saubere Entwicklung" }}</h3>
+        <p class="text-base leading-7 text-gray-600">
+          {{ textContent_ansatz_card3.description|default:"Hinter jeder schönen Oberfläche steckt sauber strukturierter Code - performant, sicher und langfristig wartbar. Genau so entwickeln wir." }}
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROZESS / WIE WIR WEBSITES ENTWICKELN -->
+<section id="prozess" class="bg-blue-50 px-4 pb-20">
+  <div class="mx-auto max-w-6xl px-4">
+    <div class="mx-auto mb-16 max-w-3xl text-center" data-aos="fade-up">
+      <p class="mb-4 text-sm font-semibold uppercase tracking-widest text-blue-900">
+        {{ textContent_prozess.header|default:"In 5 Schritten zur fertigen Website" }}
+      </p>
+      <h2 class="mb-6 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl sm:leading-none">
+        {{ textContent_prozess.title|default:"Unser Entwicklungsprozess" }}
+      </h2>
+      <p class="text-base leading-7 text-gray-600 md:text-lg xl:text-xl">
+        {{ textContent_prozess.description|default:"Von der ersten Idee bis zur Veröffentlichung führen wir dich durch einen klar strukturierten Prozess. So weißt du jederzeit, woran wir gerade arbeiten - und was als Nächstes ansteht." }}
+      </p>
+    </div>
+
+    <div class="relative">
+      <div class="absolute hidden lg:block top-8 left-[10%] right-[10%] h-0.5 bg-gradient-to-r from-blue-200 via-blue-500 to-blue-200" aria-hidden="true"></div>
+      <ol class="relative grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-5 lg:gap-4">
+        <li class="relative flex flex-col" data-aos="fade-up" data-aos-delay="0">
+          <div class="relative z-10 mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-blue-900 text-xl font-bold text-white shadow-lg ring-4 ring-white">1</div>
+          <div class="flex-1 rounded-xl bg-white p-6 ring-1 ring-gray-200 transition duration-300 hover:-translate-y-1 hover:shadow-md">
+            <h3 class="mb-3 text-xl font-bold tracking-tight text-gray-900">{{ textContent_prozess_step1.title|default:"Beratung & Zieldefinition" }}</h3>
+            <p class="text-base leading-7 text-gray-600">
+              {{ textContent_prozess_step1.description|default:"Wir lernen dein Unternehmen, deine Zielgruppe und deine geschäftlichen Ziele kennen und legen das Fundament für deine neue Website." }}
+            </p>
+          </div>
+        </li>
+        <li class="relative flex flex-col" data-aos="fade-up" data-aos-delay="100">
+          <div class="relative z-10 mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-blue-900 text-xl font-bold text-white shadow-lg ring-4 ring-white">2</div>
+          <div class="flex-1 rounded-xl bg-white p-6 ring-1 ring-gray-200 transition duration-300 hover:-translate-y-1 hover:shadow-md">
+            <h3 class="mb-3 text-xl font-bold tracking-tight text-gray-900">{{ textContent_prozess_step2.title|default:"Struktur & Konzept" }}</h3>
+            <p class="text-base leading-7 text-gray-600">
+              {{ textContent_prozess_step2.description|default:"Wir definieren Seitenstruktur, Inhalte und Nutzerführung - die strategische Grundlage für eine Website, die wirklich konvertiert." }}
+            </p>
+          </div>
+        </li>
+        <li class="relative flex flex-col" data-aos="fade-up" data-aos-delay="200">
+          <div class="relative z-10 mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-blue-900 text-xl font-bold text-white shadow-lg ring-4 ring-white">3</div>
+          <div class="flex-1 rounded-xl bg-white p-6 ring-1 ring-gray-200 transition duration-300 hover:-translate-y-1 hover:shadow-md">
+            <h3 class="mb-3 text-xl font-bold tracking-tight text-gray-900">{{ textContent_prozess_step3.title|default:"Design" }}</h3>
+            <p class="text-base leading-7 text-gray-600">
+              {{ textContent_prozess_step3.description|default:"Wir entwerfen das visuelle Konzept - modern, klar und konsistent zu deiner Markenwelt, optimiert für alle Endgeräte." }}
+            </p>
+          </div>
+        </li>
+        <li class="relative flex flex-col" data-aos="fade-up" data-aos-delay="300">
+          <div class="relative z-10 mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-blue-900 text-xl font-bold text-white shadow-lg ring-4 ring-white">4</div>
+          <div class="flex-1 rounded-xl bg-white p-6 ring-1 ring-gray-200 transition duration-300 hover:-translate-y-1 hover:shadow-md">
+            <h3 class="mb-3 text-xl font-bold tracking-tight text-gray-900">{{ textContent_prozess_step4.title|default:"Technische Umsetzung" }}</h3>
+            <p class="text-base leading-7 text-gray-600">
+              {{ textContent_prozess_step4.description|default:"Wir entwickeln deine Website mit Django und Tailwind CSS - performant, sicher und mit einer klaren Codebasis, die langfristig trägt." }}
+            </p>
+          </div>
+        </li>
+        <li class="relative flex flex-col" data-aos="fade-up" data-aos-delay="400">
+          <div class="relative z-10 mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-blue-900 text-xl font-bold text-white shadow-lg ring-4 ring-white">5</div>
+          <div class="flex-1 rounded-xl bg-white p-6 ring-1 ring-gray-200 transition duration-300 hover:-translate-y-1 hover:shadow-md">
+            <h3 class="mb-3 text-xl font-bold tracking-tight text-gray-900">{{ textContent_prozess_step5.title|default:"Launch & Betrieb" }}</h3>
+            <p class="text-base leading-7 text-gray-600">
+              {{ textContent_prozess_step5.description|default:"Wir veröffentlichen deine Website auf unseren Servern bei Hetzner in Deutschland und betreuen sie zuverlässig im laufenden Betrieb." }}
+            </p>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- TECH STACK: DJANGO & TAILWIND -->
+<section class="bg-blue-50 px-4 py-20">
+  <div class="mx-auto max-w-6xl px-4">
+    <div class="grid items-center gap-12 md:grid-cols-2">
+      <div data-aos="fade-right">
+        <p class="mb-4 text-sm font-semibold uppercase tracking-widest text-blue-900">
+          {{ textContent_tech.header|default:"Unsere Technologien" }}
+        </p>
+        <h2 class="mb-6 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl sm:leading-none">
+          {{ textContent_tech.title|default:"Django Framework & Tailwind CSS - das technische Fundament" }}
+        </h2>
+        <p class="mb-6 text-base leading-7 text-gray-600 md:text-lg xl:text-xl">
+          {{ textContent_tech.description|default:"Für die professionelle Website Entwicklung setzen wir bewusst auf zwei der ausgereiftesten Werkzeuge der Webentwicklung. Django ist ein etabliertes Python-Framework, das von Unternehmen wie Instagram, Spotify und Mozilla eingesetzt wird. Tailwind CSS ergänzt es als modernes, hochperformantes Styling-Framework." }}
+        </p>
+        <ul class="mb-8 space-y-3 text-base text-gray-700">
+          <li class="flex items-start gap-3">
+            <i class="bi bi-check-circle-fill mt-1 text-blue-900"></i>
+            <span>{{ textContent_tech_bullet1.title|default:"Performance: kompakter Code, kleine Bundle-Größen, schnelle Ladezeiten" }}</span>
+          </li>
+          <li class="flex items-start gap-3">
+            <i class="bi bi-check-circle-fill mt-1 text-blue-900"></i>
+            <span>{{ textContent_tech_bullet2.title|default:"Wartbarkeit: klare Strukturen, dokumentierte Standards, langlebige Codebasis" }}</span>
+          </li>
+          <li class="flex items-start gap-3">
+            <i class="bi bi-check-circle-fill mt-1 text-blue-900"></i>
+            <span>{{ textContent_tech_bullet3.title|default:"Skalierbarkeit: modularer Aufbau, problemlose Erweiterung um neue Funktionen" }}</span>
+          </li>
+          <li class="flex items-start gap-3">
+            <i class="bi bi-check-circle-fill mt-1 text-blue-900"></i>
+            <span>{{ textContent_tech_bullet4.title|default:"Sicherheit: integrierter Schutz gegen XSS, CSRF und SQL-Injection" }}</span>
+          </li>
+        </ul>
+      </div>
+      <div data-aos="fade-left">
+        <div class="wd-code-card">
+          <div class="wd-code-header">
+            <span class="wd-code-dot"></span>
+            <span class="wd-code-dot"></span>
+            <span class="wd-code-dot"></span>
+            <span class="wd-code-filename">deine-website.html</span>
+          </div>
+          <pre class="wd-code-body">{% verbatim %}<span class="wd-code-line"><span class="wd-code-comment">{# Django Template mit Tailwind CSS #}</span></span><span class="wd-code-line">&lt;<span class="wd-code-tag">section</span> <span class="wd-code-attr">class</span>=<span class="wd-code-string">"bg-blue-50 py-20"</span>&gt;</span><span class="wd-code-line wd-code-indent">&lt;<span class="wd-code-tag">div</span> <span class="wd-code-attr">class</span>=<span class="wd-code-string">"mx-auto max-w-6xl"</span>&gt;</span><span class="wd-code-line wd-code-indent2">&lt;<span class="wd-code-tag">h1</span> <span class="wd-code-attr">class</span>=<span class="wd-code-string">"text-5xl font-bold"</span>&gt;</span><span class="wd-code-line wd-code-indent2">  {{ <span class="wd-code-keyword">page</span>.title }}</span><span class="wd-code-line wd-code-indent2">&lt;/<span class="wd-code-tag">h1</span>&gt;</span><span class="wd-code-line wd-code-indent">&lt;/<span class="wd-code-tag">div</span>&gt;</span><span class="wd-code-line">&lt;/<span class="wd-code-tag">section</span>&gt;</span>{% endverbatim %}</pre>
+        </div>
+        <div class="mt-6 grid grid-cols-2 gap-4">
+          <div class="rounded-xl bg-white p-6 text-center shadow-md ring-1 ring-gray-200">
+            <span class="block text-2xl font-bold text-blue-900">Django</span>
+            <span class="mt-2 block text-sm text-gray-500">Backend Framework</span>
+          </div>
+          <div class="rounded-xl bg-white p-6 text-center shadow-md ring-1 ring-gray-200">
+            <span class="block text-2xl font-bold text-blue-900">Tailwind</span>
+            <span class="mt-2 block text-sm text-gray-500">Styling Framework</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOSTING BEI HETZNER -->
+<section class="bg-blue-50 px-4 py-20">
+  <div class="mx-auto max-w-6xl px-4">
+    <div class="grid items-center gap-12 md:grid-cols-2">
+      <div class="order-2 md:order-1" data-aos="fade-right">
+        <div class="relative flex justify-center">
+          <div class="absolute inset-0 hero-wd-blob pointer-events-none" aria-hidden="true"></div>
+          <div class="relative grid w-full max-w-md grid-cols-2 gap-4">
+            <div class="rounded-xl bg-white p-6 text-center shadow-md ring-1 ring-gray-200">
+              <div class="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-900">
+                <i class="bi bi-geo-alt text-2xl"></i>
+              </div>
+              <p class="text-sm font-bold text-gray-900">{{ textContent_hosting_tile1.title|default:"Standort" }}</p>
+              <p class="mt-1 text-xs text-gray-500">{{ textContent_hosting_tile1.description|default:"Deutschland" }}</p>
+            </div>
+            <div class="rounded-xl bg-white p-6 text-center shadow-md ring-1 ring-gray-200">
+              <div class="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-900">
+                <i class="bi bi-shield-check text-2xl"></i>
+              </div>
+              <p class="text-sm font-bold text-gray-900">{{ textContent_hosting_tile2.title|default:"DSGVO" }}</p>
+              <p class="mt-1 text-xs text-gray-500">{{ textContent_hosting_tile2.description|default:"vollständig konform" }}</p>
+            </div>
+            <div class="rounded-xl bg-white p-6 text-center shadow-md ring-1 ring-gray-200">
+              <div class="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-900">
+                <i class="bi bi-lightning-charge text-2xl"></i>
+              </div>
+              <p class="text-sm font-bold text-gray-900">{{ textContent_hosting_tile3.title|default:"Performance" }}</p>
+              <p class="mt-1 text-xs text-gray-500">{{ textContent_hosting_tile3.description|default:"moderne Hardware" }}</p>
+            </div>
+            <div class="rounded-xl bg-blue-900 p-6 text-center shadow-md">
+              <div class="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white">
+                <i class="bi bi-hdd-network text-2xl"></i>
+              </div>
+              <p class="text-sm font-bold text-white">{{ textContent_hosting_tile4.title|default:"Verfügbarkeit" }}</p>
+              <p class="mt-1 text-xs text-blue-100">{{ textContent_hosting_tile4.description|default:"stabil & zuverlässig" }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="order-1 md:order-2" data-aos="fade-left">
+        <p class="mb-4 text-sm font-semibold uppercase tracking-widest text-blue-900">
+          {{ textContent_hosting.header|default:"Hosting bei Hetzner" }}
+        </p>
+        <h2 class="mb-6 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl sm:leading-none">
+          {{ textContent_hosting.title|default:"Datenschutzkonformes Hosting aus Deutschland" }}
+        </h2>
+        <p class="mb-6 text-base leading-7 text-gray-600 md:text-lg xl:text-xl">
+          {{ textContent_hosting.description|default:"Wir hosten alle unsere Websites bei Hetzner - einem renommierten deutschen Anbieter mit klarem Fokus auf Datenschutz, Zuverlässigkeit und Performance. Damit erfüllen wir die strengen Anforderungen der DSGVO und bieten dir gleichzeitig erstklassige technische Rahmenbedingungen." }}
+        </p>
+        <ul class="space-y-4 border-t border-gray-200 pt-6">
+          <li class="flex space-x-3">
+            <svg class="h-5 w-5 flex-shrink-0 text-blue-900" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+            <span class="text-base font-medium leading-tight text-gray-900">{{ textContent_hosting_bullet1.title|default:"Serverstandorte in Deutschland - kurze Latenzen für deutsche Besucher" }}</span>
+          </li>
+          <li class="flex space-x-3">
+            <svg class="h-5 w-5 flex-shrink-0 text-blue-900" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+            <span class="text-base font-medium leading-tight text-gray-900">{{ textContent_hosting_bullet2.title|default:"Vollständige DSGVO-Konformität ohne Drittland-Transfer" }}</span>
+          </li>
+          <li class="flex space-x-3">
+            <svg class="h-5 w-5 flex-shrink-0 text-blue-900" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+            <span class="text-base font-medium leading-tight text-gray-900">{{ textContent_hosting_bullet3.title|default:"Moderne Hardware für hohe Performance und schnelle Ladezeiten" }}</span>
+          </li>
+          <li class="flex space-x-3">
+            <svg class="h-5 w-5 flex-shrink-0 text-blue-900" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+            <span class="text-base font-medium leading-tight text-gray-900">{{ textContent_hosting_bullet4.title|default:"Hohe Verfügbarkeit und stabile Infrastruktur rund um die Uhr" }}</span>
+          </li>
+          <li class="flex space-x-3">
+            <svg class="h-5 w-5 flex-shrink-0 text-blue-900" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+            <span class="text-base font-medium leading-tight text-gray-900">{{ textContent_hosting_bullet5.title|default:"Regelmäßige Backups und transparente Sicherheitsstandards" }}</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TECHNISCHE SCHWERPUNKTE -->
+<section class="bg-blue-50 px-4 py-20">
+  <div class="mx-auto max-w-6xl px-4">
+    <div class="mx-auto mb-16 max-w-3xl text-center" data-aos="fade-up">
+      <p class="mb-4 text-sm font-semibold uppercase tracking-widest text-blue-900">
+        {{ textContent_schwerpunkte.header|default:"Technische Qualität" }}
+      </p>
+      <h2 class="mb-6 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl sm:leading-none">
+        {{ textContent_schwerpunkte.title|default:"Worauf wir bei jeder Website achten" }}
+      </h2>
+      <p class="text-base leading-7 text-gray-600 md:text-lg xl:text-xl">
+        {{ textContent_schwerpunkte.description|default:"Eine moderne Website muss heute weit mehr leisten als gut auszusehen. Sie muss schnell, sicher, mobil optimiert und zukunftsfähig sein. Diese vier Säulen sind für uns nicht verhandelbar." }}
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 gap-8 md:grid-cols-2">
+      <article class="flex h-full flex-col rounded-xl bg-white p-8 shadow-md ring-1 ring-gray-200 transition duration-300 hover:-translate-y-1 hover:shadow-xl" data-aos="fade-up">
+        <div class="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-900">
+          <i class="bi bi-speedometer2 text-2xl"></i>
+        </div>
+        <h3 class="mb-3 text-xl font-bold tracking-tight text-gray-900">{{ textContent_schwerpunkte_card1.title|default:"Ladezeiten & Performance" }}</h3>
+        <p class="mb-4 text-base leading-7 text-gray-600">
+          {{ textContent_schwerpunkte_card1.description|default:"Schnelle Websites ranken besser, verkaufen mehr und halten Besucher länger. Wir optimieren Bilder, minimieren Assets und liefern Inhalte über performante Server aus." }}
+        </p>
+        <ul class="list-inside list-disc text-base text-gray-500">
+          <li>{{ textContent_schwerpunkte_card1_bullet1.title|default:"Optimierte Bildauslieferung und Lazy Loading" }}</li>
+          <li>{{ textContent_schwerpunkte_card1_bullet2.title|default:"Minimaler CSS- und JavaScript-Footprint" }}</li>
+          <li>{{ textContent_schwerpunkte_card1_bullet3.title|default:"Effiziente Datenbankabfragen und Caching" }}</li>
+        </ul>
+      </article>
+
+      <article class="flex h-full flex-col rounded-xl bg-white p-8 shadow-md ring-1 ring-gray-200 transition duration-300 hover:-translate-y-1 hover:shadow-xl" data-aos="fade-up" data-aos-delay="100">
+        <div class="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-900">
+          <i class="bi bi-phone text-2xl"></i>
+        </div>
+        <h3 class="mb-3 text-xl font-bold tracking-tight text-gray-900">{{ textContent_schwerpunkte_card2.title|default:"Mobile Optimierung" }}</h3>
+        <p class="mb-4 text-base leading-7 text-gray-600">
+          {{ textContent_schwerpunkte_card2.description|default:"Über die Hälfte aller Website-Besuche kommen vom Smartphone. Wir entwickeln deshalb konsequent responsive - vom kleinen Display bis zum großen Desktop." }}
+        </p>
+        <ul class="list-inside list-disc text-base text-gray-500">
+          <li>{{ textContent_schwerpunkte_card2_bullet1.title|default:"Mobile-First Designansatz" }}</li>
+          <li>{{ textContent_schwerpunkte_card2_bullet2.title|default:"Touch-optimierte Bedienelemente" }}</li>
+          <li>{{ textContent_schwerpunkte_card2_bullet3.title|default:"Schnelle Darstellung auch bei schwacher Verbindung" }}</li>
+        </ul>
+      </article>
+
+      <article class="flex h-full flex-col rounded-xl bg-white p-8 shadow-md ring-1 ring-gray-200 transition duration-300 hover:-translate-y-1 hover:shadow-xl" data-aos="fade-up">
+        <div class="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-900">
+          <i class="bi bi-shield-lock text-2xl"></i>
+        </div>
+        <h3 class="mb-3 text-xl font-bold tracking-tight text-gray-900">{{ textContent_schwerpunkte_card3.title|default:"Sicherheit" }}</h3>
+        <p class="mb-4 text-base leading-7 text-gray-600">
+          {{ textContent_schwerpunkte_card3.description|default:"Wir nehmen die Sicherheit deiner Website ernst - vom verschlüsselten Datentransfer bis zum geschützten Datenbankzugriff. So bleibt deine Seite und deine Daten geschützt." }}
+        </p>
+        <ul class="list-inside list-disc text-base text-gray-500">
+          <li>{{ textContent_schwerpunkte_card3_bullet1.title|default:"SSL-Verschlüsselung als Standard" }}</li>
+          <li>{{ textContent_schwerpunkte_card3_bullet2.title|default:"Schutz vor gängigen Angriffen (XSS, CSRF, SQL-Injection)" }}</li>
+          <li>{{ textContent_schwerpunkte_card3_bullet3.title|default:"Regelmäßige Sicherheitsupdates der Codebasis" }}</li>
+        </ul>
+      </article>
+
+      <article class="relative flex h-full flex-col overflow-hidden rounded-xl bg-gradient-to-br from-blue-900 via-blue-800 to-blue-950 p-8 text-white shadow-xl ring-1 ring-blue-800 transition duration-300 hover:-translate-y-1 hover:shadow-2xl" data-aos="fade-up" data-aos-delay="100">
+        <div class="relative">
+          <div class="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white">
+            <i class="bi bi-arrows-fullscreen text-2xl"></i>
+          </div>
+          <h3 class="mb-3 text-xl font-bold tracking-tight">{{ textContent_schwerpunkte_card4.title|default:"Skalierbarkeit" }}</h3>
+          <p class="mb-4 text-base leading-7 text-blue-50">
+            {{ textContent_schwerpunkte_card4.description|default:"Deine Website wächst mit deinem Unternehmen. Wir bauen Architekturen, die sich problemlos um neue Seiten, Funktionen oder Integrationen erweitern lassen - ohne kompletten Neubau." }}
+          </p>
+          <ul class="space-y-2 text-base text-blue-50">
+            <li class="flex items-start gap-2"><i class="bi bi-check-circle-fill mt-1 text-blue-300"></i><span>{{ textContent_schwerpunkte_card4_bullet1.title|default:"Modularer Aufbau für nachträgliche Erweiterungen" }}</span></li>
+            <li class="flex items-start gap-2"><i class="bi bi-check-circle-fill mt-1 text-blue-300"></i><span>{{ textContent_schwerpunkte_card4_bullet2.title|default:"Vorbereitet für Shop, Blog, Buchungssystem und Co." }}</span></li>
+            <li class="flex items-start gap-2"><i class="bi bi-check-circle-fill mt-1 text-blue-300"></i><span>{{ textContent_schwerpunkte_card4_bullet3.title|default:"API-fähig für Anbindungen an externe Systeme" }}</span></li>
+          </ul>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- WARUM DIESER ANSATZ FÜR KUNDEN -->
+<section class="bg-blue-50 px-4 py-20">
+  <div class="mx-auto max-w-6xl px-4">
+    <div class="grid items-center gap-10 md:grid-cols-2">
+      <div data-aos="fade-right">
+        <h2 class="mb-6 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl sm:leading-none">
+          {{ textContent_warum.title|default:"Warum dieser Ansatz für dich den Unterschied macht" }}
+        </h2>
+        <p class="mb-8 text-base leading-7 text-gray-600 md:text-lg xl:text-xl">
+          {{ textContent_warum.description|default:"Wir entwickeln Websites nicht nur für den Moment, sondern für die kommenden Jahre. Die Kombination aus durchdachtem Webdesign, modernen Frameworks und solidem Hosting liefert langfristig spürbar bessere Ergebnisse - in Sichtbarkeit, in Geschwindigkeit und in den Betriebskosten." }}
+        </p>
+        <a href="{% url 'kontakt' %}"
+          class="inline-block rounded-xl bg-blue-900 px-6 py-3 font-semibold text-white shadow-md transition duration-300 ease-in-out hover:-translate-y-1 hover:scale-105 hover:bg-blue-700">
+          {{ textContent_warum.buttonText|default:"Unverbindlich anfragen" }}
+        </a>
+      </div>
+      <div class="relative" data-aos="fade-left">
+        <div class="absolute top-6 bottom-6 left-5 w-0.5 bg-gradient-to-b from-blue-200 via-blue-500 to-blue-200" aria-hidden="true"></div>
+        <div class="space-y-6">
+          <div class="relative pl-16">
+            <div class="absolute left-0 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-blue-900 text-white shadow ring-4 ring-white">
+              <i class="bi bi-graph-up-arrow text-lg"></i>
+            </div>
+            <div class="rounded-xl bg-white p-6 ring-1 ring-gray-200 transition duration-300 hover:-translate-y-0.5 hover:shadow-md">
+              <h3 class="mb-3 text-xl font-bold tracking-tight text-gray-900">{{ textContent_warum_card1.title|default:"Bessere Sichtbarkeit bei Google" }}</h3>
+              <p class="text-base leading-7 text-gray-600">{{ textContent_warum_card1.description|default:"Schnelle, sauber strukturierte Websites werden von Google bevorzugt - das bedeutet bessere Rankings und mehr organische Besucher." }}</p>
+            </div>
+          </div>
+          <div class="relative pl-16">
+            <div class="absolute left-0 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-blue-900 text-white shadow ring-4 ring-white">
+              <i class="bi bi-piggy-bank text-lg"></i>
+            </div>
+            <div class="rounded-xl bg-white p-6 ring-1 ring-gray-200 transition duration-300 hover:-translate-y-0.5 hover:shadow-md">
+              <h3 class="mb-3 text-xl font-bold tracking-tight text-gray-900">{{ textContent_warum_card2.title|default:"Geringere Betriebskosten" }}</h3>
+              <p class="text-base leading-7 text-gray-600">{{ textContent_warum_card2.description|default:"Wartbarer Code reduziert Folgeaufwand. Eine sauber gebaute Website spart über Jahre hinweg Geld - bei Updates, Erweiterungen und Pflege." }}</p>
+            </div>
+          </div>
+          <div class="relative pl-16">
+            <div class="absolute left-0 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-blue-900 text-white shadow ring-4 ring-white">
+              <i class="bi bi-fingerprint text-lg"></i>
+            </div>
+            <div class="rounded-xl bg-white p-6 ring-1 ring-gray-200 transition duration-300 hover:-translate-y-0.5 hover:shadow-md">
+              <h3 class="mb-3 text-xl font-bold tracking-tight text-gray-900">{{ textContent_warum_card3.title|default:"Vertrauen durch Datenschutz" }}</h3>
+              <p class="text-base leading-7 text-gray-600">{{ textContent_warum_card3.description|default:"DSGVO-konformes Hosting in Deutschland gibt deinen Besuchern Sicherheit - und dir die Gewissheit, rechtlich auf der sicheren Seite zu sein." }}</p>
+            </div>
+          </div>
+          <div class="relative pl-16">
+            <div class="absolute left-0 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-blue-900 text-white shadow ring-4 ring-white">
+              <i class="bi bi-arrow-up-right-circle text-lg"></i>
+            </div>
+            <div class="rounded-xl bg-white p-6 ring-1 ring-gray-200 transition duration-300 hover:-translate-y-0.5 hover:shadow-md">
+              <h3 class="mb-3 text-xl font-bold tracking-tight text-gray-900">{{ textContent_warum_card4.title|default:"Zukunftssicher und erweiterbar" }}</h3>
+              <p class="text-base leading-7 text-gray-600">{{ textContent_warum_card4.description|default:"Du musst deine Website nicht alle paar Jahre neu bauen lassen. Unsere Basis lässt sich beliebig erweitern - egal ob neue Funktionen, Shop oder API." }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="h-6 bg-[#6b7280]"></div>
+
+<!-- BOTTOM CTA -->
+<section class="bg-gray-700">
+  <div class="mx-auto max-w-screen-xl px-4 py-8 lg:px-6 lg:py-16">
+    <div class="mx-auto max-w-screen-sm text-center">
+      <h2 class="mb-4 text-3xl sm:text-4xl font-bold tracking-tight text-white">
+        {{ textContent_bottomcta.title|default:"Bereit für deine neue Website?" }}
+      </h2>
+      <p class="mb-6 text-white md:text-lg">
+        {{ textContent_bottomcta.description|default:"Erzähl uns von deinem Projekt - wir melden uns zeitnah mit einer ehrlichen Einschätzung und einem unverbindlichen Angebot." }}
+      </p>
+      <a href="{% url 'kontakt' %}"
+        class="mt-0 inline-block rounded-md bg-blue-900 px-8 py-4 text-base font-bold text-white shadow-xl transition-transform duration-300 ease-in-out hover:-translate-y-1 hover:scale-105 hover:bg-blue-700 sm:mt-1">
+        {{ textContent_bottomcta.buttonText|default:"Jetzt Website anfragen" }}
+      </a>
+    </div>
+  </div>
+</section>
+
+{% endblock content %}
+
+{% block javascriptend %}
+<script src="{% static 'js/aos.js' %}"></script>
+<script>
+  AOS.init({
+    duration: 800,
+    once: true,
+    easing: 'ease-out',
+    disable: "phone"
+  });
+</script>
+{% endblock javascriptend %}

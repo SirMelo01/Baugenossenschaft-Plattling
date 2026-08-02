@@ -1,0 +1,138 @@
+{% extends 'cmsbase.html' %}
+{% load static %}
+
+{% block title %}{{ block.super }} | CMS | Videos{% endblock %}
+
+{% block content %}
+<div class="container mx-auto mt-4 sm:mt-8">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+    <h1 class="text-2xl">
+      <a href="{% url 'cms:cms-files' %}" class="text-blue-500">Dateien</a> - Videos
+      <span class="ml-2 text-sm text-gray-500">({{ total_count }} Videos)</span>
+    </h1>
+
+    <div class="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
+      <!-- Pro-Seite Auswahl -->
+      <form method="get" class="flex items-center justify-between gap-2 sm:justify-start">
+        <label class="text-sm text-gray-600">Pro Seite</label>
+        <select name="per_page" class="rounded-md border-gray-300 text-sm" onchange="this.form.submit()">
+          <option value="12" {% if per_page == 12 %}selected{% endif %}>12</option>
+          <option value="24" {% if per_page == 24 %}selected{% endif %}>24</option>
+          <option value="48" {% if per_page == 48 %}selected{% endif %}>48</option>
+          <option value="96" {% if per_page == 96 %}selected{% endif %}>96</option>
+        </select>
+        {# andere GET-Parameter erhalten (falls später Filter dazukommen) #}
+        {% for key, val in request.GET.items %}
+          {% if key != 'per_page' and key != 'page' %}
+            <input type="hidden" name="{{ key }}" value="{{ val }}">
+          {% endif %}
+        {% endfor %}
+      </form>
+
+      <a href="{% url 'cms:create_video' %}"
+         class="w-full rounded bg-green-500 px-4 py-3 text-center text-white hover:bg-green-700 sm:w-auto sm:py-2">
+        <i class="bi bi-send mr-1"></i> Neues Video
+      </a>
+    </div>
+  </div>
+
+  {% csrf_token %}
+
+  {% if videos %}
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
+      {% for video in videos %}
+      <div class="shadow-lg p-4 relative bg-white rounded-2xl">
+        <video src="{{ video.file.url }}" controls class="w-full h-48 mb-2"></video>
+        <h2 class="font-semibold truncate">{{ video.title|default:"(Kein Titel)" }}</h2>
+        <p class="text-sm text-gray-600 truncate">{{ video.description|truncatechars:100 }}</p>
+        <div class="mt-3 flex flex-col gap-2 sm:flex-row">
+          <a href="{% url 'cms:edit_video' video.pk %}"
+             class="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-lg shadow transition-transform duration-300 hover:-translate-y-1 hover:bg-blue-700">
+            <i class="bi bi-pencil-fill"></i> Bearbeiten
+          </a>
+          <button data-id="{{ video.id }}"
+             class="inline-flex items-center gap-2 px-4 py-1.5 bg-red-600 text-white text-sm font-medium rounded-lg shadow transition-transform duration-300 hover:-translate-y-1 hover:bg-red-700 delete-video">
+            <i class="bi bi-trash-fill"></i> Löschen
+          </button>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    {# Pagination #}
+    {% if page_obj.paginator.num_pages > 1 %}
+      <nav class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between" aria-label="Pagination">
+        <div class="text-sm text-gray-600">
+          Seite {{ page_obj.number }} von {{ page_obj.paginator.num_pages }} –
+          Einträge {{ page_obj.start_index }}–{{ page_obj.end_index }} von {{ page_obj.paginator.count }}
+        </div>
+
+        <div class="flex flex-wrap items-center gap-1">
+          {% if page_obj.has_previous %}
+            <a href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ page_obj.previous_page_number }}"
+               class="px-3 py-1 rounded-md border text-sm hover:bg-gray-50">‹ Zurück</a>
+          {% else %}
+            <span class="px-3 py-1 rounded-md border text-sm text-gray-400">‹ Zurück</span>
+          {% endif %}
+
+          {% for num in page_obj.paginator.page_range %}
+            {% if num == page_obj.number %}
+              <span class="px-3 py-1 rounded-md bg-blue-500 text-white text-sm">{{ num }}</span>
+            {% elif num >= page_obj.number|add:-2 and num <= page_obj.number|add:2 %}
+              <a href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ num }}"
+                 class="px-3 py-1 rounded-md border text-sm hover:bg-gray-50">{{ num }}</a>
+            {% elif num == 1 or num == page_obj.paginator.num_pages %}
+              <a href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ num }}"
+                 class="px-3 py-1 rounded-md border text-sm hover:bg-gray-50">{{ num }}</a>
+            {% elif forloop.first or forloop.last %}
+              <span class="px-2 text-gray-400">…</span>
+            {% endif %}
+          {% endfor %}
+
+          {% if page_obj.has_next %}
+            <a href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ page_obj.next_page_number }}"
+               class="px-3 py-1 rounded-md border text-sm hover:bg-gray-50">Weiter ›</a>
+          {% else %}
+            <span class="px-3 py-1 rounded-md border text-sm text-gray-400">Weiter ›</span>
+          {% endif %}
+        </div>
+      </nav>
+    {% endif %}
+  {% else %}
+    <p class="text-gray-500">Noch keine Videos vorhanden.</p>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block javascriptend %}
+<script>
+  $('.delete-video').click(function () {
+    const id = $(this).data('id');
+
+    Swal.fire({
+      title: 'Bist du sicher?',
+      text: 'Dieses Video wird dauerhaft gelöscht.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Ja, löschen!',
+      cancelButtonText: 'Abbrechen'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        $.post(`/cms/videos/delete/${id}/`, {
+          csrfmiddlewaretoken: '{{ csrf_token }}'
+        }, function (response) {
+          if (response.success) {
+            Swal.fire('Gelöscht!', 'Das Video wurde gelöscht.', 'success').then(() => {
+              location.reload();
+            });
+          } else {
+            Swal.fire('Fehler', response.error || 'Das Video konnte nicht gelöscht werden.', 'error');
+          }
+        });
+      }
+    });
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,206 @@
+{% extends 'cmsbase.html' %}
+{% load compress static %}
+
+{% block title %}{{ block.super }} | CMS | Buttons{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-7xl"
+    id="buttonListPage"
+    data-pagelink-create-url="{% url 'cms:pagelink-create' %}"
+    data-pagelink-edit-url-template="{% url 'cms:pagelink-edit' 0 %}"
+    data-pagelink-delete-url-template="{% url 'cms:pagelink-delete' 0 %}"
+    data-button-delete-url-template="{% url 'cms:button-delete' 0 %}">
+
+    <!-- Header -->
+    <div class="mb-6 mt-2 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+            <h1 class="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">Buttons</h1>
+            <p class="mt-1.5 text-slate-500">Gestalte wiederverwendbare Buttons für Pricing-Karten &amp; Co. – inklusive Linkziel und Farbe.</p>
+        </div>
+        <div class="flex flex-col gap-2 sm:flex-row">
+            <a href="#seiten-links"
+                class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 sm:w-auto">
+                <i class="bi bi-link-45deg"></i> Seiten-Links
+            </a>
+            <a href="{% url 'cms:button-create' %}"
+                class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 sm:w-auto">
+                <i class="bi bi-plus-lg"></i> Button erstellen
+            </a>
+        </div>
+    </div>
+
+    <!-- Buttons -->
+    <h2 class="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">Alle Buttons</h2>
+    <div id="buttonGrid" class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        {% for button in buttons %}
+        <div class="button-card flex flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm" data-button-id="{{ button.id }}">
+            <div class="pointer-events-none grid place-items-center rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8">
+                {% include "pages/components/button.html" with button=button %}
+            </div>
+            <div class="mt-4 min-w-0">
+                <h3 class="truncate font-semibold text-slate-900">{{ button.text }}</h3>
+                <p class="mt-0.5 truncate text-xs text-slate-400" title="{{ button.href }}">
+                    <i class="bi bi-arrow-return-right"></i> {{ button.href }}
+                </p>
+                <div class="mt-2 flex flex-wrap gap-1.5 text-xs">
+                    {% if button.page_link %}
+                    <span class="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-1 font-medium text-blue-700"><i class="bi bi-house"></i> {{ button.page_link.title }}</span>
+                    {% elif button.url %}
+                    <span class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 font-medium text-slate-600"><i class="bi bi-globe"></i> Eigene URL</span>
+                    {% endif %}
+                    {% if button.target == '_blank' %}
+                    <span class="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2.5 py-1 font-medium text-indigo-700"><i class="bi bi-box-arrow-up-right"></i> Neuer Tab</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="mt-4 flex gap-2 border-t border-slate-100 pt-4">
+                <a href="{% url 'cms:button-edit' button.id %}"
+                    class="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+                    <i class="bi bi-pencil"></i> Bearbeiten
+                </a>
+                <button type="button" data-name="{{ button.text }}"
+                    class="delete-button grid h-9 w-9 flex-shrink-0 place-items-center rounded-xl border border-slate-200 text-rose-500 transition hover:border-rose-200 hover:bg-rose-50">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Empty State Buttons -->
+    <div id="buttonEmptyState" class="{% if buttons %}hidden {% endif %}rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-14 text-center">
+        <span class="mx-auto grid h-12 w-12 place-items-center rounded-xl bg-blue-100 text-blue-600"><i class="bi bi-hand-index text-2xl"></i></span>
+        <h3 class="mt-4 font-semibold text-slate-900">Noch keine Buttons</h3>
+        <p class="mt-1 text-sm text-slate-500">Erstelle deinen ersten Button und nutze ihn z.B. in Pricing-Karten.</p>
+        <a href="{% url 'cms:button-create' %}"
+            class="mt-5 inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700">
+            <i class="bi bi-plus-lg"></i> Button erstellen
+        </a>
+    </div>
+
+    <!-- Seiten-Links -->
+    <div id="seiten-links" class="mt-10 scroll-mt-24">
+        <div class="mb-3 flex items-end justify-between gap-3">
+            <div>
+                <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400">Seiten-Links</h2>
+                <p class="mt-1 text-sm text-slate-500">Linkziele auf der eigenen Website (z.B. Startseite oder ein Abschnitt), die bei Buttons auswählbar sind.</p>
+            </div>
+            <button type="button" id="addPageLink"
+                class="inline-flex flex-shrink-0 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700">
+                <i class="bi bi-plus-lg"></i><span class="hidden sm:inline"> Link hinzufügen</span>
+            </button>
+        </div>
+
+        <div class="rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <div id="pageLinkList" class="divide-y divide-slate-100">
+                {% for link in page_links %}
+                <div class="page-link-row flex items-center gap-3 px-5 py-3.5" data-link-id="{{ link.id }}"
+                    data-title="{{ link.title }}" data-path="{{ link.path }}" data-anchor="{{ link.anchor }}">
+                    <span class="grid h-10 w-10 flex-shrink-0 place-items-center rounded-xl bg-blue-100 text-blue-600"><i class="bi bi-link-45deg text-lg"></i></span>
+                    <div class="min-w-0 flex-1">
+                        <p class="link-title truncate font-medium text-slate-900">{{ link.title }}</p>
+                        <p class="link-url truncate text-xs text-slate-400">{{ link.url }}</p>
+                    </div>
+                    <span class="link-usage hidden flex-shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600 sm:inline-block">
+                        {{ link.buttons.count }} Button{{ link.buttons.count|pluralize:"s" }}
+                    </span>
+                    <div class="flex flex-shrink-0 gap-1.5">
+                        <button type="button"
+                            class="edit-page-link grid h-9 w-9 place-items-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-slate-50">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button type="button"
+                            class="delete-page-link grid h-9 w-9 place-items-center rounded-xl border border-slate-200 text-rose-500 transition hover:border-rose-200 hover:bg-rose-50">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <div id="pageLinkEmptyState" class="{% if page_links %}hidden {% endif %}px-6 py-12 text-center">
+                <span class="mx-auto grid h-12 w-12 place-items-center rounded-xl bg-blue-100 text-blue-600"><i class="bi bi-link-45deg text-2xl"></i></span>
+                <h3 class="mt-4 font-semibold text-slate-900">Noch keine Seiten-Links</h3>
+                <p class="mt-1 text-sm text-slate-500">Lege Linkziele wie „Startseite“ oder „Startseite – Preise“ an, damit sie bei Buttons auswählbar sind.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Seiten-Link Modal -->
+<div id="pageLinkModal" class="fixed inset-0 z-[75] hidden bg-slate-900/60 p-4 backdrop-blur-sm">
+    <div class="mx-auto mt-10 w-full max-w-lg overflow-y-auto rounded-2xl bg-white shadow-xl sm:mt-20" style="max-height: calc(100dvh - 5rem);">
+        <form id="pageLinkForm">
+            {% csrf_token %}
+            <div class="flex items-center justify-between border-b border-slate-100 px-5 py-4 sm:px-6">
+                <h3 id="pageLinkModalTitle" class="font-semibold text-slate-900">Seiten-Link hinzufügen</h3>
+                <button type="button" id="closePageLinkModal" class="grid h-9 w-9 place-items-center rounded-xl text-slate-400 transition hover:bg-slate-100 hover:text-slate-600">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <div class="space-y-4 px-5 py-5 sm:px-6">
+                <div>
+                    <label for="pageLinkTitle" class="mb-1.5 block text-sm font-medium text-slate-700">Titel <span class="text-rose-500">*</span></label>
+                    <input type="text" id="pageLinkTitle" required maxlength="120" placeholder="z.B. Startseite – Preise"
+                        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
+                </div>
+                <div>
+                    <label for="pageLinkPath" class="mb-1.5 block text-sm font-medium text-slate-700">Seite <span class="text-rose-500">*</span></label>
+                    <input type="text" id="pageLinkPath" required maxlength="300" placeholder="z.B. /kontakt/" list="pagePathSuggestions"
+                        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
+                    <datalist id="pagePathSuggestions">
+                        {% for path, label in page_suggestions %}
+                        <option value="{{ path }}">{{ label }}</option>
+                        {% endfor %}
+                    </datalist>
+                    <p class="mt-2 text-xs text-slate-400">Tippe oder wähle eine Seite aus der Liste.</p>
+                </div>
+                <div>
+                    <label for="pageLinkAnchor" class="mb-1.5 block text-sm font-medium text-slate-700">Abschnitt <span class="font-normal text-slate-400">(optional, ohne #)</span></label>
+                    <input type="text" id="pageLinkAnchor" maxlength="100" placeholder="z.B. preise"
+                        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
+                    <p class="mt-2 text-xs text-slate-400">Springt zu einem Abschnitt auf der Seite, z.B. <code>/leistungen/#preise</code></p>
+                </div>
+            </div>
+            <div class="flex flex-col-reverse gap-2 border-t border-slate-100 px-5 py-4 sm:flex-row sm:justify-end sm:px-6">
+                <button type="button" id="cancelPageLinkModal"
+                    class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+                    Abbrechen
+                </button>
+                <button type="submit"
+                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700">
+                    <i class="bi bi-check-lg"></i> <span id="pageLinkSubmitLabel">Speichern</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Lösch-Bestätigung -->
+<div id="confirmDeleteModal" class="fixed inset-0 z-[90] hidden bg-slate-900/60 p-4 backdrop-blur-sm">
+    <div class="mx-auto mt-24 w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+        <div class="flex items-start gap-4">
+            <span class="grid h-11 w-11 flex-shrink-0 place-items-center rounded-xl bg-rose-100 text-rose-600"><i class="bi bi-trash text-xl"></i></span>
+            <div class="min-w-0">
+                <h3 class="font-semibold text-slate-900">Wirklich löschen?</h3>
+                <p id="confirmDeleteMessage" class="mt-1 text-sm text-slate-500"></p>
+            </div>
+        </div>
+        <div class="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <button type="button" id="cancelDelete"
+                class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+                Abbrechen
+            </button>
+            <button type="button" id="confirmDelete"
+                class="inline-flex items-center justify-center gap-2 rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-700">
+                <i class="bi bi-trash"></i> Löschen
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascriptend %}
+{% compress js %}
+<script src="{% static 'js/cms/buttons/button_list.js' %}"></script>
+{% endcompress js %}
+{% endblock javascriptend %}

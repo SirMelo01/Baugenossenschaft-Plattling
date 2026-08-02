@@ -1,0 +1,83 @@
+{% extends "cms-login-base.html" %}
+{% load static compress %}
+
+{% block title %}{{ block.super }} - 2FA Verifizierung{% endblock title %}
+
+{% block content %}
+<section class="text-gray-600 body-font bg-gray-100 flex min-h-[calc(100dvh-4rem)] justify-center">
+    <div class="container mx-auto flex flex-wrap items-center px-5 py-12 sm:py-20 xl:px-32 xl:py-36">
+        <div class="lg:w-3/5 md:w-1/2 md:pr-16 lg:pr-0 pr-0">
+            <h1 class="title-font text-center text-4xl font-bold text-blue-600 sm:text-6xl md:text-left lg:text-7xl">
+                YooLink CMS
+            </h1>
+            <p class="mt-4 text-center text-lg font-medium leading-relaxed text-black sm:text-2xl md:text-left lg:max-w-2xl lg:text-3xl">
+                Bitte bestätigen Sie Ihre Anmeldung mit dem Sicherheitscode aus Ihrer E-Mail.
+            </p>
+        </div>
+
+        <div class="mt-8 flex w-full flex-col rounded-lg bg-white p-5 shadow-lg sm:p-8 md:ml-auto md:mt-0 md:w-1/2 lg:w-2/6">
+            <form method="POST">
+                {% csrf_token %}
+
+                {% if error_message %}
+                    <div class="mb-4 rounded-2xl bg-red-50 border border-red-200 px-4 py-3 text-red-700 text-sm">
+                        {{ error_message }}
+                    </div>
+                {% endif %}
+
+                {% if success_message %}
+                    <div class="mb-4 rounded-2xl bg-green-50 border border-green-200 px-4 py-3 text-green-700 text-sm">
+                        {{ success_message }}
+                    </div>
+                {% endif %}
+
+                <div class="mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900">Sicherheitscode</h2>
+                    <p class="mt-2 text-sm text-gray-600">
+                        Wir haben einen 6 stelligen Code an
+                        <span class="font-semibold text-blue-600">{{ masked_email }}</span>
+                        gesendet.
+                    </p>
+                </div>
+
+                <div>
+                    <div class="text-sm font-bold text-gray-700 tracking-wide">Code eingeben</div>
+                    <input
+                        class="w-full text-lg py-2 border-b border-gray-300 focus:outline-none focus:border-blue-500 tracking-[0.4em]"
+                        type="text"
+                        name="code"
+                        maxlength="6"
+                        inputmode="numeric"
+                        autocomplete="one-time-code"
+                        placeholder="123456"
+                    >
+                </div>
+
+                <div class="mt-8 flex flex-col gap-3 sm:mt-10">
+                    <button
+                        type="submit"
+                        name="action"
+                        value="verify"
+                        class="w-full rounded-full bg-blue-500 p-3 font-display font-semibold tracking-wide text-gray-100 shadow-md shadow-blue-500 hover:bg-blue-600 focus:outline-none sm:p-4"
+                    >
+                        Verifizieren und anmelden
+                    </button>
+
+                    <button
+                        type="submit"
+                        name="action"
+                        value="resend"
+                        class="w-full rounded-full border border-gray-300 p-3 font-display font-semibold tracking-wide text-gray-700 hover:bg-gray-50 focus:outline-none sm:p-4"
+                    >
+                        Code erneut senden
+                    </button>
+
+                    <a href="{% url 'ycms:login' %}" class="text-center text-sm text-blue-600 hover:text-blue-800 hover:underline">
+                        Zurück zum Login
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock content %}

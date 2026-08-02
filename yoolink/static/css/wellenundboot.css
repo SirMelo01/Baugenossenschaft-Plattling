@@ -1,0 +1,333 @@
+html, body {
+  max-width: 100%;
+}
+/* Horizontales Scrollen nur auf <body> unterbinden (NICHT auf <html>):
+   So wird das overflow auf den Viewport propagiert -> kein Scroll-Container auf
+   html/body -> position: sticky (Navbar) funktioniert weiterhin. */
+body {
+  overflow-x: hidden;
+}
+
+/* === Wellen (unverändert) === */
+.waves {
+  position: relative;
+  width: 100%;
+  height: 13vh;
+  margin-bottom: -7px; /* Fix for Safari gap */
+  min-height: 100px;
+  max-height: 150px;
+}
+
+/* Animation */
+.parallax > use {
+  animation: move-forever 25s cubic-bezier(.55,.5,.45,.5) infinite;
+}
+
+.parallax > use:nth-child(1) {
+  animation-delay: -2s;
+  animation-duration: 7s;
+}
+.parallax > use:nth-child(2) {
+  animation-delay: -3s;
+  animation-duration: 10s;
+}
+.parallax > use:nth-child(3) {
+  animation-delay: -4s;
+  animation-duration: 13s;
+}
+.parallax > use:nth-child(4) {
+  animation-delay: -5s;
+  animation-duration: 20s;
+}
+
+@keyframes move-forever {
+  0% {
+    transform: translate3d(-90px, 0, 0);
+  }
+  100% {
+    transform: translate3d(85px, 0, 0);
+  }
+}
+
+/* === Wrapper === */
+.wave-wrapper {
+  position: relative;
+}
+
+.wave-container {
+  position: relative;
+}
+
+/* Vertikal: Boot „schaukelt“ wie die Welle, proportional zur Größe */
+@keyframes boat-vertical {
+  0% {
+    transform: translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-10px) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(-18px) rotate(2deg);
+  }
+  75% {
+    transform: translateY(-10px) rotate(-1deg);
+  }
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .waves {
+    height: 40px;
+    min-height: 40px;
+  }
+
+  .boat {
+    font-size: 100px; /* mobile passt */
+    bottom: -8px; /* mobile auch tiefer */
+  }
+}
+
+/* =========================
+   BOOT (clean + works)
+   ========================= */
+
+/* Damit das Boot nicht weggeclippt wird */
+.wave-wrapper,
+.wave-container {
+  overflow: visible;
+}
+
+/* NUR Boot resetten (Tailwind bleibt unangetastet) */
+.boat,
+.boat * {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Nur für Boot-ULs, damit Browser/Tailwind margins nicht reinfunken */
+.boat ul {
+  margin: 0;
+  padding: 0;
+}
+
+.no-bullet {
+  list-style: none;
+}
+
+/* Fenster-Liste */
+.inline-list {
+  list-style: none;
+  overflow: hidden;
+  margin-left: -1.375rem;
+  padding: 0;
+}
+.inline-list > li {
+  float: left;
+  margin-left: 1.375rem;
+  display: block;
+}
+
+/* Boot fährt horizontal (positioniert relativ zur wave-container) */
+.boat {
+  position: absolute;
+  left: -200px;
+  bottom: -10px;
+  z-index: 5;
+  pointer-events: none;
+  animation: boat-horizontal 30s linear infinite;
+
+  /* Größer */
+  transform: scale(2.00);
+  transform-origin: left bottom;
+}
+
+/* FLIP WRAPPER: spiegelt Boot, ohne die boat-rock-transform zu zerstören */
+.boat-flip {
+  transform: scaleX(-1);
+  transform-origin: center;
+}
+
+/* Boot schaukelt (transform liegt NUR hier, damit es sich nicht überschreibt) */
+.boat-inner {
+  position: relative;
+  animation: boat-rock 3s ease-in-out infinite;
+}
+
+@keyframes boat-horizontal {
+  0%   { left: -200px; }
+  100% { left: 100vw; }
+}
+
+@keyframes boat-rock {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25%      { transform: translateY(-6px) rotate(-2deg); }
+  50%      { transform: translateY(-10px) rotate(2deg); }
+  75%      { transform: translateY(-6px) rotate(-1deg); }
+}
+
+/* Boot-Körper */
+.boat-body {
+  width: 100px;
+  height: 20px;
+  background: #e30449;
+  border-top-left-radius: 3px;
+  border-bottom-left-radius: 20px;
+}
+
+
+/* Deck: nicht mehr weiß -> besserer Kontrast */
+.white-body {
+  width: 65px;
+  height: 16px;
+  background: #f7e349;              /* helles blau-grau statt weiß */
+  margin: 0 13px;
+  border-top-left-radius: 20px;
+  border: 1px solid rgba(0,0,0,0.08); /* leichte Kontur auf hell */
+}
+
+.windows {
+  margin: 0 12px !important;
+}
+
+
+
+.boat .circle {
+  background-image: linear-gradient(45deg, #c9e5d9, #fff);
+  animation: shadow-change 1s linear infinite;
+  /*background: #bf1111;  minimal dunkler als vorher */
+  width: 7px;
+  height: 7px;
+  margin: 5px 3px;
+  border-radius: 50%;
+  border: 2px solid #8c7a5e;
+}
+
+
+@keyframes shadow-change {
+  0%,
+  100% {
+    background-image: linear-gradient(
+      45deg,
+      #c9e5d9 0%,
+      #c9e5d9 20%,
+      #fff 21%,
+      #fff 39%,
+      #c9e5d9 40%,
+      #fff 41%,
+      #fff 59%,
+      #c9e5d9 60%
+    );
+  }
+  20% {
+    background-image: linear-gradient(
+      45deg,
+      #c9e5d9 20%,
+      #c9e5d9 40%,
+      #fff 41%,
+      #fff 59%,
+      #c9e5d9 60%,
+      #fff 61%,
+      #fff 79%,
+      #c9e5d9 80%
+    );
+  }
+  40% {
+    background-image: linear-gradient(
+      45deg,
+      #c9e5d9 40%,
+      #c9e5d9 60%,
+      #fff 61%,
+      #fff 79%,
+      #c9e5d9 80%,
+      #fff 81%,
+      #fff 99%,
+      #c9e5d9 0%
+    );
+  }
+  60% {
+    background-image: linear-gradient(
+      45deg,
+      #c9e5d9 60%,
+      #c9e5d9 80%,
+      #fff 81%,
+      #fff 99%,
+      #c9e5d9 0%,
+      #fff 1%,
+      #fff 19%,
+      #c9e5d9 20%
+    );
+  }
+  80% {
+    background-image: linear-gradient(
+      45deg,
+      #c9e5d9 80%,
+      #c9e5d9 0%,
+      #fff 1%,
+      #fff 19%,
+      #c9e5d9 20%,
+      #fff 21%,
+      #fff 39%,
+      #c9e5d9 40%
+    );
+  }
+}
+
+
+
+/* ===== Fix: Rauch + Schornstein sollen keinen "Abstand" erzeugen ===== */
+/* Parent für absolute Positionierung */
+.boat-inner > ul.no-bullet {
+  position: relative;
+}
+
+/* Schornstein direkt aufs Boot setzen */
+.smokestack {
+  width: 8px;
+  height: 12px;
+  background: #7e7669; /* etwas dunkler für Kontrast */
+
+  position: absolute;
+  left: 45px;
+  bottom: 36px;
+
+  margin-left: 0;
+}
+
+/* Rauch direkt über den Schornstein */
+.fume {
+  position: absolute;
+  left: 0;
+  bottom: 55px;
+  margin: 0;
+  padding: 0;
+}
+
+/* Rauch dunkler + besser sichtbar */
+.fume li {
+  background-color: rgba(50, 50, 50, 0.7);
+  border-radius: 50%;
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.25);
+}
+
+.fume1 { width: 7px;  height: 7px;  margin-left: 48px; animation: smokeup 2.0s linear infinite; }
+.fume2 { width: 9px;  height: 9px;  margin-left: 38px; animation: smokeup 2.1s linear infinite; }
+.fume3 { width: 12px; height: 12px; margin-left: 48px; animation: smokeup 2.2s linear infinite; }
+.fume4 { width: 15px; height: 15px; margin-left: 38px; animation: smokeup 2.3s linear infinite; }
+
+@keyframes smokeup {
+  0%   { transform: translateY(0); opacity: 1; }
+  80%  { transform: translateY(-10px); opacity: 0; }
+  100% { transform: translateY(-10px); opacity: 0; }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .boat {
+    bottom: -20px;
+    transform: scale(1.7);
+  }
+}

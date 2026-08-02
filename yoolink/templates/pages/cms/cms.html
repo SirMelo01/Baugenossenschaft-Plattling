@@ -1,0 +1,80 @@
+{% extends "cmsbase.html" %}
+{% load compress static i18n %}
+{% block title %} {{block.super}} | Dashboard{% endblock %}
+
+{% block content %}
+
+<div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+        <h1 class="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">Dashboard</h1>
+        <p class="mt-1 text-sm text-gray-500">Willkommen zurück - hier ist der Überblick über deine Inhalte.</p>
+    </div>
+    <a href="/" target="_blank" rel="noopener"
+        class="inline-flex items-center justify-center gap-2 self-start rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50">
+        <i class="bi bi-box-arrow-up-right"></i> Website ansehen
+    </a>
+</div>
+
+<div class="mt-6 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-6">
+    {% if 'media.edit' in cms_permissions %}
+    {% include "pages/cms/components/_stat_card.html" with icon="bi-image" tone="blue" value=file_count label="Bilder" link_url="/cms/files/" %}
+    {% include "pages/cms/components/_stat_card.html" with icon="bi-camera-video" tone="sky" value=videofile_count label="Videos" link_url="/cms/files/" %}
+    {% include "pages/cms/components/_stat_card.html" with icon="bi-images" tone="indigo" value=galery_count label="Galerien" link_url="/cms/galerien/" %}
+    {% endif %}
+    {% if 'blog.edit' in cms_permissions %}
+    {% include "pages/cms/components/_stat_card.html" with icon="bi-blockquote-right" tone="violet" value=blog_count label="Blogs" link_url="/cms/blog/" %}
+    {% endif %}
+    {% if 'products.edit' in cms_permissions %}
+    {% include "pages/cms/components/_stat_card.html" with icon="bi-box-seam" tone="emerald" value=product_count label="Produkte" link_url="/cms/shop/products/" %}
+    {% endif %}
+    {% if 'orders.edit' in cms_permissions %}
+    {% include "pages/cms/components/_stat_card.html" with icon="bi-bag-check" tone="amber" value=order_not_closed_count label="Offene Aufträge" link_url="/cms/shop/orders/" %}
+    {% endif %}
+</div>
+
+<h2 class="mb-3 mt-8 text-xs font-semibold uppercase tracking-wider text-gray-500">Schnellzugriff</h2>
+<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+
+    {% if 'pages.edit' in cms_permissions %}
+    {% include "pages/cms/components/_quick_card.html" with icon="bi-body-text" tone="blue" title="Seiten" desc="Texte, Bilder und Inhalte deiner Seiten verwalten." url="/cms/seiten/" %}
+    {% endif %}
+
+    {% if 'media.edit' in cms_permissions %}
+    {% include "pages/cms/components/_quick_card.html" with icon="bi-folder2-open" tone="sky" title="Dateien" desc="Bilder, Videos und Dokumente hochladen und ordnen." url="/cms/files/" %}
+
+    {% include "pages/cms/components/_quick_card.html" with icon="bi-images" tone="indigo" title="Galerien" desc="Bildergalerien erstellen und bestücken." url="/cms/galerien/" secondary_url="/cms/galery/create/" secondary_label="Erstellen" %}
+    {% endif %}
+
+    {% if 'blog.edit' in cms_permissions %}
+    {% include "pages/cms/components/_quick_card.html" with icon="bi-blockquote-right" tone="violet" title="Blog" desc="Beiträge schreiben, bearbeiten und veröffentlichen." url="/cms/blog/" %}
+    {% endif %}
+
+    {% if 'shop.view' in cms_permissions or 'products.edit' in cms_permissions or 'orders.edit' in cms_permissions %}
+    {% include "pages/cms/components/_quick_card.html" with icon="bi-shop" tone="emerald" title="Shop" desc="Produkte pflegen und Bestellungen bearbeiten." url="/cms/shop/" %}
+    {% endif %}
+
+    {% if 'opening_hours.edit' in cms_permissions %}
+    {% include "pages/cms/components/_quick_card.html" with icon="bi-clock" tone="amber" title="Öffnungszeiten" desc="Zeiten und Statusmeldungen aktuell halten." url="/cms/openinghours/" %}
+    {% endif %}
+
+    {% if 'team.edit' in cms_permissions %}
+    {% include "pages/cms/components/_quick_card.html" with icon="bi-people" tone="rose" title="Team" desc="Mitarbeiter und Ansprechpartner verwalten." url="/cms/team/" %}
+    {% endif %}
+
+    {% if 'pricing.edit' in cms_permissions %}
+    {% include "pages/cms/components/_quick_card.html" with icon="bi-cash-coin" tone="teal" title="Preise" desc="Preiskarten und Pakete konfigurieren." url="/cms/pricing/" %}
+    {% endif %}
+
+    {% if 'buttons.edit' in cms_permissions %}
+    {% include "pages/cms/components/_quick_card.html" with icon="bi-hand-index" tone="slate" title="Buttons" desc="Wiederverwendbare Call-to-Action Buttons." url="/cms/buttons/" %}
+    {% endif %}
+
+</div>
+
+{% block javascriptend %}
+{% compress js %}
+<script defer src="{% static 'js/cms.js' %}"></script>
+{% endcompress js %}
+{% endblock javascriptend %}
+
+{% endblock content %}

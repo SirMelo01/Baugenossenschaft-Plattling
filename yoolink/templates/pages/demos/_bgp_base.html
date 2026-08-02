@@ -1,0 +1,290 @@
+{% extends "base.html" %}
+{% load compress static %}
+
+{% comment %}
+Gemeinsame Huelle aller Demo-Seiten der Baugenossenschaft Plattling:
+Farben, Navigation, Footer und die geteilten Interaktionen (Menue, Demo-Hinweis, Modal).
+Unterseiten erben hiervon und fuellen nur noch die Bloecke content, demo_css und demo_js.
+{% endcomment %}
+
+{% block robots %}noindex, nofollow{% endblock %}
+
+{% block css %}
+{% compress css %}
+<link rel="stylesheet" href="{% static 'css/aos.css' %}" />
+<style>
+  /* Markenfarben der Baugenossenschaft Plattling (aus der Bestandsseite):
+     Schieferblau #4B6671, Signalgelb #FFDC16, helles Eisblau #E3F0F4 */
+  .bgp-bg-navy { background-color: #4B6671; }
+  .bgp-bg-navy-dark { background-color: #3A505A; }
+  .bgp-bg-navy-deep { background-color: #2E434C; }
+  .bgp-bg-ice { background-color: #EEF5F8; }
+  .bgp-bg-ice-deep { background-color: #E3F0F4; }
+  .bgp-bg-yellow { background-color: #FFDC16; }
+  .bgp-text-navy { color: #4B6671; }
+  .bgp-text-navy-dark { color: #2E434C; }
+  .bgp-text-yellow { color: #FFDC16; }
+  .bgp-text-ice { color: #DCE9EF; }
+  .bgp-border-navy { border-color: #4B6671; }
+  .bgp-border-yellow { border-color: #FFDC16; }
+  .bgp-ring-ice { --tw-ring-color: #C9DEE6; }
+
+  .bgp-btn-yellow {
+    background-color: #FFDC16;
+    color: #2E434C;
+  }
+  .bgp-btn-yellow:hover { background-color: #F2CE00; }
+
+  .bgp-btn-navy {
+    background-color: #4B6671;
+    color: #ffffff;
+  }
+  .bgp-btn-navy:hover { background-color: #3A505A; }
+
+  .bgp-hero {
+    background: linear-gradient(160deg, #2E434C 0%, #4B6671 55%, #5C7A87 100%);
+  }
+  .bgp-hero-pattern {
+    position: absolute;
+    inset: 0;
+    opacity: 0.12;
+    background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.45) 1px, transparent 0);
+    background-size: 26px 26px;
+    pointer-events: none;
+  }
+
+  /* Gelbe Akzentlinie - Zitat der gelben Menueleiste der alten Website */
+  .bgp-accent-bar {
+    height: 5px;
+    background: linear-gradient(90deg, rgba(255,220,22,0.35) 0%, #FFDC16 50%, rgba(255,220,22,0.35) 100%);
+  }
+
+  .bgp-card-hover { transition: transform .3s ease, box-shadow .3s ease; }
+  .bgp-card-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 40px -18px rgba(46,67,76,0.35); }
+
+  .bgp-nav-link { color: #DCE9EF; transition: color .2s ease; }
+  .bgp-nav-link:hover { color: #FFDC16; }
+  .bgp-nav-link-active { color: #FFDC16; }
+
+  /* Fokus-Ring in Markenfarbe fuer Tastaturbedienung */
+  .bgp-focus:focus-visible {
+    outline: 3px solid #FFDC16;
+    outline-offset: 2px;
+  }
+
+  /* Hinweis-Toast fuer Links, die in der Demo bewusst nicht hinterlegt sind */
+  .bgp-toast {
+    position: fixed;
+    bottom: 1.5rem;
+    left: 50%;
+    z-index: 80;
+    display: flex;
+    align-items: center;
+    gap: .625rem;
+    border-radius: .875rem;
+    background-color: #2E434C;
+    padding: .875rem 1.25rem;
+    font-size: .875rem;
+    font-weight: 600;
+    color: #ffffff;
+    box-shadow: 0 20px 45px -15px rgba(0,0,0,.5);
+    transform: translate(-50%, 1.5rem);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform .28s ease, opacity .28s ease;
+  }
+  .bgp-toast.is-visible {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
+
+  /* Modal (Meldungs-Detail, Archiv, Formular-Bestaetigung) */
+  .bgp-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    overflow-y: auto;
+    padding: 1rem;
+    background-color: rgba(46,67,76,.72);
+    backdrop-filter: blur(3px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .25s ease, visibility .25s ease;
+  }
+  .bgp-modal.is-open { opacity: 1; visibility: visible; }
+  .bgp-modal-panel {
+    position: relative;
+    width: 100%;
+    max-width: 42rem;
+    margin: auto;
+    overflow: hidden;
+    border-radius: 1.25rem;
+    background-color: #ffffff;
+    box-shadow: 0 40px 80px -20px rgba(0,0,0,.45);
+    transform: translateY(14px) scale(.98);
+    transition: transform .25s ease;
+  }
+  .bgp-modal.is-open .bgp-modal-panel { transform: translateY(0) scale(1); }
+
+  .bgp-prose p { margin-bottom: 1rem; line-height: 1.75; color: #4b5563; }
+  .bgp-prose p:last-child { margin-bottom: 0; }
+  .bgp-prose ul { margin-bottom: 1rem; padding-left: 1.25rem; list-style: disc; color: #4b5563; }
+  .bgp-prose li { margin-bottom: .375rem; line-height: 1.7; }
+  .bgp-prose strong { color: #111827; }
+</style>
+{% block demo_css %}{% endblock demo_css %}
+{% endcompress css %}
+{% endblock css %}
+
+{# Eigenstaendige Demo-Seiten: komplett eigene Navigation und Footer im Look der Baugenossenschaft. #}
+{% block navbar %}
+{% url 'ycms:demo-detail' slug='baugenossenschaft-plattling' as bgp_home_url %}
+{% url 'ycms:demo-subpage' slug='baugenossenschaft-plattling' subpage='kontakt' as bgp_kontakt_url %}
+{% url 'ycms:demo-subpage' slug='baugenossenschaft-plattling' subpage='aktuelles' as bgp_aktuelles_url %}
+<header class="bgp-bg-navy-deep sticky top-0 z-50 shadow-lg">
+  <div class="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+    <a href="{{ bgp_home_url }}" class="bgp-focus flex min-w-0 items-center gap-3 rounded-lg" aria-label="Baugenossenschaft Plattling eG - Startseite">
+      <img src="{% static 'images/demos/bgp/logo-icon.png' %}" alt="Logo Baugenossenschaft Plattling eG" class="h-11 w-auto flex-shrink-0" />
+      <span class="flex min-w-0 flex-col leading-tight">
+        <span class="truncate text-base font-bold tracking-tight text-white sm:text-lg">Baugenossenschaft Plattling <span class="bgp-text-yellow">eG</span></span>
+        <span class="text-[11px] font-semibold uppercase tracking-[0.25em] text-white/50">seit 1921</span>
+      </span>
+    </a>
+
+    <nav class="hidden items-center gap-1 lg:flex" aria-label="Hauptnavigation">
+      <a href="{{ bgp_home_url }}#genossenschaft" class="bgp-nav-link bgp-focus rounded-lg px-3 py-2 text-sm font-medium">Unsere Genossenschaft</a>
+      <a href="{{ bgp_home_url }}#vermietung" class="bgp-nav-link bgp-focus rounded-lg px-3 py-2 text-sm font-medium">Vermietung</a>
+      <a href="{{ bgp_aktuelles_url }}" class="bgp-nav-link bgp-focus rounded-lg px-3 py-2 text-sm font-medium{% if demo_page == 'aktuelles' %} bgp-nav-link-active{% endif %}">Aktuelles</a>
+      <a href="{{ bgp_kontakt_url }}" class="bgp-nav-link bgp-focus rounded-lg px-3 py-2 text-sm font-medium{% if demo_page == 'kontakt' %} bgp-nav-link-active{% endif %}">Kontakt</a>
+      <a href="tel:0993189007300" class="bgp-btn-yellow bgp-focus ml-3 inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold shadow-sm transition">
+        <i class="bi bi-telephone-fill"></i> 09931 890073-0
+      </a>
+    </nav>
+
+    <button id="bgpMenuToggle" class="bgp-focus rounded-lg p-2 text-white hover:bg-white/10 lg:hidden" aria-expanded="false" aria-controls="bgpMobileMenu" aria-label="Menü öffnen">
+      <i class="bi bi-list text-2xl leading-none"></i>
+    </button>
+  </div>
+
+  <div id="bgpMobileMenu" class="hidden border-t border-white/10 px-4 pb-4 pt-2 lg:hidden">
+    <a href="{{ bgp_home_url }}#genossenschaft" class="bgp-nav-link block rounded-lg px-3 py-3 text-base font-medium">Unsere Genossenschaft</a>
+    <a href="{{ bgp_home_url }}#vermietung" class="bgp-nav-link block rounded-lg px-3 py-3 text-base font-medium">Vermietung</a>
+    <a href="{{ bgp_aktuelles_url }}" class="bgp-nav-link block rounded-lg px-3 py-3 text-base font-medium{% if demo_page == 'aktuelles' %} bgp-nav-link-active{% endif %}">Aktuelles</a>
+    <a href="{{ bgp_kontakt_url }}" class="bgp-nav-link block rounded-lg px-3 py-3 text-base font-medium{% if demo_page == 'kontakt' %} bgp-nav-link-active{% endif %}">Kontakt</a>
+    <a href="tel:0993189007300" class="bgp-btn-yellow mt-2 inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold">
+      <i class="bi bi-telephone-fill"></i> 09931 890073-0
+    </a>
+  </div>
+  <div class="bgp-accent-bar"></div>
+</header>
+{% endblock navbar %}
+
+{% block cookies %}{% endblock cookies %}
+
+{# YooLink-eigenes Urlaubsbanner gehoert nicht auf eine Kundendemo #}
+{% block site_banner %}{% endblock site_banner %}
+
+{% block footer %}
+{% url 'ycms:demo-detail' slug='baugenossenschaft-plattling' as bgp_home_url %}
+{% url 'ycms:demo-subpage' slug='baugenossenschaft-plattling' subpage='kontakt' as bgp_kontakt_url %}
+{% url 'ycms:demo-subpage' slug='baugenossenschaft-plattling' subpage='aktuelles' as bgp_aktuelles_url %}
+<footer class="bgp-bg-navy-deep border-t border-white/10 px-4 py-10 text-sm text-white/60">
+  <div class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 sm:flex-row">
+    <a href="{{ bgp_home_url }}" class="bgp-focus flex items-center gap-3 rounded-lg">
+      <img src="{% static 'images/demos/bgp/logo-icon.png' %}" alt="" class="h-9 w-auto" />
+      <div>
+        <p class="font-bold text-white">Baugenossenschaft Plattling eG</p>
+        <p class="text-xs">Schillerstr. 6b · 94447 Plattling · seit 1921</p>
+      </div>
+    </a>
+    <nav class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2" aria-label="Rechtliches">
+      <a href="{{ bgp_aktuelles_url }}" class="bgp-focus rounded transition hover:text-white">Aktuelles</a>
+      <a href="{{ bgp_kontakt_url }}" class="bgp-focus rounded transition hover:text-white">Kontakt</a>
+      <button type="button" data-demo-hint="Impressum" class="bgp-focus rounded transition hover:text-white">Impressum</button>
+      <button type="button" data-demo-hint="Satzung" class="bgp-focus rounded transition hover:text-white">Satzung</button>
+      <button type="button" data-demo-hint="Datenschutz" class="bgp-focus rounded transition hover:text-white">Datenschutz</button>
+    </nav>
+  </div>
+</footer>
+
+<div id="bgpToast" class="bgp-toast" role="status" aria-live="polite">
+  <i class="bi bi-info-circle-fill bgp-text-yellow"></i>
+  <span id="bgpToastText"></span>
+</div>
+{% endblock footer %}
+
+{% block javascriptend %}
+<script src="{% static 'js/aos.js' %}"></script>
+<script>
+  AOS.init({ duration: 700, once: true, easing: 'ease-out', disable: 'phone' });
+
+  /* Mobile Navigation */
+  var bgpToggle = document.getElementById('bgpMenuToggle');
+  var bgpMenu = document.getElementById('bgpMobileMenu');
+  bgpToggle.addEventListener('click', function () {
+    var open = !bgpMenu.classList.contains('hidden');
+    bgpMenu.classList.toggle('hidden');
+    bgpToggle.setAttribute('aria-expanded', String(!open));
+  });
+  bgpMenu.querySelectorAll('a').forEach(function (link) {
+    link.addEventListener('click', function () {
+      bgpMenu.classList.add('hidden');
+      bgpToggle.setAttribute('aria-expanded', 'false');
+    });
+  });
+
+  /* Toast: einheitlicher Hinweis fuer Inhalte, die in der Demo nicht hinterlegt sind */
+  var bgpToast = document.getElementById('bgpToast');
+  var bgpToastText = document.getElementById('bgpToastText');
+  var bgpToastTimer = null;
+
+  function bgpShowToast(message) {
+    bgpToastText.textContent = message;
+    bgpToast.classList.add('is-visible');
+    window.clearTimeout(bgpToastTimer);
+    bgpToastTimer = window.setTimeout(function () {
+      bgpToast.classList.remove('is-visible');
+    }, 3200);
+  }
+
+  document.querySelectorAll('[data-demo-hint]').forEach(function (el) {
+    el.addEventListener('click', function () {
+      bgpShowToast('„' + el.dataset.demoHint + '" ist in dieser Demo noch nicht hinterlegt.');
+    });
+  });
+
+  /* Modal-Grundgeruest: wird von den Unterseiten mit Inhalt befuellt */
+  var bgpLastFocus = null;
+
+  function bgpOpenModal(modal) {
+    bgpLastFocus = document.activeElement;
+    modal.classList.add('is-open');
+    document.body.style.overflow = 'hidden';
+    var closeBtn = modal.querySelector('[data-modal-close]');
+    if (closeBtn) { closeBtn.focus(); }
+  }
+
+  function bgpCloseModal(modal) {
+    modal.classList.remove('is-open');
+    document.body.style.overflow = '';
+    if (bgpLastFocus) { bgpLastFocus.focus(); }
+  }
+
+  document.querySelectorAll('.bgp-modal').forEach(function (modal) {
+    modal.addEventListener('click', function (event) {
+      if (event.target === modal || event.target.closest('[data-modal-close]')) {
+        bgpCloseModal(modal);
+      }
+    });
+  });
+
+  document.addEventListener('keydown', function (event) {
+    if (event.key !== 'Escape') { return; }
+    document.querySelectorAll('.bgp-modal.is-open').forEach(bgpCloseModal);
+  });
+</script>
+{% block demo_js %}{% endblock demo_js %}
+{% endblock javascriptend %}

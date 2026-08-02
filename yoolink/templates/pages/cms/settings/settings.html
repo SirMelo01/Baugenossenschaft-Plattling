@@ -1,0 +1,328 @@
+{% extends 'cmsbase.html' %}
+{% load compress static %}
+{% block title %}{{ block.super }} | CMS | Einstellungen{% endblock %}
+
+{% block content %}
+<div class="mx-auto mt-6 max-w-7xl px-2 pb-8">
+    <div class="mb-6">
+        <h1 class="text-3xl font-semibold tracking-tight text-slate-900">Einstellungen</h1>
+        <p class="mt-2 text-slate-600">Verwalte dein Profil, dein Branding und die Sicherheit deines Kontos.</p>
+    </div>
+
+    <div class="grid gap-6 lg:grid-cols-[260px,minmax(0,1fr)]">
+        {% include 'pages/cms/settings/partials/settings_sidebar.html' with active_page='general' %}
+
+        <section class="">
+            <div id="settingsMessage" class="hidden rounded-2xl border px-4 py-3 text-sm font-medium"></div>
+
+            <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+                <div class="flex flex-col gap-4 border-b border-slate-200 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <h2 class="text-xl font-semibold text-slate-900">Profil &amp; Unternehmensdaten</h2>
+                        <p class="mt-1 text-sm text-slate-500">Stammdaten und SEO-Angaben für dein Unternehmen.</p>
+                    </div>
+
+                    <button id="updateSettings"
+                            data-url="{% url 'cms:settings-update' %}"
+                            class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded hover:cursor-pointer">
+                        Speichern
+                    </button>
+                </div>
+
+                <!-- Tab bar -->
+                <div class="border-b border-slate-200 px-4 sm:px-6">
+                    <nav class="-mb-px flex gap-1 overflow-x-auto" aria-label="Einstellungs-Tabs">
+                        <button type="button" data-settings-tab="general"
+                                class="settings-tab whitespace-nowrap border-b-2 border-transparent px-4 py-3 text-sm font-semibold text-slate-500 transition">
+                            <i class="bi bi-person-vcard mr-1"></i> Allgemeine Informationen
+                        </button>
+                        <button type="button" data-settings-tab="seo"
+                                class="settings-tab whitespace-nowrap border-b-2 border-transparent px-4 py-3 text-sm font-semibold text-slate-500 transition">
+                            <i class="bi bi-graph-up-arrow mr-1"></i> SEO / Structured Data
+                        </button>
+                    </nav>
+                </div>
+
+                <form class="p-6">
+                    {% csrf_token %}
+
+                    <!-- Tab: Allgemeine Informationen -->
+                    <div data-settings-panel="general" class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                        {% comment %}
+                        <div class="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 sm:col-span-2 xl:col-span-3">
+                            Hinterlege hier eine gültige E-Mail-Adresse, wenn du im Bereich Autorisierung die E-Mail-2FA aktivieren möchtest.
+                        </div>
+
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-slate-700" for="email">Benutzer-E-Mail</label>
+                            <input value="{{ settings.email }}"
+                                   class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-slate-400 focus:bg-white"
+                                   id="email"
+                                   type="email"
+                                   placeholder="sam.smith@gmail.com" />
+                        </div>
+
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-slate-700" for="full_name">Voller Name</label>
+                            <input value="{{ settings.full_name }}"
+                                   class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-slate-400 focus:bg-white"
+                                   id="full_name"
+                                   type="text"
+                                   placeholder="Sam Smith" />
+                        </div>
+
+                        {% endcomment %}
+
+                        <div class="rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800 sm:col-span-2 xl:col-span-3">
+                            <i class="bi bi-info-circle mr-1"></i> Unternehmensname, Inhaber, Adresse und Kontaktdaten werden automatisch ins
+                            <a href="{% url 'cms:site_impressum' %}" class="font-semibold underline">Impressum</a> übernommen.
+                        </div>
+
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-slate-700" for="company_name">Unternehmensname</label>
+                            <input value="{{ website_settings.company_name }}"
+                                   class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-slate-400 focus:bg-white"
+                                   id="company_name"
+                                   type="text"
+                                   placeholder="Sam Smith GmbH" />
+                        </div>
+
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-slate-700" for="owner_name">Inhaber</label>
+                            <input value="{{ website_settings.owner_name }}"
+                                   class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-slate-400 focus:bg-white"
+                                   id="owner_name"
+                                   type="text"
+                                   placeholder="Sebastian Rauch" />
+                        </div>
+
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-slate-700" for="contact_email">Unternehmens-E-Mail</label>
+                            <input value="{{ website_settings.contact_email }}"
+                                   class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-slate-400 focus:bg-white"
+                                   id="contact_email"
+                                   type="email"
+                                   placeholder="kontakt@unternehmen.de" />
+                        </div>
+
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-slate-700" for="tel_number">Telefonnummer</label>
+                            <input value="{{ website_settings.tel_number }}"
+                                   class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-slate-400 focus:bg-white"
+                                   id="tel_number"
+                                   type="text"
+                                   placeholder="04541 5562346" />
+                        </div>
+
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-slate-700" for="fax_number">Fax Nummer</label>
+                            <input value="{{ website_settings.fax_number }}"
+                                   class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-slate-400 focus:bg-white"
+                                   id="fax_number"
+                                   type="text"
+                                   placeholder="04541 5562346" />
+                        </div>
+
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-slate-700" for="mobile_number">Mobilnummer</label>
+                            <input value="{{ website_settings.mobile_number }}"
+                                   class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-slate-400 focus:bg-white"
+                                   id="mobile_number"
+                                   type="text"
+                                   placeholder="04541 5562346" />
+                        </div>
+
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-slate-700" for="website">Website</label>
+                            <input value="{{ website_settings.website }}"
+                                   class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-slate-400 focus:bg-white"
+                                   id="website"
+                                   type="text"
+                                   placeholder="https://sam-smith.de" />
+                        </div>
+
+                        <div class="sm:col-span-2">
+                            <label class="mb-2 block text-sm font-medium text-slate-700" for="address">Adresse</label>
+                            <input value="{{ website_settings.address }}"
+                                   class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-slate-400 focus:bg-white"
+                                   id="address"
+                                   type="text"
+                                   placeholder="Unternehmensweg 2, 29299 Wohrt" />
+                        </div>
+
+                        <div class="sm:col-span-2 xl:col-span-1">
+                            <label class="mb-2 block text-sm font-medium text-slate-700" for="global_font">Globale Schriftart</label>
+                            <select class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-slate-400 focus:bg-white"
+                                    id="global_font"
+                                    name="global_font">
+                                <option value="" {% if website_settings.global_font == "" %}selected{% endif %}>Keine</option>
+                                <option value="font-sans" {% if website_settings.global_font == "font-sans" %}selected{% endif %}>Sans</option>
+                                <option value="font-serif" {% if website_settings.global_font == "font-serif" %}selected{% endif %}>Serif</option>
+                                <option value="font-mono" {% if website_settings.global_font == "font-mono" %}selected{% endif %}>Monospace</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Tab: SEO / Structured Data -->
+                    <div data-settings-panel="seo" class="grid hidden grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                        <div class="rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800 sm:col-span-2 xl:col-span-3">
+                            Diese Angaben erscheinen im Website-Schema (Organization &amp; LocalBusiness). Leer lassen = wird weggelassen.
+                        </div>
+
+                        <div class="sm:col-span-2">
+                            <label class="mb-2 block text-sm font-medium text-slate-700" for="site_meta_description">Standard Meta Description</label>
+                            <textarea id="site_meta_description"
+                                      rows="4"
+                                      maxlength="320"
+                                      class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-slate-400 focus:bg-white"
+                                      placeholder="Standard-Beschreibung für Seiten ohne eigene Meta Description">{{ website_settings.site_meta_description }}</textarea>
+                            <p class="mt-1 text-xs text-slate-500">Wird als Website-Default genutzt. Blog- und Landingpage-spezifische Beschreibungen überschreiben diesen Wert weiterhin.</p>
+                        </div>
+
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-slate-700" for="site_meta_author">Meta Author</label>
+                            <input value="{{ website_settings.site_meta_author }}"
+                                   class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-slate-400 focus:bg-white"
+                                   id="site_meta_author"
+                                   maxlength="255"
+                                   type="text"
+                                   placeholder="YooLink" />
+                            <p class="mt-1 text-xs text-slate-500">Erscheint im globalen <code>author</code>-Meta-Tag.</p>
+                        </div>
+
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-slate-700" for="social_instagram">Instagram-URL</label>
+                            <input value="{{ website_settings.social_instagram }}"
+                                   class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-slate-400 focus:bg-white"
+                                   id="social_instagram"
+                                   type="text"
+                                   placeholder="https://www.instagram.com/yoolinkde/" />
+                        </div>
+
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-slate-700" for="social_x">X- / Twitter-URL</label>
+                            <input value="{{ website_settings.social_x }}"
+                                   class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-slate-400 focus:bg-white"
+                                   id="social_x"
+                                   type="text"
+                                   placeholder="https://x.com/YooLinkDE" />
+                        </div>
+
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-slate-700" for="social_facebook">Facebook-URL</label>
+                            <input value="{{ website_settings.social_facebook }}"
+                                   class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-slate-400 focus:bg-white"
+                                   id="social_facebook"
+                                   type="text"
+                                   placeholder="https://www.facebook.com/deineSeite" />
+                        </div>
+
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-slate-700" for="social_linkedin">LinkedIn-URL</label>
+                            <input value="{{ website_settings.social_linkedin }}"
+                                   class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-slate-400 focus:bg-white"
+                                   id="social_linkedin"
+                                   type="text"
+                                   placeholder="https://www.linkedin.com/company/..." />
+                        </div>
+
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-slate-700" for="price_range">Preisrahmen</label>
+                            <input value="{{ website_settings.price_range }}"
+                                   class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-slate-400 focus:bg-white"
+                                   id="price_range"
+                                   type="text"
+                                   placeholder="ab 40 €/Monat" />
+                        </div>
+
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-slate-700" for="business_description">Kurzbeschreibung / Slogan</label>
+                            <input value="{{ website_settings.business_description }}"
+                                   class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-slate-400 focus:bg-white"
+                                   id="business_description"
+                                   type="text"
+                                   placeholder="Webdesign Agentur im Raum Niederbayern" />
+                        </div>
+
+                        <div class="sm:col-span-2">
+                            <label class="mb-2 block text-sm font-medium text-slate-700" for="area_served">Einzugsgebiet (kommagetrennt)</label>
+                            <input value="{{ website_settings.area_served }}"
+                                   class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-slate-400 focus:bg-white"
+                                   id="area_served"
+                                   type="text"
+                                   placeholder="Passau, Regensburg, Deggendorf, Niederbayern" />
+                        </div>
+
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-slate-700" for="address_region">Bundesland</label>
+                            <input value="{{ website_settings.address_region }}"
+                                   class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-slate-400 focus:bg-white"
+                                   id="address_region"
+                                   type="text"
+                                   placeholder="Bayern" />
+                        </div>
+
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-slate-700" for="address_country">Land (2-Buchstaben-Code)</label>
+                            <input value="{{ website_settings.address_country }}"
+                                   class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-slate-400 focus:bg-white"
+                                   id="address_country"
+                                   type="text"
+                                   placeholder="DE" />
+                        </div>
+
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-slate-700" for="geo_latitude">Geo Breitengrad (latitude)</label>
+                            <input value="{{ website_settings.geo_latitude }}"
+                                   class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-slate-400 focus:bg-white"
+                                   id="geo_latitude"
+                                   type="text"
+                                   placeholder="48.7667" />
+                        </div>
+
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-slate-700" for="geo_longitude">Geo Längengrad (longitude)</label>
+                            <input value="{{ website_settings.geo_longitude }}"
+                                   class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 outline-none transition focus:border-slate-400 focus:bg-white"
+                                   id="geo_longitude"
+                                   type="text"
+                                   placeholder="13.0500" />
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascriptend %}
+{% compress js %}
+<script src="{% static 'js/cms/settings/settings.js' %}"></script>
+{% endcompress js %}
+<script>
+    (function () {
+        var ACTIVE = ['border-blue-600', 'text-blue-700'];
+        var INACTIVE = ['border-transparent', 'text-slate-500', 'hover:text-slate-800', 'hover:border-slate-300'];
+        var tabs = document.querySelectorAll('.settings-tab');
+        var panels = document.querySelectorAll('[data-settings-panel]');
+
+        function activate(name) {
+            tabs.forEach(function (t) {
+                var on = t.getAttribute('data-settings-tab') === name;
+                t.classList.remove.apply(t.classList, on ? INACTIVE : ACTIVE);
+                t.classList.add.apply(t.classList, on ? ACTIVE : INACTIVE);
+            });
+            panels.forEach(function (p) {
+                p.classList.toggle('hidden', p.getAttribute('data-settings-panel') !== name);
+            });
+        }
+
+        tabs.forEach(function (t) {
+            t.addEventListener('click', function () { activate(t.getAttribute('data-settings-tab')); });
+        });
+
+        activate('general');
+    })();
+</script>
+{% endblock javascriptend %}

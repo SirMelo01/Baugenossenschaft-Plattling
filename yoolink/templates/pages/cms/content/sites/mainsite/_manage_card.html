@@ -1,0 +1,29 @@
+{% comment %}
+Reusable "Verwalten" card for jump-away sections (Preis, Team, FAQ).
+Expects: title, icon (bootstrap icon class), count, count_label, url
+
+The primary button stays in the same tab and is guarded against unsaved changes
+(class "js-guard-nav"). The secondary button opens the target in a new tab so the
+current edits are never lost.
+{% endcomment %}
+<div class="flex flex-col rounded-xl border border-gray-200 bg-gray-50 p-5">
+    <h3 class="mb-1 flex items-center justify-between text-lg font-semibold text-gray-900">
+        {{ title }} <i class="bi {{ icon }} text-gray-400"></i>
+    </h3>
+    <p class="mb-4 text-sm text-gray-500">Wird in einem eigenen Bereich verwaltet.</p>
+    <p class="text-gray-700">{{ count_label }}: <strong>{{ count }}</strong></p>
+
+    <div class="flex-grow"></div>
+
+    <div class="mt-6 flex flex-col gap-2 sm:flex-row">
+        <a href="{{ url }}"
+            class="js-guard-nav inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-blue-500 px-4 py-2 font-bold text-white transition hover:bg-blue-700">
+            <i class="bi bi-gear"></i> Verwalten
+        </a>
+        <a href="{{ url }}" target="_blank" rel="noopener"
+            title="In neuem Tab öffnen (Änderungen bleiben erhalten)"
+            class="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 font-semibold text-gray-700 transition hover:bg-gray-100">
+            <i class="bi bi-box-arrow-up-right"></i><span class="sm:hidden">In neuem Tab öffnen</span>
+        </a>
+    </div>
+</div>

@@ -1,0 +1,113 @@
+{% extends 'cmsbase.html' %}
+{% load compress static %}
+{% block title %} {{ block.super }} | CMS | Preisübersicht {% endblock %}
+
+{% block javascript %}
+<!-- jsDelivr :: Sortable :: Latest (https://www.jsdelivr.com/package/npm/sortablejs) -->
+<script src="{% static 'js/cms/sortable/sortable.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto mt-4 sm:mt-8">
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <h1 class="text-2xl ">
+      <a href="{% url 'cms:site_hauptseite_price' %}" class="text-blue-500">Preis-Sektion</a> /
+      <span>Preise</span>
+  </h1>
+    <div class="flex flex-col gap-2 sm:flex-row sm:gap-4">
+      <a href="{% url 'cms:pricingcard-create' %}" class="w-full rounded bg-green-500 px-4 py-3 text-center font-bold text-white hover:bg-green-700 sm:w-auto sm:py-2">
+        Preiskarte erstellen
+      </a>
+      <button id="reorder-button" class="w-full rounded bg-blue-600 px-4 py-3 font-bold text-white hover:bg-blue-700 sm:w-auto sm:py-2">
+        Reihenfolge ändern
+      </button>
+    </div>
+  </div>
+
+  <div id="card-list" class="mt-6 grid grid-cols-1 items-stretch gap-6 sm:grid-cols-2 lg:grid-cols-3">
+    {% for card in pricing_cards %}
+    <div class="card-item flex flex-col" data-id="{{ card.id }}">
+      <!-- Management-Leiste -->
+      <div class="mb-2 flex items-center justify-between px-1">
+        <span class="drag-handle cursor-move select-none text-lg text-gray-400 transition hover:text-gray-600" title="Zum Verschieben ziehen">&#x2630;</span>
+        {% if card.active %}
+          <span class="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-700"><span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span> Aktiv</span>
+        {% else %}
+          <span class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-semibold text-gray-500"><span class="h-1.5 w-1.5 rounded-full bg-gray-400"></span> Inaktiv</span>
+        {% endif %}
+      </div>
+
+      <!-- Vorschau im echten Design -->
+      {% if forloop.counter0 == 1 %}
+        {% include "pages/components/pricing_card.html" with card=card featured=True %}
+      {% else %}
+        {% include "pages/components/pricing_card.html" with card=card featured=False %}
+      {% endif %}
+
+      {% if not card.button %}
+      <p class="mt-2 text-center text-xs italic text-red-400">Kein Button zugeordnet</p>
+      {% endif %}
+
+      <!-- Bearbeiten -->
+      <div class="mt-3 flex justify-center">
+        <a href="{% url 'cms:pricingcard-edit' card.id %}" class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white transition hover:bg-blue-700">
+          <i class="bi bi-pencil-square"></i> Bearbeiten
+        </a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
+
+{% block javascriptend %}
+<script>
+  const list = document.getElementById("card-list");
+  const reorderBtn = document.getElementById("reorder-button");
+  let sorting = false;
+
+  const sortable = new Sortable(list, {
+    animation: 150,
+    handle: ".drag-handle", // optional: du kannst auch `.card-item` als Ganzes nehmen
+    disabled: true // Initial deaktiviert
+  });
+
+  reorderBtn.addEventListener("click", function () {
+    sorting = !sorting;
+
+    if (sorting) {
+      reorderBtn.textContent = "Reihenfolge speichern";
+      reorderBtn.classList.remove("bg-blue-600");
+      reorderBtn.classList.add("bg-green-600");
+      reorderBtn.classList.remove("hover:bg-blue-700");
+      reorderBtn.classList.add("hover:bg-green-700");
+      sortable.option("disabled", false);
+    } else {
+      // Speichern
+      const order = [];
+      document.querySelectorAll(".card-item").forEach((el, index) => {
+        order.push({ id: el.dataset.id, order: index });
+      });
+
+      fetch("{% url 'cms:pricingcard-reorder' %}", {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": "{{ csrf_token }}",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ order })
+      }).then(res => {
+        if (res.ok) sendNotif("Reihenfolge erfolgreich gespeichert", "success");
+        else sendNotif("Fehler beim Speichern der Reihenfolge", "error");
+      });
+
+      reorderBtn.textContent = "Reihenfolge ändern";
+      reorderBtn.classList.add("bg-blue-600");
+      reorderBtn.classList.remove("bg-green-600");
+      reorderBtn.classList.add("hover:bg-blue-700");
+      reorderBtn.classList.remove("hover:bg-green-700");
+      sortable.option("disabled", true);
+    }
+  });
+</script>
+{% endblock %}

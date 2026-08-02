@@ -1,0 +1,925 @@
+{% extends "base.html" %} {% load compress static i18n %}
+
+{% block title %}{{ block.super }} | Medien & Bildmaterial - Bilder für deine Website{% endblock title %}
+
+{% block meta_description %}Bilder direkt mit der Website: Wir produzieren professionelles Bildmaterial - vom Mitarbeiterfoto bis zur Prozessdarstellung - und integrieren alles nahtlos in deinen Auftritt. Ein stimmiger Gesamtauftritt aus einer Hand.{% endblock %}
+
+{% block og_title %}Medien & Bildmaterial YooLink - Website inkl. passender Bilder{% endblock %}
+{% block og_description %}Professionelle Websites bestehen aus Design und Bildern. Wir produzieren das passende Bildmaterial direkt mit - für einen stimmigen Gesamtauftritt aus einer Hand.{% endblock %}
+{% block twitter_title %}Medien & Bildmaterial YooLink{% endblock %}
+{% block twitter_description %}Website + passende Bilder, alles aus einer Hand.{% endblock %}
+
+{% block css %}
+{% compress css %}
+<link href="{% static 'css/wellen.css' %}" rel="stylesheet" />
+<link rel="stylesheet" href="{% static 'css/aos.css' %}" />
+<style>
+  /* ============================================
+     HERO STAGE - Browser mockup with filling images
+  ============================================ */
+  .md-stage {
+    position: relative;
+    width: 100%;
+    max-width: 32rem;
+    margin: 0 auto;
+    aspect-ratio: 1 / 1;
+  }
+
+  .md-stage-glow {
+    position: absolute;
+    inset: 5%;
+    background: radial-gradient(ellipse at 50% 50%,
+      rgba(59, 130, 246, 0.28) 0%,
+      rgba(147, 197, 253, 0.10) 40%,
+      rgba(255, 255, 255, 0) 75%);
+    filter: blur(40px);
+    border-radius: 9999px;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  /* Browser window */
+  .md-browser {
+    position: absolute;
+    left: 6%;
+    right: 6%;
+    top: 14%;
+    bottom: 14%;
+    background: #ffffff;
+    border-radius: 0.85rem;
+    overflow: hidden;
+    box-shadow:
+      0 30px 60px -25px rgba(15, 23, 42, 0.45),
+      0 10px 20px -8px rgba(15, 23, 42, 0.20),
+      inset 0 0 0 1px rgba(15, 23, 42, 0.06);
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    animation: mdBrowserFloat 6s ease-in-out infinite;
+  }
+
+  .md-browser-chrome {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 0.85rem;
+    background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .md-browser-dot {
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 9999px;
+    background: #cbd5e1;
+  }
+  .md-browser-dot:nth-child(1) { background: #f87171; }
+  .md-browser-dot:nth-child(2) { background: #fbbf24; }
+  .md-browser-dot:nth-child(3) { background: #34d399; }
+  .md-browser-url {
+    flex: 1;
+    height: 0.85rem;
+    margin-left: 0.4rem;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.7);
+    box-shadow: inset 0 0 0 1px #e2e8f0;
+    position: relative;
+  }
+  .md-browser-url::before {
+    content: "";
+    position: absolute;
+    left: 0.45rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1.6rem;
+    height: 0.32rem;
+    border-radius: 9999px;
+    background: #cbd5e1;
+  }
+
+  .md-browser-body {
+    flex: 1 1 auto;
+    padding: 0.9rem;
+    display: grid;
+    grid-template-rows: 1fr auto auto;
+    gap: 0.6rem;
+    background: #ffffff;
+    overflow: hidden;
+  }
+
+  /* Image slot: empty placeholder -> filled photo */
+  .md-slot {
+    position: relative;
+    border-radius: 0.55rem;
+    background: #f8fafc;
+    box-shadow: inset 0 0 0 1.5px rgba(30, 58, 138, 0.18);
+    overflow: hidden;
+    isolation: isolate;
+  }
+  .md-slot::before {
+    /* dashed-cross placeholder mark */
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(45deg, transparent 49%, rgba(30, 58, 138, 0.18) 49.5%, rgba(30, 58, 138, 0.18) 50.5%, transparent 51%),
+      linear-gradient(-45deg, transparent 49%, rgba(30, 58, 138, 0.18) 49.5%, rgba(30, 58, 138, 0.18) 50.5%, transparent 51%);
+    z-index: 1;
+    opacity: 1;
+    transition: opacity 0.4s ease;
+  }
+  .md-slot-fill {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    opacity: 0;
+    transform: scale(1.04);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .md-slot.is-filled::before { opacity: 0; }
+  .md-slot.is-filled .md-slot-fill { opacity: 1; transform: scale(1); }
+
+  .md-slot-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0.45rem;
+  }
+  .md-slot--hero {
+    aspect-ratio: 16 / 9;
+  }
+  .md-slot--small {
+    aspect-ratio: 4 / 3;
+  }
+
+  /* Fill variants - abstract content via gradients */
+  .md-fill--scene {
+    background:
+      radial-gradient(ellipse at 50% 90%, #e0e7ff 0%, rgba(224, 231, 255, 0) 65%),
+      linear-gradient(180deg, #bfdbfe 0%, #93c5fd 60%, #60a5fa 100%);
+  }
+  .md-fill--scene::before {
+    /* horizon shape */
+    content: "";
+    position: absolute;
+    left: 0; right: 0;
+    bottom: 22%;
+    height: 28%;
+    background: linear-gradient(180deg, rgba(30, 58, 138, 0.0) 0%, rgba(30, 58, 138, 0.45) 100%);
+    clip-path: polygon(0 100%, 18% 65%, 35% 78%, 55% 50%, 75% 70%, 100% 60%, 100% 100%);
+  }
+  .md-fill--scene::after {
+    /* stylized people silhouettes */
+    content: "";
+    position: absolute;
+    left: 0; right: 0;
+    bottom: 18%;
+    height: 14%;
+    background:
+      radial-gradient(circle at 30% 35%, #1e3a8a 0%, #1e3a8a 18%, transparent 19%),
+      radial-gradient(circle at 50% 30%, #1e3a8a 0%, #1e3a8a 22%, transparent 23%),
+      radial-gradient(circle at 70% 35%, #1e3a8a 0%, #1e3a8a 18%, transparent 19%),
+      linear-gradient(180deg, transparent 60%, #1e3a8a 60%);
+    mask-image: linear-gradient(180deg, #000 35%, transparent 95%);
+    -webkit-mask-image: linear-gradient(180deg, #000 35%, transparent 95%);
+  }
+
+  .md-fill--portrait {
+    background: linear-gradient(160deg, #dbeafe 0%, #bfdbfe 100%);
+  }
+  .md-fill--portrait::after {
+    /* head + shoulders silhouette */
+    content: "";
+    position: absolute;
+    left: 50%; bottom: 0;
+    width: 60%;
+    aspect-ratio: 1 / 1;
+    transform: translateX(-50%);
+    background:
+      radial-gradient(circle at 50% 32%, #1e3a8a 0%, #1e3a8a 22%, transparent 23%),
+      radial-gradient(ellipse at 50% 100%, #1e3a8a 0%, #1e3a8a 50%, transparent 51%);
+  }
+
+  .md-fill--workspace {
+    background: linear-gradient(160deg, #fef3c7 0%, #fde68a 100%);
+  }
+  .md-fill--workspace::after {
+    /* desk + monitor silhouette */
+    content: "";
+    position: absolute;
+    inset: 30% 20% 22%;
+    background:
+      linear-gradient(180deg, #92400e 0%, #92400e 55%, transparent 55%, transparent 70%, #92400e 70%, #92400e 100%);
+    border-radius: 0.15rem;
+    clip-path: polygon(15% 0, 85% 0, 85% 55%, 100% 55%, 100% 70%, 60% 70%, 60% 100%, 40% 100%, 40% 70%, 0 70%, 0 55%, 15% 55%);
+  }
+
+  .md-fill--process {
+    background: linear-gradient(160deg, #d1fae5 0%, #6ee7b7 100%);
+  }
+  .md-fill--process::after {
+    /* connected dots representing flow */
+    content: "";
+    position: absolute;
+    inset: 35% 15% 35%;
+    background:
+      radial-gradient(circle at 12% 50%, #047857 0%, #047857 20%, transparent 21%),
+      radial-gradient(circle at 50% 50%, #047857 0%, #047857 20%, transparent 21%),
+      radial-gradient(circle at 88% 50%, #047857 0%, #047857 20%, transparent 21%),
+      linear-gradient(90deg, transparent 12%, #047857 12%, #047857 88%, transparent 88%);
+    background-size: 100% 100%, 100% 100%, 100% 100%, 100% 12%;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+
+  /* Lines under images (text suggestion) */
+  .md-text-lines {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  .md-line {
+    height: 0.36rem;
+    border-radius: 9999px;
+    background: #e5e7eb;
+  }
+  .md-line--80 { width: 80%; }
+  .md-line--60 { width: 60%; }
+  .md-line--40 { width: 40%; }
+
+  /* Floating photo frames around the browser */
+  .md-floater {
+    position: absolute;
+    border-radius: 0.7rem;
+    overflow: hidden;
+    box-shadow: 0 18px 35px -15px rgba(15, 23, 42, 0.45);
+    background: #fff;
+    border: 4px solid #fff;
+    z-index: 3;
+    will-change: transform;
+  }
+  .md-floater::after {
+    /* pin / corner accent */
+    content: "";
+    position: absolute;
+    top: -6px; left: 50%;
+    transform: translateX(-50%);
+    width: 12px; height: 12px;
+    border-radius: 9999px;
+    background: #1e3a8a;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.25);
+  }
+  .md-floater--tr {
+    top: 2%;
+    right: -2%;
+    width: 28%;
+    aspect-ratio: 4 / 5;
+    transform: rotate(7deg);
+    animation: mdFloat1 6s ease-in-out infinite;
+  }
+  .md-floater--bl {
+    bottom: 4%;
+    left: -2%;
+    width: 32%;
+    aspect-ratio: 4 / 3;
+    transform: rotate(-6deg);
+    animation: mdFloat2 7s ease-in-out infinite;
+  }
+
+  .md-floater-inner {
+    position: absolute;
+    inset: 0;
+  }
+
+  /* Hero hint */
+  .md-hint {
+    position: absolute;
+    left: 50%;
+    bottom: -2rem;
+    transform: translateX(-50%);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.85rem;
+    border-radius: 9999px;
+    background: rgba(30, 58, 138, 0.08);
+    color: #1e3a8a;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    pointer-events: none;
+    z-index: 5;
+  }
+  .md-hint i { font-size: 0.85rem; }
+
+  @keyframes mdBrowserFloat {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-8px); }
+  }
+  @keyframes mdFloat1 {
+    0%, 100% { transform: rotate(7deg) translateY(0); }
+    50%      { transform: rotate(7deg) translateY(-12px); }
+  }
+  @keyframes mdFloat2 {
+    0%, 100% { transform: rotate(-6deg) translateY(0); }
+    50%      { transform: rotate(-6deg) translateY(10px); }
+  }
+
+  /* ============================================
+     CONTENT TYPE CARDS - abstract icons
+  ============================================ */
+  .md-type-card {
+    position: relative;
+    background: white;
+    border-radius: 1rem;
+    padding: 1.6rem 1.5rem 1.5rem;
+    box-shadow: 0 12px 30px -16px rgba(15, 23, 42, 0.25);
+    border: 1px solid rgba(229, 231, 235, 1);
+    transition: transform 0.4s ease, box-shadow 0.4s ease;
+    overflow: hidden;
+  }
+  .md-type-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 40px -12px rgba(30, 58, 138, 0.30);
+  }
+  .md-type-card::after {
+    /* corner accent that grows on hover */
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 4rem;
+    height: 4rem;
+    background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.18) 0%, rgba(59, 130, 246, 0) 70%);
+    border-radius: 0 1rem 0 100%;
+    transition: width 0.4s ease, height 0.4s ease;
+  }
+  .md-type-card:hover::after {
+    width: 6rem;
+    height: 6rem;
+  }
+  .md-type-icon {
+    width: 4rem;
+    height: 4rem;
+    border-radius: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    margin-bottom: 1.1rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .md-type-icon svg {
+    width: 60%;
+    height: 60%;
+    color: #1e3a8a;
+  }
+
+  /* ============================================
+     PROCESS FLOW
+  ============================================ */
+  .md-process {
+    position: relative;
+  }
+  .md-process-steps {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    position: relative;
+  }
+  @media (min-width: 768px) {
+    .md-process-steps {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+    .md-process-steps::before {
+      /* dashed connector line */
+      content: "";
+      position: absolute;
+      top: 2.5rem;
+      left: 16%;
+      right: 16%;
+      height: 2px;
+      background: repeating-linear-gradient(90deg, #93c5fd 0 8px, transparent 8px 16px);
+      z-index: 0;
+    }
+  }
+
+  .md-step {
+    position: relative;
+    z-index: 1;
+    background: white;
+    border-radius: 1rem;
+    padding: 2.2rem 1.5rem 1.5rem;
+    box-shadow: 0 14px 30px -16px rgba(15, 23, 42, 0.25);
+    text-align: center;
+    transition: transform 0.4s ease, box-shadow 0.4s ease;
+  }
+  .md-step:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 22px 42px -12px rgba(30, 58, 138, 0.30);
+  }
+  .md-step-num {
+    position: absolute;
+    top: -1.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 3rem;
+    height: 3rem;
+    border-radius: 9999px;
+    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+    color: white;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 6px 14px -4px rgba(30, 58, 138, 0.6);
+    border: 4px solid #eff6ff;
+  }
+  .md-step-icon {
+    width: 3.6rem;
+    height: 3.6rem;
+    margin: 0.6rem auto 1rem;
+    border-radius: 1rem;
+    background: linear-gradient(135deg, #eff6ff, #dbeafe);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .md-step-icon svg { width: 60%; height: 60%; color: #1e3a8a; }
+
+  /* ============================================
+     UNIFIED OFFER CALLOUT
+  ============================================ */
+  .md-callout {
+    position: relative;
+    background: linear-gradient(135deg, #ffffff 0%, #eff6ff 100%);
+    border-radius: 1.5rem;
+    padding: 3rem 2rem;
+    overflow: hidden;
+    border: 1px solid rgba(191, 219, 254, 0.7);
+  }
+  .md-callout::before {
+    content: "";
+    position: absolute;
+    top: -25%;
+    right: -10%;
+    width: 60%;
+    height: 150%;
+    background: radial-gradient(ellipse at 50% 50%, rgba(59, 130, 246, 0.15) 0%, rgba(59, 130, 246, 0) 70%);
+    pointer-events: none;
+  }
+  .md-callout-orbit {
+    position: relative;
+    width: 100%;
+    max-width: 18rem;
+    aspect-ratio: 1 / 1;
+    margin: 0 auto;
+  }
+  .md-callout-center {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 5.5rem;
+    height: 5.5rem;
+    border-radius: 1.2rem;
+    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    box-shadow: 0 14px 30px -8px rgba(30, 58, 138, 0.55);
+    z-index: 2;
+  }
+  .md-callout-center i { font-size: 2rem; }
+  .md-callout-orbit-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 9999px;
+    border: 2px dashed rgba(30, 58, 138, 0.30);
+    animation: mdRingSpin 28s linear infinite;
+  }
+  .md-callout-bubble {
+    position: absolute;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 0.85rem;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #1e3a8a;
+    box-shadow: 0 8px 18px -6px rgba(15, 23, 42, 0.30);
+    border: 1px solid #dbeafe;
+  }
+  .md-callout-bubble i { font-size: 1.2rem; }
+  .md-callout-bubble--top    { top: 0;       left: 50%; transform: translate(-50%, -10%); animation: mdBubbleFloat 4.5s ease-in-out infinite; }
+  .md-callout-bubble--right  { right: 0;     top: 50%; transform: translate(10%, -50%); animation: mdBubbleFloat 5s ease-in-out infinite 0.6s; }
+  .md-callout-bubble--bottom { bottom: 0;    left: 50%; transform: translate(-50%, 10%); animation: mdBubbleFloat 4.8s ease-in-out infinite 1.2s; }
+  .md-callout-bubble--left   { left: 0;      top: 50%; transform: translate(-10%, -50%); animation: mdBubbleFloat 5.2s ease-in-out infinite 1.8s; }
+
+  @keyframes mdRingSpin {
+    from { transform: rotate(0); }
+    to   { transform: rotate(360deg); }
+  }
+  @keyframes mdBubbleFloat {
+    0%, 100% { translate: 0 0; }
+    50%      { translate: 0 -8px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .md-browser, .md-floater--tr, .md-floater--bl,
+    .md-callout-orbit-ring, .md-callout-bubble {
+      animation: none !important;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .md-stage { max-width: 24rem; }
+    .md-floater--tr { width: 32%; }
+    .md-floater--bl { width: 36%; }
+  }
+</style>
+{% endcompress css %}
+{% endblock css %}
+
+{% block javascript %}
+{% compress js %}
+<script defer src="{% static 'js/aos.js' %}"></script>
+{% endcompress %}
+{% endblock javascript %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "serviceType": "Bildmaterial & Medienproduktion",
+  "provider": {
+    "@type": "Organization",
+    "name": "YooLink",
+    "url": "https://yoolink.de",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "Schanzenweg 53",
+      "postalCode": "94469",
+      "addressLocality": "Deggendorf",
+      "addressCountry": "DE"
+    }
+  },
+  "areaServed": "DE",
+  "name": "Medien & Bildmaterial YooLink",
+  "description": "Wir produzieren professionelles Bildmaterial - Mitarbeiterfotos, Prozessdarstellungen und Unternehmensvisuals - und integrieren alles direkt in deine Website.",
+  "url": "https://yoolink.de/leistungen/medien/"
+}
+</script>
+{% endblock %}
+
+{% block content %}
+
+<!-- HERO SECTION -->
+<section class="bg-white px-4 pt-20 pb-20 lg:pt-28 lg:pb-28">
+  <div class="mx-auto grid max-w-6xl items-center gap-14 px-4 md:grid-cols-2">
+    <div data-aos="fade-right">
+      <p class="mb-4 text-sm font-semibold uppercase tracking-widest text-blue-900">{{ textContent_hero.header|default:"Medien & Bildmaterial" }}</p>
+      <h1 class="mb-6 text-3xl font-bold leading-none tracking-tight text-gray-900 sm:text-5xl xl:text-6xl">
+        {{ textContent_hero.title|default:"Eine Website wirkt nur mit den richtigen Bildern." }}
+      </h1>
+      <p class="mb-8 text-base leading-7 text-gray-600 md:text-lg xl:text-xl">
+        {{ textContent_hero.description|default:"Professionelles Webdesign braucht mehr als gute Typografie und kluges Layout - es braucht echte, individuelle Bilder, die deine Marke greifbar machen. Wir produzieren das passende Bildmaterial direkt mit und sorgen so für einen stimmigen Gesamtauftritt aus einer Hand." }}
+      </p>
+      <div class="flex flex-wrap gap-4">
+        <a href="{% url 'kontakt' %}"
+          class="inline-block rounded-md border-t border-gray-200 bg-blue-900 px-8 py-4 text-base font-bold text-white shadow-xl transition-transform duration-300 ease-in-out hover:-translate-y-1 hover:scale-105 hover:bg-blue-700">
+          {{ textContent_hero.buttonText|default:"Website mit Bildern anfragen" }}
+        </a>
+        <a href="#prozess"
+          class="inline-block rounded-md border border-blue-900 bg-white px-8 py-4 text-base font-bold text-blue-900 shadow-md transition-transform duration-300 ease-in-out hover:-translate-y-1 hover:scale-105 hover:bg-blue-50">
+          {{ textContent_hero_secondary.title|default:"So läuft es ab" }}
+        </a>
+      </div>
+    </div>
+
+    <div data-aos="fade-left" class="relative flex justify-center">
+      <div class="md-stage" id="mdStage">
+        <div class="md-stage-glow" aria-hidden="true"></div>
+
+        <!-- Floating photo frame: top right -->
+        <div class="md-floater md-floater--tr" aria-hidden="true">
+          <div class="md-floater-inner md-slot">
+            <div class="md-slot-fill md-fill--portrait"></div>
+          </div>
+        </div>
+        <!-- Floating photo frame: bottom left -->
+        <div class="md-floater md-floater--bl" aria-hidden="true">
+          <div class="md-floater-inner md-slot">
+            <div class="md-slot-fill md-fill--workspace"></div>
+          </div>
+        </div>
+
+        <!-- Browser mockup -->
+        <div class="md-browser">
+          <div class="md-browser-chrome">
+            <span class="md-browser-dot"></span>
+            <span class="md-browser-dot"></span>
+            <span class="md-browser-dot"></span>
+            <div class="md-browser-url"></div>
+          </div>
+          <div class="md-browser-body">
+            <!-- Hero image slot -->
+            <div class="md-slot md-slot--hero" data-fill-delay="200">
+              <div class="md-slot-fill md-fill--scene"></div>
+            </div>
+            <!-- Three smaller image slots -->
+            <div class="md-slot-row">
+              <div class="md-slot md-slot--small" data-fill-delay="700">
+                <div class="md-slot-fill md-fill--portrait"></div>
+              </div>
+              <div class="md-slot md-slot--small" data-fill-delay="1100">
+                <div class="md-slot-fill md-fill--workspace"></div>
+              </div>
+              <div class="md-slot md-slot--small" data-fill-delay="1500">
+                <div class="md-slot-fill md-fill--process"></div>
+              </div>
+            </div>
+            <!-- Text suggestion lines -->
+            <div class="md-text-lines">
+              <div class="md-line md-line--80"></div>
+              <div class="md-line md-line--60"></div>
+              <div class="md-line md-line--40"></div>
+            </div>
+          </div>
+        </div>
+
+        <span class="md-hint">
+          <i class="bi bi-camera-fill"></i> {{ textContent_hero_hint.title|default:"Bilder die deine Marke erzählen" }}
+        </span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WELLEN -->
+{% block Wellen %}
+<section class="bg-white">
+  <div>
+    <svg class="waves" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 24 150 28" preserveAspectRatio="none" shape-rendering="auto">
+      <defs>
+        <path id="gentle-wave" d="M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v44h-352z" />
+      </defs>
+      <g class="parallax">
+        <use xlink:href="#gentle-wave" x="48" y="0" fill="rgba(239,246,255,0.7)" />
+        <use xlink:href="#gentle-wave" x="48" y="3" fill="rgba(239,246,255,0.5)" />
+        <use xlink:href="#gentle-wave" x="48" y="5" fill="rgba(239,246,255,0.3)" />
+        <use xlink:href="#gentle-wave" x="48" y="7" fill="#eff6ff" />
+      </g>
+    </svg>
+  </div>
+</section>
+{% endblock Wellen %}
+
+<!-- BLUE SECTION: Inhaltsarten + Prozess + Mehrwert -->
+<section class="bg-blue-50 px-4 py-20">
+
+  <!-- INHALTSARTEN -->
+  <div class="mx-auto max-w-6xl px-4">
+    <div class="mx-auto mb-14 max-w-3xl text-center" data-aos="fade-up">
+      <p class="mb-3 text-sm font-semibold uppercase tracking-widest text-blue-900">{{ textContent_inhalte.header|default:"Was wir festhalten" }}</p>
+      <h2 class="mb-6 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl sm:leading-none">
+        {{ textContent_inhalte.title|default:"Inhalte, die deine Marke erlebbar machen" }}
+      </h2>
+      <p class="text-base leading-7 text-gray-600 md:text-lg xl:text-xl">
+        {{ textContent_inhalte.description|default:"Wir bringen die Inhalte, die deine Website erst lebendig machen. Egal ob Menschen, Räume, Abläufe oder Atmosphäre - wir setzen sie so in Szene, dass sie zu deinem digitalen Auftritt passen." }}
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <!-- Mitarbeiter -->
+      <div class="md-type-card" data-aos="fade-up" data-aos-delay="0">
+        <div class="md-type-icon">
+          <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <circle cx="32" cy="22" r="10" stroke="currentColor" stroke-width="3"/>
+            <path d="M12 56c0-11 9-20 20-20s20 9 20 20" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <h3 class="mb-3 text-xl font-bold tracking-tight text-gray-900">{{ textContent_inhalte_card1.title|default:"Menschen" }}</h3>
+        <p class="text-base leading-7 text-gray-600">
+          {{ textContent_inhalte_card1.description|default:"Mitarbeiterfotos, Teambilder und Portraits, die deinem Unternehmen ein Gesicht geben." }}
+        </p>
+      </div>
+
+      <!-- Raeumlichkeiten -->
+      <div class="md-type-card" data-aos="fade-up" data-aos-delay="80">
+        <div class="md-type-icon">
+          <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <rect x="10" y="14" width="44" height="36" rx="2" stroke="currentColor" stroke-width="3"/>
+            <path d="M10 24h44" stroke="currentColor" stroke-width="3"/>
+            <rect x="18" y="32" width="10" height="10" stroke="currentColor" stroke-width="3"/>
+            <rect x="36" y="32" width="10" height="10" stroke="currentColor" stroke-width="3"/>
+          </svg>
+        </div>
+        <h3 class="mb-3 text-xl font-bold tracking-tight text-gray-900">{{ textContent_inhalte_card2.title|default:"Räume" }}</h3>
+        <p class="text-base leading-7 text-gray-600">
+          {{ textContent_inhalte_card2.description|default:"Innenaufnahmen, Aussenansichten und Atmosphäre - so wird dein Standort sichtbar." }}
+        </p>
+      </div>
+
+      <!-- Prozesse -->
+      <div class="md-type-card" data-aos="fade-up" data-aos-delay="160">
+        <div class="md-type-icon">
+          <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <circle cx="14" cy="32" r="5" stroke="currentColor" stroke-width="3"/>
+            <circle cx="32" cy="32" r="5" stroke="currentColor" stroke-width="3"/>
+            <circle cx="50" cy="32" r="5" stroke="currentColor" stroke-width="3"/>
+            <path d="M19 32h8M37 32h8" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <h3 class="mb-3 text-xl font-bold tracking-tight text-gray-900">{{ textContent_inhalte_card3.title|default:"Abläufe" }}</h3>
+        <p class="text-base leading-7 text-gray-600">
+          {{ textContent_inhalte_card3.description|default:"Wie dein Unternehmen arbeitet - Schritt für Schritt visuell festgehalten." }}
+        </p>
+      </div>
+
+      <!-- Unternehmensvisuals -->
+      <div class="md-type-card" data-aos="fade-up" data-aos-delay="240">
+        <div class="md-type-icon">
+          <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M14 50V22l18-10 18 10v28" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/>
+            <rect x="20" y="32" width="8" height="8" stroke="currentColor" stroke-width="3"/>
+            <rect x="36" y="32" width="8" height="8" stroke="currentColor" stroke-width="3"/>
+            <path d="M10 50h44" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <h3 class="mb-3 text-xl font-bold tracking-tight text-gray-900">{{ textContent_inhalte_card4.title|default:"Marke" }}</h3>
+        <p class="text-base leading-7 text-gray-600">
+          {{ textContent_inhalte_card4.description|default:"Symbolische Aufnahmen, die deine Werte und deinen Charakter transportieren." }}
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROZESS / ABLAUF -->
+  <div id="prozess" class="mx-auto mt-32 max-w-6xl px-4 scroll-mt-28">
+    <div class="mx-auto mb-20 max-w-3xl text-center" data-aos="fade-up">
+      <p class="mb-3 text-sm font-semibold uppercase tracking-widest text-blue-900">{{ textContent_prozess.header|default:"Ablauf" }}</p>
+      <h2 class="mb-6 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl sm:leading-none">
+        {{ textContent_prozess.title|default:"Wie Bilder und Website zusammenfinden" }}
+      </h2>
+      <p class="text-base leading-7 text-gray-600 md:text-lg xl:text-xl">
+        {{ textContent_prozess.description|default:"Die Bildproduktion ist nicht ein nachgelagerter Schritt - sie ist ein integraler Teil deiner Website. Vom Briefing bis zur Live-Schaltung greifen die Phasen ineinander." }}
+      </p>
+    </div>
+
+    <div class="md-process">
+      <div class="md-process-steps">
+        <!-- Step 1 -->
+        <div class="md-step" data-aos="fade-up" data-aos-delay="0">
+          <div class="md-step-num">1</div>
+          <div class="md-step-icon">
+            <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M20 14h24a4 4 0 0 1 4 4v32a4 4 0 0 1-4 4H20a4 4 0 0 1-4-4V18a4 4 0 0 1 4-4Z" stroke="currentColor" stroke-width="3"/>
+              <path d="M26 14v-2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2" stroke="currentColor" stroke-width="3"/>
+              <path d="M24 30h16M24 38h12M24 46h8" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <h3 class="mb-3 text-xl font-bold tracking-tight text-gray-900">{{ textContent_prozess_step1.title|default:"Planung" }}</h3>
+          <p class="text-base leading-7 text-gray-600">
+            {{ textContent_prozess_step1.description|default:"Wir analysieren mit dir, welche Inhalte deine Website braucht - welche Stimmung, welche Motive, welche Anzahl." }}
+          </p>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="md-step" data-aos="fade-up" data-aos-delay="120">
+          <div class="md-step-num">2</div>
+          <div class="md-step-icon">
+            <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M10 22h6l4-6h24l4 6h6a2 2 0 0 1 2 2v24a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2V24a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="3"/>
+              <circle cx="32" cy="34" r="9" stroke="currentColor" stroke-width="3"/>
+              <circle cx="48" cy="26" r="1.6" fill="currentColor"/>
+            </svg>
+          </div>
+          <h3 class="mb-3 text-xl font-bold tracking-tight text-gray-900">{{ textContent_prozess_step2.title|default:"Aufnahme" }}</h3>
+          <p class="text-base leading-7 text-gray-600">
+            {{ textContent_prozess_step2.description|default:"Wir kommen vor Ort, halten die Inhalte professionell fest und passen sie auf den Look deiner Website an." }}
+          </p>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="md-step" data-aos="fade-up" data-aos-delay="240">
+          <div class="md-step-num">3</div>
+          <div class="md-step-icon">
+            <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <rect x="8" y="14" width="48" height="36" rx="3" stroke="currentColor" stroke-width="3"/>
+              <path d="M8 22h48" stroke="currentColor" stroke-width="3"/>
+              <circle cx="14" cy="18" r="1.5" fill="currentColor"/>
+              <circle cx="20" cy="18" r="1.5" fill="currentColor"/>
+              <circle cx="26" cy="18" r="1.5" fill="currentColor"/>
+              <rect x="14" y="28" width="22" height="14" stroke="currentColor" stroke-width="3"/>
+              <rect x="40" y="28" width="10" height="6" stroke="currentColor" stroke-width="3"/>
+              <rect x="40" y="36" width="10" height="6" stroke="currentColor" stroke-width="3"/>
+            </svg>
+          </div>
+          <h3 class="mb-3 text-xl font-bold tracking-tight text-gray-900">{{ textContent_prozess_step3.title|default:"Integration" }}</h3>
+            <p class="text-base leading-7 text-gray-600">
+            {{ textContent_prozess_step3.description|default:"Die fertigen Bilder werden direkt in die Website eingebaut - in passender Auflösung, optimiert und perfekt platziert." }}
+            </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MEHRWERT / AUS EINER HAND -->
+  <div class="mx-auto mt-32 max-w-6xl px-4">
+    <div class="md-callout">
+      <div class="grid items-center gap-12 lg:grid-cols-2">
+        <div data-aos="fade-right">
+          <p class="mb-3 text-sm font-semibold uppercase tracking-widest text-blue-900">{{ textContent_mehrwert.header|default:"Aus einer Hand" }}</p>
+          <h2 class="mb-6 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl sm:leading-none">
+            {{ textContent_mehrwert.title|default:"Design, Bilder, Code - alles aus einem Guss." }}
+          </h2>
+          <p class="mb-6 text-base leading-7 text-gray-600 md:text-lg xl:text-xl">
+            {{ textContent_mehrwert.description|default:"Wenn Webdesign und Bildproduktion in einer Hand liegen, entsteht ein stimmiger Gesamtauftritt - ohne Stilbruch, ohne Reibungsverluste, ohne Abstimmungsmarathon." }}
+          </p>
+          <ul class="space-y-3">
+            <li class="flex items-start gap-3">
+              <span class="mt-1 inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-blue-900 text-white"><i class="bi bi-check-lg text-xs"></i></span>
+              <span class="text-base text-gray-700">{{ textContent_mehrwert_bullet1.title|default:"Bilder, die exakt zum Layout und zur Farbwelt passen" }}</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="mt-1 inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-blue-900 text-white"><i class="bi bi-check-lg text-xs"></i></span>
+              <span class="text-base text-gray-700">{{ textContent_mehrwert_bullet2.title|default:"Ein Ansprechpartner statt drei Dienstleister" }}</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="mt-1 inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-blue-900 text-white"><i class="bi bi-check-lg text-xs"></i></span>
+              <span class="text-base text-gray-700">{{ textContent_mehrwert_bullet3.title|default:"Kürzere Wege, schnellere Umsetzung, bessere Ergebnisse" }}</span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="relative" data-aos="fade-left">
+          <div class="md-callout-orbit">
+            <div class="md-callout-orbit-ring"></div>
+            <div class="md-callout-center"><i class="bi bi-globe2"></i></div>
+            <div class="md-callout-bubble md-callout-bubble--top"><i class="bi bi-camera-fill"></i></div>
+            <div class="md-callout-bubble md-callout-bubble--right"><i class="bi bi-palette-fill"></i></div>
+            <div class="md-callout-bubble md-callout-bubble--bottom"><i class="bi bi-code-slash"></i></div>
+            <div class="md-callout-bubble md-callout-bubble--left"><i class="bi bi-people-fill"></i></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="h-6 bg-[#6b7280]"></div>
+
+<!-- DARK CTA -->
+<section class="bg-gray-700">
+  <div class="mx-auto max-w-screen-xl px-4 py-8 lg:px-6 lg:py-16">
+    <div class="mx-auto max-w-screen-sm text-center">
+      <h2 class="mb-4 text-3xl sm:text-4xl font-bold tracking-tight text-white">
+        {{ textContent_bottomcta.title|default:"Bereit für eine Website mit echten Bildern?" }}
+      </h2>
+      <p class="mb-6 text-white md:text-lg">
+        {{ textContent_bottomcta.description|default:"Erzähl uns von deinem Projekt - wir entwickeln dir eine Website inklusive passendem Bildmaterial. Ein Auftritt, der nicht nach Bilddatenbank aussieht, sondern nach dir." }}
+      </p>
+      <a href="{% url 'kontakt' %}"
+        class="mt-0 inline-block rounded-md bg-blue-900 px-8 py-4 text-base font-bold text-white shadow-xl transition-transform duration-300 ease-in-out hover:-translate-y-1 hover:scale-105 hover:bg-blue-700 sm:mt-1">
+        {{ textContent_bottomcta.buttonText|default:"Jetzt anfragen" }}
+      </a>
+    </div>
+  </div>
+</section>
+
+{% endblock content %}
+
+{% block javascriptend %}
+<script src="{% static 'js/aos.js' %}"></script>
+<script>
+  AOS.init({
+    duration: 800,
+    once: true,
+    easing: 'ease-out',
+    disable: "phone"
+  });
+
+  // Staggered fill-in animation for the hero browser image slots
+  (function () {
+    var slots = document.querySelectorAll('.md-stage .md-slot[data-fill-delay]');
+    if (!slots.length) return;
+    slots.forEach(function (slot) {
+      var delay = parseInt(slot.getAttribute('data-fill-delay'), 10) || 0;
+      setTimeout(function () { slot.classList.add('is-filled'); }, delay);
+    });
+    // Also fill the floater frames after the main browser is filled
+    setTimeout(function () {
+      document.querySelectorAll('.md-stage .md-floater .md-slot').forEach(function (s) {
+        s.classList.add('is-filled');
+      });
+    }, 1900);
+  })();
+</script>
+{% endblock javascriptend %}

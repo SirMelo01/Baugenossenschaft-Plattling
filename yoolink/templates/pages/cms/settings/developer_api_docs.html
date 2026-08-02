@@ -1,0 +1,517 @@
+{% extends 'cmsbase.html' %}
+{% block title %}{{ block.super }} | CMS | API Dokumentation{% endblock %}
+
+{% block content %}
+<style>
+    .doc-collapsible-card {
+        position: relative;
+    }
+
+    .doc-collapse-toggle {
+        align-items: center;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.75rem;
+        color: #475569;
+        display: inline-flex;
+        height: 2.25rem;
+        justify-content: center;
+        position: absolute;
+        right: 1rem;
+        top: 1rem;
+        transition: background-color 150ms ease, color 150ms ease;
+        width: 2.25rem;
+        z-index: 5;
+    }
+
+    .doc-collapse-toggle:hover {
+        background: #f8fafc;
+        color: #0f172a;
+    }
+
+    .doc-collapse-toggle i {
+        transition: transform 150ms ease;
+    }
+
+    .doc-collapsible-card.doc-is-collapsed .doc-collapse-toggle i {
+        transform: rotate(180deg);
+    }
+
+    .doc-collapsible-card.doc-is-collapsed .doc-collapsible-body {
+        display: none !important;
+    }
+</style>
+<div class="mx-auto mt-6 max-w-7xl px-2 pb-8">
+    <div class="mb-6 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+            <p class="text-sm font-semibold uppercase tracking-[0.18em] text-blue-700">Developer API</p>
+            <h1 class="mt-2 text-3xl font-semibold tracking-tight text-slate-900">API Dokumentation</h1>
+            <p class="mt-2 max-w-3xl text-slate-600">Endpunkte, Authentifizierung, Request-Daten und Antwortformate für externe Automationen.</p>
+        </div>
+        <a href="{% url 'cms:developer-settings' %}"
+           class="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+            <i class="bi bi-arrow-left"></i>
+            API Tokens
+        </a>
+    </div>
+
+    <div class="grid gap-6 lg:grid-cols-[260px,minmax(0,1fr)]">
+        {% include 'pages/cms/settings/partials/settings_sidebar.html' with active_page='developer' %}
+
+        <section data-api-docs-section class="space-y-6">
+            <div class="grid gap-6 xl:grid-cols-3">
+                <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                    <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Base URL</p>
+                    <div class="mt-3 flex items-start justify-between gap-3">
+                        <p class="break-all font-mono text-sm text-slate-900">{{ api_base_url }}</p>
+                        <button type="button" data-copy-value="{{ api_base_url }}" class="copy-value-btn inline-flex shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100" title="Kopieren">
+                            <i class="bi bi-clipboard"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                    <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Auth Header</p>
+                    <div class="mt-3 flex items-start justify-between gap-3">
+                        <p class="break-all font-mono text-sm text-slate-900">Authorization: Bearer &lt;api-key&gt;</p>
+                        <button type="button" data-copy-value="Authorization: Bearer <api-key>" class="copy-value-btn inline-flex shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100" title="Kopieren">
+                            <i class="bi bi-clipboard"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                    <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Alternative</p>
+                    <div class="mt-3 flex items-start justify-between gap-3">
+                        <p class="break-all font-mono text-sm text-slate-900">X-YooLink-API-Key: &lt;api-key&gt;</p>
+                        <button type="button" data-copy-value="X-YooLink-API-Key: <api-key>" class="copy-value-btn inline-flex shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100" title="Kopieren">
+                            <i class="bi bi-clipboard"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                    <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Ping</p>
+                    <div class="mt-3 flex items-start justify-between gap-3">
+                        <p class="break-all font-mono text-sm text-slate-900">{{ api_ping_url }}</p>
+                        <button type="button" data-copy-value="{{ api_ping_url }}" class="copy-value-btn inline-flex shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100" title="Kopieren">
+                            <i class="bi bi-clipboard"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm xl:col-span-2">
+                    <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Exportierbare API Docs</p>
+                    <div class="mt-3 grid gap-3 md:grid-cols-2">
+                        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                            <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">OpenAPI Schema</p>
+                            <div class="mt-2 flex items-start justify-between gap-3">
+                                <p class="break-all font-mono text-sm text-slate-900">{{ api_schema_url }}</p>
+                                <button type="button" data-copy-value="{{ api_schema_url }}" class="copy-value-btn inline-flex shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100" title="Kopieren">
+                                    <i class="bi bi-clipboard"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                            <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Swagger UI</p>
+                            <div class="mt-2 flex items-start justify-between gap-3">
+                                <p class="break-all font-mono text-sm text-slate-900">{{ api_docs_url }}</p>
+                                <button type="button" data-copy-value="{{ api_docs_url }}" class="copy-value-btn inline-flex shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100" title="Kopieren">
+                                    <i class="bi bi-clipboard"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm xl:col-span-3">
+                    <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">YooLink Connect</p>
+                    <div class="mt-3 grid gap-3 md:grid-cols-2">
+                        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                            <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Authorize URL</p>
+                            <div class="mt-2 flex items-start justify-between gap-3">
+                                <p class="break-all font-mono text-sm text-slate-900">{{ api_connect_authorize_url }}</p>
+                                <button type="button" data-copy-value="{{ api_connect_authorize_url }}" class="copy-value-btn inline-flex shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100" title="Kopieren">
+                                    <i class="bi bi-clipboard"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                            <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Token Exchange URL</p>
+                            <div class="mt-2 flex items-start justify-between gap-3">
+                                <p class="break-all font-mono text-sm text-slate-900">{{ api_connect_token_url }}</p>
+                                <button type="button" data-copy-value="{{ api_connect_token_url }}" class="copy-value-btn inline-flex shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100" title="Kopieren">
+                                    <i class="bi bi-clipboard"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+                <div class="border-b border-slate-200 px-6 py-5">
+                    <h2 class="text-xl font-semibold text-slate-900">Berechtigungen</h2>
+                    <p class="mt-1 text-sm text-slate-500">API Keys werden im CMS erstellt und können pro App sowie als Read-only oder Write-Key begrenzt werden.</p>
+                </div>
+                <div class="grid gap-4 p-6 md:grid-cols-2">
+                    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                        <p class="font-semibold text-slate-900">Read-only</p>
+                        <p class="mt-2 text-sm text-slate-600">Darf nur lesen: `GET` auf Listen- und Detail-Endpunkte.</p>
+                    </div>
+                    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                        <p class="font-semibold text-slate-900">Lesen und schreiben</p>
+                        <p class="mt-2 text-sm text-slate-600">Darf zusätzlich `POST`, `PATCH`, `PUT` und `DELETE` ausführen.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+                <div class="border-b border-slate-200 px-6 py-5">
+                    <h2 class="text-xl font-semibold text-slate-900">Ping</h2>
+                    <p class="mt-1 text-sm text-slate-500">Prüft, ob der API-Key gültig ist und die Developer API erreichbar ist.</p>
+                </div>
+                <div class="grid gap-4 px-6 py-5 lg:grid-cols-[160px,minmax(0,1fr)]">
+                    <div>
+                        <span class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-700">GET</span>
+                    </div>
+                    <div>
+                        <p class="break-all font-mono text-sm font-semibold text-slate-900">{{ api_ping_url }}</p>
+                        <p class="mt-2 text-sm text-slate-600">Antwortet nur mit gültiger Authentifizierung. Ein Read-only Key reicht aus.</p>
+                        <pre class="mt-3 overflow-auto rounded-2xl bg-slate-950 p-4 text-xs text-slate-100"><code>GET {{ api_ping_url }}
+Authorization: Bearer &lt;api-key&gt;</code></pre>
+                        <pre class="mt-3 overflow-auto rounded-2xl bg-slate-950 p-4 text-xs text-slate-100"><code>{
+  "ok": true,
+  "message": "YooLink Developer API ist erreichbar und authentifiziert.",
+  "authenticated": true,
+  "user": "owner",
+  "access_level": "read",
+  "allowed_apps": ["blog"]
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+                <div class="border-b border-slate-200 px-6 py-5">
+                    <h2 class="text-xl font-semibold text-slate-900">YooLink Connect</h2>
+                    <p class="mt-1 text-sm text-slate-500">Browserbasierter Verbindungsflow für externe Plattformen. Der Nutzer loggt sich im jeweiligen YooLink CMS ein und die Plattform tauscht danach einen kurzlebigen Code gegen einen API-Key.</p>
+                </div>
+                <div class="divide-y divide-slate-100">
+                    <div class="grid gap-4 px-6 py-5 lg:grid-cols-[160px,minmax(0,1fr)]">
+                        <div>
+                            <span class="rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-700">GET</span>
+                        </div>
+                        <div>
+                            <p class="break-all font-mono text-sm font-semibold text-slate-900">{{ api_connect_authorize_url }}</p>
+                            <p class="mt-2 text-sm text-slate-600">Startet den Login- und Consent-Flow im Browser. Parameter: `client_name`, `redirect_uri`, `scope`, `access_level`, `state`, `code_challenge`, `code_challenge_method=S256`.</p>
+                        </div>
+                    </div>
+                    <div class="grid gap-4 px-6 py-5 lg:grid-cols-[160px,minmax(0,1fr)]">
+                        <div>
+                            <span class="rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-700">POST</span>
+                        </div>
+                        <div>
+                            <p class="break-all font-mono text-sm font-semibold text-slate-900">{{ api_connect_token_url }}</p>
+                            <p class="mt-2 text-sm text-slate-600">Tauscht `code`, `code_verifier` und `redirect_uri` gegen einen Developer API Key. Der Key wird nur einmal in dieser Antwort ausgegeben.</p>
+                            <pre class="mt-3 overflow-auto rounded-2xl bg-slate-950 p-4 text-xs text-slate-100"><code>{
+  "grant_type": "authorization_code",
+  "code": "yl_connect_...",
+  "code_verifier": "pkce-verifier-from-your-platform",
+  "redirect_uri": "https://ki-plattform.example.com/api/yoolink/callback"
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+                <div class="border-b border-slate-200 px-6 py-5">
+                    <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                        <div>
+                            <h2 class="text-xl font-semibold text-slate-900">Blogs</h2>
+                            <p class="mt-1 text-sm text-slate-500">Externe Systeme können Blogartikel lesen, erstellen, aktualisieren und löschen.</p>
+                        </div>
+                        <span class="w-fit rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">App Scope: blog</span>
+                    </div>
+                </div>
+
+                <div class="divide-y divide-slate-100">
+                    <div class="grid gap-4 px-6 py-5 lg:grid-cols-[160px,minmax(0,1fr)]">
+                        <div>
+                            <span class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-700">GET</span>
+                        </div>
+                        <div>
+                            <p class="font-mono text-sm font-semibold text-slate-900">/api/cms/blog/</p>
+                            <p class="mt-2 text-sm text-slate-600">Listet Blogs als kompakte Übersicht ohne `body`, `code` und `translations`. Optionale Query-Parameter: `q`, `language`, `active`, `original_only`.</p>
+                            <pre class="mt-3 overflow-auto rounded-2xl bg-slate-950 p-4 text-xs text-slate-100"><code>GET /api/cms/blog/?language=de&amp;active=true&amp;original_only=true</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="grid gap-4 px-6 py-5 lg:grid-cols-[160px,minmax(0,1fr)]">
+                        <div>
+                            <span class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-700">GET</span>
+                        </div>
+                        <div>
+                            <p class="font-mono text-sm font-semibold text-slate-900">/api/cms/blog/{id}/</p>
+                            <p class="mt-2 text-sm text-slate-600">Liest einen einzelnen Blog inklusive `absolute_url`, `title_image_url`, `code` und `translations`. In `translations` stehen Original und Sprachvarianten mit API- und Public-Link.</p>
+                        </div>
+                    </div>
+
+                    <div class="grid gap-4 px-6 py-5 lg:grid-cols-[160px,minmax(0,1fr)]">
+                        <div>
+                            <span class="rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-700">POST</span>
+                        </div>
+                        <div>
+                            <p class="font-mono text-sm font-semibold text-slate-900">/api/cms/blog/</p>
+                            <p class="mt-2 text-sm text-slate-600">Erstellt einen Blog. Erfordert einen Write-Key. Als JSON für reine Textblogs oder mit `title_image_media_id`, wenn vorher ein Bild über `/api/cms/blog/media/` hochgeladen wurde. Alternativ als Multipart-Formdaten, wenn direkt ein `title_image` mitgesendet wird.</p>
+                            <pre class="mt-3 overflow-auto rounded-2xl bg-slate-950 p-4 text-xs text-slate-100"><code>{
+  "title": "Event Rückblick",
+  "description": "Kurzer SEO-Teaser für Blogkarten und Meta Description.",
+    "markdown": "## Rückblick\n\nHTML-freier Markdown-Inhalt des automatisch generierten Blogartikels.",
+  "title_image_media_id": 44,
+  "active": true,
+  "language": "de"
+}</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="grid gap-4 px-6 py-5 lg:grid-cols-[160px,minmax(0,1fr)]">
+                        <div>
+                            <span class="rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-700">POST</span>
+                        </div>
+                        <div>
+                            <p class="font-mono text-sm font-semibold text-slate-900">/api/cms/blog/media/</p>
+                            <p class="mt-2 text-sm text-slate-600">Lädt ein Content-Bild hoch und gibt URL, Markdown-Snippet und HTML-Snippet zurück. Erfordert einen Write-Key. In Postman als `form-data` senden.</p>
+                            <pre class="mt-3 overflow-auto rounded-2xl bg-slate-950 p-4 text-xs text-slate-100"><code>file: event.png
+title: Event Bild
+alt_text: Volles Haus beim Event</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="grid gap-4 px-6 py-5 lg:grid-cols-[160px,minmax(0,1fr)]">
+                        <div>
+                            <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-700">PATCH</span>
+                        </div>
+                        <div>
+                            <p class="font-mono text-sm font-semibold text-slate-900">/api/cms/blog/{id}/</p>
+                            <p class="mt-2 text-sm text-slate-600">Aktualisiert einzelne Felder. Erfordert einen Write-Key.</p>
+                            <pre class="mt-3 overflow-auto rounded-2xl bg-slate-950 p-4 text-xs text-slate-100"><code>{
+  "active": false,
+  "description": "Aktualisierte Kurzbeschreibung."
+}</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="grid gap-4 px-6 py-5 lg:grid-cols-[160px,minmax(0,1fr)]">
+                        <div>
+                            <span class="rounded-full bg-rose-100 px-3 py-1 text-xs font-bold text-rose-700">DELETE</span>
+                        </div>
+                        <div>
+                            <p class="font-mono text-sm font-semibold text-slate-900">/api/cms/blog/{id}/</p>
+                            <p class="mt-2 text-sm text-slate-600">Löscht einen Blog. Erfordert einen Write-Key.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+                <div class="border-b border-slate-200 px-6 py-5">
+                    <h2 class="text-xl font-semibold text-slate-900">Blog Felder</h2>
+                    <p class="mt-1 text-sm text-slate-500">Die API nimmt JSON oder Multipart-Formdaten an. Für JSON-Workflows erst Medien hochladen und dann per ID referenzieren.</p>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-slate-100 text-sm">
+                        <thead class="bg-slate-50 text-left text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
+                            <tr>
+                                <th class="px-6 py-3">Feld</th>
+                                <th class="px-6 py-3">Typ</th>
+                                <th class="px-6 py-3">Pflicht</th>
+                                <th class="px-6 py-3">Beschreibung</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 text-slate-700">
+                            <tr><td class="px-6 py-4 font-mono">title</td><td class="px-6 py-4">string</td><td class="px-6 py-4">ja</td><td class="px-6 py-4">Blogtitel. Der Slug wird automatisch erzeugt.</td></tr>
+                            <tr><td class="px-6 py-4 font-mono">description</td><td class="px-6 py-4">string</td><td class="px-6 py-4">ja</td><td class="px-6 py-4">Kurzbeschreibung für Blogkarten und SEO.</td></tr>
+                            <tr><td class="px-6 py-4 font-mono">markdown</td><td class="px-6 py-4">string</td><td class="px-6 py-4">empfohlen</td><td class="px-6 py-4">Primäre Textquelle für KI-Workflows. Wird zu HTML gerendert und für den Builder in editierbare Blöcke umgewandelt.</td></tr>
+                            <tr><td class="px-6 py-4 font-mono">body</td><td class="px-6 py-4">HTML string</td><td class="px-6 py-4">bedingt</td><td class="px-6 py-4">Kompatibilitätsfeld für gerenderten Bloginhalt. Wenn kein `markdown` gesendet wird, erzeugt die API Markdown daraus.</td></tr>
+                            <tr><td class="px-6 py-4 font-mono">code</td><td class="px-6 py-4">array/object</td><td class="px-6 py-4">bedingt</td><td class="px-6 py-4">Internes Blog-Builder-JSON. Wenn kein `body` gesendet wird, rendert die API daraus HTML.</td></tr>
+                            <tr><td class="px-6 py-4 font-mono">active</td><td class="px-6 py-4">boolean</td><td class="px-6 py-4">nein</td><td class="px-6 py-4">Steuert, ob der Blog öffentlich sichtbar ist.</td></tr>
+                            <tr><td class="px-6 py-4 font-mono">language</td><td class="px-6 py-4">string</td><td class="px-6 py-4">nein</td><td class="px-6 py-4">Zum Beispiel `de` oder `en`.</td></tr>
+                            <tr><td class="px-6 py-4 font-mono">original</td><td class="px-6 py-4">integer/null</td><td class="px-6 py-4">nein</td><td class="px-6 py-4">ID des Original-Blogs, wenn eine Sprachvariante erstellt wird. Pro Original kann jede Sprache nur einmal vorkommen.</td></tr>
+                            <tr><td class="px-6 py-4 font-mono">title_image</td><td class="px-6 py-4">file</td><td class="px-6 py-4">nein</td><td class="px-6 py-4">Titelbild per Multipart-Upload.</td></tr>
+                            <tr><td class="px-6 py-4 font-mono">title_image_media_id</td><td class="px-6 py-4">integer</td><td class="px-6 py-4">nein</td><td class="px-6 py-4">ID aus `POST /api/cms/blog/media/`, um ein zuvor hochgeladenes Bild als Titelbild zu verwenden. Für JSON-Requests statt `title_image` nutzen.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+                <div class="border-b border-slate-200 px-6 py-5">
+                    <h2 class="text-xl font-semibold text-slate-900">Antworten</h2>
+                    <p class="mt-1 text-sm text-slate-500">Listen liefern eine kompakte Übersicht. Detail- und Create-Antworten liefern ein vollständiges Blog-Objekt.</p>
+                </div>
+                <div class="p-6">
+                    <p class="mb-3 text-sm font-semibold text-slate-900">Media Upload</p>
+                    <pre class="mb-6 overflow-auto rounded-2xl bg-slate-950 p-4 text-xs text-slate-100"><code>{
+  "id": 44,
+  "title": "Event Bild",
+  "alt_text": "Volles Haus beim Event",
+  "url": "http://localhost:8000/media/yoolink/images/event_20260509143000.png",
+  "markdown": "![Volles Haus beim Event](http://localhost:8000/media/yoolink/images/event_20260509143000.png)",
+  "html": "&lt;img src=\"http://localhost:8000/media/yoolink/images/event_20260509143000.png\" alt=\"Volles Haus beim Event\" class=\"rounded-2xl my-4\"&gt;"
+}</code></pre>
+
+                    <p class="mb-3 text-sm font-semibold text-slate-900">Listenobjekt</p>
+                    <pre class="mb-6 overflow-auto rounded-2xl bg-slate-950 p-4 text-xs text-slate-100"><code>{
+  "id": 12,
+  "title": "Event Rückblick",
+  "slug": "event-rueckblick",
+  "description": "Kurzer SEO-Teaser.",
+  "active": true,
+  "language": "de",
+  "original": null,
+  "title_image_url": "",
+  "absolute_url": "http://localhost:8000/blog/12-event-rueckblick/",
+  "api_url": "http://localhost:8000/api/cms/blog/12/",
+  "date": "2026-05-09",
+  "last_updated": "2026-05-09"
+}</code></pre>
+
+                    <p class="mb-3 text-sm font-semibold text-slate-900">Detailobjekt</p>
+                    <pre class="overflow-auto rounded-2xl bg-slate-950 p-4 text-xs text-slate-100"><code>{
+  "id": 12,
+  "title": "Event Rückblick",
+  "slug": "event-rueckblick",
+  "description": "Kurzer SEO-Teaser.",
+    "markdown": "## Rückblick\n\nHTML-freier Markdown-Inhalt.",
+  "body": "&lt;p&gt;HTML-Inhalt&lt;/p&gt;",
+  "code": [
+    {
+      "name": "textArea",
+      "type": "p",
+      "attributes": { "class": "text-base my-4" },
+      "value": "&lt;p&gt;HTML-Inhalt&lt;/p&gt;"
+    }
+  ],
+  "active": true,
+  "language": "de",
+  "original": null,
+  "author": "owner",
+  "title_image_url": "",
+  "absolute_url": "http://localhost:8000/blog/12-event-rueckblick/",
+  "translations": [
+    {
+      "id": 12,
+      "title": "Event Rückblick",
+      "language": "de",
+      "active": true,
+      "is_current": true,
+      "is_original": true,
+      "api_url": "http://localhost:8000/api/cms/blog/12/",
+      "absolute_url": "http://localhost:8000/blog/12-event-rueckblick/"
+    },
+    {
+      "id": 13,
+      "title": "Event Review",
+      "language": "en",
+      "active": false,
+      "is_current": false,
+      "is_original": false,
+      "api_url": "http://localhost:8000/api/cms/blog/13/",
+      "absolute_url": "http://localhost:8000/blog/13-event-review-en/"
+    }
+  ],
+  "date": "2026-05-09",
+  "last_updated": "2026-05-09"
+}</code></pre>
+                </div>
+            </div>
+
+            <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                <h2 class="text-xl font-semibold text-slate-900">Status Codes</h2>
+                <div class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                    <div class="rounded-2xl bg-slate-50 p-4"><p class="font-mono font-semibold">200</p><p class="mt-1 text-sm text-slate-600">Erfolgreich gelesen oder aktualisiert.</p></div>
+                    <div class="rounded-2xl bg-slate-50 p-4"><p class="font-mono font-semibold">201</p><p class="mt-1 text-sm text-slate-600">Blog wurde erstellt.</p></div>
+                    <div class="rounded-2xl bg-slate-50 p-4"><p class="font-mono font-semibold">401</p><p class="mt-1 text-sm text-slate-600">Key fehlt, ist ungültig oder abgelaufen.</p></div>
+                    <div class="rounded-2xl bg-slate-50 p-4"><p class="font-mono font-semibold">403</p><p class="mt-1 text-sm text-slate-600">Key hat keinen passenden Scope oder keine Schreibrechte.</p></div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    function copyText(value) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            return navigator.clipboard.writeText(value);
+        }
+
+        var textarea = document.createElement("textarea");
+        textarea.value = value;
+        textarea.setAttribute("readonly", "readonly");
+        textarea.style.position = "fixed";
+        textarea.style.opacity = "0";
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+        return Promise.resolve();
+    }
+
+    document.querySelectorAll(".copy-value-btn").forEach(function (button) {
+        button.addEventListener("click", function () {
+            var value = button.getAttribute("data-copy-value") || "";
+            if (!value) {
+                return;
+            }
+
+            copyText(value).then(function () {
+                var icon = button.querySelector("i");
+                if (!icon) {
+                    return;
+                }
+
+                icon.className = "bi bi-check2";
+                window.setTimeout(function () {
+                    icon.className = "bi bi-clipboard";
+                }, 1400);
+            });
+        });
+    });
+
+    var docsSection = document.querySelector("[data-api-docs-section]");
+    if (docsSection) {
+        var cards = [];
+
+        Array.prototype.forEach.call(docsSection.children, function (child) {
+            if (child.classList.contains("rounded-3xl") || child.classList.contains("overflow-hidden")) {
+                cards.push(child);
+            }
+        });
+
+        cards.forEach(function (card, index) {
+            var originalChildren = Array.prototype.slice.call(card.children);
+            if (originalChildren.length < 2) {
+                return;
+            }
+
+            card.classList.add("doc-collapsible-card");
+            originalChildren[0].style.paddingRight = "4.5rem";
+            originalChildren.slice(1).forEach(function (child) {
+                child.classList.add("doc-collapsible-body");
+            });
+
+            var button = document.createElement("button");
+            button.type = "button";
+            button.className = "doc-collapse-toggle";
+            button.setAttribute("aria-expanded", "true");
+            button.setAttribute("aria-label", "Kachel einklappen");
+            button.innerHTML = '<i class="bi bi-chevron-up"></i>';
+            card.appendChild(button);
+
+            button.addEventListener("click", function () {
+                var isCollapsed = card.classList.toggle("doc-is-collapsed");
+                button.setAttribute("aria-expanded", isCollapsed ? "false" : "true");
+                button.setAttribute("aria-label", isCollapsed ? "Kachel ausklappen" : "Kachel einklappen");
+            });
+        });
+    }
+});
+</script>
+{% endblock %}

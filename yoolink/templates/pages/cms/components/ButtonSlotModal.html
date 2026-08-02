@@ -1,0 +1,106 @@
+{% comment %}
+Geteiltes Modal zum Auswählen & Anpassen eines Button-Slots.
+Erwartet im Context: all_buttons, page_links. Wird von button-slot.js gesteuert.
+{% endcomment %}
+<style>
+  #buttonSlotModal:not(.is-open) { display: none; }
+  #buttonSlotModal.is-open { display: flex; }
+</style>
+<div id="buttonSlotModal" data-edit-url="{% url 'cms:button-edit' 0 %}" class="fixed inset-0 z-[90] hidden items-center justify-center bg-slate-950/70 p-2 backdrop-blur-sm sm:p-4">
+  <div class="flex max-h-[calc(100dvh-1rem)] w-full max-w-lg flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-slate-200">
+    <!-- Header -->
+    <div class="flex items-start justify-between gap-3 border-b border-slate-100 px-5 py-4">
+      <div>
+        <p class="text-xs font-semibold uppercase tracking-wide text-blue-600">Button</p>
+        <h3 class="mt-0.5 text-lg font-semibold text-slate-900">Button anpassen</h3>
+        <p id="bsm-slot-label" class="mt-0.5 text-xs text-slate-400"></p>
+      </div>
+      <button type="button" id="bsm-close" class="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-900">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <div class="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-4">
+      <!-- Auswahl -->
+      <div>
+        <label class="mb-1.5 block text-sm font-medium text-slate-700">Welcher Button?</label>
+        <div class="flex gap-2">
+          <select id="bsm-select" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
+            <option value="-1" data-text="" data-color="navy" data-icon="" data-url="" data-page-link="" data-target="_self">— Kein Button (Standard-Link) —</option>
+            {% for b in all_buttons %}
+            <option value="{{ b.id }}" data-text="{{ b.text }}" data-color="{{ b.color }}" data-icon="{{ b.icon }}" data-url="{{ b.url }}" data-page-link="{{ b.page_link_id|default:'' }}" data-target="{{ b.target }}">{{ b.text }} · {{ b.get_color_display }}</option>
+            {% endfor %}
+          </select>
+          <a href="{% url 'cms:button-create' %}" target="_blank" title="Neuen Button im Designer anlegen" class="inline-flex shrink-0 items-center justify-center rounded-xl border border-slate-200 px-3 text-slate-600 transition hover:bg-slate-50"><i class="bi bi-plus-lg"></i></a>
+        </div>
+      </div>
+
+      <!-- Text -->
+      <div>
+        <label for="bsm-text" class="mb-1.5 block text-sm font-medium text-slate-700">Button-Text <span class="font-normal text-slate-400">(in aktueller CMS-Sprache)</span></label>
+        <input type="text" id="bsm-text" maxlength="100" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100" placeholder="z.B. Jetzt anfragen">
+      </div>
+
+      <!-- Farbe -->
+      <div>
+        <p class="mb-1.5 text-sm font-medium text-slate-700">Design</p>
+        <input type="hidden" id="bsm-color" value="navy">
+        <div id="bsm-swatches" class="grid grid-cols-4 gap-2 sm:grid-cols-7">
+          <button type="button" data-color="blue" class="bsm-swatch flex flex-col items-center gap-1 rounded-lg border border-slate-200 p-2 transition hover:border-blue-300"><span class="h-5 w-5 rounded-full bg-blue-600"></span><span class="text-[10px] text-slate-500">Blau</span></button>
+          <button type="button" data-color="navy" class="bsm-swatch flex flex-col items-center gap-1 rounded-lg border border-slate-200 p-2 transition hover:border-blue-300"><span class="h-5 w-5 rounded-full bg-blue-900"></span><span class="text-[10px] text-slate-500">Navy</span></button>
+          <button type="button" data-color="dark" class="bsm-swatch flex flex-col items-center gap-1 rounded-lg border border-slate-200 p-2 transition hover:border-blue-300"><span class="h-5 w-5 rounded-full bg-slate-900"></span><span class="text-[10px] text-slate-500">Schwarz</span></button>
+          <button type="button" data-color="emerald" class="bsm-swatch flex flex-col items-center gap-1 rounded-lg border border-slate-200 p-2 transition hover:border-blue-300"><span class="h-5 w-5 rounded-full bg-emerald-600"></span><span class="text-[10px] text-slate-500">Grün</span></button>
+          <button type="button" data-color="white" class="bsm-swatch flex flex-col items-center gap-1 rounded-lg border border-slate-200 p-2 transition hover:border-blue-300"><span class="h-5 w-5 rounded-full bg-white ring-1 ring-slate-300"></span><span class="text-[10px] text-slate-500">Weiß</span></button>
+          <button type="button" data-color="outline" class="bsm-swatch flex flex-col items-center gap-1 rounded-lg border border-slate-200 p-2 transition hover:border-blue-300"><span class="h-5 w-5 rounded-full border-2 border-blue-900 bg-white"></span><span class="text-[10px] text-slate-500">Umrandet</span></button>
+          <button type="button" data-color="link" class="bsm-swatch flex flex-col items-center gap-1 rounded-lg border border-slate-200 p-2 transition hover:border-blue-300"><span class="grid h-5 w-5 place-items-center text-blue-900"><i class="bi bi-link-45deg"></i></span><span class="text-[10px] text-slate-500">Textlink</span></button>
+        </div>
+      </div>
+
+      <!-- Icon -->
+      <div>
+        <label for="bsm-icon" class="mb-1.5 block text-sm font-medium text-slate-700">Icon <span class="font-normal text-slate-400">(optional, Bootstrap-Icon)</span></label>
+        <input type="text" id="bsm-icon" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100" placeholder="z.B. bi bi-arrow-right">
+      </div>
+
+      <!-- Link -->
+      <div>
+        <p class="mb-1.5 text-sm font-medium text-slate-700">Wohin führt der Button?</p>
+        <div class="mb-2 grid grid-cols-2 gap-2">
+          <button type="button" data-link-type="internal" class="bsm-linktype flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-600 transition hover:border-blue-300"><i class="bi bi-house"></i> Eigene Seite</button>
+          <button type="button" data-link-type="external" class="bsm-linktype flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-600 transition hover:border-blue-300"><i class="bi bi-globe"></i> Eigene URL</button>
+        </div>
+        <div id="bsm-internal" class="hidden">
+          <select id="bsm-page-link" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
+            <option value="">— Seite auswählen —</option>
+            {% for pl in page_links %}
+            <option value="{{ pl.id }}" data-url="{{ pl.url }}">{{ pl.title }} ({{ pl.url }})</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div id="bsm-external" class="hidden">
+          <input type="text" id="bsm-url" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100" placeholder="z.B. /kontakt/, #playground oder https://…">
+        </div>
+        <label class="mt-2 flex cursor-pointer items-center gap-2 text-sm text-slate-600">
+          <input type="checkbox" id="bsm-newtab" class="h-4 w-4 rounded border-slate-300 text-blue-600"> In neuem Tab öffnen
+        </label>
+      </div>
+
+      <!-- Vorschau -->
+      <div>
+        <p class="mb-1.5 text-sm font-medium text-slate-700">Vorschau</p>
+        <div class="flex items-center justify-center rounded-xl border border-slate-200 bg-slate-50 p-4">
+          <span id="bsm-preview" class="pointer-events-none"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="flex flex-col gap-2 border-t border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+      <a id="bsm-designer-link" href="#" target="_blank" class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 transition hover:text-blue-700"><i class="bi bi-sliders2"></i> Im großen Designer öffnen</a>
+      <div class="flex items-center gap-2">
+        <button type="button" id="bsm-cancel" class="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50">Abbrechen</button>
+        <button type="button" id="bsm-apply" class="rounded-xl bg-blue-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-blue-700">Übernehmen</button>
+      </div>
+    </div>
+  </div>
+</div>

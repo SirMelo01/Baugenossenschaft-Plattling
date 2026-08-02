@@ -1,0 +1,34 @@
+{% extends "pages/index.html" %}
+
+{% block title %}Forbidden (403){% endblock %}
+
+{% block content %}
+<!-- ====== Error 403 Section Start -->
+{% block Wellen %}
+  <div class="mt-8"></div>
+{{ block.super }}
+{% endblock Wellen %}
+  <section class="bg-blue-100 relative z-10 py-[100px]">
+    <div class="container mx-auto">
+      <div class="-mx-4 flex">
+        <div class="w-full px-4">
+          <div class="mx-auto max-w-[400px] text-center">
+            <h1 class="mb-2 text-[50px] font-bold leading-none text-black sm:text-[80px] md:text-[100px]">
+              403
+            </h1>
+            <h2 class="mb-3 text-[22px] font-semibold leading-tight text-black">
+              Forbidden
+            </h2>
+            <p class="mb-8 text-lg text-black">
+              Sie sind nicht berechtigt, auf diese Seite zuzugreifen.
+            </p>
+            <a href="{% url 'home' %}" class="hover:text-blue-100 inline-block rounded-lg border border-black px-8 py-3 text-center text-base font-semibold text-black transition hover:bg-black">
+              Home
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+<!-- ====== Error 403 Section End -->
+{% endblock content %}

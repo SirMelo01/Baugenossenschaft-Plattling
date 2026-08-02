@@ -1,0 +1,24 @@
+{% comment %}
+Renders a CMS-configured Button (model ycms.Button). Params:
+  button        - Button instance
+  full          - if truthy, button stretches to full width
+  size          - "lg" for the large hero/CTA look (lift + scale on hover); default is compact
+  extra_classes - optional additional layout classes (e.g. "mt-8")
+
+The color mapping here is the single source of truth for the frontend;
+the CMS live preview mirrors it in yoolink/static/js/cms/buttons/button_designer.js.
+The "link" color renders a plain inline text link (icon after the text).
+{% endcomment %}
+{% if button %}
+{% if button.color == 'link' %}
+<a href="{{ button.href }}" target="{{ button.target }}"{% if button.target == "_blank" %} rel="noopener"{% endif %}{% if button.hover_text %} title="{{ button.hover_text }}"{% endif %}
+   class="inline-flex items-center font-medium text-blue-900 transition hover:text-blue-950 {% if size == 'lg' %}text-base{% else %}text-sm{% endif %} {{ extra_classes|default:'' }}">
+    {{ button.text }}{% if button.icon %}<i class="{{ button.icon }} ml-1"></i>{% endif %}
+</a>
+{% else %}
+<a href="{{ button.href }}" target="{{ button.target }}"{% if button.target == "_blank" %} rel="noopener"{% endif %}{% if button.hover_text %} title="{{ button.hover_text }}"{% endif %}
+   class="inline-flex items-center justify-center gap-2 text-center font-bold {% if full %}w-full {% endif %}{% if size == 'lg' %}rounded-md px-8 py-4 text-base shadow-xl transition-transform duration-300 ease-in-out hover:-translate-y-1 hover:scale-105{% else %}rounded-xl px-5 py-3 text-sm transition{% endif %} {{ extra_classes|default:'' }} {% if button.color == 'navy' %}bg-blue-900 text-white hover:bg-blue-800{% elif button.color == 'dark' %}bg-slate-900 text-white hover:bg-slate-700{% elif button.color == 'emerald' %}bg-emerald-600 text-white hover:bg-emerald-700{% elif button.color == 'white' %}bg-white text-blue-900 shadow-sm ring-1 ring-gray-200 hover:bg-blue-50{% elif button.color == 'outline' %}border border-blue-900 bg-transparent text-blue-900 hover:bg-blue-50{% else %}bg-blue-600 text-white hover:bg-blue-700{% endif %}">
+    {% if button.icon %}<i class="{{ button.icon }}"></i>{% endif %}{{ button.text }}
+</a>
+{% endif %}
+{% endif %}

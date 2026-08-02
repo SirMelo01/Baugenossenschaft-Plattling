@@ -1,0 +1,38 @@
+{% extends "cmsbase.html" %}
+{% load compress static i18n %}
+{% block title %} {{block.super}} | Dateien{% endblock %}
+
+{% block content %}
+{% trans "CMS_TITLE_IMAGE" as img_title %}
+
+<!-- ── Page header ── -->
+<div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+        <h1 class="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">Dateien</h1>
+        <p class="mt-1 max-w-2xl text-sm text-gray-500">Bilder, Videos und Dokumente an einem Ort verwalten, hochladen und für Inhalte bereitstellen.</p>
+    </div>
+    <div class="flex flex-col gap-2 sm:flex-row">
+        <a href="{% url 'cms:anyfile-uploader' %}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700">
+            <i class="bi bi-cloud-arrow-up"></i> Dokumente hochladen
+        </a>
+        <a href="{% url 'cms:upload' %}" class="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50">
+            <i class="bi bi-image"></i> Bilder hochladen
+        </a>
+    </div>
+</div>
+
+<!-- ── Stats ── -->
+<div class="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
+    {% include "pages/cms/components/_stat_card.html" with icon="bi-image" tone="blue" value=file_count label=img_title link_url="/cms/images/" %}
+    {% include "pages/cms/components/_stat_card.html" with icon="bi-camera-video" tone="sky" value=videofile_count label="Videos" link_url="/cms/videos/" %}
+    {% include "pages/cms/components/_stat_card.html" with icon="bi-file-earmark-arrow-up" tone="indigo" value=anyfile_count label="Dokumente" link_url="/cms/anyfiles/" %}
+</div>
+
+<!-- ── Quick access ── -->
+<div class="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    {% include "pages/cms/components/_quick_card.html" with icon="bi-image" tone="blue" title=img_title desc="Bilder hochladen, optimieren und in Inhalten verwenden." url="/cms/images/" secondary_url="/cms/upload/" secondary_label="Hochladen" %}
+    {% include "pages/cms/components/_quick_card.html" with icon="bi-file-earmark-play" tone="sky" title="Videos" desc="Videos hochladen und auf Seiten einbinden." url="/cms/videos/" %}
+    {% include "pages/cms/components/_quick_card.html" with icon="bi-file-earmark-arrow-up" tone="indigo" title="Dokumente" desc="PDFs, ZIPs und weitere Dateien verwalten." url="/cms/anyfiles/" secondary_url="/cms/anyfiles/uploader/" secondary_label="Hochladen" %}
+</div>
+
+{% endblock content %}

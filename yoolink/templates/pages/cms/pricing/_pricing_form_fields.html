@@ -1,0 +1,106 @@
+{% comment %}
+Shared pricing-card form fields for create & edit.
+Uses {{ card.* }} which is empty on the create page (no `card` in context).
+All element ids/classes are preserved for the page-level inline JS.
+{% endcomment %}
+
+<!-- Grunddaten -->
+<div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+    <h2 class="mb-4 text-base font-semibold text-slate-900">Grunddaten</h2>
+
+    <div class="space-y-4">
+        <div>
+            <label class="mb-1.5 block text-sm font-medium text-slate-700">Titel</label>
+            <input type="text" id="title" required value="{{ card.title }}"
+                placeholder="z. B. Start, Business, Premium …"
+                class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
+        </div>
+
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+                <label class="mb-1.5 block text-sm font-medium text-slate-700">Monatlicher Preis</label>
+                <input type="text" id="monthly_price" value="{{ card.monthly_price }}" placeholder="z. B. 40 €"
+                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
+            </div>
+            <div>
+                <label class="mb-1.5 block text-sm font-medium text-slate-700">Einmalzahlung</label>
+                <input type="text" id="one_time_price" value="{{ card.one_time_price }}" placeholder="z. B. 250 € einmalig"
+                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
+            </div>
+        </div>
+
+        <label class="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+            <span class="text-sm font-medium text-slate-700">Karte ist aktiv (auf der Website sichtbar)</span>
+            <input type="checkbox" role="switch" id="active" class="cms-switch-input" {% if card %}{% if card.active %}checked{% endif %}{% else %}checked{% endif %}>
+        </label>
+    </div>
+</div>
+
+<!-- Beschreibung & Button -->
+<div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+    <h2 class="mb-4 text-base font-semibold text-slate-900">Beschreibung &amp; Button</h2>
+
+    <div class="space-y-4">
+        <div>
+            <label class="mb-1.5 block text-sm font-medium text-slate-700">Beschreibung <span class="font-normal text-slate-400">(kleiner Text)</span></label>
+            <textarea id="description" rows="3"
+                class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">{{ card.description }}</textarea>
+        </div>
+        <div>
+            <label class="mb-1.5 block text-sm font-medium text-slate-700">Button</label>
+            <select id="button_id"
+                class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
+                <option value="">— Kein Button —</option>
+                {% for btn in buttons %}
+                <option value="{{ btn.id }}" {% if card.button and card.button.id == btn.id %}selected{% endif %}>{{ btn.text }} ({{ btn.href }})</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+</div>
+
+<!-- Features -->
+<div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+    <div class="mb-4 flex items-center justify-between">
+        <h2 class="text-base font-semibold text-slate-900">Features</h2>
+        <button type="button" id="add-feature"
+            class="inline-flex items-center gap-1.5 rounded-lg bg-blue-50 px-3 py-1.5 text-sm font-semibold text-blue-700 transition hover:bg-blue-100">
+            <i class="bi bi-plus-lg"></i> Feature
+        </button>
+    </div>
+    <ul id="feature-list" class="space-y-2">
+        {% for feature in card.features.all|dictsort:"order" %}
+        <li class="feature-item flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 p-2" data-id="{{ feature.id }}">
+            <span class="drag-handle cursor-move px-1 text-slate-400 hover:text-slate-600">&#x2630;</span>
+            <input type="text" class="feature-text min-w-0 flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100" value="{{ feature.text }}">
+            <button type="button" class="delete-feature grid h-8 w-8 flex-shrink-0 place-items-center rounded-lg text-rose-500 transition hover:bg-rose-50"><i class="bi bi-x-lg"></i></button>
+        </li>
+        {% endfor %}
+    </ul>
+    {% if not card.features.all %}
+    <p class="mt-2 text-xs text-slate-400">Noch keine Features – füge mit „+ Feature“ welche hinzu.</p>
+    {% endif %}
+</div>
+
+<!-- Animation -->
+<div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+    <h2 class="mb-1 text-base font-semibold text-slate-900">Animation</h2>
+    <p class="mb-4 text-xs text-slate-500">Einblende-Effekt der Karte beim Scrollen auf der Website.</p>
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+            <label class="mb-1.5 block text-sm font-medium text-slate-700">Effekt</label>
+            <select id="animation"
+                class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
+                <option value="fade-up" {% if card.animation == "fade-up" %}selected{% endif %}>Fade Up</option>
+                <option value="fade-right" {% if card.animation == "fade-right" %}selected{% endif %}>Fade Right</option>
+                <option value="fade-left" {% if card.animation == "fade-left" %}selected{% endif %}>Fade Left</option>
+                <option value="zoom-in" {% if card.animation == "zoom-in" %}selected{% endif %}>Zoom In</option>
+            </select>
+        </div>
+        <div>
+            <label class="mb-1.5 block text-sm font-medium text-slate-700">Verzögerung (ms)</label>
+            <input type="number" id="animation_delay" value="{{ card.animation_delay|default:100 }}"
+                class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
+        </div>
+    </div>
+</div>

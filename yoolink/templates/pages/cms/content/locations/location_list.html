@@ -1,0 +1,500 @@
+{% extends "cmsbase.html" %}
+{% load compress static %}
+{% block title %}{{ block.super }} | CMS | Standorte{% endblock %}
+
+{% block javascript %}
+<script src="{% static 'js/cms/sortable/sortable.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto mt-4 max-w-7xl px-2 sm:mt-8 sm:px-4">
+
+    <!-- Header / Breadcrumb -->
+    <nav class="text-sm text-gray-500" aria-label="Breadcrumb">
+        <ol class="flex flex-wrap items-center gap-1">
+            <li><a href="{% url 'cms:sites' %}" class="text-blue-600 hover:underline">Seiten</a></li>
+            <li class="text-gray-300">/</li>
+            <li class="font-semibold text-gray-700">Standorte &amp; Einzugsgebiet</li>
+        </ol>
+    </nav>
+
+    <!-- Hero Card -->
+    <section class="mt-4 overflow-hidden rounded-3xl bg-gradient-to-br from-blue-900 via-blue-800 to-blue-700 text-white shadow-xl">
+        <div class="relative px-6 py-6 sm:px-8 sm:py-7">
+            <div class="absolute inset-y-0 right-0 hidden w-1/2 bg-[radial-gradient(circle_at_70%_30%,rgba(255,255,255,0.15),transparent_60%)] md:block" aria-hidden="true"></div>
+            <div class="relative flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+                <div class="max-w-2xl">
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-blue-200">Lokale Landingpages</p>
+                    <h1 class="mt-1.5 text-xl font-bold leading-tight tracking-tight sm:text-2xl">
+                        Standorte auf der Einzugsgebiet-Karte verwalten
+                    </h1>
+                    <p class="mt-2 text-sm text-blue-100 md:text-base">
+                        Jeder Standort erscheint als Pin auf der Karte der Startseite. Mit hinterlegter URL
+                        (z. B. <span class="font-semibold text-white">/webdesign-deggendorf/</span>) wird der Pin klickbar
+                        und der Ort als Chip verlinkt &ndash; ohne URL zählt er zum Einzugsgebiet.
+                    </p>
+                </div>
+                <div class="flex flex-col gap-2 md:items-end">
+                    {% csrf_token %}
+                    <button id="openCreateModal"
+                        class="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-bold text-blue-900 shadow-lg transition hover:-translate-y-0.5 hover:bg-blue-50">
+                        <i class="bi bi-plus-circle text-base"></i>
+                        Neuen Standort anlegen
+                    </button>
+                    <button id="reorder-button"
+                        class="inline-flex items-center justify-center gap-2 rounded-xl border border-white/30 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/20">
+                        <i class="bi bi-arrows-move"></i>
+                        <span data-label-default="Reihenfolge ändern" data-label-active="Reihenfolge speichern">Reihenfolge ändern</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Strip -->
+    <div class="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div class="rounded-2xl border border-gray-200 bg-white px-4 py-4 shadow-sm">
+            <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">Gesamt</p>
+            <p class="mt-1 text-2xl font-bold text-gray-900">{{ total_count }}</p>
+        </div>
+        <div class="rounded-2xl border border-green-100 bg-green-50 px-4 py-4 shadow-sm">
+            <p class="text-xs font-semibold uppercase tracking-wider text-green-700">Aktiv</p>
+            <p class="mt-1 text-2xl font-bold text-green-800">{{ active_count }}</p>
+        </div>
+        <div class="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-4 shadow-sm">
+            <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Mit Landingpage</p>
+            <p class="mt-1 text-2xl font-bold text-blue-800">{{ linked_count }}</p>
+        </div>
+        <div class="rounded-2xl border border-amber-100 bg-amber-50 px-4 py-4 shadow-sm">
+            <p class="text-xs font-semibold uppercase tracking-wider text-amber-700">Nur Einzugsgebiet</p>
+            <p class="mt-1 text-2xl font-bold text-amber-800">{{ area_count }}</p>
+        </div>
+    </div>
+
+    <div class="mt-8 grid gap-8 lg:grid-cols-2 lg:items-start">
+
+        <!-- Karten-Vorschau -->
+        <section class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6 lg:sticky lg:top-24">
+            <header class="mb-4 flex items-center gap-3">
+                <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100 text-blue-700">
+                    <i class="bi bi-map text-xl"></i>
+                </span>
+                <div>
+                    <h2 class="text-lg font-bold text-gray-900">Vorschau</h2>
+                    <p class="text-xs text-gray-500">So erscheint die Karte auf der Startseite (nur aktive Standorte).</p>
+                </div>
+            </header>
+            <div class="pointer-events-none select-none">
+                {% include "pages/components/standorte_map.html" with locations=active_locations %}
+            </div>
+        </section>
+
+        <!-- Standort-Liste -->
+        <section>
+            <header class="mb-4 flex items-center justify-between gap-3">
+                <div class="flex items-center gap-3">
+                    <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-teal-100 text-teal-700">
+                        <i class="bi bi-geo-alt text-xl"></i>
+                    </span>
+                    <div>
+                        <h2 class="text-lg font-bold text-gray-900">Standorte</h2>
+                        <p class="text-xs text-gray-500">Reihenfolge bestimmt die Sortierung der Chips auf der Startseite.</p>
+                    </div>
+                </div>
+                <span class="hidden rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 sm:inline-flex">
+                    {{ locations|length }} Eintr{{ locations|length|pluralize:"ag,äge" }}
+                </span>
+            </header>
+
+            <div id="location-list" class="flex flex-col gap-3">
+                {% for loc in locations %}
+                <div class="location-item flex items-center gap-3 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition hover:border-gray-300"
+                     data-id="{{ loc.id }}"
+                     data-name="{{ loc.name }}"
+                     data-tagline="{{ loc.tagline }}"
+                     data-url="{{ loc.url }}"
+                     data-lat="{{ loc.latitude|stringformat:'f' }}"
+                     data-lng="{{ loc.longitude|stringformat:'f' }}"
+                     data-hq="{{ loc.is_headquarters|yesno:'1,0' }}"
+                     data-active="{{ loc.active|yesno:'1,0' }}">
+
+                    <span class="drag-handle hidden cursor-grab text-gray-400 opacity-0 transition hover:text-gray-600 sm:block">
+                        <i class="bi bi-grip-vertical text-xl"></i>
+                    </span>
+
+                    <span class="grid h-10 w-10 flex-shrink-0 place-items-center rounded-full
+                        {% if loc.is_headquarters %}bg-blue-900 text-white{% elif loc.has_landing_page %}bg-blue-100 text-blue-700{% else %}bg-gray-100 text-gray-500{% endif %}">
+                        <i class="bi {% if loc.is_headquarters %}bi-building{% elif loc.has_landing_page %}bi-geo-alt-fill{% else %}bi-geo-alt{% endif %}"></i>
+                    </span>
+
+                    <div class="min-w-0 flex-1">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <p class="font-semibold text-gray-900">{{ loc.name }}</p>
+                            {% if loc.is_headquarters %}
+                            <span class="rounded-full bg-blue-900 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">Hauptsitz</span>
+                            {% endif %}
+                            {% if not loc.active %}
+                            <span class="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-700">Inaktiv</span>
+                            {% endif %}
+                        </div>
+                        {% if loc.has_landing_page %}
+                        <p class="truncate font-mono text-xs text-blue-700">{{ loc.url }}</p>
+                        {% else %}
+                        <p class="text-xs text-gray-400">Einzugsgebiet (keine Landingpage)</p>
+                        {% endif %}
+                        <p class="mt-0.5 font-mono text-[11px] text-gray-400">{{ loc.latitude|stringformat:'f' }}, {{ loc.longitude|stringformat:'f' }}</p>
+                    </div>
+
+                    <div class="flex flex-shrink-0 items-center gap-1.5">
+                        <button class="edit-location grid h-9 w-9 place-items-center rounded-lg border border-gray-200 text-gray-500 transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700"
+                            title="Bearbeiten">
+                            <i class="bi bi-pencil-square"></i>
+                        </button>
+                        <button class="delete-location grid h-9 w-9 place-items-center rounded-lg border border-gray-200 text-gray-500 transition hover:border-red-300 hover:bg-red-50 hover:text-red-600"
+                            data-id="{{ loc.id }}" data-name="{{ loc.name }}" title="Löschen">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="flex flex-col items-center rounded-2xl border-2 border-dashed border-gray-200 bg-white p-10 text-center">
+                    <span class="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+                        <i class="bi bi-geo-alt text-2xl"></i>
+                    </span>
+                    <p class="text-sm font-semibold text-gray-700">Noch keine Standorte angelegt</p>
+                    <p class="mt-1 max-w-sm text-sm text-gray-500">Lege deinen ersten Standort an, damit die Karte auf der Startseite erscheint.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+    </div>
+</div>
+
+<!-- Modal: Standort anlegen / bearbeiten -->
+<div id="locationModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+    <div id="locationModalBackdrop" class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
+    <div class="relative z-10 max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl sm:p-8">
+        <div class="mb-5 flex items-start justify-between gap-4">
+            <div>
+                <h2 id="locationModalTitle" class="text-xl font-bold text-gray-900">Neuen Standort anlegen</h2>
+                <p class="mt-1 text-sm text-gray-500">
+                    Koordinaten findest du per Rechtsklick in Google Maps &rarr; &bdquo;Koordinaten kopieren&ldquo;.
+                </p>
+            </div>
+            <button id="closeLocationModal" class="grid h-9 w-9 flex-shrink-0 place-items-center rounded-full text-gray-400 transition hover:bg-gray-100 hover:text-gray-600" title="Schließen">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+
+        <form id="locationForm" class="grid gap-5">
+            <input type="hidden" id="loc_id" value="">
+
+            <div class="grid gap-5 sm:grid-cols-2">
+                <div>
+                    <label for="loc_name" class="mb-1 block text-sm font-medium text-gray-600">Ort / Stadt *</label>
+                    <input id="loc_name" type="text" required placeholder="z. B. Deggendorf"
+                        class="w-full appearance-none rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2 text-base font-semibold text-gray-900 focus:border-blue-500 focus:bg-white focus:outline-none">
+                </div>
+                <div>
+                    <label for="loc_tagline" class="mb-1 block text-sm font-medium text-gray-600">Kurzbeschreibung <span class="text-gray-400">(Tooltip)</span></label>
+                    <input id="loc_tagline" type="text" placeholder="z. B. Unser Hauptsitz in Niederbayern"
+                        class="w-full appearance-none rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2 text-base text-gray-900 focus:border-blue-500 focus:bg-white focus:outline-none">
+                </div>
+            </div>
+
+            <div>
+                <label for="loc_url" class="mb-1 block text-sm font-medium text-gray-600">Landingpage-URL <span class="text-gray-400">(leer = nur Einzugsgebiet)</span></label>
+                <input id="loc_url" type="text" placeholder="z. B. /webdesign-deggendorf/"
+                    class="w-full appearance-none rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2 font-mono text-sm text-gray-900 focus:border-blue-500 focus:bg-white focus:outline-none">
+                <p class="mt-1 text-xs text-gray-400">Mit URL wird der Pin klickbar und der Ort erscheint als Chip auf der Startseite.</p>
+            </div>
+
+            <div class="grid gap-5 sm:grid-cols-2">
+                <div>
+                    <label for="loc_lat" class="mb-1 block text-sm font-medium text-gray-600">Breitengrad (Latitude) *</label>
+                    <input id="loc_lat" type="text" required inputmode="decimal" placeholder="48.8372"
+                        class="w-full appearance-none rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2 font-mono text-sm text-gray-900 focus:border-blue-500 focus:bg-white focus:outline-none">
+                </div>
+                <div>
+                    <label for="loc_lng" class="mb-1 block text-sm font-medium text-gray-600">Längengrad (Longitude) *</label>
+                    <input id="loc_lng" type="text" required inputmode="decimal" placeholder="12.9516"
+                        class="w-full appearance-none rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2 font-mono text-sm text-gray-900 focus:border-blue-500 focus:bg-white focus:outline-none">
+                </div>
+            </div>
+
+            <!-- Live-Vorschau der Pin-Position -->
+            <div>
+                <p class="mb-1 text-sm font-medium text-gray-600">Position auf der Karte</p>
+                <div class="relative mx-auto w-full max-w-sm overflow-hidden rounded-2xl border border-blue-200/70 bg-gradient-to-br from-white via-blue-50 to-blue-100" style="aspect-ratio: 5 / 4;">
+                    <div class="absolute inset-0" style="background-image: radial-gradient(circle, rgba(30, 58, 138, 0.10) 1.2px, transparent 1.4px); background-size: 20px 20px;"></div>
+                    <span class="pointer-events-none absolute right-3 top-2 select-none text-[9px] font-bold uppercase tracking-[0.25em] text-blue-900/25">Niederbayern</span>
+                    <span id="previewPin" class="absolute hidden -translate-x-1/2 -translate-y-1/2">
+                        <span class="block h-3.5 w-3.5 rounded-full bg-blue-900 ring-2 ring-white shadow-md"></span>
+                    </span>
+                </div>
+                <p id="previewHint" class="mt-1 hidden text-xs font-medium text-amber-600">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    Liegt außerhalb des Kartenausschnitts (Niederbayern) und wird am Rand angezeigt.
+                </p>
+            </div>
+
+            <div class="flex flex-wrap gap-x-8 gap-y-3">
+                <label class="inline-flex cursor-pointer items-center gap-2.5">
+                    <input id="loc_hq" type="checkbox" class="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                    <span class="text-sm font-medium text-gray-700">Hauptsitz <span class="text-gray-400">(größerer, pulsierender Pin)</span></span>
+                </label>
+                <label class="inline-flex cursor-pointer items-center gap-2.5">
+                    <input id="loc_active" type="checkbox" checked class="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                    <span class="text-sm font-medium text-gray-700">Aktiv <span class="text-gray-400">(auf der Startseite sichtbar)</span></span>
+                </label>
+            </div>
+
+            <div class="mt-2 flex flex-col-reverse gap-3 border-t border-gray-100 pt-5 sm:flex-row sm:justify-end">
+                <button type="button" id="cancelLocationModal"
+                    class="inline-flex items-center justify-center rounded-xl border border-gray-200 bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50">
+                    Abbrechen
+                </button>
+                <button type="submit" id="saveLocation"
+                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-bold text-white shadow transition hover:bg-blue-700">
+                    <i class="bi bi-save2"></i> <span id="saveLocationLabel">Erstellen</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascriptend %}
+<script>
+(function () {
+    const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+
+    // Bounding-Box der Karte (aus ServiceLocation); stringformat verhindert
+    // lokalisierte Dezimal-Kommas im JS
+    const BOUNDS = {
+        lngMin: {{ map_lng_min|stringformat:"f" }},
+        lngMax: {{ map_lng_max|stringformat:"f" }},
+        latMin: {{ map_lat_min|stringformat:"f" }},
+        latMax: {{ map_lat_max|stringformat:"f" }},
+    };
+
+    // ---------- Modal ----------
+    const modal = document.getElementById("locationModal");
+    const modalTitle = document.getElementById("locationModalTitle");
+    const saveLabel = document.getElementById("saveLocationLabel");
+    const form = document.getElementById("locationForm");
+    const fields = {
+        id: document.getElementById("loc_id"),
+        name: document.getElementById("loc_name"),
+        tagline: document.getElementById("loc_tagline"),
+        url: document.getElementById("loc_url"),
+        lat: document.getElementById("loc_lat"),
+        lng: document.getElementById("loc_lng"),
+        hq: document.getElementById("loc_hq"),
+        active: document.getElementById("loc_active"),
+    };
+
+    function openModal(data) {
+        fields.id.value = data ? data.id : "";
+        fields.name.value = data ? data.name : "";
+        fields.tagline.value = data ? data.tagline : "";
+        fields.url.value = data ? data.url : "";
+        fields.lat.value = data ? data.lat : "";
+        fields.lng.value = data ? data.lng : "";
+        fields.hq.checked = data ? data.hq === "1" : false;
+        fields.active.checked = data ? data.active === "1" : true;
+        modalTitle.textContent = data ? "Standort bearbeiten" : "Neuen Standort anlegen";
+        saveLabel.textContent = data ? "Speichern" : "Erstellen";
+        updatePreview();
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+        fields.name.focus();
+    }
+
+    function closeModal() {
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+    }
+
+    document.getElementById("openCreateModal").addEventListener("click", function () { openModal(null); });
+    document.getElementById("closeLocationModal").addEventListener("click", closeModal);
+    document.getElementById("cancelLocationModal").addEventListener("click", closeModal);
+    document.getElementById("locationModalBackdrop").addEventListener("click", closeModal);
+    document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape" && !modal.classList.contains("hidden")) closeModal();
+    });
+
+    // ---------- Live-Vorschau ----------
+    const previewPin = document.getElementById("previewPin");
+    const previewHint = document.getElementById("previewHint");
+
+    function parseCoord(value) {
+        if (!value) return NaN;
+        return parseFloat(String(value).trim().replace(",", "."));
+    }
+
+    function updatePreview() {
+        const lat = parseCoord(fields.lat.value);
+        const lng = parseCoord(fields.lng.value);
+        if (isNaN(lat) || isNaN(lng)) {
+            previewPin.classList.add("hidden");
+            previewHint.classList.add("hidden");
+            return;
+        }
+        let x = (lng - BOUNDS.lngMin) / (BOUNDS.lngMax - BOUNDS.lngMin);
+        let y = (BOUNDS.latMax - lat) / (BOUNDS.latMax - BOUNDS.latMin);
+        const outside = x < 0 || x > 1 || y < 0 || y > 1;
+        x = Math.min(Math.max(x, 0.03), 0.97) * 100;
+        y = Math.min(Math.max(y, 0.03), 0.97) * 100;
+        previewPin.style.left = x + "%";
+        previewPin.style.top = y + "%";
+        previewPin.classList.remove("hidden");
+        previewHint.classList.toggle("hidden", !outside);
+    }
+
+    fields.lat.addEventListener("input", updatePreview);
+    fields.lng.addEventListener("input", updatePreview);
+
+    // ---------- Speichern ----------
+    form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        const id = fields.id.value;
+        const editUrlTemplate = "{% url 'cms:location-edit' pk=0 %}";
+        const url = id ? editUrlTemplate.replace("/0/", "/" + id + "/") : "{% url 'cms:location-create' %}";
+
+        fetch(url, {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": csrfToken,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                name: fields.name.value,
+                tagline: fields.tagline.value,
+                url: fields.url.value,
+                latitude: fields.lat.value,
+                longitude: fields.lng.value,
+                is_headquarters: fields.hq.checked,
+                active: fields.active.checked,
+            }),
+        }).then(function (res) {
+            return res.json().then(function (data) { return { ok: res.ok, data: data }; });
+        }).then(function (result) {
+            if (result.ok) {
+                sendNotif(result.data.success || "Standort gespeichert", "success");
+                setTimeout(function () { location.reload(); }, 600);
+            } else {
+                sendNotif(result.data.error || "Speichern fehlgeschlagen", "error");
+            }
+        }).catch(function () {
+            sendNotif("Speichern fehlgeschlagen", "error");
+        });
+    });
+
+    // ---------- Bearbeiten ----------
+    document.querySelectorAll(".edit-location").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+            const item = btn.closest(".location-item");
+            openModal({
+                id: item.dataset.id,
+                name: item.dataset.name,
+                tagline: item.dataset.tagline,
+                url: item.dataset.url,
+                lat: item.dataset.lat,
+                lng: item.dataset.lng,
+                hq: item.dataset.hq,
+                active: item.dataset.active,
+            });
+        });
+    });
+
+    // ---------- Löschen ----------
+    document.querySelectorAll(".delete-location").forEach(function (btn) {
+        btn.addEventListener("click", function (e) {
+            e.preventDefault();
+            const id = btn.dataset.id;
+            const name = btn.dataset.name || "Diesen Standort";
+            const action = function () {
+                const deleteUrlTemplate = "{% url 'cms:location-delete' pk=0 %}";
+                fetch(deleteUrlTemplate.replace("/0/", "/" + id + "/"), {
+                    method: "POST",
+                    headers: { "X-CSRFToken": csrfToken },
+                }).then(function (res) {
+                    if (res.ok) {
+                        const card = document.querySelector('.location-item[data-id="' + id + '"]');
+                        if (card) card.remove();
+                        sendNotif("Standort gelöscht", "success");
+                    } else {
+                        sendNotif("Löschen fehlgeschlagen", "error");
+                    }
+                });
+            };
+
+            if (typeof Swal !== "undefined") {
+                Swal.fire({
+                    title: name + " löschen?",
+                    text: "Der Pin verschwindet von der Karte auf der Startseite.",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#dc2626",
+                    cancelButtonColor: "#64748b",
+                    confirmButtonText: "Ja, löschen",
+                    cancelButtonText: "Abbrechen",
+                    reverseButtons: true,
+                }).then(function (result) { if (result.isConfirmed) action(); });
+            } else if (window.confirm(name + " wirklich löschen?")) {
+                action();
+            }
+        });
+    });
+
+    // ---------- Reihenfolge ----------
+    const reorderBtn = document.getElementById("reorder-button");
+    const reorderLabel = reorderBtn ? reorderBtn.querySelector("span[data-label-default]") : null;
+    let sorting = false;
+    const listEl = document.getElementById("location-list");
+    const sortable = listEl ? new Sortable(listEl, {
+        animation: 150,
+        handle: ".drag-handle",
+        disabled: true,
+        ghostClass: "ring-2",
+    }) : null;
+
+    if (reorderBtn && sortable) {
+        reorderBtn.addEventListener("click", function () {
+            sorting = !sorting;
+            if (sorting) {
+                if (reorderLabel) reorderLabel.textContent = reorderLabel.dataset.labelActive;
+                reorderBtn.classList.remove("border-white/30", "bg-white/10");
+                reorderBtn.classList.add("bg-green-500", "hover:bg-green-600", "border-transparent");
+                document.querySelectorAll(".drag-handle").forEach(function (h) { h.classList.remove("opacity-0"); h.classList.add("opacity-100"); });
+                sortable.option("disabled", false);
+            } else {
+                const order = [];
+                listEl.querySelectorAll(".location-item").forEach(function (item) {
+                    order.push(parseInt(item.dataset.id, 10));
+                });
+
+                fetch("{% url 'cms:location-reorder' %}", {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": csrfToken,
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ order: order }),
+                }).then(function (res) {
+                    if (res.ok) sendNotif("Reihenfolge erfolgreich gespeichert", "success");
+                    else sendNotif("Fehler beim Speichern der Reihenfolge", "error");
+                });
+
+                if (reorderLabel) reorderLabel.textContent = reorderLabel.dataset.labelDefault;
+                reorderBtn.classList.add("border-white/30", "bg-white/10");
+                reorderBtn.classList.remove("bg-green-500", "hover:bg-green-600", "border-transparent");
+                document.querySelectorAll(".drag-handle").forEach(function (h) { h.classList.add("opacity-0"); h.classList.remove("opacity-100"); });
+                sortable.option("disabled", true);
+            }
+        });
+    }
+})();
+</script>
+{% endblock %}

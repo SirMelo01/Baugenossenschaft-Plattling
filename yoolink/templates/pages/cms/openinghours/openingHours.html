@@ -1,0 +1,114 @@
+{% extends 'cmsbase.html' %}
+{% load compress static %}
+{% block title %} {{block.super}} | CMS | Öffnungszeiten{% endblock %}
+{% block content %}
+
+<div class="mx-auto max-w-4xl">
+
+    <!-- Sticky header -->
+    <div class="sticky top-[4.25rem] z-30 mb-6 rounded-2xl border border-gray-200 bg-white/95 px-5 py-4 shadow-sm backdrop-blur">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <h1 class="text-xl font-semibold text-gray-900 sm:text-2xl">Öffnungszeiten</h1>
+                <p class="mt-0.5 text-sm text-gray-500">Zeiten, Mittagspausen und Urlaubshinweise pflegen.</p>
+            </div>
+            <a id="saveOpeningHours"
+                class="inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-green-600 px-5 py-2.5 font-semibold text-white transition hover:bg-green-700">
+                <i class="bi bi-check2"></i> Speichern
+            </a>
+        </div>
+    </div>
+
+    {% csrf_token %}
+
+    <!-- Tage -->
+    <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+        <h2 class="mb-4 flex items-center gap-2 text-base font-semibold text-slate-900"><i class="bi bi-calendar-week text-blue-600"></i> Wochentage</h2>
+        <div class="space-y-3">
+            {% for opening_hour in opening_hours %}
+            <div id="{{ opening_hour.day }}" class="rounded-xl border border-slate-200 bg-slate-50/60 p-4 transition hover:border-slate-300">
+                <div class="flex flex-col gap-4 lg:flex-row lg:items-center">
+                    <!-- Tag -->
+                    <div class="lg:w-28">
+                        <span class="text-base font-semibold text-slate-800">{{ opening_hour.get_day }}</span>
+                    </div>
+
+                    <!-- Geöffnet + Zeiten -->
+                    <div class="flex flex-1 flex-wrap items-center gap-x-4 gap-y-3">
+                        <label class="inline-flex cursor-pointer items-center">
+                            <input type="checkbox" class="peer sr-only open-switch" {% if opening_hour and opening_hour.is_open %}checked{% endif %} />
+                            <span class="cms-switch-track"></span>
+                            <span class="ms-3 text-sm font-medium text-slate-700">Geöffnet</span>
+                        </label>
+                        <div class="flex items-center gap-2">
+                            <input class="start-date w-[4.5rem] rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-center text-sm text-slate-800 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                                type="text" value="{{opening_hour.start_time}}" placeholder="08:00" />
+                            <span class="text-slate-400">–</span>
+                            <input class="end-date w-[4.5rem] rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-center text-sm text-slate-800 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                                type="text" value="{{opening_hour.end_time}}" placeholder="18:00" />
+                        </div>
+                    </div>
+
+                    <!-- Mittagspause + Zeiten -->
+                    <div class="flex flex-1 flex-wrap items-center gap-x-4 gap-y-3 lg:border-l lg:border-slate-200 lg:pl-5">
+                        <label class="inline-flex cursor-pointer items-center">
+                            <input type="checkbox" class="peer sr-only lunch-break-switch" {% if opening_hour and opening_hour.has_lunch_break %}checked{% endif %} />
+                            <span class="cms-switch-track"></span>
+                            <span class="ms-3 text-sm font-medium text-slate-700">Mittagspause</span>
+                        </label>
+                        <div class="flex items-center gap-2">
+                            <input class="lunch-start w-[4.5rem] rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-center text-sm text-slate-800 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                                type="text" value="{{opening_hour.lunch_break_start|default:'12:00'}}" placeholder="12:00" />
+                            <span class="text-slate-400">–</span>
+                            <input class="lunch-end w-[4.5rem] rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-center text-sm text-slate-800 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                                type="text" value="{{opening_hour.lunch_break_end|default:'13:00'}}" placeholder="13:00" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Urlaub / Wichtige Informationen -->
+    <div class="mt-6 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <h2 class="flex items-center gap-2 text-base font-semibold text-slate-900"><i class="bi bi-info-circle text-amber-500"></i> Wichtige Informationen (Urlaub o. Ä.)</h2>
+            <label class="inline-flex cursor-pointer items-center">
+                <span class="me-3 text-sm font-medium text-slate-600">Hinweis anzeigen</span>
+                <input {% if settings and settings.vacation %}checked{% endif %} class="peer sr-only" type="checkbox" role="switch" id="vacationSwitch" />
+                <span class="cms-switch-track"></span>
+            </label>
+        </div>
+
+        <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+                <label for="vacationStart" class="mb-1 block text-sm font-medium text-slate-700">Anzeigen von</label>
+                <input id="vacationStart" type="datetime-local"
+                    class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                    value="{% if settings.vacation_start %}{{ settings.vacation_start|date:'Y-m-d\\TH:i' }}{% endif %}">
+            </div>
+            <div>
+                <label for="vacationEnd" class="mb-1 block text-sm font-medium text-slate-700">Anzeigen bis</label>
+                <input id="vacationEnd" type="datetime-local"
+                    class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                    value="{% if settings.vacation_end %}{{ settings.vacation_end|date:'Y-m-d\\TH:i' }}{% endif %}">
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <label for="vacationText" class="mb-1 block text-sm font-medium text-slate-700">Hinweistext</label>
+            <textarea id="vacationText" rows="3" inputType="vacationText"
+                class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm leading-relaxed text-slate-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">{% if settings and settings.vacationText %}{{settings.vacationText}}{% else %}Wir sind vom 24.12. bis 01.01. im Urlaub. Ab dem 02.01. sind wir wieder für Sie da!{% endif %}</textarea>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block javascriptend %}
+{% compress js %}
+<script src="{% static 'js/cms/openinghours/script.js' %}"></script>
+{% endcompress js %}
+{% endblock javascriptend %}

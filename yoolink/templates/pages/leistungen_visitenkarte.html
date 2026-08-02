@@ -1,0 +1,807 @@
+{% extends "base.html" %} {% load compress static i18n custom_filters %}
+
+{% block title %}{{ block.super }} | Visitenkarten Design - Hochwertige Visitenkarten erstellen lassen{% endblock title %}
+
+{% block meta_description %}Professionelle Visitenkarten Gestaltung in zwei Formaten (8,5 × 5,5 cm und 9 × 5 cm). Hochwertiges Design, edle Papierqualitäten und ein starker erster Eindruck.{% endblock %}
+
+{% block og_title %}Visitenkarten Design YooLink - Visitenkarten erstellen lassen{% endblock %}
+{% block og_description %}Hochwertige Visitenkarten - individuell gestaltet, in zwei Formaten und mit Premium-Papierqualität.{% endblock %}
+{% block twitter_title %}Visitenkarten Design YooLink{% endblock %}
+{% block twitter_description %}Hochwertige Visitenkarten - individuell gestaltet, in zwei Formaten und mit Premium-Papierqualität.{% endblock %}
+
+{% block css %}
+{% compress css %}
+<link href="{% static 'css/wellen.css' %}" rel="stylesheet" />
+<link rel="stylesheet" href="{% static 'css/aos.css' %}" />
+<style>
+  /* === HERO STAGE === */
+  .vk-stage {
+    position: relative;
+    width: 100%;
+    max-width: 30rem;
+    aspect-ratio: 1 / 1;
+    perspective: 1600px;
+    perspective-origin: 50% 55%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+  }
+
+  .vk-stage-glow {
+    position: absolute;
+    inset: 6%;
+    background: radial-gradient(ellipse at 50% 50%,
+      rgba(59, 130, 246, 0.30) 0%,
+      rgba(147, 197, 253, 0.10) 38%,
+      rgba(255, 255, 255, 0) 70%);
+    filter: blur(40px);
+    border-radius: 9999px;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .vk-stage-floor {
+    position: absolute;
+    bottom: 18%;
+    left: 50%;
+    width: 70%;
+    height: 5%;
+    transform: translateX(-50%);
+    background: radial-gradient(ellipse at center,
+      rgba(15, 23, 42, 0.30) 0%,
+      rgba(15, 23, 42, 0) 70%);
+    filter: blur(8px);
+    border-radius: 9999px;
+    z-index: 0;
+    pointer-events: none;
+    animation: vkFloorPulse 5s ease-in-out infinite;
+  }
+
+  /* Tilt wrapper: mouse-parallax + idle float */
+  .vk-tilt {
+    position: relative;
+    width: 86%;
+    aspect-ratio: 85 / 55;
+    transform-style: preserve-3d;
+    transform: rotateX(8deg) rotateY(-18deg);
+    transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    animation: vkCardFloat 5s ease-in-out infinite;
+    z-index: 2;
+  }
+
+  .vk-stage:hover .vk-tilt {
+    animation: none;
+  }
+
+  /* Flipper: click/tap to flip */
+  .vk-flipper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.95s cubic-bezier(0.22, 1, 0.36, 1);
+    cursor: pointer;
+  }
+
+  .vk-flipper.is-flipped {
+    transform: rotateY(180deg);
+  }
+
+  .vk-face {
+    position: absolute;
+    inset: 0;
+    border-radius: 0.75rem;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    overflow: hidden;
+    box-shadow:
+      0 36px 60px -28px rgba(15, 23, 42, 0.55),
+      0 12px 22px -10px rgba(15, 23, 42, 0.30),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.55);
+  }
+
+  .vk-face--front {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    color: #0f172a;
+    padding: 1.4rem 1.55rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .vk-face--front::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 12% 12%, rgba(59, 130, 246, 0.10) 0%, rgba(59, 130, 246, 0) 35%);
+    pointer-events: none;
+  }
+
+  .vk-face--back {
+    background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%);
+    color: #fff;
+    transform: rotateY(180deg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+  }
+
+  .vk-face--back::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 12% 18%, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 38%),
+      radial-gradient(circle at 88% 92%, rgba(59, 130, 246, 0.20) 0%, rgba(59, 130, 246, 0) 42%);
+    pointer-events: none;
+  }
+
+  /* Photo variants: edge-to-edge image fills the card */
+  .vk-face--photo {
+    background: #fff;
+    padding: 0;
+  }
+  .vk-face--back-photo {
+    transform: rotateY(180deg);
+  }
+
+  /* FRONT content */
+  .vk-front-top {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    position: relative;
+  }
+  .vk-front-mark {
+    width: 2.1rem;
+    height: 2.1rem;
+    border-radius: 0.45rem;
+    background: linear-gradient(135deg, #1e3a8a, #2563eb);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 700;
+    font-size: 1rem;
+    box-shadow: 0 4px 10px -3px rgba(30, 58, 138, 0.6);
+  }
+  .vk-front-brand {
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    font-size: 0.95rem;
+    color: #0f172a;
+  }
+  .vk-front-divider {
+    height: 1px;
+    background: linear-gradient(90deg, rgba(30, 58, 138, 0.7), rgba(30, 58, 138, 0));
+  }
+  .vk-front-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+    line-height: 1.05;
+    color: #0f172a;
+  }
+  .vk-front-role {
+    font-size: 0.7rem;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    margin-top: 0.25rem;
+  }
+  .vk-front-contact {
+    display: grid;
+    gap: 0.25rem;
+    font-size: 0.7rem;
+    color: #475569;
+  }
+  .vk-front-contact span { display: flex; align-items: center; gap: 0.45rem; }
+  .vk-front-contact i { color: #1e3a8a; font-size: 0.78rem; }
+
+  /* BACK content */
+  .vk-back-inner {
+    position: relative;
+    text-align: center;
+    z-index: 1;
+  }
+  .vk-back-mark {
+    margin: 0 auto 0.8rem;
+    width: 3.4rem;
+    height: 3.4rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.85rem;
+    background: rgba(255, 255, 255, 0.10);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.30);
+    backdrop-filter: blur(6px);
+  }
+  .vk-back-mark i { font-size: 1.65rem; color: #fff; }
+  .vk-back-title {
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.4em;
+    color: rgba(255, 255, 255, 0.95);
+  }
+  .vk-back-sub {
+    margin-top: 0.35rem;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.32em;
+    color: rgba(191, 219, 254, 0.85);
+  }
+
+  /* Flip hint */
+  .vk-hint {
+    position: absolute;
+    left: 50%;
+    bottom: -1rem;
+    transform: translateX(-50%);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.85rem;
+    border-radius: 9999px;
+    background: rgba(30, 58, 138, 0.08);
+    color: #1e3a8a;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    pointer-events: none;
+    z-index: 4;
+    transition: opacity 0.4s ease;
+  }
+  .vk-hint i { font-size: 0.85rem; }
+
+  @keyframes vkCardFloat {
+    0%, 100% { transform: rotateX(8deg) rotateY(-18deg) translateY(0); }
+    50%      { transform: rotateX(8deg) rotateY(-18deg) translateY(-14px); }
+  }
+  @keyframes vkFloorPulse {
+    0%, 100% { opacity: 0.95; transform: translateX(-50%) scaleX(1); }
+    50%      { opacity: 0.6;  transform: translateX(-50%) scaleX(0.82); }
+  }
+
+  /* === FORMAT VERGLEICH === */
+  .vk-format-card {
+    position: relative;
+    background: white;
+    border-radius: 0.55rem;
+    box-shadow:
+      0 14px 30px -12px rgba(15, 23, 42, 0.30),
+      inset 0 0 0 1px rgba(229, 231, 235, 1);
+    transition: transform 0.45s ease, box-shadow 0.45s ease;
+    overflow: hidden;
+  }
+  .vk-format-card:hover {
+    transform: translateY(-6px);
+    box-shadow:
+      0 22px 40px -10px rgba(30, 58, 138, 0.32),
+      inset 0 0 0 1px rgba(30, 58, 138, 0.20);
+  }
+  .vk-format-standard {
+    aspect-ratio: 85 / 55;
+    width: 100%;
+    max-width: 22rem;
+  }
+  .vk-format-slim {
+    aspect-ratio: 90 / 50;
+    width: 100%;
+    max-width: 22rem;
+  }
+  .vk-format-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 1rem 1.2rem;
+    color: #0f172a;
+  }
+  .vk-format-shine {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg, rgba(255, 255, 255, 0) 30%, rgba(255, 255, 255, 0.6) 50%, rgba(255, 255, 255, 0) 70%);
+    transform: translateX(-100%);
+    transition: transform 0.9s ease;
+    pointer-events: none;
+  }
+  .vk-format-card:hover .vk-format-shine {
+    transform: translateX(100%);
+  }
+  .vk-format-ruler {
+    position: absolute;
+    background: #1e3a8a;
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 0.18rem 0.55rem;
+    border-radius: 0.3rem;
+    letter-spacing: 0.04em;
+    box-shadow: 0 4px 8px -3px rgba(30, 58, 138, 0.5);
+  }
+  .vk-format-ruler--width  { bottom: -1.85rem; left: 50%; transform: translateX(-50%); }
+  .vk-format-ruler--height { right: -3.6rem;  top: 50%; transform: translateY(-50%); }
+
+  /* === PAPIER CARDS === */
+  .vk-paper-card {
+    position: relative;
+    background: #fff;
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 14px 30px -16px rgba(15, 23, 42, 0.30);
+    border: 1px solid #e5e7eb;
+    transition: transform 0.45s ease, box-shadow 0.45s ease;
+  }
+  .vk-paper-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 22px 42px -12px rgba(30, 58, 138, 0.32);
+  }
+  .vk-paper-thumb {
+    position: relative;
+    aspect-ratio: 85 / 55;
+    border-bottom: 1px solid #e5e7eb;
+    overflow: hidden;
+  }
+  .vk-paper-thumb--standard {
+    background:
+      repeating-linear-gradient(45deg, #fafafa 0 4px, #f1f1f1 4px 8px),
+      #ffffff;
+  }
+  .vk-paper-thumb--premium {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  }
+  .vk-paper-thumb--premium::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(135deg,
+      rgba(255, 255, 255, 0) 0 6px,
+      rgba(15, 23, 42, 0.04) 6px 7px);
+  }
+  .vk-paper-thumb--velvet {
+    background: linear-gradient(160deg, #1e293b 0%, #0f172a 100%);
+  }
+  .vk-paper-thumb--velvet::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 30% 25%, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0) 50%),
+      radial-gradient(circle at 65% 60%, rgba(212, 175, 55, 0.45) 0%, rgba(212, 175, 55, 0) 55%);
+  }
+  .vk-paper-thumb-label {
+    position: absolute;
+    left: 1rem;
+    bottom: 1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.6rem;
+    background: rgba(255, 255, 255, 0.85);
+    color: #1e3a8a;
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    border-radius: 9999px;
+    backdrop-filter: blur(4px);
+  }
+  .vk-paper-thumb--velvet .vk-paper-thumb-label {
+    background: rgba(15, 23, 42, 0.65);
+    color: #fde68a;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .vk-tilt, .vk-stage-floor { animation: none !important; }
+    .vk-tilt { transition: none; }
+  }
+
+  @media (max-width: 640px) {
+    .vk-stage { max-width: 22rem; }
+    .vk-front-name { font-size: 0.95rem; }
+    .vk-front-role { font-size: 0.6rem; }
+    .vk-front-contact { font-size: 0.62rem; }
+    .vk-front-mark { width: 1.8rem; height: 1.8rem; font-size: 0.85rem; }
+    .vk-format-ruler--height { right: -3rem; }
+  }
+</style>
+{% endcompress css %}
+{% endblock css %}
+
+{% block javascript %}
+{% compress js %}
+<script defer src="{% static 'js/aos.js' %}"></script>
+{% endcompress %}
+{% endblock javascript %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "serviceType": "Visitenkarten Design",
+  "provider": {
+    "@type": "Organization",
+    "name": "YooLink",
+    "url": "https://yoolink.de",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "Schanzenweg 53",
+      "postalCode": "94469",
+      "addressLocality": "Deggendorf",
+      "addressCountry": "DE"
+    }
+  },
+  "areaServed": "DE",
+  "name": "Visitenkarten Design YooLink",
+  "description": "Hochwertige, individuell gestaltete Visitenkarten in zwei Formaten und mit Premium-Papierqualität.",
+  "url": "https://yoolink.de/leistungen/visitenkarte/"
+}
+</script>
+{% endblock %}
+
+{% block content %}
+
+<!-- HERO SECTION -->
+<section class="bg-white px-4 pt-20 pb-16 lg:pt-28 lg:pb-24">
+  <div class="mx-auto grid max-w-6xl items-center gap-14 px-4 md:grid-cols-2">
+    <div data-aos="fade-right">
+      <p class="mb-4 text-sm font-semibold uppercase tracking-widest text-blue-900">{{ textContent_hero.header|default:"Visitenkarten Design" }}</p>
+      <h1 class="mb-6 text-3xl font-bold leading-none tracking-tight text-gray-900 sm:text-5xl xl:text-6xl">
+        {{ textContent_hero.title|default:"Visitenkarten, die in Erinnerung bleiben." }}
+      </h1>
+      <p class="mb-8 text-base leading-7 text-gray-600 md:text-lg xl:text-xl">
+        {{ textContent_hero.description|default:"Eine Visitenkarte ist mehr als ein Stück Papier - sie ist der erste haptische Eindruck deiner Marke. Wir gestalten hochwertige Visitenkarten, die deine Persönlichkeit transportieren und einen bleibenden Eindruck hinterlassen." }}
+      </p>
+      <div class="flex flex-wrap gap-4">
+        <a href="{% url 'kontakt' %}"
+          class="inline-block rounded-md border-t border-gray-200 bg-blue-900 px-8 py-4 text-base font-bold text-white shadow-xl transition-transform duration-300 ease-in-out hover:-translate-y-1 hover:scale-105 hover:bg-blue-700">
+          {{ textContent_hero.buttonText|default:"Visitenkarte anfragen" }}
+        </a>
+        <a href="#formate"
+          class="inline-block rounded-md border border-blue-900 bg-white px-8 py-4 text-base font-bold text-blue-900 shadow-md transition-transform duration-300 ease-in-out hover:-translate-y-1 hover:scale-105 hover:bg-blue-50">
+          {{ textContent_hero_secondary.title|default:"Formate ansehen" }}
+        </a>
+      </div>
+    </div>
+
+    <div data-aos="fade-left" class="relative flex justify-center">
+      <div class="vk-stage" id="vkStage" aria-label="Interaktive Visitenkarte">
+        <div class="vk-stage-glow" aria-hidden="true"></div>
+        <div class="vk-stage-floor" aria-hidden="true"></div>
+
+        <div class="vk-tilt" id="vkTilt">
+          <div class="vk-flipper" id="vkFlipper" tabindex="0" role="button" aria-label="Visitenkarte umdrehen">
+            <!-- FRONT -->
+            <div class="vk-face vk-face--photo">
+              {% if image_hero_front %}
+                <img src="{{ image_hero_front.file.url }}" {% responsive_image_attrs image_hero_front "30rem" %} alt="{{ image_hero_front.title|default:'Visitenkarte Vorderseite' }}" class="absolute inset-0 h-full w-full object-cover" />
+              {% else %}
+                <img src="{% static 'images/visitenkarte/Sebastian Visitenkarte EU Format vorne.png' %}" alt="Visitenkarte Vorderseite" class="absolute inset-0 h-full w-full object-cover" />
+              {% endif %}
+            </div>
+            <!-- BACK -->
+            <div class="vk-face vk-face--photo vk-face--back-photo">
+              {% if image_hero_back %}
+                <img src="{{ image_hero_back.file.url }}" {% responsive_image_attrs image_hero_back "30rem" %} alt="{{ image_hero_back.title|default:'Visitenkarte Rückseite' }}" class="absolute inset-0 h-full w-full object-cover" />
+              {% else %}
+                <img src="{% static 'images/visitenkarte/Sebastian Visitenkarte EU Format hinten.png' %}" alt="Visitenkarte Rückseite" class="absolute inset-0 h-full w-full object-cover" />
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <span class="vk-hint" id="vkHint">
+          <i class="bi bi-arrow-repeat"></i> {% trans "Hover, Klick oder Drag" %}
+        </span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WELLEN -->
+{% block Wellen %}
+<section class="bg-white">
+  <div>
+    <svg class="waves" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 24 150 28" preserveAspectRatio="none" shape-rendering="auto">
+      <defs>
+        <path id="gentle-wave" d="M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v44h-352z" />
+      </defs>
+      <g class="parallax">
+        <use xlink:href="#gentle-wave" x="48" y="0" fill="rgba(239,246,255,0.7)" />
+        <use xlink:href="#gentle-wave" x="48" y="3" fill="rgba(239,246,255,0.5)" />
+        <use xlink:href="#gentle-wave" x="48" y="5" fill="rgba(239,246,255,0.3)" />
+        <use xlink:href="#gentle-wave" x="48" y="7" fill="#eff6ff" />
+      </g>
+    </svg>
+  </div>
+</section>
+{% endblock Wellen %}
+
+<!-- BLUE SECTION: Showcase + Formate + Papier -->
+<section class="bg-blue-50 px-4 py-20">
+
+  <!-- SHOWCASE / BISHERIGE ARBEITEN -->
+  <div class="mx-auto max-w-6xl px-4">
+    <div class="mx-auto mb-14 max-w-3xl text-center" data-aos="fade-up">
+      <p class="mb-3 text-sm font-semibold uppercase tracking-widest text-blue-900">{{ textContent_showcase.header|default:"Unsere Visitenkarte" }}</p>
+      <h2 class="mb-6 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl sm:leading-none">
+        {{ textContent_showcase.title|default:"Vorder- und Rückseite im Detail" }}
+      </h2>
+      <p class="text-base leading-7 text-gray-600 md:text-lg xl:text-xl">
+        {{ textContent_showcase.description|default:"Hier siehst du unsere eigene Visitenkarte - durchdacht in Layout, Typografie und Farbe. Genau diese Sorgfalt fließt auch in dein Design." }}
+      </p>
+    </div>
+
+    <div class="mx-auto grid max-w-4xl gap-10 sm:grid-cols-2">
+      <div class="flex flex-col items-center" data-aos="fade-right">
+        <div class="aspect-[85/55] w-full overflow-hidden rounded-xl shadow-xl ring-1 ring-gray-200 rotate-1 transition-transform duration-500 hover:rotate-0 hover:scale-[1.03]">
+          {% if image_showcase_front %}
+            <img src="{{ image_showcase_front.file.url }}" {% responsive_image_attrs image_showcase_front "(min-width: 640px) 28rem, 100vw" %} loading="lazy" alt="{{ image_showcase_front.title|default:'Visitenkarte - Vorderseite' }}" class="h-full w-full object-cover" />
+          {% else %}
+            <img src="{% static 'images/visitenkarte/Sebastian Visitenkarte EU Format vorne.png' %}" loading="lazy" alt="Visitenkarte Sebastian - Vorderseite" class="h-full w-full object-cover" />
+          {% endif %}
+        </div>
+        <span class="mt-5 inline-flex items-center gap-2 rounded-full bg-white px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-blue-900 shadow-sm ring-1 ring-gray-200">
+          <i class="bi bi-eye"></i> {{ textContent_showcase_label_front.title|default:"Vorderseite" }}
+        </span>
+      </div>
+      <div class="flex flex-col items-center" data-aos="fade-left" data-aos-delay="100">
+        <div class="aspect-[85/55] w-full overflow-hidden rounded-xl shadow-xl ring-1 ring-gray-200 -rotate-1 transition-transform duration-500 hover:rotate-0 hover:scale-[1.03]">
+          {% if image_showcase_back %}
+            <img src="{{ image_showcase_back.file.url }}" {% responsive_image_attrs image_showcase_back "(min-width: 640px) 28rem, 100vw" %} loading="lazy" alt="{{ image_showcase_back.title|default:'Visitenkarte - Rückseite' }}" class="h-full w-full object-cover" />
+          {% else %}
+            <img src="{% static 'images/visitenkarte/Sebastian Visitenkarte EU Format hinten.png' %}" loading="lazy" alt="Visitenkarte Sebastian - Rückseite" class="h-full w-full object-cover" />
+          {% endif %}
+        </div>
+        <span class="mt-5 inline-flex items-center gap-2 rounded-full bg-white px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-blue-900 shadow-sm ring-1 ring-gray-200">
+          <i class="bi bi-arrow-counterclockwise"></i> {{ textContent_showcase_label_back.title|default:"Rückseite" }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- FORMATE -->
+  <div id="formate" class="mx-auto mt-32 max-w-6xl px-4 scroll-mt-28">
+    <div class="mx-auto mb-16 max-w-3xl text-center" data-aos="fade-up">
+      <p class="mb-3 text-sm font-semibold uppercase tracking-widest text-blue-900">{{ textContent_formate.header|default:"Zwei Formate" }}</p>
+      <h2 class="mb-6 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl sm:leading-none">
+        {{ textContent_formate.title|default:"Standard oder Slim - wähle dein Format" }}
+      </h2>
+      <p class="text-base leading-7 text-gray-600 md:text-lg xl:text-xl">
+        {{ textContent_formate.description|default:"Beide Formate werden in identischer Qualität gefertigt. Welches besser zu dir passt, ist eine Frage von Stil und Markenwirkung." }}
+      </p>
+    </div>
+
+    <div class="grid items-start gap-20 md:grid-cols-2 md:gap-12">
+      <div class="flex flex-col items-center" data-aos="fade-right">
+        <div class="vk-format-card vk-format-standard">
+          <div class="vk-format-overlay">
+            <div class="flex items-center gap-2">
+              <div class="vk-front-mark" style="width:1.6rem;height:1.6rem;font-size:0.8rem;border-radius:0.35rem;">Y</div>
+              <span class="text-xs font-bold tracking-wide text-gray-700">YooLink</span>
+            </div>
+            <div>
+              <div class="text-sm font-bold leading-tight text-gray-900">Max Mustermann</div>
+              <div class="text-[0.55rem] uppercase tracking-[0.18em] text-gray-500">Geschäftsführung</div>
+            </div>
+          </div>
+          <div class="vk-format-shine"></div>
+          <span class="vk-format-ruler vk-format-ruler--width">8,5 cm</span>
+          <span class="vk-format-ruler vk-format-ruler--height">5,5 cm</span>
+        </div>
+        <div class="mt-14 text-center">
+          <h3 class="text-xl font-bold tracking-tight text-gray-900">{{ textContent_format_standard.title|default:"Standard" }}</h3>
+          <p class="mt-1 text-sm font-semibold tracking-widest text-blue-900">8,5 &times; 5,5 cm</p>
+          <p class="mx-auto mt-3 max-w-xs text-base leading-7 text-gray-600">
+            {{ textContent_format_standard.description|default:"Das klassische Visitenkarten-Format. Vertraut, gut sortierbar und passt in jedes Etui." }}
+          </p>
+        </div>
+      </div>
+
+      <div class="flex flex-col items-center" data-aos="fade-left">
+        <div class="vk-format-card vk-format-slim">
+          <div class="vk-format-overlay">
+            <div class="flex items-center gap-2">
+              <div class="vk-front-mark" style="width:1.6rem;height:1.6rem;font-size:0.8rem;border-radius:0.35rem;">Y</div>
+              <span class="text-xs font-bold tracking-wide text-gray-700">YooLink</span>
+            </div>
+            <div>
+              <div class="text-sm font-bold leading-tight text-gray-900">Max Mustermann</div>
+              <div class="text-[0.55rem] uppercase tracking-[0.18em] text-gray-500">Geschäftsführung</div>
+            </div>
+          </div>
+          <div class="vk-format-shine"></div>
+          <span class="vk-format-ruler vk-format-ruler--width">9 cm</span>
+          <span class="vk-format-ruler vk-format-ruler--height">5 cm</span>
+        </div>
+        <div class="mt-14 text-center">
+          <h3 class="text-xl font-bold tracking-tight text-gray-900">{{ textContent_format_slim.title|default:"Slim" }}</h3>
+          <p class="mt-1 text-sm font-semibold tracking-widest text-blue-900">9 &times; 5 cm</p>
+          <p class="mx-auto mt-3 max-w-xs text-base leading-7 text-gray-600">
+            {{ textContent_format_slim.description|default:"Etwas länger, etwas schmaler - eine moderne Alternative mit besonders elegantem Auftritt." }}
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAPIER / QUALITAET -->
+  <div class="mx-auto mt-32 max-w-6xl px-4">
+    <div class="mx-auto mb-14 max-w-3xl text-center" data-aos="fade-up">
+      <p class="mb-3 text-sm font-semibold uppercase tracking-widest text-blue-900">{{ textContent_papier.header|default:"Papier &amp; Veredelung" }}</p>
+      <h2 class="mb-6 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl sm:leading-none">
+        {{ textContent_papier.title|default:"Qualität, die man fühlt" }}
+      </h2>
+      <p class="text-base leading-7 text-gray-600 md:text-lg xl:text-xl">
+        {{ textContent_papier.description|default:"Das Papier macht den Unterschied. Wir beraten dich, welche Variante zu deiner Marke passt - vom klassischen Bilderdruck bis zur edlen Veredelung." }}
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 gap-8 md:grid-cols-3">
+      <div class="vk-paper-card" data-aos="fade-up" data-aos-delay="0">
+        <div class="vk-paper-thumb vk-paper-thumb--standard">
+          <span class="vk-paper-thumb-label"><i class="bi bi-circle-fill" style="font-size:0.4rem;"></i> {% trans "Standard" %}</span>
+        </div>
+        <div class="p-6">
+          <h3 class="mb-3 text-xl font-bold tracking-tight text-gray-900">{{ textContent_papier_card1.title|default:"Standard" }}</h3>
+          <p class="mb-4 text-base leading-7 text-gray-600">
+            {{ textContent_papier_card1.description|default:"Solides Bilderdruckpapier - matt oder glänzend. Klassisch, sauber und mit gutem Preis-Leistungs-Verhältnis." }}
+          </p>
+          <div class="flex flex-wrap gap-2">
+            <span class="inline-flex items-center gap-1 rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-900"><i class="bi bi-rulers"></i>~300 g/m&sup2;</span>
+            <span class="inline-flex items-center gap-1 rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-900"><i class="bi bi-droplet"></i>{% trans "matt / glanz" %}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="vk-paper-card" data-aos="fade-up" data-aos-delay="100">
+        <div class="vk-paper-thumb vk-paper-thumb--premium">
+          <span class="vk-paper-thumb-label"><i class="bi bi-star-fill" style="font-size:0.55rem;"></i> {% trans "Premium" %}</span>
+        </div>
+        <div class="p-6">
+          <h3 class="mb-3 text-xl font-bold tracking-tight text-gray-900">{{ textContent_papier_card2.title|default:"Premium" }}</h3>
+          <p class="mb-4 text-base leading-7 text-gray-600">
+            {{ textContent_papier_card2.description|default:"Hochwertiges Naturpapier mit angenehmer Haptik. Etwas dicker, edler und perfekt für einen bleibenden Eindruck." }}
+          </p>
+          <div class="flex flex-wrap gap-2">
+            <span class="inline-flex items-center gap-1 rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-900"><i class="bi bi-rulers"></i>~400 g/m&sup2;</span>
+            <span class="inline-flex items-center gap-1 rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-900"><i class="bi bi-hand-index-thumb"></i>{% trans "fühlbar" %}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="vk-paper-card" data-aos="fade-up" data-aos-delay="200">
+        <div class="vk-paper-thumb vk-paper-thumb--velvet">
+          <span class="vk-paper-thumb-label"><i class="bi bi-stars" style="font-size:0.6rem;"></i> {% trans "Veredelt" %}</span>
+        </div>
+        <div class="p-6">
+          <h3 class="mb-3 text-xl font-bold tracking-tight text-gray-900">{{ textContent_papier_card3.title|default:"Veredelt" }}</h3>
+          <p class="mb-4 text-base leading-7 text-gray-600">
+            {{ textContent_papier_card3.description|default:"Soft-Touch, Heißfolie oder partielle Lackierung - für maximalen Wow-Effekt. Hier wird die Karte zum Statement." }}
+          </p>
+          <div class="flex flex-wrap gap-2">
+            <span class="inline-flex items-center gap-1 rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-900"><i class="bi bi-stars"></i>{% trans "Heißfolie" %}</span>
+            <span class="inline-flex items-center gap-1 rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-900"><i class="bi bi-sparkles"></i>{% trans "Soft-Touch" %}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="h-6 bg-[#6b7280]"></div>
+
+<!-- DARK CTA -->
+<section class="bg-gray-700">
+  <div class="mx-auto max-w-screen-xl px-4 py-8 lg:px-6 lg:py-16">
+    <div class="mx-auto max-w-screen-sm text-center">
+      <h2 class="mb-4 text-3xl sm:text-4xl font-bold tracking-tight text-white">
+        {{ textContent_bottomcta.title|default:"Bereit für deine Visitenkarte?" }}
+      </h2>
+      <p class="mb-6 text-white md:text-lg">
+        {{ textContent_bottomcta.description|default:"Erzähl uns von deinem Projekt - wir gestalten dir eine Visitenkarte, die zu dir passt und einen bleibenden Eindruck hinterlässt." }}
+      </p>
+      <a href="{% url 'kontakt' %}"
+        class="mt-0 inline-block rounded-md bg-blue-900 px-8 py-4 text-base font-bold text-white shadow-xl transition-transform duration-300 ease-in-out hover:-translate-y-1 hover:scale-105 hover:bg-blue-700 sm:mt-1">
+        {{ textContent_bottomcta.buttonText|default:"Jetzt anfragen" }}
+      </a>
+    </div>
+  </div>
+</section>
+
+{% endblock content %}
+
+{% block javascriptend %}
+<script src="{% static 'js/aos.js' %}"></script>
+<script>
+  AOS.init({
+    duration: 800,
+    once: true,
+    easing: 'ease-out',
+    disable: "phone"
+  });
+
+  (function () {
+    var stage   = document.getElementById('vkStage');
+    var tilt    = document.getElementById('vkTilt');
+    var flipper = document.getElementById('vkFlipper');
+    if (!stage || !tilt || !flipper) return;
+
+    var dragging = false;
+    var dragMoved = false;
+    var lastX = 0;
+    var flipperRotY = 0;
+    var flipped = false;
+
+    function setTilt(rx, ry) {
+      tilt.style.animation = 'none';
+      tilt.style.transform = 'rotateX(' + rx + 'deg) rotateY(' + ry + 'deg)';
+    }
+    function resetTilt() {
+      tilt.style.transform = '';
+      tilt.style.animation = '';
+    }
+    // Mouse parallax on the tilt wrapper (does not interfere with flip)
+    stage.addEventListener('mousemove', function (e) {
+      if (dragging) return;
+      var rect = stage.getBoundingClientRect();
+      var px = (e.clientX - rect.left) / rect.width - 0.5;
+      var py = (e.clientY - rect.top) / rect.height - 0.5;
+      setTilt(py * 10, -px * 26);
+    });
+    stage.addEventListener('mouseleave', function () {
+      if (!dragging) resetTilt();
+    });
+
+    // Drag rotation on the flipper itself (front <-> back)
+    flipper.addEventListener('pointerdown', function (e) {
+      dragging = true;
+      dragMoved = false;
+      lastX = e.clientX;
+      flipperRotY = flipped ? 180 : 0;
+      flipper.style.transition = 'none';
+      try { flipper.setPointerCapture(e.pointerId); } catch (_) {}
+    });
+    flipper.addEventListener('pointermove', function (e) {
+      if (!dragging) return;
+      var dx = e.clientX - lastX;
+      if (Math.abs(dx) > 3) dragMoved = true;
+      lastX = e.clientX;
+      flipperRotY += dx * 0.7;
+      flipper.style.transform = 'rotateY(' + flipperRotY + 'deg)';
+    });
+    function endDrag(e) {
+      if (!dragging) return;
+      dragging = false;
+      try { flipper.releasePointerCapture(e.pointerId); } catch (_) {}
+      flipper.style.transition = '';
+      flipper.style.transform = '';
+      // snap to nearest face based on the actual angle
+      var normalized = ((flipperRotY % 360) + 360) % 360;
+      flipped = (normalized > 90 && normalized < 270);
+      flipper.classList.toggle('is-flipped', flipped);
+    }
+    flipper.addEventListener('pointerup', endDrag);
+    flipper.addEventListener('pointercancel', endDrag);
+
+    // Click toggles flip (suppressed if it was actually a drag)
+    flipper.addEventListener('click', function () {
+      if (dragMoved) { dragMoved = false; return; }
+      flipped = !flipped;
+      flipper.classList.toggle('is-flipped', flipped);
+    });
+    flipper.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        flipped = !flipped;
+        flipper.classList.toggle('is-flipped', flipped);
+        }
+    });
+
+  })();
+</script>
+{% endblock javascriptend %}

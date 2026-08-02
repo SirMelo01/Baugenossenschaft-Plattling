@@ -1,0 +1,1502 @@
+{% extends "base.html" %} {% load compress static custom_filters i18n %}
+
+{% block title %}{{ block.super }} | Eigenes Content Management System{% endblock title %}
+
+{% block meta_description %}Das YooLink CMS: Verwalte deine Website selbst - Texte, Bilder, Team, Preise, Blog und Produkt-Showcase. Mit Benutzerverwaltung, 2FA-Login und Mehrsprachigkeit. Ohne Vorkenntnisse, direkt im Browser.{% endblock %}
+
+{% block og_title %}YooLink CMS - Deine Website selbst verwalten{% endblock %}
+{% block og_description %}Texte, Bilder, Team, Preise, Blog und Produkt-Showcase selbst pflegen - mit dem Content Management System von YooLink. Einfach, sicher und mehrsprachig.{% endblock %}
+{% block twitter_title %}YooLink CMS - Deine Website selbst verwalten{% endblock %}
+{% block twitter_description %}Texte, Bilder, Team, Preise, Blog und Produkt-Showcase selbst pflegen - mit dem Content Management System von YooLink.{% endblock %}
+
+{% block css %}
+{% compress css %}
+<link href="{% static 'css/wellen.css' %}" rel="stylesheet" />
+<link rel="stylesheet" href="{% static 'css/aos.css' %}" />
+<style>
+  /* ============================================
+     HERO STAGE - CMS dashboard mockup with floating badges
+  ============================================ */
+  .cmsx-stage {
+    position: relative;
+    width: 100%;
+    max-width: 32rem;
+    margin: 0 auto;
+    aspect-ratio: 1 / 1;
+  }
+
+  /* Bewusst ohne filter: blur() - grosse Blur-Layer verursachen Scroll-Ruckler,
+     der weiche Verlauf erzielt denselben Look ohne Repaint-Kosten */
+  .cmsx-stage-glow {
+    position: absolute;
+    inset: 5%;
+    background: radial-gradient(ellipse at 50% 50%,
+      rgba(59, 130, 246, 0.26) 0%,
+      rgba(59, 130, 246, 0.16) 25%,
+      rgba(147, 197, 253, 0.08) 48%,
+      rgba(255, 255, 255, 0) 72%);
+    border-radius: 9999px;
+    z-index: 0;
+    pointer-events: none;
+    transform: translateZ(0);
+  }
+
+  .cmsx-app {
+    position: absolute;
+    left: 4%;
+    right: 4%;
+    top: 13%;
+    bottom: 13%;
+    background: #ffffff;
+    border-radius: 0.85rem;
+    overflow: hidden;
+    box-shadow:
+      0 30px 60px -25px rgba(15, 23, 42, 0.45),
+      0 10px 20px -8px rgba(15, 23, 42, 0.20),
+      inset 0 0 0 1px rgba(15, 23, 42, 0.06);
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    animation: cmsxAppFloat 6s ease-in-out infinite;
+  }
+
+  .cmsx-app-chrome {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 0.85rem;
+    background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .cmsx-app-dot {
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 9999px;
+    background: #cbd5e1;
+  }
+  .cmsx-app-dot:nth-child(1) { background: #f87171; }
+  .cmsx-app-dot:nth-child(2) { background: #fbbf24; }
+  .cmsx-app-dot:nth-child(3) { background: #34d399; }
+  .cmsx-app-url {
+    flex: 1;
+    height: 0.85rem;
+    margin-left: 0.4rem;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.7);
+    box-shadow: inset 0 0 0 1px #e2e8f0;
+    display: flex;
+    align-items: center;
+    padding-left: 0.5rem;
+    font-size: 0.5rem;
+    font-weight: 600;
+    color: #94a3b8;
+    letter-spacing: 0.02em;
+  }
+
+  .cmsx-app-body {
+    flex: 1;
+    display: flex;
+    min-height: 0;
+  }
+
+  .cmsx-sidebar {
+    flex: 0 0 26%;
+    background: linear-gradient(180deg, #1e3a8a 0%, #1e40af 100%);
+    padding: 0.7rem 0.55rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+  }
+  .cmsx-side-item {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.28rem 0.4rem;
+    border-radius: 0.4rem;
+  }
+  .cmsx-side-item--active { background: rgba(255, 255, 255, 0.16); }
+  .cmsx-side-ico {
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 0.18rem;
+    background: rgba(255, 255, 255, 0.55);
+    flex: 0 0 auto;
+  }
+  .cmsx-side-label {
+    height: 0.32rem;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.30);
+    flex: 1;
+  }
+  .cmsx-side-item--active .cmsx-side-ico { background: #ffffff; }
+  .cmsx-side-item--active .cmsx-side-label { background: rgba(255, 255, 255, 0.75); }
+
+  .cmsx-main {
+    flex: 1;
+    padding: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    background: #f8fafc;
+    min-width: 0;
+  }
+  .cmsx-kpis {
+    display: flex;
+    gap: 0.45rem;
+  }
+  .cmsx-kpi {
+    flex: 1;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    padding: 0.45rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+  .cmsx-kpi-chip {
+    width: 0.85rem;
+    height: 0.85rem;
+    border-radius: 0.3rem;
+  }
+  .cmsx-kpi:nth-child(1) .cmsx-kpi-chip { background: #dbeafe; }
+  .cmsx-kpi:nth-child(2) .cmsx-kpi-chip { background: #d1fae5; }
+  .cmsx-kpi:nth-child(3) .cmsx-kpi-chip { background: #e0e7ff; }
+  .cmsx-kpi-line {
+    height: 0.3rem;
+    border-radius: 9999px;
+    background: #e2e8f0;
+    width: 70%;
+  }
+  .cmsx-kpi-line--bold { background: #94a3b8; width: 45%; }
+
+  .cmsx-panel {
+    flex: 1;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    padding: 0.55rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    min-height: 0;
+  }
+  .cmsx-bars {
+    flex: 1;
+    display: flex;
+    align-items: flex-end;
+    gap: 0.35rem;
+    min-height: 0;
+  }
+  .cmsx-bar {
+    flex: 1;
+    border-radius: 0.25rem 0.25rem 0 0;
+    background: linear-gradient(180deg, #3b82f6 0%, #93c5fd 100%);
+    animation: cmsxBarGrow 1.2s ease-out both;
+  }
+  .cmsx-bar:nth-child(1) { height: 45%; animation-delay: 0.10s; }
+  .cmsx-bar:nth-child(2) { height: 70%; animation-delay: 0.20s; }
+  .cmsx-bar:nth-child(3) { height: 35%; animation-delay: 0.30s; }
+  .cmsx-bar:nth-child(4) { height: 85%; animation-delay: 0.40s; }
+  .cmsx-bar:nth-child(5) { height: 60%; animation-delay: 0.50s; }
+  .cmsx-bar:nth-child(6) { height: 95%; animation-delay: 0.60s; }
+  .cmsx-list-line {
+    height: 0.32rem;
+    border-radius: 9999px;
+    background: #e5e7eb;
+  }
+  .cmsx-list-line--80 { width: 80%; }
+  .cmsx-list-line--55 { width: 55%; }
+
+  /* Floating badges */
+  .cmsx-badge {
+    position: absolute;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.55rem 0.9rem;
+    border-radius: 9999px;
+    background: #ffffff;
+    box-shadow: 0 18px 35px -15px rgba(15, 23, 42, 0.4);
+    border: 1px solid #e5e7eb;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #1e3a8a;
+    z-index: 3;
+    white-space: nowrap;
+  }
+  .cmsx-badge i { font-size: 1rem; }
+  .cmsx-badge--tr {
+    top: 4%;
+    right: -4%;
+    animation: cmsxBadgeFloat1 6s ease-in-out infinite;
+  }
+  .cmsx-badge--bl {
+    bottom: 8%;
+    left: -4%;
+    animation: cmsxBadgeFloat2 7s ease-in-out infinite;
+  }
+  .cmsx-badge--br {
+    bottom: 18%;
+    right: -3%;
+    background: #1e3a8a;
+    color: #ffffff;
+    border-color: #1e3a8a;
+    animation: cmsxBadgeFloat3 5.5s ease-in-out infinite;
+  }
+
+  @keyframes cmsxAppFloat {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-8px); }
+  }
+  @keyframes cmsxBadgeFloat1 {
+    0%, 100% { transform: translateY(0) rotate(3deg); }
+    50%      { transform: translateY(-10px) rotate(3deg); }
+  }
+  @keyframes cmsxBadgeFloat2 {
+    0%, 100% { transform: translateY(0) rotate(-4deg); }
+    50%      { transform: translateY(10px) rotate(-4deg); }
+  }
+  @keyframes cmsxBadgeFloat3 {
+    0%, 100% { transform: translateY(0) rotate(-2deg); }
+    50%      { transform: translateY(-8px) rotate(-2deg); }
+  }
+  @keyframes cmsxBarGrow {
+    from { transform: scaleY(0); transform-origin: bottom; }
+    to   { transform: scaleY(1); transform-origin: bottom; }
+  }
+
+  .hero-cmsx-blob {
+    background: radial-gradient(ellipse at 50% 55%,
+      rgba(59, 130, 246, 0.28) 0%,
+      rgba(59, 130, 246, 0.16) 22%,
+      rgba(147, 197, 253, 0.08) 45%,
+      rgba(255, 255, 255, 0) 70%);
+    border-radius: 9999px;
+    transform: translateZ(0);
+  }
+
+  /* ============================================
+     PLAYGROUND - mini website preview
+  ============================================ */
+  .cmsx-preview-chrome {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 0.9rem;
+    background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .cmsx-demo-banner {
+    overflow: hidden;
+    max-height: 4rem;
+    transition: max-height 0.4s ease, opacity 0.4s ease, margin 0.4s ease;
+  }
+  .cmsx-demo-banner.is-hidden {
+    max-height: 0;
+    opacity: 0;
+    margin: 0 !important;
+  }
+
+  .cmsx-demo-member {
+    transition: opacity 0.4s ease, transform 0.4s ease;
+  }
+  .cmsx-demo-member.is-hidden {
+    opacity: 0;
+    transform: scale(0.6);
+    pointer-events: none;
+  }
+
+  .cmsx-demo-vacation {
+    overflow: hidden;
+    max-height: 6rem;
+    transition: max-height 0.4s ease, opacity 0.4s ease, margin 0.4s ease;
+  }
+  .cmsx-demo-vacation.is-hidden {
+    max-height: 0;
+    opacity: 0;
+    margin: 0 !important;
+  }
+
+  .cmsx-demo-hours {
+    overflow: hidden;
+    max-height: 18rem;
+    transition: max-height 0.4s ease, opacity 0.4s ease, margin 0.4s ease, padding 0.4s ease;
+  }
+  .cmsx-demo-hours.is-hidden {
+    max-height: 0;
+    opacity: 0;
+    margin: 0 !important;
+    padding-top: 0 !important;
+    border-top-width: 0 !important;
+  }
+
+  .cmsx-saved-chip {
+    opacity: 0;
+    transform: translateY(2px);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+  }
+  .cmsx-saved-chip.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Screenshot tabs */
+  .cmsx-shot {
+    opacity: 1;
+    transition: opacity 0.3s ease;
+  }
+  .cmsx-shot.is-loading { opacity: 0; }
+
+  /* ---------- Browser-Mockup (Screenshot-Viewer) ---------- */
+  .cmsx-browser {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    background: #ffffff;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow:
+      0 44px 80px -32px rgba(15, 23, 42, 0.45),
+      0 18px 36px -20px rgba(15, 23, 42, 0.22),
+      inset 0 0 0 1px rgba(15, 23, 42, 0.06);
+  }
+
+  .cmsx-browser-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.72rem 1.05rem;
+    background: linear-gradient(180deg, #f8fafc 0%, #eceff4 100%);
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .cmsx-browser-dots { display: flex; gap: 0.45rem; flex: 0 0 auto; }
+  .cmsx-browser-dots span {
+    width: 0.74rem;
+    height: 0.74rem;
+    border-radius: 9999px;
+    display: block;
+    box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.07);
+  }
+  .cmsx-browser-dots span:nth-child(1) { background: #f87171; }
+  .cmsx-browser-dots span:nth-child(2) { background: #fbbf24; }
+  .cmsx-browser-dots span:nth-child(3) { background: #34d399; }
+
+  .cmsx-browser-nav { display: flex; align-items: center; gap: 0.7rem; color: #94a3b8; flex: 0 0 auto; }
+  .cmsx-browser-nav i { font-size: 1.05rem; line-height: 1; }
+  .cmsx-browser-nav i.is-muted { color: #cbd5e1; }
+
+  .cmsx-browser-address {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    height: 2.15rem;
+    padding: 0 0.95rem;
+    border-radius: 9999px;
+    background: #ffffff;
+    box-shadow: inset 0 0 0 1px #e2e8f0;
+    color: #64748b;
+    font-size: 0.84rem;
+    font-weight: 600;
+  }
+  .cmsx-browser-address > i { color: #10b981; font-size: 0.85rem; flex: 0 0 auto; }
+  .cmsx-browser-url { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+  .cmsx-browser-url b { color: #0f172a; font-weight: 700; }
+  .cmsx-browser-url span { transition: opacity 0.25s ease; }
+
+  .cmsx-browser-menu { display: flex; flex-direction: column; gap: 0.2rem; flex: 0 0 auto; }
+  .cmsx-browser-menu span { width: 0.3rem; height: 0.3rem; border-radius: 9999px; background: #cbd5e1; display: block; }
+
+  /* Viewport zeigt den kompletten Screenshot in seiner natürlichen Höhe
+     (kein Zuschnitt). Bei gleich großen Uploads bleibt die Höhe konstant. */
+  .cmsx-browser-viewport {
+    position: relative;
+    width: 100%;
+    background: #f1f5f9;
+    overflow: hidden;
+  }
+  .cmsx-browser-viewport img {
+    display: block;
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+  }
+
+  @media (max-width: 640px) {
+    .cmsx-browser { border-radius: 14px; }
+    .cmsx-browser-bar { padding: 0.55rem 0.7rem; gap: 0.55rem; }
+    .cmsx-browser-nav { display: none; }
+    .cmsx-browser-menu { display: none; }
+    .cmsx-browser-dots span { width: 0.62rem; height: 0.62rem; }
+    .cmsx-browser-address { height: 1.9rem; font-size: 0.74rem; padding: 0 0.7rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cmsx-app,
+    .cmsx-badge--tr,
+    .cmsx-badge--bl,
+    .cmsx-badge--br,
+    .cmsx-bar {
+      animation: none !important;
+    }
+  }
+</style>
+{% endcompress css %}
+{% endblock css %}
+
+{% block javascript %}
+{% compress js %}
+<script defer src="{% static 'js/aos.js' %}"></script>
+{% endcompress %}
+{% endblock javascript %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "serviceType": "Content Management System",
+  "provider": {
+    "@type": "Organization",
+    "name": "YooLink",
+    "url": "https://yoolink.de",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "Schanzenweg 53",
+      "postalCode": "94469",
+      "addressLocality": "Deggendorf",
+      "addressCountry": "DE"
+    }
+  },
+  "areaServed": "DE",
+  "name": "YooLink CMS",
+  "description": "Content Management System von YooLink: Website-Inhalte wie Texte, Bilder, Team, Preise, Blog und Produkt-Showcase selbst verwalten - mit Benutzerverwaltung, 2FA-Login und Mehrsprachigkeit.",
+  "url": "https://yoolink.de/leistungen/cms/"
+}
+</script>
+{% endblock %}
+
+{% block content %}
+
+<!-- HERO SECTION -->
+<section class="bg-white px-4 pt-20 pb-10 lg:pt-28 lg:pb-20">
+  <div class="mx-auto grid max-w-6xl items-center gap-10 px-4 md:grid-cols-2">
+    <div data-aos="fade-right">
+      <p class="mb-4 text-sm font-semibold uppercase tracking-widest text-blue-900">
+        {{ textContent_hero.title|default:"Content Management System" }}
+      </p>
+      <h1 class="mb-6 text-3xl font-bold leading-none tracking-tight text-gray-900 sm:text-5xl xl:text-6xl">
+        {{ textContent_hero.header|default:"Deine Website. Deine Inhalte. Deine Kontrolle." }}
+      </h1>
+      <p class="mb-8 text-base leading-7 text-gray-600 md:text-lg xl:text-xl">
+        {{ textContent_hero.description|default:"Mit dem YooLink CMS pflegst du Texte, Bilder, Team, Preise, Blog und sogar deinen Produkt-Showcase selbst - direkt im Browser, ohne Vorkenntnisse und ohne auf eine Agentur zu warten." }}
+      </p>
+      <div class="flex flex-wrap items-center gap-4">
+        {% if cmsinfo_btn_hero %}
+          {% include "pages/components/button.html" with button=cmsinfo_btn_hero size="lg" %}
+        {% else %}
+          <a href="{% url 'kontakt' %}"
+            class="inline-block rounded-md border-t border-gray-200 bg-blue-900 px-8 py-4 text-base font-bold text-white shadow-xl transition-transform duration-300 ease-in-out hover:-translate-y-1 hover:scale-105 hover:bg-blue-700">
+            {{ textContent_hero.buttonText|default:"Jetzt anfragen" }}
+          </a>
+        {% endif %}
+        {% if cmsinfo_btn_demo %}
+          {% include "pages/components/button.html" with button=cmsinfo_btn_demo size="lg" %}
+        {% else %}
+          <a href="#playground"
+            class="inline-block rounded-md border border-blue-900 bg-white px-8 py-4 text-base font-bold text-blue-900 shadow-md transition-transform duration-300 ease-in-out hover:-translate-y-1 hover:scale-105 hover:bg-blue-50">
+            Direkt ausprobieren <i class="bi bi-cursor"></i>
+          </a>
+        {% endif %}
+      </div>
+    </div>
+    <div data-aos="fade-left" class="relative flex justify-center">
+      <div class="hero-cmsx-blob pointer-events-none absolute inset-0" aria-hidden="true"></div>
+      <div class="cmsx-stage relative z-10" aria-hidden="true">
+        <div class="cmsx-stage-glow"></div>
+
+        <div class="cmsx-app">
+          <div class="cmsx-app-chrome">
+            <span class="cmsx-app-dot"></span>
+            <span class="cmsx-app-dot"></span>
+            <span class="cmsx-app-dot"></span>
+            <span class="cmsx-app-url">deine-website.de/cms</span>
+          </div>
+          <div class="cmsx-app-body">
+            <div class="cmsx-sidebar">
+              <div class="cmsx-side-item cmsx-side-item--active"><span class="cmsx-side-ico"></span><span class="cmsx-side-label"></span></div>
+              <div class="cmsx-side-item"><span class="cmsx-side-ico"></span><span class="cmsx-side-label"></span></div>
+              <div class="cmsx-side-item"><span class="cmsx-side-ico"></span><span class="cmsx-side-label"></span></div>
+              <div class="cmsx-side-item"><span class="cmsx-side-ico"></span><span class="cmsx-side-label"></span></div>
+              <div class="cmsx-side-item"><span class="cmsx-side-ico"></span><span class="cmsx-side-label"></span></div>
+              <div class="cmsx-side-item"><span class="cmsx-side-ico"></span><span class="cmsx-side-label"></span></div>
+            </div>
+            <div class="cmsx-main">
+              <div class="cmsx-kpis">
+                <div class="cmsx-kpi"><span class="cmsx-kpi-chip"></span><span class="cmsx-kpi-line cmsx-kpi-line--bold"></span><span class="cmsx-kpi-line"></span></div>
+                <div class="cmsx-kpi"><span class="cmsx-kpi-chip"></span><span class="cmsx-kpi-line cmsx-kpi-line--bold"></span><span class="cmsx-kpi-line"></span></div>
+                <div class="cmsx-kpi"><span class="cmsx-kpi-chip"></span><span class="cmsx-kpi-line cmsx-kpi-line--bold"></span><span class="cmsx-kpi-line"></span></div>
+              </div>
+              <div class="cmsx-panel">
+                <div class="cmsx-bars">
+                  <span class="cmsx-bar"></span>
+                  <span class="cmsx-bar"></span>
+                  <span class="cmsx-bar"></span>
+                  <span class="cmsx-bar"></span>
+                  <span class="cmsx-bar"></span>
+                  <span class="cmsx-bar"></span>
+                </div>
+                <span class="cmsx-list-line cmsx-list-line--80"></span>
+                <span class="cmsx-list-line cmsx-list-line--55"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <span class="cmsx-badge cmsx-badge--tr"><i class="bi bi-magic"></i> Ohne Vorkenntnisse</span>
+        <span class="cmsx-badge cmsx-badge--br"><i class="bi bi-people"></i> Benutzer &amp; Rollen</span>
+        <span class="cmsx-badge cmsx-badge--bl"><i class="bi bi-translate"></i> Mehrsprachig</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WELLEN -->
+{% block Wellen %}
+<section class="bg-white">
+  <div>
+    <svg class="waves" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 24 150 28" preserveAspectRatio="none" shape-rendering="auto">
+      <defs>
+        <path id="gentle-wave" d="M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v44h-352z" />
+      </defs>
+      <g class="parallax">
+        <use xlink:href="#gentle-wave" x="48" y="0" fill="rgba(239,246,255,0.7)" />
+        <use xlink:href="#gentle-wave" x="48" y="3" fill="rgba(239,246,255,0.5)" />
+        <use xlink:href="#gentle-wave" x="48" y="5" fill="rgba(239,246,255,0.3)" />
+        <use xlink:href="#gentle-wave" x="48" y="7" fill="#eff6ff" />
+      </g>
+    </svg>
+  </div>
+</section>
+{% endblock Wellen %}
+
+<!-- PLAYGROUND: SELBST AUSPROBIEREN -->
+<section id="playground" class="bg-blue-50 px-4 py-20">
+  <div class="mx-auto max-w-6xl px-4">
+    <div class="mx-auto mb-12 max-w-3xl text-center" data-aos="fade-up">
+      <p class="mb-4 text-sm font-semibold uppercase tracking-widest text-blue-900">
+        {{ textContent_demo.header|default:"Probier es aus" }}
+      </p>
+      <h2 class="mb-6 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl sm:leading-none">
+        {{ textContent_demo.title|default:"So fühlt sich das YooLink CMS an" }}<span class="text-blue-900">*</span>
+      </h2>
+      <p class="text-base leading-7 text-gray-600 md:text-lg xl:text-xl">
+        {{ textContent_demo.description|default:"Links bearbeiten, rechts zusehen: Ändere Texte, Farben und Inhalte der Beispiel-Website - genau so einfach pflegst du später deine echte Seite. Kein Login, kein Risiko, einfach klicken." }}
+      </p>
+    </div>
+
+    <div class="grid items-start gap-8 lg:grid-cols-5">
+      <!-- Editor -->
+      <div class="lg:col-span-2" data-aos="fade-right">
+        <div class="rounded-xl bg-white shadow-md ring-1 ring-gray-200">
+          <div class="relative flex items-center justify-between border-b border-gray-100 px-6 py-4">
+            <p class="font-bold text-gray-900"><i class="bi bi-pencil-square mr-2 text-blue-900"></i>Dein CMS</p>
+            <div class="pointer-events-none absolute inset-0 flex items-center justify-center">
+              <span id="demoSaved" class="cmsx-saved-chip inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
+                <i class="bi bi-check-lg"></i> Gespeichert
+              </span>
+            </div>
+            <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
+              <span class="relative flex h-2 w-2">
+                <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+                <span class="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
+              </span>
+              Live
+            </span>
+          </div>
+          <div class="space-y-5 px-6 py-6">
+            <div>
+              <label for="demoHeadline" class="mb-1.5 block text-sm font-semibold text-gray-700">Überschrift</label>
+              <input type="text" id="demoHeadline" maxlength="45" value="Willkommen bei Marios Pizzeria"
+                class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
+            </div>
+            <div>
+              <label for="demoText" class="mb-1.5 block text-sm font-semibold text-gray-700">Beschreibung</label>
+              <textarea id="demoText" maxlength="110" rows="2"
+                class="w-full resize-none rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">Holzofen, frische Zutaten und viel Amore - seit 1998 mitten in Deggendorf.</textarea>
+            </div>
+            <div>
+              <label for="demoButtonText" class="mb-1.5 block text-sm font-semibold text-gray-700">Button-Text</label>
+              <input type="text" id="demoButtonText" maxlength="22" value="Tisch reservieren"
+                class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
+            </div>
+            <div>
+              <p class="mb-1.5 text-sm font-semibold text-gray-700">Button-Farbe</p>
+              <div id="demoColors" class="flex gap-2">
+                <button type="button" data-democolor="bg-blue-900 hover:bg-blue-800" aria-label="Dunkelblau"
+                  class="demo-color h-9 w-9 rounded-full bg-blue-900 ring-2 ring-offset-2 ring-blue-900 transition hover:scale-110"></button>
+                <button type="button" data-democolor="bg-blue-600 hover:bg-blue-700" aria-label="Blau"
+                  class="demo-color h-9 w-9 rounded-full bg-blue-600 ring-2 ring-offset-2 ring-transparent transition hover:scale-110"></button>
+                <button type="button" data-democolor="bg-emerald-600 hover:bg-emerald-700" aria-label="Grün"
+                  class="demo-color h-9 w-9 rounded-full bg-emerald-600 ring-2 ring-offset-2 ring-transparent transition hover:scale-110"></button>
+                <button type="button" data-democolor="bg-slate-900 hover:bg-slate-700" aria-label="Schwarz"
+                  class="demo-color h-9 w-9 rounded-full bg-slate-900 ring-2 ring-offset-2 ring-transparent transition hover:scale-110"></button>
+              </div>
+            </div>
+            <label for="demoBanner" class="flex cursor-pointer items-center justify-between gap-4 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+              <span class="text-sm font-semibold text-gray-700">Aktions-Banner anzeigen</span>
+              <span class="relative h-6 w-11 flex-shrink-0">
+                <input type="checkbox" id="demoBanner" class="peer sr-only" checked>
+                <span class="block h-6 w-11 rounded-full bg-gray-300 transition peer-checked:bg-blue-900"></span>
+                <span class="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition peer-checked:translate-x-5"></span>
+              </span>
+            </label>
+            <label for="demoMember" class="flex cursor-pointer items-center justify-between gap-4 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+              <span class="text-sm font-semibold text-gray-700">Neues Team-Mitglied zeigen</span>
+              <span class="relative h-6 w-11 flex-shrink-0">
+                <input type="checkbox" id="demoMember" class="peer sr-only">
+                <span class="block h-6 w-11 rounded-full bg-gray-300 transition peer-checked:bg-blue-900"></span>
+                <span class="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition peer-checked:translate-x-5"></span>
+              </span>
+            </label>
+            <label for="demoHours" class="flex cursor-pointer items-center justify-between gap-4 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+              <span class="text-sm font-semibold text-gray-700">Öffnungszeiten anzeigen</span>
+              <span class="relative h-6 w-11 flex-shrink-0">
+                <input type="checkbox" id="demoHours" class="peer sr-only">
+                <span class="block h-6 w-11 rounded-full bg-gray-300 transition peer-checked:bg-blue-900"></span>
+                <span class="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition peer-checked:translate-x-5"></span>
+              </span>
+            </label>
+            <label for="demoVacation" class="flex cursor-pointer items-center justify-between gap-4 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+              <span class="text-sm font-semibold text-gray-700">Urlaubs-/Infobanner anzeigen</span>
+              <span class="relative h-6 w-11 flex-shrink-0">
+                <input type="checkbox" id="demoVacation" class="peer sr-only">
+                <span class="block h-6 w-11 rounded-full bg-gray-300 transition peer-checked:bg-blue-900"></span>
+                <span class="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition peer-checked:translate-x-5"></span>
+              </span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Website-Vorschau -->
+      <div class="lg:col-span-3" data-aos="fade-left">
+        <div class="overflow-hidden rounded-xl bg-white shadow-xl ring-1 ring-gray-200">
+          <div class="cmsx-preview-chrome">
+            <span class="cmsx-app-dot"></span>
+            <span class="cmsx-app-dot"></span>
+            <span class="cmsx-app-dot"></span>
+            <span class="ml-2 flex-1 rounded-full bg-white px-3 py-1 text-xs font-semibold text-gray-400 shadow-inner ring-1 ring-gray-200">
+              <i class="bi bi-lock-fill mr-1 text-emerald-500"></i>deine-website.de
+            </span>
+          </div>
+          <div class="px-6 pb-8 pt-5 sm:px-10">
+            <!-- Urlaubs-/Infobanner -->
+            <div id="demoVacationPreview" class="cmsx-demo-vacation is-hidden -mx-6 -mt-5 mb-5 flex items-center justify-center gap-2 bg-indigo-600 px-4 py-2 text-center text-xs font-semibold text-white sm:-mx-10">
+              <i class="bi bi-calendar-event"></i>
+              Betriebsurlaub vom 24.12. bis 02.01. – ab dem 03.01. sind wir wieder für Sie da!
+            </div>
+            <!-- Mini Nav -->
+            <div class="mb-6 flex items-center justify-between">
+              <p class="text-sm font-extrabold tracking-tight text-gray-900"><span class="mr-1.5 inline-block h-2.5 w-2.5 rounded-full bg-blue-900"></span>Marios Pizzeria</p>
+              <div class="hidden gap-4 text-xs font-semibold text-gray-400 sm:flex">
+                <span>Speisekarte</span><span>Team</span><span>Kontakt</span>
+              </div>
+            </div>
+            <!-- Banner -->
+            <div id="demoBannerPreview" class="cmsx-demo-banner mb-6 rounded-lg bg-amber-100 px-4 py-2.5 text-center text-sm font-semibold text-amber-800">
+              🍕 Aktionswoche: Jeden Dienstag 2-für-1 auf alle Pizzen!
+            </div>
+            <!-- Hero -->
+            <div class="text-center">
+              <h3 id="demoHeadlinePreview" class="mb-3 break-words text-2xl font-extrabold tracking-tight text-gray-900 sm:text-3xl">Willkommen bei Marios Pizzeria</h3>
+              <p id="demoTextPreview" class="mx-auto mb-5 max-w-md break-words text-sm leading-6 text-gray-500">Holzofen, frische Zutaten und viel Amore - seit 1998 mitten in Deggendorf.</p>
+              <button type="button" id="demoButtonPreview"
+                class="inline-block cursor-default rounded-xl bg-blue-900 px-6 py-3 text-sm font-bold text-white shadow-md transition hover:bg-blue-800">
+                Tisch reservieren
+              </button>
+            </div>
+            <!-- Team -->
+            <div class="mt-8 border-t border-gray-100 pt-6">
+              <p class="mb-4 text-center text-xs font-semibold uppercase tracking-widest text-gray-400">Unser Team</p>
+              <div class="flex items-start justify-center gap-6">
+                <div class="text-center">
+                  <span class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-sm font-bold text-blue-900">MR</span>
+                  <p class="mt-2 text-xs font-semibold text-gray-700">Mario</p>
+                  <p class="text-[10px] text-gray-400">Inhaber</p>
+                </div>
+                <div class="text-center">
+                  <span class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-sm font-bold text-emerald-700">GB</span>
+                  <p class="mt-2 text-xs font-semibold text-gray-700">Giulia</p>
+                  <p class="text-[10px] text-gray-400">Service</p>
+                </div>
+                <div id="demoMemberPreview" class="cmsx-demo-member is-hidden text-center">
+                  <span class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-indigo-100 text-sm font-bold text-indigo-700">LS</span>
+                  <p class="mt-2 text-xs font-semibold text-gray-700">Lisa</p>
+                  <p class="text-[10px] text-gray-400">Küche</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Öffnungszeiten -->
+            <div id="demoHoursPreview" class="cmsx-demo-hours is-hidden mt-8 border-t border-gray-100 pt-6">
+              <p class="mb-4 text-center text-xs font-semibold uppercase tracking-widest text-gray-400">Öffnungszeiten</p>
+              <div class="mx-auto max-w-xs space-y-1.5 text-sm">
+                <div class="flex items-center justify-between border-b border-gray-100 pb-1.5">
+                  <span class="text-gray-500">Mo – Fr</span><span class="font-semibold text-gray-800">11:00 – 22:00 Uhr</span>
+                </div>
+                <div class="flex items-center justify-between border-b border-gray-100 pb-1.5">
+                  <span class="text-gray-500">Samstag</span><span class="font-semibold text-gray-800">12:00 – 23:00 Uhr</span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-gray-500">Sonntag</span><span class="font-semibold text-gray-800">12:00 – 22:00 Uhr</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="mt-4 text-center text-xs leading-5 text-gray-400">
+          * Vereinfachte, unverbindliche Demonstration zur Veranschaulichung des Bearbeitungsprinzips. Oberfläche, Design und Funktionsumfang des tatsächlichen YooLink CMS weichen hiervon ab; die Demo stellt nur einen kleinen Ausschnitt der Funktionen dar und ist kein Bestandteil eines Angebots.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURE GRID -->
+<section class="bg-blue-50 px-4 pb-20">
+  <div class="mx-auto max-w-6xl px-4">
+    <div class="mx-auto mb-16 max-w-3xl text-center" data-aos="fade-up">
+      <p class="mb-4 text-sm font-semibold uppercase tracking-widest text-blue-900">
+        {{ textContent_sec1.header|default:"Ein CMS, alles drin" }}
+      </p>
+      <h2 class="mb-6 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl sm:leading-none">
+        {{ textContent_sec1.title|default:"Verwalte den Inhalt deiner Website jederzeit und ohne Hilfe" }}
+      </h2>
+      <p class="text-base leading-7 text-gray-600 md:text-lg xl:text-xl">
+        {{ textContent_sec1.description|default:"Deine Website ist in klar verständliche Bereiche unterteilt. Jeden davon pflegst du selbst - vom Text auf der Startseite bis zum Produkt-Showcase. Und das CMS wächst ständig weiter." }}
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div class="rounded-xl bg-white p-7 shadow-md ring-1 ring-gray-200 transition duration-300 hover:-translate-y-1 hover:shadow-xl" data-aos="fade-up" data-aos-delay="0">
+        <div class="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-900">
+          <i class="bi bi-fonts text-2xl"></i>
+        </div>
+        <h3 class="mb-2 text-lg font-bold tracking-tight text-gray-900">{{ textContent_feat1.title|default:"Texte & Inhalte" }}</h3>
+        <p class="text-base leading-7 text-gray-600">{{ textContent_feat1.description|default:"Überschriften, Beschreibungen und Buttons jeder Seite direkt bearbeiten - Abschnitt für Abschnitt, ganz ohne Code." }}</p>
+      </div>
+
+      <div class="rounded-xl bg-white p-7 shadow-md ring-1 ring-gray-200 transition duration-300 hover:-translate-y-1 hover:shadow-xl" data-aos="fade-up" data-aos-delay="50">
+        <div class="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-900">
+          <i class="bi bi-images text-2xl"></i>
+        </div>
+        <h3 class="mb-2 text-lg font-bold tracking-tight text-gray-900">{{ textContent_feat2.title|default:"Bilder, Videos & Galerien" }}</h3>
+        <p class="text-base leading-7 text-gray-600">{{ textContent_feat2.description|default:"Medien hochladen, zuschneiden lassen und flexibel platzieren - inklusive Galerien und automatischer Optimierung." }}</p>
+      </div>
+
+      <div class="rounded-xl bg-white p-7 shadow-md ring-1 ring-gray-200 transition duration-300 hover:-translate-y-1 hover:shadow-xl" data-aos="fade-up" data-aos-delay="100">
+        <div class="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-900">
+          <i class="bi bi-people text-2xl"></i>
+        </div>
+        <h3 class="mb-2 text-lg font-bold tracking-tight text-gray-900">{{ textContent_feat3.title|default:"Team-Verwaltung" }}</h3>
+        <p class="text-base leading-7 text-gray-600">{{ textContent_feat3.description|default:"Mitarbeiter mit Foto und Position anlegen, per Drag & Drop sortieren und mit einem Klick ein- oder ausblenden." }}</p>
+      </div>
+
+      <div class="rounded-xl bg-white p-7 shadow-md ring-1 ring-gray-200 transition duration-300 hover:-translate-y-1 hover:shadow-xl" data-aos="fade-up" data-aos-delay="0">
+        <div class="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-900">
+          <i class="bi bi-hand-index text-2xl"></i>
+        </div>
+        <h3 class="mb-2 text-lg font-bold tracking-tight text-gray-900">{{ textContent_feat4.title|default:"Preise & Button-Designer" }}</h3>
+        <p class="text-base leading-7 text-gray-600">{{ textContent_feat4.description|default:"Preiskarten pflegen und Buttons im Mini-Designer gestalten: Farbe wählen, Linkziel anklicken, live Vorschau sehen." }}</p>
+      </div>
+
+      <div class="rounded-xl bg-white p-7 shadow-md ring-1 ring-gray-200 transition duration-300 hover:-translate-y-1 hover:shadow-xl" data-aos="fade-up" data-aos-delay="50">
+        <div class="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-900">
+          <i class="bi bi-journal-richtext text-2xl"></i>
+        </div>
+        <h3 class="mb-2 text-lg font-bold tracking-tight text-gray-900">{{ textContent_feat5.title|default:"Blog-Builder" }}</h3>
+        <p class="text-base leading-7 text-gray-600">{{ textContent_feat5.description|default:"SEO-starke Beiträge mit Texten, Bildern und Videos zusammenstellen - dein direkter Draht zu besseren Google-Rankings." }}</p>
+      </div>
+
+      <div class="rounded-xl bg-white p-7 shadow-md ring-1 ring-gray-200 transition duration-300 hover:-translate-y-1 hover:shadow-xl" data-aos="fade-up" data-aos-delay="100">
+        <div class="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-900">
+          <i class="bi bi-box-seam text-2xl"></i>
+        </div>
+        <h3 class="mb-2 text-lg font-bold tracking-tight text-gray-900">{{ textContent_feat6.title|default:"Produkt-Showcase" }}</h3>
+        <p class="text-base leading-7 text-gray-600">{{ textContent_feat6.description|default:"Produkte mit Bildern, Preisen und Spezifikationen präsentieren - übersichtlich wie in einem Katalog, ganz ohne Online-Shop." }}</p>
+      </div>
+
+      <div class="rounded-xl bg-white p-7 shadow-md ring-1 ring-gray-200 transition duration-300 hover:-translate-y-1 hover:shadow-xl" data-aos="fade-up" data-aos-delay="0">
+        <div class="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-900">
+          <i class="bi bi-question-circle text-2xl"></i>
+        </div>
+        <h3 class="mb-2 text-lg font-bold tracking-tight text-gray-900">{{ textContent_feat7.title|default:"FAQ & Öffnungszeiten" }}</h3>
+        <p class="text-base leading-7 text-gray-600">{{ textContent_feat7.description|default:"Häufige Fragen beantworten und Öffnungszeiten zentral pflegen - deine Besucher finden Antworten, bevor sie fragen." }}</p>
+      </div>
+
+      <div class="rounded-xl bg-white p-7 shadow-md ring-1 ring-gray-200 transition duration-300 hover:-translate-y-1 hover:shadow-xl" data-aos="fade-up" data-aos-delay="50">
+        <div class="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-900">
+          <i class="bi bi-translate text-2xl"></i>
+        </div>
+        <h3 class="mb-2 text-lg font-bold tracking-tight text-gray-900">{{ textContent_feat8.title|default:"Mehrsprachigkeit" }}</h3>
+        <p class="text-base leading-7 text-gray-600">{{ textContent_feat8.description|default:"Alle Inhalte in mehreren Sprachen pflegen - Besucher sehen deine Website automatisch in ihrer Sprache." }}</p>
+      </div>
+
+      <div class="relative overflow-hidden rounded-xl bg-gradient-to-br from-blue-900 via-blue-800 to-blue-950 p-7 text-white shadow-xl ring-1 ring-blue-800 transition duration-300 hover:-translate-y-1 hover:shadow-2xl" data-aos="fade-up" data-aos-delay="100">
+        <div class="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white">
+          <i class="bi bi-person-badge text-2xl"></i>
+        </div>
+        <h3 class="mb-2 text-lg font-bold tracking-tight">{{ textContent_feat9.title|default:"Benutzer & Rollen" }}</h3>
+        <p class="text-base leading-7 text-blue-50">{{ textContent_feat9.description|default:"Mehrere Benutzer mit eigenen Zugängen und fein abgestuften Rechten - jeder im Team sieht genau das, was er braucht." }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- EIN BLICK INS CMS: SCREENSHOT TABS -->
+<section class="bg-blue-50 px-4 pb-20">
+  <div class="mx-auto max-w-6xl px-4">
+    <div class="mx-auto mb-10 max-w-3xl text-center" data-aos="fade-up">
+      <p class="mb-4 text-sm font-semibold uppercase tracking-widest text-blue-900">
+        {{ textContent_sec2.header|default:"Ein Blick ins CMS" }}
+      </p>
+      <h2 class="mb-6 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl sm:leading-none">
+        {{ textContent_sec2.title|default:"Klick dich durch die Bereiche" }}
+      </h2>
+      <p class="text-base leading-7 text-gray-600 md:text-lg xl:text-xl">
+        {{ textContent_sec2.description|default:"Vom Dashboard über die Seitenverwaltung bis zu den Videos: Wähle einen Bereich und sieh dir an, wie er im CMS aussieht." }}
+      </p>
+    </div>
+
+    <div data-aos="fade-up">
+      <div id="cmsShotTabs" class="mb-8 flex flex-wrap justify-center gap-2">
+        <button type="button" class="cms-shot-tab rounded-full bg-blue-900 px-5 py-2.5 text-sm font-bold text-white shadow-md transition hover:-translate-y-0.5"
+          data-image="{% if image_shot_dashboard %}{{ image_shot_dashboard.file.url }}{% else %}{% static 'images/cmsinfo/cmsinfohero.png' %}{% endif %}"
+          data-srcset="{% responsive_image_srcset image_shot_dashboard %}"
+          data-url="/cms/dashboard" data-alt="CMS Dashboard" data-plain="{% if image_shot_dashboard %}0{% else %}1{% endif %}">
+          <i class="bi bi-speedometer2 mr-1"></i> Dashboard
+        </button>
+        <button type="button" class="cms-shot-tab rounded-full bg-white px-5 py-2.5 text-sm font-bold text-blue-900 shadow-md ring-1 ring-gray-200 transition hover:-translate-y-0.5 hover:bg-blue-50"
+          data-image="{% if image_sec1_preview_1 %}{{ image_sec1_preview_1.file.url }}{% else %}{% static 'images/cmsinfo/cmsteam.png' %}{% endif %}"
+          data-srcset="{% responsive_image_srcset image_sec1_preview_1 %}"
+          data-url="/cms/team" data-alt="CMS Team-Bereich">
+          <i class="bi bi-people mr-1"></i> Team
+        </button>
+        <button type="button" class="cms-shot-tab rounded-full bg-white px-5 py-2.5 text-sm font-bold text-blue-900 shadow-md ring-1 ring-gray-200 transition hover:-translate-y-0.5 hover:bg-blue-50"
+          data-image="{% if image_sec1_preview_2 %}{{ image_sec1_preview_2.file.url }}{% else %}{% static 'images/cmsinfo/cmsfaq.png' %}{% endif %}"
+          data-srcset="{% responsive_image_srcset image_sec1_preview_2 %}"
+          data-url="/cms/faq" data-alt="CMS FAQ-Bereich">
+          <i class="bi bi-question-circle mr-1"></i> FAQ
+        </button>
+        <button type="button" class="cms-shot-tab rounded-full bg-white px-5 py-2.5 text-sm font-bold text-blue-900 shadow-md ring-1 ring-gray-200 transition hover:-translate-y-0.5 hover:bg-blue-50"
+          data-image="{% if image_sec1_preview_3 %}{{ image_sec1_preview_3.file.url }}{% else %}{% static 'images/cmsinfo/cmscompanydata.png' %}{% endif %}"
+          data-srcset="{% responsive_image_srcset image_sec1_preview_3 %}"
+          data-url="/cms/einstellungen" data-alt="CMS Einstellungen">
+          <i class="bi bi-gear mr-1"></i> Einstellungen
+        </button>
+        <button type="button" class="cms-shot-tab rounded-full bg-white px-5 py-2.5 text-sm font-bold text-blue-900 shadow-md ring-1 ring-gray-200 transition hover:-translate-y-0.5 hover:bg-blue-50"
+          data-image="{% if image_sec1_preview_4 %}{{ image_sec1_preview_4.file.url }}{% else %}{% static 'images/cmsinfo/cmswissen.png' %}{% endif %}"
+          data-srcset="{% responsive_image_srcset image_sec1_preview_4 %}"
+          data-url="/cms/seiten" data-alt="CMS Seiten verwalten">
+          <i class="bi bi-window-stack mr-1"></i> Seiten
+        </button>
+        <button type="button" class="cms-shot-tab rounded-full bg-white px-5 py-2.5 text-sm font-bold text-blue-900 shadow-md ring-1 ring-gray-200 transition hover:-translate-y-0.5 hover:bg-blue-50"
+          data-image="{% if image_sec2_preview_1 %}{{ image_sec2_preview_1.file.url }}{% else %}{% static 'images/cmsinfo/cmsbilder.png' %}{% endif %}"
+          data-srcset="{% responsive_image_srcset image_sec2_preview_1 %}"
+          data-url="/cms/dateien" data-alt="CMS Dateien">
+          <i class="bi bi-folder2-open mr-1"></i> Dateien
+        </button>
+        <button type="button" class="cms-shot-tab rounded-full bg-white px-5 py-2.5 text-sm font-bold text-blue-900 shadow-md ring-1 ring-gray-200 transition hover:-translate-y-0.5 hover:bg-blue-50"
+          data-image="{% if image_sec2_preview_2 %}{{ image_sec2_preview_2.file.url }}{% else %}{% static 'images/cmsinfo/cmsgalerie.png' %}{% endif %}"
+          data-srcset="{% responsive_image_srcset image_sec2_preview_2 %}"
+          data-url="/cms/galerien" data-alt="CMS Galerie-Bereich">
+          <i class="bi bi-grid-3x3-gap mr-1"></i> Galerien
+        </button>
+      </div>
+
+      <div class="relative mx-auto max-w-5xl">
+        <div class="hero-cmsx-blob pointer-events-none absolute inset-x-0 -inset-y-6" aria-hidden="true"></div>
+        <div class="cmsx-browser">
+          <div class="cmsx-browser-bar">
+            <div class="cmsx-browser-dots"><span></span><span></span><span></span></div>
+            <div class="cmsx-browser-nav">
+              <i class="bi bi-chevron-left"></i>
+              <i class="bi bi-chevron-right is-muted"></i>
+              <i class="bi bi-arrow-clockwise"></i>
+            </div>
+            <div class="cmsx-browser-address">
+              <i class="bi bi-lock-fill"></i>
+              <span class="cmsx-browser-url"><b>deine-website.de</b><span id="cmsShotPath">/cms/dashboard</span></span>
+            </div>
+            <div class="cmsx-browser-menu"><span></span><span></span><span></span></div>
+          </div>
+          <div class="cmsx-browser-viewport">
+            <img id="cmsShotImage" class="cmsx-shot"
+              src="{% if image_shot_dashboard %}{{ image_shot_dashboard.file.url }}{% else %}{% static 'images/cmsinfo/cmsinfohero.png' %}{% endif %}"
+              {% responsive_image_attrs image_shot_dashboard "(min-width: 1024px) 60vw, 100vw" %}
+              loading="lazy" alt="CMS Dashboard">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRODUKTE & SHOWCASE -->
+<section class="bg-blue-50 px-4 pb-20">
+  <div class="mx-auto max-w-6xl px-4">
+    <div class="grid items-center gap-12 md:grid-cols-2">
+      <div data-aos="fade-right">
+        <p class="mb-4 text-sm font-semibold uppercase tracking-widest text-blue-900">
+        {{ textContent_products.header|default:"Produkte & Showcase" }}
+      </p>
+        <h2 class="mb-6 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl sm:leading-none">
+          {{ textContent_products.title|default:"Präsentiere deine Produkte - ganz ohne Online-Shop" }}
+        </h2>
+        <p class="mb-6 text-base leading-7 text-gray-600 md:text-lg xl:text-xl">
+          {{ textContent_products.description|default:"Stelle dein Sortiment wie in einem digitalen Katalog aus: mit Bildern, Beschreibungen, Kategorien und Spezifikationen. Ob ein Preis angezeigt wird oder „Preis auf Anfrage“ steht, entscheidest du pro Produkt - Interessenten melden sich direkt bei dir." }}
+        </p>
+        <ul class="space-y-4 border-t border-gray-200 pt-6">
+          <li class="flex space-x-3">
+            <i class="bi bi-check-circle-fill mt-0.5 flex-shrink-0 text-blue-900"></i>
+            <span class="text-base font-medium leading-tight text-gray-900">{{ textContent_products_bullet1.title|default:"Showcase-Modus: präsentieren statt verkaufen" }}</span>
+          </li>
+          <li class="flex space-x-3">
+            <i class="bi bi-check-circle-fill mt-0.5 flex-shrink-0 text-blue-900"></i>
+            <span class="text-base font-medium leading-tight text-gray-900">{{ textContent_products_bullet2.title|default:"Preis pro Produkt anzeigen oder verbergen („Preis auf Anfrage“)" }}</span>
+          </li>
+          <li class="flex space-x-3">
+            <i class="bi bi-check-circle-fill mt-0.5 flex-shrink-0 text-blue-900"></i>
+            <span class="text-base font-medium leading-tight text-gray-900">{{ textContent_products_bullet3.title|default:"Bilder, Kategorien, Marken und Spezifikationen einfach pflegen" }}</span>
+          </li>
+          <li class="flex space-x-3">
+            <i class="bi bi-check-circle-fill mt-0.5 flex-shrink-0 text-blue-900"></i>
+            <span class="text-base font-medium leading-tight text-gray-900">{{ textContent_products_bullet4.title|default:"Anfragen laufen direkt über deine Kontaktseite bei dir ein" }}</span>
+          </li>
+        </ul>
+        <div class="mt-6">
+          {% if cmsinfo_btn_products %}
+            {% include "pages/components/button.html" with button=cmsinfo_btn_products size="lg" %}
+          {% else %}
+            <a href="{% url 'products' %}" class="inline-flex items-center text-base font-medium text-blue-900 hover:text-blue-950">
+              Live-Beispiel: der Produkt-Showcase von YooLink
+              <i class="bi bi-arrow-right ml-1"></i>
+            </a>
+          {% endif %}
+        </div>
+      </div>
+
+      <div data-aos="fade-left">
+        <div class="relative flex justify-center">
+          <div class="hero-cmsx-blob pointer-events-none absolute inset-0" aria-hidden="true"></div>
+          <div class="relative grid w-full max-w-md grid-cols-2 gap-4" aria-hidden="true">
+            <!-- Produkt: Showcase ohne Preis -->
+            <div class="overflow-hidden rounded-xl bg-white shadow-md ring-1 ring-gray-200">
+              <div class="relative h-24 bg-gradient-to-br from-blue-100 to-blue-300">
+                <span class="absolute left-2 top-2 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700"><i class="bi bi-easel"></i> Showcase</span>
+              </div>
+              <div class="space-y-2 p-4">
+                <div class="h-2.5 w-3/4 rounded-full bg-gray-300"></div>
+                <div class="h-2 w-1/2 rounded-full bg-gray-200"></div>
+                <p class="pt-1 text-xs font-bold text-blue-900">Preis auf Anfrage</p>
+              </div>
+            </div>
+            <!-- Produkt: Showcase mit Preis -->
+            <div class="overflow-hidden rounded-xl bg-white shadow-md ring-1 ring-gray-200">
+              <div class="relative h-24 bg-gradient-to-br from-emerald-100 to-emerald-300">
+                <span class="absolute left-2 top-2 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700"><i class="bi bi-easel"></i> Showcase</span>
+              </div>
+              <div class="space-y-2 p-4">
+                <div class="h-2.5 w-2/3 rounded-full bg-gray-300"></div>
+                <div class="h-2 w-1/2 rounded-full bg-gray-200"></div>
+                <p class="pt-1 text-xs font-bold text-blue-900">249 €</p>
+              </div>
+            </div>
+            <!-- Produkt: mit Anfrage-Button (volle Breite) -->
+            <div class="col-span-2 flex items-center gap-4 rounded-xl bg-white p-4 shadow-md ring-1 ring-gray-200">
+              <div class="h-16 w-16 flex-shrink-0 rounded-lg bg-gradient-to-br from-indigo-100 to-indigo-300"></div>
+              <div class="min-w-0 flex-1 space-y-2">
+                <div class="h-2.5 w-2/3 rounded-full bg-gray-300"></div>
+                <div class="h-2 w-1/3 rounded-full bg-gray-200"></div>
+                <p class="text-xs font-bold text-blue-900">89 €</p>
+              </div>
+              <span class="flex-shrink-0 rounded-lg bg-blue-900 px-3 py-2 text-xs font-bold text-white"><i class="bi bi-envelope"></i> Anfragen</span>
+            </div>
+            <p class="col-span-2 text-center text-xs text-gray-400">Pro Produkt wählbar: nur zeigen oder mit Preis präsentieren.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BLOG BUILDER -->
+<section class="bg-blue-50 px-4 pb-20">
+  <div class="mx-auto max-w-6xl px-4">
+    <div class="grid items-center gap-12 md:grid-cols-2">
+      <div class="order-1 md:order-2" data-aos="fade-left">
+        <p class="mb-4 text-sm font-semibold uppercase tracking-widest text-blue-900">
+        {{ textContent_blog.header|default:"Blog-Builder" }}
+      </p>
+        <h2 class="mb-6 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl sm:leading-none">
+          {{ textContent_blog.title|default:"Verbessere dein Google-Ranking mit eigenen Beiträgen" }}
+        </h2>
+        <p class="mb-6 text-base leading-7 text-gray-600 md:text-lg xl:text-xl">
+          {{ textContent_blog.description|default:"Mit dem integrierten Blog-Builder erstellst du Beiträge mit Texten, Bildern und Videos in klar strukturierten Layouts. Regelmäßige, relevante Inhalte sind der stärkste Hebel für deine Sichtbarkeit bei Google." }}
+        </p>
+        <ul class="space-y-4 border-t border-gray-200 pt-6">
+          <li class="flex space-x-3">
+            <i class="bi bi-check-circle-fill mt-0.5 flex-shrink-0 text-blue-900"></i>
+            <span class="text-base font-medium leading-tight text-gray-900">{{ textContent_blog_bullet1.title|default:"Suchmaschinenoptimierte Inhalte gezielt erstellen" }}</span>
+          </li>
+          <li class="flex space-x-3">
+            <i class="bi bi-check-circle-fill mt-0.5 flex-shrink-0 text-blue-900"></i>
+            <span class="text-base font-medium leading-tight text-gray-900">{{ textContent_blog_bullet2.title|default:"Strukturierte Layouts mit Texten, Bildern, Videos und mehr" }}</span>
+          </li>
+          <li class="flex space-x-3">
+            <i class="bi bi-check-circle-fill mt-0.5 flex-shrink-0 text-blue-900"></i>
+            <span class="text-base font-medium leading-tight text-gray-900">{{ textContent_blog_bullet3.title|default:"Einfache Verwaltung und Bearbeitung bestehender Beiträge" }}</span>
+          </li>
+        </ul>
+        <div class="mt-6">
+          <a href="{% url 'blog:blog' %}" class="inline-flex items-center text-base font-medium text-blue-900 hover:text-blue-950">
+            Live-Beispiel: der YooLink Blog
+            <i class="bi bi-arrow-right ml-1"></i>
+          </a>
+        </div>
+      </div>
+      <div class="order-2 md:order-1" data-aos="fade-right">
+        <img class="w-full rounded-xl shadow-2xl ring-1 ring-gray-200"
+          src="{% if image_blog %}{{ image_blog.file.url }}{% else %}{% static 'images/cmsinfo/cmsblog.png' %}{% endif %}"
+          {% responsive_image_attrs image_blog "(min-width: 1024px) 50vw, 100vw" %}
+          loading="lazy" alt="Dashboard Blog Builder">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- UNTERNEHMENSDATEN -->
+<section class="bg-blue-50 px-4 pb-20">
+  <div class="mx-auto max-w-6xl px-4">
+    <div class="grid items-center gap-12 md:grid-cols-2">
+      <div data-aos="fade-right">
+        <p class="mb-4 text-sm font-semibold uppercase tracking-widest text-blue-900">
+        {{ textContent_company.header|default:"Unternehmensdaten" }}
+      </p>
+        <h2 class="mb-6 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl sm:leading-none">
+          {{ textContent_company.title|default:"Alle Unternehmensdaten an einem Ort" }}
+        </h2>
+        <p class="mb-6 text-base leading-7 text-gray-600 md:text-lg xl:text-xl">
+          {{ textContent_company.description|default:"Adresse, Kontaktdaten, Logo, Social-Media-Profile: Pflege alle wichtigen Informationen zentral - die Website übernimmt sie automatisch an jeder Stelle, an der sie gebraucht werden." }}
+        </p>
+        <ul class="space-y-4 border-t border-gray-200 pt-6">
+          <li class="flex space-x-3">
+            <i class="bi bi-check-circle-fill mt-0.5 flex-shrink-0 text-blue-900"></i>
+            <span class="text-base font-medium leading-tight text-gray-900">{{ textContent_company_bullet1.title|default:"Zentrale Verwaltung aller Unternehmensdaten" }}</span>
+          </li>
+          <li class="flex space-x-3">
+            <i class="bi bi-check-circle-fill mt-0.5 flex-shrink-0 text-blue-900"></i>
+            <span class="text-base font-medium leading-tight text-gray-900">{{ textContent_company_bullet2.title|default:"Dynamische Anzeige auf der Website" }}</span>
+          </li>
+          <li class="flex space-x-3">
+            <i class="bi bi-check-circle-fill mt-0.5 flex-shrink-0 text-blue-900"></i>
+            <span class="text-base font-medium leading-tight text-gray-900">{{ textContent_company_bullet3.title|default:"Logos, Bilder und andere Dateien einfach integrieren" }}</span>
+          </li>
+          <li class="flex space-x-3">
+            <i class="bi bi-check-circle-fill mt-0.5 flex-shrink-0 text-blue-900"></i>
+            <span class="text-base font-medium leading-tight text-gray-900">{{ textContent_company_bullet4.title|default:"Übersichtliches und intuitives Interface" }}</span>
+          </li>
+        </ul>
+      </div>
+      <div data-aos="fade-left">
+        <img class="w-full rounded-xl shadow-2xl ring-1 ring-gray-200"
+          src="{% if image_company %}{{ image_company.file.url }}{% else %}{% static 'images/cmsinfo/cmscompanydata.png' %}{% endif %}"
+          {% responsive_image_attrs image_company "(min-width: 1024px) 50vw, 100vw" %}
+          loading="lazy" alt="Dashboard Unternehmensdaten">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BENUTZER & SICHERHEIT -->
+<section class="bg-blue-50 px-4 pb-20">
+  <div class="mx-auto max-w-6xl px-4">
+    <div class="grid items-center gap-12 md:grid-cols-2">
+      <div class="order-1 md:order-2" data-aos="fade-left">
+        <p class="mb-4 text-sm font-semibold uppercase tracking-widest text-blue-900">
+        {{ textContent_security.header|default:"Benutzer & Sicherheit" }}
+      </p>
+        <h2 class="mb-6 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl sm:leading-none">
+          {{ textContent_security.title|default:"Dein Team arbeitet mit - jeder mit den richtigen Rechten" }}
+        </h2>
+        <p class="mb-6 text-base leading-7 text-gray-600 md:text-lg xl:text-xl">
+          {{ textContent_security.description|default:"Das YooLink CMS ist für Teams gebaut: Lege beliebig viele Benutzer an und bestimme pro Person, welche Bereiche sie bearbeiten darf. Die Marketing-Kollegin pflegt den Blog, der Azubi die Öffnungszeiten - und der Login bleibt dank Zwei-Faktor-Authentifizierung sicher." }}
+        </p>
+        <ul class="space-y-4 border-t border-gray-200 pt-6">
+          <li class="flex space-x-3">
+            <i class="bi bi-check-circle-fill mt-0.5 flex-shrink-0 text-blue-900"></i>
+            <span class="text-base font-medium leading-tight text-gray-900">{{ textContent_security_bullet1.title|default:"Eigene Zugänge für jedes Team-Mitglied" }}</span>
+          </li>
+          <li class="flex space-x-3">
+            <i class="bi bi-check-circle-fill mt-0.5 flex-shrink-0 text-blue-900"></i>
+            <span class="text-base font-medium leading-tight text-gray-900">{{ textContent_security_bullet2.title|default:"Rollen mit fein abgestuften Rechten pro CMS-Bereich" }}</span>
+          </li>
+          <li class="flex space-x-3">
+            <i class="bi bi-check-circle-fill mt-0.5 flex-shrink-0 text-blue-900"></i>
+            <span class="text-base font-medium leading-tight text-gray-900">{{ textContent_security_bullet3.title|default:"Sicherer Login mit Zwei-Faktor-Authentifizierung (2FA)" }}</span>
+          </li>
+          <li class="flex space-x-3">
+            <i class="bi bi-check-circle-fill mt-0.5 flex-shrink-0 text-blue-900"></i>
+            <span class="text-base font-medium leading-tight text-gray-900">{{ textContent_security_bullet4.title|default:"Automatischer Spam-Schutz für Kontaktanfragen" }}</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="order-2 md:order-1" data-aos="fade-right">
+        <div class="relative flex justify-center">
+          <div class="hero-cmsx-blob pointer-events-none absolute inset-0" aria-hidden="true"></div>
+          <div class="relative grid w-full max-w-md grid-cols-2 gap-4">
+            <div class="rounded-xl bg-white p-6 text-center shadow-md ring-1 ring-gray-200">
+              <div class="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-900">
+                <i class="bi bi-person-badge text-2xl"></i>
+              </div>
+              <p class="text-sm font-bold text-gray-900">Rollen &amp; Rechte</p>
+              <p class="mt-1 text-xs text-gray-500">pro Bereich steuerbar</p>
+            </div>
+            <div class="rounded-xl bg-white p-6 text-center shadow-md ring-1 ring-gray-200">
+              <div class="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-900">
+                <i class="bi bi-shield-lock text-2xl"></i>
+              </div>
+              <p class="text-sm font-bold text-gray-900">2FA-Login</p>
+              <p class="mt-1 text-xs text-gray-500">doppelt gesichert</p>
+            </div>
+            <div class="rounded-xl bg-white p-6 text-center shadow-md ring-1 ring-gray-200">
+              <div class="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-900">
+                <i class="bi bi-bell text-2xl"></i>
+              </div>
+              <p class="break-words text-sm font-bold text-gray-900">Benach&shy;richtigungen</p>
+              <p class="mt-1 text-xs text-gray-500">nichts mehr verpassen</p>
+            </div>
+            <div class="rounded-xl bg-blue-900 p-6 text-center shadow-md">
+              <div class="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white">
+                <i class="bi bi-envelope-check text-2xl"></i>
+              </div>
+              <p class="text-sm font-bold text-white">Spam-Schutz</p>
+              <p class="mt-1 text-xs text-blue-100">automatisch gefiltert</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TRUST / STATS -->
+<section class="bg-blue-50 px-4 pb-20">
+  <div class="mx-auto max-w-6xl px-4">
+    <div class="items-center lg:grid lg:grid-cols-4 lg:gap-16 xl:gap-24">
+      <div data-aos="fade-right" class="col-span-2 mb-8">
+        <p class="mb-4 text-sm font-semibold uppercase tracking-widest text-blue-900">
+          {{ textContent_trust.header|default:"Von Unternehmen im Einsatz" }}
+        </p>
+        <h2 class="mb-6 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl sm:leading-none">
+          {{ textContent_trust.title|default:"Vertrauen von Anfang an - Zahlen, die für sich sprechen" }}
+        </h2>
+        <p class="text-base leading-7 text-gray-600 md:text-lg xl:text-xl">
+          {{ textContent_trust.description|default:"Unternehmen aus unterschiedlichen Branchen pflegen ihre Websites bereits selbst mit dem YooLink CMS - zuverlässig, sicher und ohne Agentur-Wartezeiten." }}
+        </p>
+        <div class="mt-6 space-y-4 border-t border-gray-200 pt-6">
+          <div>
+            <a href="{% url 'kunden' %}" class="inline-flex items-center text-base font-medium text-blue-900 hover:text-blue-950">
+              {% trans "cms_visit_clients" %}
+              <i class="bi bi-arrow-right ml-1"></i>
+            </a>
+          </div>
+          <div>
+            <a href="{% url 'kontakt' %}" class="inline-flex items-center text-base font-medium text-blue-900 hover:text-blue-950">
+              {% trans "cms_contact_direct" %}
+              <i class="bi bi-arrow-right ml-1"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+      <div class="col-span-2 grid grid-cols-1 gap-6 sm:grid-cols-2">
+        <div class="rounded-xl bg-white p-6 shadow-md ring-1 ring-gray-200" data-aos="fade-up" data-aos-delay="0">
+          <div class="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-900">
+            <i class="bi bi-hdd-network text-2xl"></i>
+          </div>
+          <h3 class="mb-2 text-xl font-bold text-gray-900">{{ textContent_stat1.title|default:"99.99% Betriebszeit" }}</h3>
+          <p class="text-base text-gray-600">{{ textContent_stat1.description|default:"Unsere Systeme laufen zuverlässig - ohne merkbare Ausfälle." }}</p>
+        </div>
+        <div class="rounded-xl bg-white p-6 shadow-md ring-1 ring-gray-200" data-aos="fade-up" data-aos-delay="100">
+          <div class="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-900">
+            <i class="bi bi-people text-2xl"></i>
+          </div>
+          <h3 class="mb-2 text-xl font-bold text-gray-900">{{ textContent_stat2.title|default:"10+ aktive Nutzer" }}</h3>
+          <p class="text-base text-gray-600">{{ textContent_stat2.description|default:"Teams aus unterschiedlichsten Branchen nutzen YooLink bereits heute." }}</p>
+        </div>
+        <div class="rounded-xl bg-white p-6 shadow-md ring-1 ring-gray-200" data-aos="fade-up" data-aos-delay="0">
+          <div class="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-900">
+            <i class="bi bi-translate text-2xl"></i>
+          </div>
+          <h3 class="mb-2 text-xl font-bold text-gray-900">{{ textContent_stat3.title|default:"Mehrsprachigkeit inklusive" }}</h3>
+          <p class="text-base text-gray-600">{{ textContent_stat3.description|default:"Pflege deine Website-Inhalte ganz einfach in jeder gewünschten Sprache." }}</p>
+        </div>
+        <div class="rounded-xl bg-white p-6 shadow-md ring-1 ring-gray-200" data-aos="fade-up" data-aos-delay="100">
+          <div class="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-900">
+            <i class="bi bi-diagram-3 text-2xl"></i>
+          </div>
+          <h3 class="mb-2 text-xl font-bold text-gray-900">{{ textContent_stat4.title|default:"Nahtlose Integration" }}</h3>
+          <p class="text-base text-gray-600">{{ textContent_stat4.description|default:"YooLink lässt sich unkompliziert in bestehende Workflows integrieren." }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="h-6 bg-[#6b7280]"></div>
+
+<!-- BOTTOM CTA -->
+<section class="bg-gray-700">
+  <div class="mx-auto max-w-screen-xl px-4 py-8 lg:px-6 lg:py-16">
+    <div class="mx-auto max-w-screen-sm text-center">
+      <h2 class="mb-4 text-3xl sm:text-4xl font-bold tracking-tight text-white">
+        {{ textContent_bottomcta.title|default:"Jetzt unverbindlich Kontakt aufnehmen" }}
+      </h2>
+      <p class="mb-6 text-white md:text-lg">
+        {{ textContent_bottomcta.description|default:"Du suchst nach einem flexiblen, leistungsstarken und einfachen CMS? Wir beraten dich persönlich!" }}
+      </p>
+      {% if cmsinfo_btn_bottomcta %}
+        <div class="mt-1 flex justify-center">{% include "pages/components/button.html" with button=cmsinfo_btn_bottomcta size="lg" %}</div>
+      {% else %}
+        <a href="{% url 'kontakt' %}"
+          class="mt-0 inline-block rounded-md bg-blue-900 px-8 py-4 text-base font-bold text-white shadow-xl transition-transform duration-300 ease-in-out hover:-translate-y-1 hover:scale-105 hover:bg-blue-700 sm:mt-1">
+          {{ textContent_bottomcta.buttonText|default:"Lass uns gemeinsam starten" }}
+        </a>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+{% endblock content %}
+
+{% block javascriptend %}
+<script src="{% static 'js/aos.js' %}"></script>
+<script>
+  AOS.init({
+    duration: 800,
+    once: true,
+    easing: 'ease-out',
+    disable: "phone"
+  });
+</script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    /* ---------- Playground ---------- */
+    const headlineInput = document.getElementById("demoHeadline");
+    const headlinePreview = document.getElementById("demoHeadlinePreview");
+    const textInput = document.getElementById("demoText");
+    const textPreview = document.getElementById("demoTextPreview");
+    const buttonInput = document.getElementById("demoButtonText");
+    const buttonPreview = document.getElementById("demoButtonPreview");
+    const bannerToggle = document.getElementById("demoBanner");
+    const bannerPreview = document.getElementById("demoBannerPreview");
+    const memberToggle = document.getElementById("demoMember");
+    const memberPreview = document.getElementById("demoMemberPreview");
+    const hoursToggle = document.getElementById("demoHours");
+    const hoursPreview = document.getElementById("demoHoursPreview");
+    const vacationToggle = document.getElementById("demoVacation");
+    const vacationPreview = document.getElementById("demoVacationPreview");
+    const savedChip = document.getElementById("demoSaved");
+    const colorButtons = document.querySelectorAll(".demo-color");
+
+    const buttonBaseClasses = "inline-block cursor-default rounded-xl px-6 py-3 text-sm font-bold text-white shadow-md transition";
+    let savedTimeout = null;
+
+    function flashSaved() {
+      if (!savedChip) return;
+      savedChip.classList.add("is-visible");
+      clearTimeout(savedTimeout);
+      savedTimeout = setTimeout(() => savedChip.classList.remove("is-visible"), 1400);
+    }
+
+    if (headlineInput && headlinePreview) {
+      headlineInput.addEventListener("input", () => {
+        headlinePreview.textContent = headlineInput.value.trim() || "Deine Überschrift";
+        flashSaved();
+      });
+    }
+
+    if (textInput && textPreview) {
+      textInput.addEventListener("input", () => {
+        textPreview.textContent = textInput.value.trim() || "Deine Beschreibung";
+        flashSaved();
+      });
+    }
+
+    if (buttonInput && buttonPreview) {
+      buttonInput.addEventListener("input", () => {
+        buttonPreview.textContent = buttonInput.value.trim() || "Dein Button";
+        flashSaved();
+      });
+    }
+
+    colorButtons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        colorButtons.forEach((other) => {
+          other.classList.remove("ring-blue-900", "ring-blue-600", "ring-emerald-600", "ring-slate-900");
+          other.classList.add("ring-transparent");
+        });
+        btn.classList.remove("ring-transparent");
+        // Ring in der eigenen Farbe markieren
+        const bg = btn.getAttribute("data-democolor").split(" ")[0];
+        btn.classList.add(bg.replace("bg-", "ring-"));
+
+        if (buttonPreview) {
+          buttonPreview.className = buttonBaseClasses + " " + btn.getAttribute("data-democolor");
+        }
+        flashSaved();
+      });
+    });
+
+    if (bannerToggle && bannerPreview) {
+      bannerToggle.addEventListener("change", () => {
+        bannerPreview.classList.toggle("is-hidden", !bannerToggle.checked);
+        flashSaved();
+      });
+    }
+
+    if (memberToggle && memberPreview) {
+      memberToggle.addEventListener("change", () => {
+        memberPreview.classList.toggle("is-hidden", !memberToggle.checked);
+        flashSaved();
+      });
+    }
+
+    if (hoursToggle && hoursPreview) {
+      hoursToggle.addEventListener("change", () => {
+        hoursPreview.classList.toggle("is-hidden", !hoursToggle.checked);
+        flashSaved();
+      });
+    }
+
+    if (vacationToggle && vacationPreview) {
+      vacationToggle.addEventListener("change", () => {
+        vacationPreview.classList.toggle("is-hidden", !vacationToggle.checked);
+        flashSaved();
+      });
+    }
+
+    /* ---------- Screenshot-Tabs (Browser-Mockup) ---------- */
+    const shotTabs = document.querySelectorAll(".cms-shot-tab");
+    const shotImage = document.getElementById("cmsShotImage");
+    const shotPath = document.getElementById("cmsShotPath");
+    const tabActive = ["bg-blue-900", "text-white"];
+    const tabInactive = ["bg-white", "text-blue-900", "ring-1", "ring-gray-200", "hover:bg-blue-50"];
+    let shotIndex = 0;
+    let shotAutoRotate = true;
+    let shotSwapToken = 0;
+
+    function activateShot(index) {
+      shotIndex = index;
+      const tab = shotTabs[index];
+      if (!tab || !shotImage) return;
+
+      shotTabs.forEach((t, i) => {
+        if (i === index) {
+          t.classList.remove(...tabInactive);
+          t.classList.add(...tabActive);
+        } else {
+          t.classList.remove(...tabActive);
+          t.classList.add(...tabInactive);
+        }
+      });
+
+      const nextSrc = tab.getAttribute("data-image") || "";
+      const srcset = (tab.getAttribute("data-srcset") || "").trim();
+      const nextAlt = tab.getAttribute("data-alt") || "CMS Vorschau";
+      const nextPath = tab.getAttribute("data-url") || "";
+      if (!nextSrc) return;
+
+      // Adresszeile des Browser-Mockups aktualisieren.
+      if (shotPath && nextPath) {
+        shotPath.style.opacity = "0";
+        window.setTimeout(() => {
+          shotPath.textContent = nextPath;
+          shotPath.style.opacity = "1";
+        }, 130);
+      }
+
+      const currentSrc = shotImage.getAttribute("src") || "";
+      const currentSrcset = (shotImage.getAttribute("srcset") || "").trim();
+      if (nextSrc === currentSrc && srcset === currentSrcset) {
+        shotImage.alt = nextAlt;
+        return;
+      }
+
+      const swapToken = ++shotSwapToken;
+      const preload = new Image();
+      const commitShot = () => {
+        if (swapToken !== shotSwapToken) return;
+
+        // 1) altes Bild ausblenden
+        shotImage.classList.add("is-loading");
+
+        // 2) nach dem Ausblenden das (vorgeladene) Bild tauschen ...
+        window.setTimeout(() => {
+          if (swapToken !== shotSwapToken) return;
+
+          if (srcset) {
+            shotImage.setAttribute("sizes", "(min-width: 1024px) 60vw, 100vw");
+            shotImage.setAttribute("srcset", srcset);
+          } else {
+            shotImage.removeAttribute("srcset");
+            shotImage.removeAttribute("sizes");
+          }
+          shotImage.setAttribute("src", nextSrc);
+          shotImage.alt = nextAlt;
+
+          // 3) ... und wieder einblenden
+          requestAnimationFrame(() => {
+            if (swapToken === shotSwapToken) {
+              shotImage.classList.remove("is-loading");
+            }
+          });
+        }, 300);
+      };
+
+      preload.onload = () => {
+        if (typeof preload.decode === "function") {
+          preload.decode().catch(() => null).finally(commitShot);
+          return;
+        }
+        commitShot();
+      };
+      preload.onerror = commitShot;
+      preload.sizes = "(min-width: 1024px) 60vw, 100vw";
+      if (srcset) preload.srcset = srcset;
+      preload.src = nextSrc;
+    }
+
+    shotTabs.forEach((tab, i) => {
+      tab.addEventListener("click", () => {
+        shotAutoRotate = false;
+        activateShot(i);
+      });
+    });
+
+    if (shotTabs.length && shotImage) {
+      setInterval(() => {
+        if (!shotAutoRotate) return;
+        activateShot((shotIndex + 1) % shotTabs.length);
+      }, 8000);
+    }
+  });
+</script>
+{% endblock javascriptend %}

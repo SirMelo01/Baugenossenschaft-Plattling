@@ -1,0 +1,143 @@
+{% comment %}
+Gemeinsame Felder für den Button-Designer (Erstellen & Bearbeiten).
+Erwartet: button (optional), page_links
+{% endcomment %}
+
+<!-- Text -->
+<div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+    <h2 class="mb-4 text-xs font-semibold uppercase tracking-wider text-slate-400">Beschriftung</h2>
+    <div>
+        <label for="text" class="mb-1.5 block text-sm font-medium text-slate-700">Button-Text <span class="text-rose-500">*</span></label>
+        <input type="text" id="text" required maxlength="100" placeholder="z.B. Jetzt anfragen"
+            value="{{ button.text|default:'' }}"
+            class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
+    </div>
+    <div class="mt-4">
+        <label for="hover_text" class="mb-1.5 block text-sm font-medium text-slate-700">Tooltip <span class="font-normal text-slate-400">(optional, beim Drüberfahren)</span></label>
+        <input type="text" id="hover_text" maxlength="200" placeholder="z.B. Öffnet das Kontaktformular"
+            value="{{ button.hover_text|default:'' }}"
+            class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
+    </div>
+</div>
+
+<!-- Farbe -->
+<div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+    <h2 class="mb-4 text-xs font-semibold uppercase tracking-wider text-slate-400">Farbe</h2>
+    <input type="hidden" id="color" value="{{ button.color|default:'blue' }}">
+    <div id="colorSwatches" class="grid grid-cols-3 gap-2 sm:grid-cols-6">
+        <button type="button" data-color="blue"
+            class="color-swatch flex flex-col items-center gap-1.5 rounded-xl border border-slate-200 bg-white p-3 transition hover:border-blue-300">
+            <span class="h-6 w-6 rounded-full bg-blue-600"></span>
+            <span class="text-xs font-medium text-slate-600">Blau</span>
+        </button>
+        <button type="button" data-color="navy"
+            class="color-swatch flex flex-col items-center gap-1.5 rounded-xl border border-slate-200 bg-white p-3 transition hover:border-blue-300">
+            <span class="h-6 w-6 rounded-full bg-blue-900"></span>
+            <span class="text-xs font-medium text-slate-600">Dunkelblau</span>
+        </button>
+        <button type="button" data-color="dark"
+            class="color-swatch flex flex-col items-center gap-1.5 rounded-xl border border-slate-200 bg-white p-3 transition hover:border-blue-300">
+            <span class="h-6 w-6 rounded-full bg-slate-900"></span>
+            <span class="text-xs font-medium text-slate-600">Schwarz</span>
+        </button>
+        <button type="button" data-color="emerald"
+            class="color-swatch flex flex-col items-center gap-1.5 rounded-xl border border-slate-200 bg-white p-3 transition hover:border-blue-300">
+            <span class="h-6 w-6 rounded-full bg-emerald-600"></span>
+            <span class="text-xs font-medium text-slate-600">Grün</span>
+        </button>
+        <button type="button" data-color="white"
+            class="color-swatch flex flex-col items-center gap-1.5 rounded-xl border border-slate-200 bg-white p-3 transition hover:border-blue-300">
+            <span class="h-6 w-6 rounded-full bg-white ring-1 ring-slate-300"></span>
+            <span class="text-xs font-medium text-slate-600">Weiß</span>
+        </button>
+        <button type="button" data-color="outline"
+            class="color-swatch flex flex-col items-center gap-1.5 rounded-xl border border-slate-200 bg-white p-3 transition hover:border-blue-300">
+            <span class="h-6 w-6 rounded-full border-2 border-blue-900 bg-white"></span>
+            <span class="text-xs font-medium text-slate-600">Umrandet</span>
+        </button>
+        <button type="button" data-color="link"
+            class="color-swatch flex flex-col items-center gap-1.5 rounded-xl border border-slate-200 bg-white p-3 transition hover:border-blue-300">
+            <span class="grid h-6 w-6 place-items-center text-blue-900"><i class="bi bi-link-45deg text-lg"></i></span>
+            <span class="text-xs font-medium text-slate-600">Textlink</span>
+        </button>
+    </div>
+    <p class="mt-3 text-xs text-slate-400">„Textlink" zeigt nur Text mit Icon (ohne Fläche) – ideal für dezente Verweise wie „Live-Beispiel ansehen".</p>
+</div>
+
+<!-- Link-Ziel -->
+<div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+    <h2 class="mb-4 text-xs font-semibold uppercase tracking-wider text-slate-400">Wohin führt der Button?</h2>
+
+    <div id="linkTypeToggle" class="grid grid-cols-2 gap-2">
+        <button type="button" data-link-type="internal"
+            class="link-type-btn flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:border-blue-300">
+            <i class="bi bi-house"></i> Eigene Seite
+        </button>
+        <button type="button" data-link-type="external"
+            class="link-type-btn flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:border-blue-300">
+            <i class="bi bi-globe"></i> Eigene URL
+        </button>
+    </div>
+
+    <div id="internalLinkBox" class="mt-4 hidden">
+        <label for="page_link_id" class="mb-1.5 block text-sm font-medium text-slate-700">Seite / Abschnitt auswählen</label>
+        <select id="page_link_id"
+            class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
+            <option value="">— Bitte auswählen —</option>
+            {% for link in page_links %}
+            <option value="{{ link.id }}" data-url="{{ link.url }}" {% if button.page_link_id == link.id %}selected{% endif %}>{{ link.title }} ({{ link.url }})</option>
+            {% endfor %}
+        </select>
+        <p class="mt-2 text-xs text-slate-400">
+            Ziel fehlt in der Liste?
+            <a href="{% url 'cms:button-list' %}#seiten-links" class="font-medium text-blue-600 hover:text-blue-700">Seiten-Links verwalten</a>
+        </p>
+    </div>
+
+    <div id="externalLinkBox" class="mt-4 hidden">
+        <label for="url" class="mb-1.5 block text-sm font-medium text-slate-700">Link-Adresse</label>
+        <input type="text" id="url" maxlength="500" placeholder="https://example.com"
+            value="{{ button.url|default:'' }}"
+            class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
+        <p class="mt-2 text-xs text-slate-400">Beliebiger Link, z.B. <code>https://…</code>, <code>mailto:…</code> oder <code>tel:…</code></p>
+    </div>
+
+    <label for="targetSwitch" class="mt-5 flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+        <div>
+            <p class="text-sm font-medium text-slate-700">In neuem Tab öffnen</p>
+            <p class="text-xs text-slate-400">Empfohlen für externe Links</p>
+        </div>
+        <div class="relative h-6 w-11 flex-shrink-0">
+            <input type="checkbox" id="targetSwitch" class="peer sr-only" {% if button.target == '_blank' %}checked{% endif %}>
+            <div class="h-6 w-11 rounded-full bg-slate-300 transition peer-checked:bg-blue-600"></div>
+            <div class="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition peer-checked:translate-x-5"></div>
+        </div>
+    </label>
+</div>
+
+<!-- Erweitert -->
+<details class="group rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <summary class="flex cursor-pointer items-center justify-between p-5 text-sm font-semibold text-slate-700 sm:px-6">
+        <span class="inline-flex items-center gap-2"><i class="bi bi-sliders text-slate-400"></i> Erweiterte Einstellungen</span>
+        <i class="bi bi-chevron-down text-slate-400 transition group-open:rotate-180"></i>
+    </summary>
+    <div class="border-t border-slate-100 p-5 sm:px-6">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+                <label for="icon" class="mb-1.5 block text-sm font-medium text-slate-700">Icon <span class="font-normal text-slate-400">(optional)</span></label>
+                <input type="text" id="icon" maxlength="100" placeholder="z.B. bi bi-arrow-right"
+                    value="{{ button.icon|default:'' }}"
+                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
+                <p class="mt-2 text-xs text-slate-400">
+                    <a href="https://icons.getbootstrap.com/" target="_blank" rel="noopener" class="font-medium text-blue-600 hover:text-blue-700">Bootstrap-Icons durchsuchen</a>
+                </p>
+            </div>
+            <div>
+                <label for="order" class="mb-1.5 block text-sm font-medium text-slate-700">Reihenfolge</label>
+                <input type="number" id="order" min="0" value="{{ button.order|default:0 }}"
+                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
+                <p class="mt-2 text-xs text-slate-400">Position in Auswahllisten</p>
+            </div>
+        </div>
+    </div>
+</details>

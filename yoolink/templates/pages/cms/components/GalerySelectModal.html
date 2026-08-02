@@ -1,0 +1,89 @@
+<!-- Galery Select Modal -->
+<style>
+    #galeryModal:not(.hidden) {
+        display: flex;
+    }
+</style>
+
+<div class="fixed inset-0 z-[80] hidden items-center justify-center bg-slate-950/70 p-2 backdrop-blur-sm sm:p-4"
+    id="galeryModal">
+    <div class="modal-container galery-modal-container flex h-[calc(100dvh-1rem)] w-full max-w-5xl flex-col overflow-hidden rounded-lg bg-white shadow-2xl ring-1 ring-slate-200 sm:h-auto sm:max-h-[90vh]">
+        <div class="flex flex-shrink-0 items-start justify-between border-b border-slate-200 px-4 py-4 sm:px-6 sm:py-5">
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-wide text-blue-700">Galerien</p>
+                <h3 class="mt-1 text-2xl font-semibold text-slate-950">
+                    Galerie auswählen
+                </h3>
+                <p class="mt-1 text-sm text-slate-500">Wähle eine vorhandene Galerie aus, um sie in den Inhalt einzubinden.</p>
+            </div>
+            <button type="button" id="closeGaleryModal"
+                class="rounded-md p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-900"
+                data-modal-hide="defaultModal">
+                <svg aria-hidden="true" class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd"
+                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                        clip-rule="evenodd"></path>
+                </svg>
+                <span class="sr-only">Schließen</span>
+            </button>
+        </div>
+
+        <div class="galery-modal-body grid min-h-0 flex-1 grid-cols-1 overflow-y-auto lg:grid-cols-[17rem_minmax(0,1fr)]">
+            <aside class="galery-modal-sidebar border-b border-slate-200 bg-slate-50 p-3 sm:p-4 lg:border-b-0 lg:border-r">
+                <div class="rounded-lg border border-slate-200 bg-white p-4">
+                    <p class="text-sm font-semibold text-slate-900">Aktuelle Auswahl</p>
+                    <div class="mt-3 rounded-md bg-slate-100 p-3 min-h-[4rem] flex items-center justify-center">
+                        <p id="selectedGaleryName" class="text-sm text-slate-400 text-center">
+                            Noch keine Galerie ausgewählt
+                        </p>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <a href="{% url 'cms:galerien' %}" target="_blank"
+                        class="flex w-full items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 hover:text-slate-950">
+                        <i class="bi bi-box-arrow-up-right"></i>
+                        Galerien verwalten
+                    </a>
+                </div>
+            </aside>
+
+            <div class="min-h-0 p-4 sm:p-6">
+                <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <h4 class="text-lg font-semibold text-slate-950">Galerien-Bibliothek</h4>
+                        <p class="text-sm text-slate-500">Klicke eine Galerie an, um sie direkt zu übernehmen.</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <input id="galerySearchInput" type="search" placeholder="Galerie suchen"
+                            class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:w-56">
+                        <button id="reloadGalerien" type="button"
+                            class="rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700">
+                            Neu laden
+                        </button>
+                    </div>
+                </div>
+
+                <div class="min-h-[18rem] flex-1 overflow-auto rounded-lg border border-slate-200 bg-slate-50 p-3">
+                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3" id="possibleGalerien">
+                        <!-- Galleries will be loaded here -->
+                    </div>
+                    <div id="galeryEmptyState" class="hidden py-16 text-center">
+                        <p class="text-base font-semibold text-slate-700">Keine Galerien gefunden</p>
+                        <p class="mt-1 text-sm text-slate-500">Erstelle zuerst eine Galerie oder ändere deine Suche.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="galery-modal-footer flex flex-shrink-0 flex-col gap-3 border-t border-slate-200 bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-4">
+            <a href="{% url 'cms:galerien' %}" target="_blank"
+                class="inline-flex items-center justify-center rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 hover:text-slate-950">
+                <i class="bi bi-images mr-2"></i>
+                Galerie-Verwaltung öffnen
+            </a>
+            <p class="text-sm text-slate-500">Galerien können in der Verwaltung erstellt, bearbeitet und gelöscht werden.</p>
+        </div>
+    </div>
+</div>

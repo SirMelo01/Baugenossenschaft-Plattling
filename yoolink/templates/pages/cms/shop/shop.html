@@ -1,0 +1,276 @@
+{% extends "cmsbase.html" %}
+{% load compress static %}
+{% block title %} {{block.super}} | CMS - Shop{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-7xl">
+
+  <!-- Header -->
+  <div class="mb-6 mt-2 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <h1 class="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">Shop</h1>
+      <p class="mt-1.5 text-slate-500">Verwalte deine Produkte und behalte deine Bestellungen im Blick.</p>
+    </div>
+    <div class="flex flex-col gap-2 sm:flex-row">
+      <a href="{% url 'cms:products' %}"
+        class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 sm:w-auto">
+        <i class="bi bi-grid"></i> Produkte verwalten
+      </a>
+      <a href="{% url 'cms:product-create' %}"
+        class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 sm:w-auto">
+        <i class="bi bi-plus-lg"></i> Produkt erstellen
+      </a>
+    </div>
+  </div>
+
+  <!-- Produkt-KPIs -->
+  <h2 class="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">Produkte auf einen Blick</h2>
+  <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
+    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div class="flex items-center justify-between gap-2">
+        <div class="min-w-0">
+          <p class="truncate text-sm font-medium text-slate-500">Produkte gesamt</p>
+          <p class="mt-1 text-2xl font-semibold text-slate-900">{{ product_stats.total }}</p>
+        </div>
+        <span class="grid h-11 w-11 flex-shrink-0 place-items-center rounded-xl bg-blue-100 text-blue-600"><i class="bi bi-box-seam text-xl"></i></span>
+      </div>
+    </div>
+    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div class="flex items-center justify-between gap-2">
+        <div class="min-w-0">
+          <p class="truncate text-sm font-medium text-slate-500">Aktiv</p>
+          <p class="mt-1 text-2xl font-semibold text-slate-900">{{ product_stats.active }}</p>
+        </div>
+        <span class="grid h-11 w-11 flex-shrink-0 place-items-center rounded-xl bg-emerald-100 text-emerald-600"><i class="bi bi-check2-circle text-xl"></i></span>
+      </div>
+    </div>
+    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div class="flex items-center justify-between gap-2">
+        <div class="min-w-0">
+          <p class="truncate text-sm font-medium text-slate-500">Online bestellbar</p>
+          <p class="mt-1 text-2xl font-semibold text-slate-900">{{ product_stats.online }}</p>
+        </div>
+        <span class="grid h-11 w-11 flex-shrink-0 place-items-center rounded-xl bg-indigo-100 text-indigo-600"><i class="bi bi-cart-check text-xl"></i></span>
+      </div>
+    </div>
+    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div class="flex items-center justify-between gap-2">
+        <div class="min-w-0">
+          <p class="truncate text-sm font-medium text-slate-500">Nicht auf Lager</p>
+          <p class="mt-1 text-2xl font-semibold text-slate-900">{{ product_stats.out_of_stock }}</p>
+        </div>
+        <span class="grid h-11 w-11 flex-shrink-0 place-items-center rounded-xl bg-red-100 text-red-600"><i class="bi bi-exclamation-triangle text-xl"></i></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Verwaltung -->
+  <h2 class="mb-3 mt-8 text-xs font-semibold uppercase tracking-wider text-slate-400">Verwaltung</h2>
+  <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
+
+    <!-- Produkte -->
+    <div class="flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm lg:col-span-2">
+      <div class="mb-3 flex items-center gap-3">
+        <span class="grid h-10 w-10 flex-shrink-0 place-items-center rounded-xl bg-blue-100 text-blue-600"><i class="bi bi-shop text-lg"></i></span>
+        <div class="min-w-0">
+          <h3 class="truncate font-semibold text-slate-900">Produkte</h3>
+          <p class="truncate text-xs text-slate-400">{{ product_stats.total }} Produkte · {{ product_stats.active }} aktiv</p>
+        </div>
+      </div>
+      <p class="text-sm text-slate-500">Lege Produkte an und pflege Preise, Bilder, Kategorien, Spezifikationen und Übersetzungen.</p>
+      <div class="mt-3 flex flex-wrap gap-2 text-xs">
+        <span class="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 font-medium text-amber-700"><i class="bi bi-easel"></i> {{ product_stats.showcase }} Showcase</span>
+        <span class="inline-flex items-center gap-1 rounded-full bg-orange-50 px-2.5 py-1 font-medium text-orange-700"><i class="bi bi-tag"></i> {{ product_stats.reduced }} Reduziert</span>
+        <span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 font-medium text-emerald-700"><i class="bi bi-globe"></i> {{ product_stats.online }} Online</span>
+      </div>
+      <div class="mt-auto flex flex-col gap-2 pt-5 sm:flex-row">
+        <a href="{% url 'cms:products' %}"
+          class="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700">
+          <i class="bi bi-grid"></i> Verwalten
+        </a>
+        <a href="{% url 'cms:product-create' %}"
+          class="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100">
+          <i class="bi bi-plus-lg"></i> Erstellen
+        </a>
+      </div>
+    </div>
+
+    <!-- Aufträge -->
+    <div class="flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div class="mb-3 flex items-center gap-3">
+        <span class="grid h-10 w-10 flex-shrink-0 place-items-center rounded-xl bg-indigo-100 text-indigo-600"><i class="bi bi-bag-check text-lg"></i></span>
+        <div class="min-w-0">
+          <h3 class="truncate font-semibold text-slate-900">Kundenaufträge</h3>
+          <p class="truncate text-xs text-slate-400">{{ order_stats.total }} gesamt · {{ order_stats.open }} offen</p>
+        </div>
+      </div>
+      <p class="text-sm text-slate-500">Bestellungen einsehen, Status pflegen und abschließen.</p>
+      <div class="mt-auto pt-5">
+        <a href="{% url 'cms:order-overview' %}"
+          class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700">
+          <i class="bi bi-receipt"></i> Verwalten
+          {% if order_stats.open %}
+          <span class="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-white/25 px-1.5 text-xs font-semibold">{{ order_stats.open }}</span>
+          {% endif %}
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Darstellung der öffentlichen Produktseite -->
+  {% if 'products.edit' in cms_permissions %}
+  <h2 class="mb-3 mt-8 text-xs font-semibold uppercase tracking-wider text-slate-400">Darstellung der Produktseite</h2>
+  <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    {% csrf_token %}
+    <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      <div>
+        <h3 class="font-semibold text-slate-900">Layout der öffentlichen Produktseite</h3>
+        <p class="mt-1 text-sm text-slate-500">Bestimme, wie Besucher deine Produkte sehen – als klassischen Shop mit Filterleiste oder als übersichtliche, nach Kategorien gruppierte Liste.</p>
+      </div>
+      <a href="{% url 'products' %}" target="_blank" rel="noopener noreferrer"
+        class="inline-flex shrink-0 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+        <i class="bi bi-box-arrow-up-right"></i> Vorschau
+      </a>
+    </div>
+
+    <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+      <label class="cursor-pointer">
+        <input type="radio" name="productsLayout" value="filter" class="peer sr-only" {% if shop_settings.products_layout == "filter" %}checked{% endif %}>
+        <span class="flex h-full flex-col rounded-2xl border-2 border-slate-200 bg-slate-50 p-4 transition peer-checked:border-blue-500 peer-checked:bg-blue-50/60">
+          <span class="flex items-center gap-3">
+            <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-blue-100 text-blue-600"><i class="bi bi-funnel text-lg"></i></span>
+            <span class="font-semibold text-slate-900">Shop mit Filterleiste</span>
+          </span>
+          <span class="mt-2 text-sm text-slate-500">Suche, Filter und Sortierung in einer Seitenleiste. Ideal bei vielen Produkten oder wenn Besucher gezielt suchen sollen.</span>
+        </span>
+      </label>
+
+      <label class="cursor-pointer">
+        <input type="radio" name="productsLayout" value="grouped" class="peer sr-only" {% if shop_settings.products_layout == "grouped" %}checked{% endif %}>
+        <span class="flex h-full flex-col rounded-2xl border-2 border-slate-200 bg-slate-50 p-4 transition peer-checked:border-blue-500 peer-checked:bg-blue-50/60">
+          <span class="flex items-center gap-3">
+            <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-emerald-100 text-emerald-600"><i class="bi bi-collection text-lg"></i></span>
+            <span class="font-semibold text-slate-900">Gruppiert nach Kategorien</span>
+          </span>
+          <span class="mt-2 text-sm text-slate-500">Alle Produkte direkt sichtbar, nach Kategorien gruppiert – ohne Filterleiste. Ideal für kleinere Sortimente und Präsentationsseiten.</span>
+        </span>
+      </label>
+    </div>
+
+    <div class="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <div>
+        <label for="productsPageTitle" class="mb-2 block text-sm font-semibold text-slate-700">Seitentitel</label>
+        <input
+          id="productsPageTitle"
+          type="text"
+          maxlength="120"
+          value="{{ shop_settings.products_title }}"
+          placeholder="Produkte"
+          class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-slate-800 focus:border-blue-500 focus:bg-white focus:outline-none"
+        />
+      </div>
+
+      <div>
+        <label for="productsPageIntro" class="mb-2 block text-sm font-semibold text-slate-700">Einleitungstext (optional)</label>
+        <input
+          id="productsPageIntro"
+          type="text"
+          maxlength="1000"
+          value="{{ shop_settings.products_intro }}"
+          placeholder="Kurzer Text unter dem Seitentitel"
+          class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-slate-800 focus:border-blue-500 focus:bg-white focus:outline-none"
+        />
+      </div>
+    </div>
+
+    <div class="mt-5 flex justify-end">
+      <button
+        id="saveShopSettings"
+        type="button"
+        data-update-url="{% url 'cms:shop-settings-update' %}"
+        class="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
+      >
+        <i class="bi bi-save"></i> Darstellung speichern
+      </button>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Zuletzt bearbeitet -->
+  <div class="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div class="mb-3 flex items-center justify-between">
+      <h3 class="font-semibold text-slate-900">Zuletzt bearbeitet</h3>
+      <a href="{% url 'cms:products' %}" class="inline-flex items-center gap-1 text-sm font-medium text-blue-600 transition hover:text-blue-700">
+        Alle Produkte <i class="bi bi-chevron-right text-xs"></i>
+      </a>
+    </div>
+    <div class="divide-y divide-slate-100">
+      {% for product in recent_products %}
+      <a href="{% url 'cms:product-detail' product_id=product.id slug=product.slug %}"
+        class="-mx-2 flex items-center gap-3 rounded-lg px-2 py-3 transition hover:bg-slate-50">
+        <img src="{% if product.title_image %}{{ product.title_image.url }}{% else %}{% static 'images/placeholder-image.svg' %}{% endif %}"
+          alt="{{ product.title }}" class="h-12 w-12 flex-shrink-0 rounded-lg bg-slate-100 object-cover" />
+        <div class="min-w-0 flex-1">
+          <p class="truncate font-medium text-slate-900">{{ product.title }}</p>
+          <p class="truncate text-xs text-slate-400">{% if product.brand %}{{ product.brand.name }} · {% endif %}aktualisiert {{ product.updated_at|date:"d.m.Y" }}</p>
+        </div>
+        {% if product.is_active %}
+        <span class="hidden flex-shrink-0 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700 sm:inline-block">Aktiv</span>
+        {% else %}
+        <span class="hidden flex-shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600 sm:inline-block">Inaktiv</span>
+        {% endif %}
+        <span class="hidden flex-shrink-0 text-sm font-semibold text-slate-700 sm:inline-block">{{ product.effective_price }} €</span>
+        <i class="bi bi-chevron-right flex-shrink-0 text-slate-300"></i>
+      </a>
+      {% empty %}
+      <div class="flex flex-col items-center justify-center py-10 text-center">
+        <span class="grid h-12 w-12 place-items-center rounded-xl bg-blue-100 text-blue-600"><i class="bi bi-box-seam text-2xl"></i></span>
+        <h4 class="mt-4 font-semibold text-slate-900">Noch keine Produkte</h4>
+        <p class="mt-1 text-sm text-slate-500">Lege dein erstes Produkt an, um loszulegen.</p>
+        <a href="{% url 'cms:product-create' %}"
+          class="mt-5 inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700">
+          <i class="bi bi-plus-lg"></i> Produkt erstellen
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+{% endblock content %}
+
+{% block javascriptend %}
+<script>
+  $(document).ready(function () {
+    $("#saveShopSettings").on("click", function () {
+      const $button = $(this)
+      const updateUrl = $button.data("update-url")
+
+      $button.prop("disabled", true)
+
+      $.ajax({
+        url: updateUrl,
+        type: "POST",
+        data: {
+          products_layout: $('input[name="productsLayout"]:checked').val() || "filter",
+          products_title: $("#productsPageTitle").val(),
+          products_intro: $("#productsPageIntro").val(),
+          csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val()
+        },
+        dataType: "json",
+        success: function (response) {
+          $button.prop("disabled", false)
+          sendNotif(response.success || "Die Shop Einstellungen wurden gespeichert.", "success")
+        },
+        error: function (xhr) {
+          $button.prop("disabled", false)
+          const message = xhr.responseJSON && xhr.responseJSON.error
+            ? xhr.responseJSON.error
+            : "Die Einstellungen konnten nicht gespeichert werden."
+          sendNotif(message, "error")
+        }
+      })
+    })
+  })
+</script>
+{% endblock javascriptend %}

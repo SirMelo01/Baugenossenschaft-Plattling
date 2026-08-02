@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 720" role="img" aria-label="Placeholder image">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f8fafc"/>
+      <stop offset="100%" stop-color="#e2e8f0"/>
+    </linearGradient>
+  </defs>
+  <rect width="960" height="720" rx="48" fill="url(#bg)"/>
+  <rect x="160" y="132" width="640" height="456" rx="32" fill="#ffffff" stroke="#cbd5e1" stroke-width="8"/>
+  <path d="M260 492l120-140 86 94 84-74 150 120" fill="none" stroke="#94a3b8" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="372" cy="270" r="42" fill="#94a3b8"/>
+  <text x="480" y="642" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="34" fill="#64748b">Kein Bild vorhanden</text>
+</svg>

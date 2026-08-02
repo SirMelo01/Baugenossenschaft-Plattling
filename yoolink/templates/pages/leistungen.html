@@ -1,0 +1,286 @@
+{% extends "base.html" %} {% load compress static custom_filters %} {% block title %}{{ block.super }} | Leistungen{% endblock title %}
+
+{% block css %}
+{% compress css %}
+<link href="{% static 'css/wellenundboot.css' %}" rel="stylesheet" />
+<link rel="stylesheet" href="{% static 'css/aos.css' %}" />
+{% endcompress css %}
+{% endblock css %}
+
+{% block javascript %}
+{% compress js %}
+<script defer src="{% static 'js/aos.js' %}"></script>
+{% endcompress %}
+{% endblock javascript %}
+
+{% block content %}
+{% load i18n %}
+
+<section class="bg-white px-4 py-20">
+  <div class="mx-auto mb-24 max-w-5xl text-center">
+    <h1 class="mb-6 text-3xl font-bold leading-none tracking-tight text-gray-900 sm:text-5xl xl:text-6xl" data-aos="fade-down">
+      {{ textContent_intro.header|default:"Unsere Leistungen" }}
+    </h1>
+    <p class="mx-auto mb-12 max-w-2xl text-base leading-7 text-gray-600 md:text-lg xl:text-xl" data-aos="fade-up" data-aos-delay="100">
+      {{ textContent_intro.description|default:"Wir entwickeln moderne Weblösungen mit einem klaren Leistungsspektrum - von CMS und Webdesign bis zu Logos und individuellen Webapps." }}
+    </p>
+  </div>
+</section>
+
+{% block Wellen %}
+<section class="wave-wrapper bg-white">
+  <div class="wave-container overflow-x-hidden">
+    <svg class="waves" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 24 150 28" preserveAspectRatio="none" shape-rendering="auto">
+      <defs>
+        <path id="gentle-wave" d="M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v44h-352z" />
+      </defs>
+      <g class="parallax">
+        <use xlink:href="#gentle-wave" x="48" y="0" fill="rgba(239,246,255,0.7)" />
+        <use xlink:href="#gentle-wave" x="48" y="3" fill="rgba(239,246,255,0.5)" />
+        <use xlink:href="#gentle-wave" x="48" y="5" fill="rgba(239,246,255,0.3)" />
+        <use xlink:href="#gentle-wave" x="48" y="7" fill="#eff6ff" />
+      </g>
+    </svg>
+    <div class="boat">
+      <div class="boat-flip">
+        <div class="boat-inner">
+          <ul class="no-bullet">
+            <ul class="no-bullet fume">
+              <li class="fume4"></li>
+              <li class="fume3"></li>
+              <li class="fume2"></li>
+              <li class="fume1"></li>
+            </ul>
+            <li class="smokestack"></li>
+            <li class="white-body">
+              <ul class="windows inline-list">
+                <li class="circle"></li>
+                <li class="circle"></li>
+                <li class="circle"></li>
+              </ul>
+            </li>
+            <li class="boat-body"></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock Wellen %}
+
+<section class="bg-blue-50 px-4 py-20">
+  <div class="mx-auto grid max-w-6xl items-center gap-10 px-4 md:grid-cols-2">
+    <div data-aos="fade-right">
+      <h2 class="mb-6 inline-block text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl sm:leading-none">
+        {{ textContent_cms.title|default:"Eigenes CMS" }}
+      </h2>
+      <p class="mb-4 text-base leading-7 text-gray-600 md:text-lg xl:text-xl">
+        {{ textContent_cms.description|default:"Unser eigens entwickeltes Content-Management-System ermöglicht dir intuitive Inhaltspflege - ganz ohne technische Hürden." }}
+      </p>
+      <ul class="list-inside list-disc text-base text-gray-500 md:text-lg">
+        <li>{% trans "skills_easy_changes" %}</li>
+        <li>{% trans "skills_seo_friendly" %}</li>
+        <li>{% trans "skills_modular_extendable" %}</li>
+      </ul>
+      <a href="{% url 'leistungen_cms' %}" class="mt-6 inline-block rounded-xl bg-blue-900 px-6 py-3 font-semibold text-white shadow-md transition duration-300 ease-in-out hover:-translate-y-1 hover:scale-105 hover:bg-blue-700">
+        {{ textContent_cms.buttonText|default:"Mehr erfahren" }}
+      </a>
+    </div>
+    <div data-aos="fade-left">
+      {% if image_cms %}
+      <img src="{{ image_cms.file.url }}" {% responsive_image_attrs image_cms "(min-width: 768px) 50vw, 100vw" %} loading="lazy" alt="{{ image_cms.title|default:'CMS Vorschau' }}" class="rounded-xl shadow-xl" />
+      {% else %}
+      <img src="{% static 'images/CMS-2.0.png' %}" loading="lazy" alt="CMS Vorschau" class="rounded-xl shadow-xl" />
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="mx-auto mt-40 grid max-w-6xl items-center gap-10 px-4 md:grid-cols-2">
+    <div class="order-2 md:order-1" data-aos="fade-right">
+      {% if image_webdesign %}
+      <img src="{{ image_webdesign.file.url }}" {% responsive_image_attrs image_webdesign "(min-width: 768px) 50vw, 100vw" %} loading="lazy" alt="{{ image_webdesign.title|default:'Website Vorschau' }}" class="rounded-xl shadow-xl" />
+      {% else %}
+      <img src="{% static 'images/references/THP_Full-min.png' %}" loading="lazy" alt="Website Vorschau Tierheilpraxis Meissner" class="rounded-xl shadow-xl" />
+      {% endif %}
+    </div>
+    <div class="order-1 md:order-2" data-aos="fade-left">
+      <h2 class="mb-6 inline-block text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl sm:leading-none">
+        {{ textContent_webdesign.title|default:"Webdesign" }}
+      </h2>
+      <p class="mb-4 text-base leading-7 text-gray-600 md:text-lg xl:text-xl">
+        {{ textContent_webdesign.description|default:"Ob Onepager oder komplexe Unternehmensseite - wir entwickeln moderne Websites mit klarem Design, sauberer Technik und DSGVO-konformem Hosting aus Deutschland. Erfahre, wie wir dabei vorgehen." }}
+      </p>
+      <a href="{% url 'leistungen_webdesign' %}" class="mt-6 inline-block rounded-xl bg-blue-900 px-6 py-3 font-semibold text-white shadow-md transition duration-300 ease-in-out hover:-translate-y-1 hover:scale-105 hover:bg-blue-700">
+        {{ textContent_webdesign.buttonText|default:"Mehr erfahren" }}
+      </a>
+    </div>
+  </div>
+
+  <div class="mx-auto mt-40 max-w-6xl px-4 text-center" data-aos="fade-up">
+    <h2 class="mb-6 inline-block text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl sm:leading-none">
+      {{ textContent_logos.title|default:"Logo Design" }}
+    </h2>
+    <p class="mx-auto mb-8 max-w-3xl text-base leading-7 text-gray-600 md:text-lg xl:text-xl">
+      {{ textContent_logos.description|default:"Wir entwickeln einzigartige Logos - von schlicht bis verspielt - genau auf dein Unternehmen abgestimmt." }}
+    </p>
+    <div class="grid grid-cols-2 justify-items-center gap-6 md:grid-cols-4">
+      {% if image_logo_1 %}
+      <img src="{{ image_logo_1.file.url }}" {% responsive_image_attrs image_logo_1 "10rem" %} loading="lazy" alt="{{ image_logo_1.title|default:'Logo 1' }}" class="h-20 object-contain" />
+      {% else %}
+      <img src="https://www.tierheilpraxis-meissner.net/img/logo.png" loading="lazy" alt="Tierheilpraxis Meissner Logo" class="h-20 object-contain" />
+      {% endif %}
+      {% if image_logo_2 %}
+      <img src="{{ image_logo_2.file.url }}" {% responsive_image_attrs image_logo_2 "10rem" %} loading="lazy" alt="{{ image_logo_2.title|default:'Logo 2' }}" class="h-20 object-contain" />
+      {% else %}
+      <img src="{% static 'images/references/knn-truck.svg' %}" loading="lazy" alt="KNN Truck Claim Logo" class="h-20 object-contain" />
+      {% endif %}
+      {% if image_logo_3 %}
+      <img src="{{ image_logo_3.file.url }}" {% responsive_image_attrs image_logo_3 "10rem" %} loading="lazy" alt="{{ image_logo_3.title|default:'Logo 3' }}" class="h-20 object-contain" />
+      {% else %}
+      <img src="{% static 'images/references/yoolinklogo.png' %}" loading="lazy" alt="Yoolink Logo" class="h-20 object-contain" />
+      {% endif %}
+      {% if image_logo_4 %}
+      <img src="{{ image_logo_4.file.url }}" {% responsive_image_attrs image_logo_4 "10rem" %} loading="lazy" alt="{{ image_logo_4.title|default:'Logo 4' }}" class="h-20 object-contain" />
+      {% else %}
+      <img src="{% static 'images/references/rsautoglaslogo.png' %}" loading="lazy" alt="RSAutoglas Logo" class="h-20 object-contain" />
+      {% endif %}
+    </div>
+    <a href="{% url 'leistungen_logos' %}" class="mt-10 inline-block rounded-xl bg-blue-900 px-6 py-3 font-semibold text-white shadow-md transition duration-300 ease-in-out hover:-translate-y-1 hover:scale-105 hover:bg-blue-700">
+      {{ textContent_logos.buttonText|default:"Mehr erfahren" }}
+    </a>
+  </div>
+
+  <div class="mx-auto mt-40 grid max-w-6xl items-center gap-10 px-4 md:grid-cols-2">
+    <div data-aos="fade-right">
+      <h2 class="mb-6 inline-block text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl sm:leading-none">
+        {{ textContent_custom.title|default:"Custom Webentwicklung" }}
+      </h2>
+      <p class="mb-4 text-base leading-7 text-gray-600 md:text-lg xl:text-xl">
+        {{ textContent_custom.description|default:"Individuelle Anforderungen? Kein Problem. Von Webapps über API-Backends bis hin zu Real-Time-Projekten: Wir entwickeln maßgeschneiderte Lösungen." }}
+      </p>
+      <a href="{% url 'kontakt' %}" class="mt-6 inline-block rounded-xl bg-blue-900 px-6 py-3 font-semibold text-white shadow-md transition duration-300 ease-in-out hover:-translate-y-1 hover:scale-105 hover:bg-blue-700">
+        {{ textContent_custom.buttonText|default:"Projekt anfragen" }}
+      </a>
+    </div>
+    <div data-aos="fade-left">
+      {% if image_custom %}
+      <img src="{{ image_custom.file.url }}" {% responsive_image_attrs image_custom "(min-width: 768px) 50vw, 100vw" %} loading="lazy" alt="{{ image_custom.title|default:'Individuelle Webentwicklung' }}" class="rounded-xl shadow-xl" />
+      {% else %}
+      <img src="{% static 'images/references/MovieBattle_BG.png' %}" loading="lazy" alt="MovieBattle Preview" class="rounded-xl shadow-xl" />
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Visitenkarten -->
+  <div class="mx-auto mt-40 grid max-w-6xl items-center gap-10 px-4 md:grid-cols-2">
+    <div class="order-2 md:order-1" data-aos="fade-right">
+      <div class="grid grid-cols-2 gap-4">
+        <div class="aspect-[1.75/1] overflow-hidden rounded-xl shadow-lg ring-1 ring-gray-200 -rotate-2 transition-transform hover:rotate-0 hover:scale-105">
+          {% if image_vk_1 %}
+          <img src="{{ image_vk_1.file.url }}" {% responsive_image_attrs image_vk_1 "(min-width: 1024px) 25vw, 50vw" %} loading="lazy" alt="Visitenkarte 1" class="h-full w-full object-cover" />
+          {% else %}
+          <div class="flex h-full w-full flex-col items-center justify-center bg-gradient-to-br from-gray-700 to-gray-900 p-4 text-white">
+            <div class="mb-1 h-2 w-16 rounded-full bg-white/40"></div>
+            <div class="mb-3 h-1 w-10 rounded-full bg-white/25"></div>
+            <div class="h-1 w-12 rounded-full bg-white/20"></div>
+          </div>
+          {% endif %}
+        </div>
+        <div class="aspect-[1.75/1] overflow-hidden rounded-xl shadow-lg ring-1 ring-gray-200 rotate-2 transition-transform hover:rotate-0 hover:scale-105">
+          {% if image_vk_2 %}
+          <img src="{{ image_vk_2.file.url }}" {% responsive_image_attrs image_vk_2 "(min-width: 1024px) 25vw, 50vw" %} loading="lazy" alt="Visitenkarte 2" class="h-full w-full object-cover" />
+          {% else %}
+          <div class="flex h-full w-full flex-col items-center justify-center bg-gradient-to-br from-blue-700 to-blue-900 p-4 text-white">
+            <div class="mb-1 h-2 w-16 rounded-full bg-white/40"></div>
+            <div class="mb-3 h-1 w-10 rounded-full bg-white/25"></div>
+            <div class="h-1 w-12 rounded-full bg-white/20"></div>
+          </div>
+          {% endif %}
+        </div>
+        <div class="aspect-[1.75/1] overflow-hidden rounded-xl shadow-lg ring-1 ring-gray-200 rotate-1 transition-transform hover:rotate-0 hover:scale-105">
+          {% if image_vk_3 %}
+          <img src="{{ image_vk_3.file.url }}" {% responsive_image_attrs image_vk_3 "(min-width: 1024px) 25vw, 50vw" %} loading="lazy" alt="Visitenkarte 3" class="h-full w-full object-cover" />
+          {% else %}
+          <div class="flex h-full w-full flex-col items-center justify-center bg-gradient-to-br from-indigo-600 to-purple-800 p-4 text-white">
+            <div class="mb-1 h-2 w-16 rounded-full bg-white/40"></div>
+            <div class="mb-3 h-1 w-10 rounded-full bg-white/25"></div>
+            <div class="h-1 w-12 rounded-full bg-white/20"></div>
+          </div>
+          {% endif %}
+        </div>
+        <div class="aspect-[1.75/1] overflow-hidden rounded-xl shadow-lg ring-1 ring-gray-200 -rotate-1 transition-transform hover:rotate-0 hover:scale-105">
+          {% if image_vk_4 %}
+          <img src="{{ image_vk_4.file.url }}" {% responsive_image_attrs image_vk_4 "(min-width: 1024px) 25vw, 50vw" %} loading="lazy" alt="Visitenkarte 4" class="h-full w-full object-cover" />
+          {% else %}
+          <div class="flex h-full w-full flex-col items-center justify-center bg-gradient-to-br from-emerald-600 to-teal-800 p-4 text-white">
+            <div class="mb-1 h-2 w-16 rounded-full bg-white/40"></div>
+            <div class="mb-3 h-1 w-10 rounded-full bg-white/25"></div>
+            <div class="h-1 w-12 rounded-full bg-white/20"></div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="order-1 md:order-2" data-aos="fade-left">
+      <h2 class="mb-6 inline-block text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl sm:leading-none">
+        {{ textContent_visitenkarten.title|default:"Visitenkarten" }}
+      </h2>
+      <p class="mb-4 text-base leading-7 text-gray-600 md:text-lg xl:text-xl">
+        {{ textContent_visitenkarten.description|default:"Ein erster Eindruck zählt - und der beginnt oft mit einer Visitenkarte. Wir gestalten für dich professionelle Visitenkarten, die zu deiner Marke passen und im Gedächtnis bleiben. Von schlicht-elegant bis kreativ-modern." }}
+      </p>
+      <a href="{% url 'leistungen_visitenkarte' %}" class="mt-6 inline-block rounded-xl bg-blue-900 px-6 py-3 font-semibold text-white shadow-md transition duration-300 ease-in-out hover:-translate-y-1 hover:scale-105 hover:bg-blue-700">
+        {{ textContent_visitenkarten.buttonText|default:"Mehr erfahren" }}
+      </a>
+    </div>
+  </div>
+
+  <!-- Medien -->
+  <div class="mx-auto mt-40 grid max-w-6xl items-center gap-10 px-4 md:grid-cols-2">
+    <div data-aos="fade-right">
+      <h2 class="mb-6 inline-block text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl sm:leading-none">
+        {{ textContent_medien.title|default:"Medien & Fotografie" }}
+      </h2>
+      <p class="mb-4 text-base leading-7 text-gray-600 md:text-lg xl:text-xl">
+        {{ textContent_medien.description|default:"Wir kommen zu dir und deinem Unternehmen - für professionelle Fotos, 3D-Aufnahmen und Videomaterial, das deine Produkte und Räumlichkeiten optimal in Szene setzt." }}
+      </p>
+      <div class="mt-6 flex flex-wrap gap-3">
+        <span class="inline-flex items-center gap-2 rounded-full bg-blue-100 px-4 py-2 text-sm font-semibold text-blue-900">
+          <i class="bi bi-camera text-base"></i> {% trans "Fotografie" %}
+        </span>
+        <span class="inline-flex items-center gap-2 rounded-full bg-blue-100 px-4 py-2 text-sm font-semibold text-blue-900">
+          <i class="bi bi-badge-3d text-base"></i> {% trans "3D-Aufnahmen" %}
+        </span>
+        <span class="inline-flex items-center gap-2 rounded-full bg-blue-100 px-4 py-2 text-sm font-semibold text-blue-900">
+          <i class="bi bi-camera-video text-base"></i> {% trans "Video" %}
+        </span>
+      </div>
+      <a href="{% url 'leistungen_medien' %}" class="mt-6 inline-block rounded-xl bg-blue-900 px-6 py-3 font-semibold text-white shadow-md transition duration-300 ease-in-out hover:-translate-y-1 hover:scale-105 hover:bg-blue-700">
+        {{ textContent_medien.buttonText|default:"Mehr erfahren" }}
+      </a>
+    </div>
+    <div data-aos="fade-left">
+      {% if image_medien %}
+      <img src="{{ image_medien.file.url }}" {% responsive_image_attrs image_medien "(min-width: 768px) 50vw, 100vw" %} loading="lazy" alt="{{ image_medien.title|default:'Medien & Fotografie' }}" class="rounded-xl shadow-xl" />
+      {% else %}
+      <div class="flex h-80 items-center justify-center rounded-xl bg-gradient-to-br from-gray-800 to-gray-900 shadow-xl">
+        <div class="text-center text-white/60">
+          <i class="bi bi-camera text-6xl"></i>
+          <p class="mt-3 text-sm font-medium">Bild im CMS hinterlegen</p>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block javascriptend %}
+  <script src="{% static 'js/aos.js' %}"></script>
+  <script>
+    AOS.init({
+      duration: 800,
+      once: true,
+      disable: "phone"
+    });
+  </script>
+{% endblock %}

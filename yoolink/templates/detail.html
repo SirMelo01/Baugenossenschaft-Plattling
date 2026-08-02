@@ -1,0 +1,148 @@
+{% extends "base.html" %} {% load compress static %}
+
+{% block title %}{{block.super}} | Produktdetails{% endblock title %}
+
+{% block content %}
+
+ <!-- Content -->
+ <div class="container mx-auto mt-10 h-full max-w-6xl px-3 mb-4">
+  {% csrf_token %}  
+  <p class="my-7 text-center text-lg lg:text-left"><a href="{% url 'products' %}" class="text-blue-500">Produkte</a> / Produkt</p>
+    <div class="mx-4 grid grid-cols-1 lg:mx-0 lg:grid-cols-2 lg:gap-10">
+      <!-- Image -->
+      <div class="w-full">
+        <h1 class="text-xl font-extrabold uppercase">{{product.title}}</h1>
+        <div class="h-1 w-8 bg-black"></div>
+        <div class="mt-8 flex justify-center">
+          <img id="productImage" src="{{product.title_image.url}}" class="max-h-72 min-h-[10rem] rounded-lg" alt="" />
+        </div>
+  
+        <!-- Galery -->
+        <div class="mt-6 flex space-x-2">
+          <img src="{{product.title_image.url}}" class="product-image h-16 w-16 rounded-lg hover:scale-110 hover:cursor-pointer" alt="{{product.title}}" title="{{product.title}}" />
+          
+          {% if product.gallery %}
+
+          {% for image in product.gallery.images.all %}
+          
+          <img class="product-image h-16 w-16 rounded-lg hover:scale-110 hover:cursor-pointer" src="{{image.upload.url}}" title="{{image.upload.title}}" alt="{{image.upload.title}}" />
+          
+          {% endfor %}
+
+          {% endif %}
+        
+        </div>
+  
+        <!-- CheckOut Card -->
+      </div>
+      <!-- Details -->
+      <div class="space-y-6 text-center mt-5 lg:mt-0 lg:text-left">
+        <div class="h-full w-full rounded-xl border bg-white shadow-lg">
+          <div class="p-4">
+            {% if product.is_reduced %}
+              <div class="flex items-center">
+                  <h2 class="text-2xl font-bold text-blue-500">{{ product.discount_price|floatformat:2 }} €</h2>
+                  <h2 class="text-sm font-normal line-through text-gray-500 ml-5">{{ product.price|floatformat:2 }} €</h2>
+              </div>
+          {% else %}
+              <h2 class="text-2xl font-bold">{{ product.price|floatformat:2 }} €</h2>
+          {% endif %}
+            <p class="my-1 text-xs text-slate-400">Alle Preise enthalten 19% MwSt.</p>
+            <p class="text-xs text-green-600">Versandkosten basierend auf Bestellwert</p>
+            <div class="mt-10 flex items-center justify-center space-x-4">
+              <input id="amount" type="number" min="1" class="w-20 appearance-none rounded-xl border border-gray-300 px-4 py-2 leading-tight text-gray-700 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" value="1" placeholder="1" />
+              <button data-product-id="{{product.id}}" id="addToCart" class="flex items-center rounded-full bg-orange-500 px-4 py-2 font-bold text-white hover:bg-orange-700">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bag-plus mr-2 h-5 w-5" viewBox="0 0 16 16">
+                  <path fill-rule="evenodd" d="M8 7.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1H8.5V12a.5.5 0 0 1-1 0v-1.5H6a.5.5 0 0 1 0-1h1.5V8a.5.5 0 0 1 .5-.5" />
+                  <path d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1m3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z" />
+                </svg>
+                In den Warenkorb
+              </button>
+            </div>
+          </div>
+          <div class="mt-6 w-full bg-gray-200 p-4 rounded-b-xl">
+            <div class="flex items-center justify-center lg:justify-start">
+              {% if product.is_in_stock %}
+              <div class="h-3 w-3 rounded-full bg-green-600"></div>
+              <p class="ml-2 mr-4 text-sm font-semibold uppercase">Auf Lager</p>
+              {% else %}
+              <div class="h-3 w-3 rounded-full bg-red-600"></div>
+              <p class="ml-2 mr-4 text-sm font-semibold uppercase">Nicht im Lager</p>
+              {% endif %}
+              {% if product.online_sell %}
+              <div class="h-3 w-3 rounded-full bg-green-600"></div>
+              <p class="ml-2 text-sm font-semibold uppercase">Lieferbar</p>
+              {% else %}
+              <div class="h-3 w-3 rounded-full bg-red-600"></div>
+              <p class="ml-2 text-sm font-semibold uppercase">Nicht lieferbar</p>
+              {% endif %}
+            </div>
+            <div class="mt-5">
+              <h3 class="font-semibold uppercase">Liefermethoden</h3>
+              <div class="flex items-center justify-center lg:justify-start">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-truck w-5 h-5" viewBox="0 0 16 16">
+                  <path d="M0 3.5A1.5 1.5 0 0 1 1.5 2h9A1.5 1.5 0 0 1 12 3.5V5h1.02a1.5 1.5 0 0 1 1.17.563l1.481 1.85a1.5 1.5 0 0 1 .329.938V10.5a1.5 1.5 0 0 1-1.5 1.5H14a2 2 0 1 1-4 0H5a2 2 0 1 1-3.998-.085A1.5 1.5 0 0 1 0 10.5zm1.294 7.456A2 2 0 0 1 4.732 11h5.536a2 2 0 0 1 .732-.732V3.5a.5.5 0 0 0-.5-.5h-9a.5.5 0 0 0-.5.5v7a.5.5 0 0 0 .294.456M12 10a2 2 0 0 1 1.732 1h.768a.5.5 0 0 0 .5-.5V8.35a.5.5 0 0 0-.11-.312l-1.48-1.85A.5.5 0 0 0 13.02 6H12zm-9 1a1 1 0 1 0 0 2 1 1 0 0 0 0-2m9 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2" />
+                </svg>
+                <div class="ml-2 mt-3">
+                  <p class="text-sm font-semibold {% if not product.online_sell %}line-through{%endif%}">Versand mit zzgl. Versandkosten</p>
+                  <span class="text-xs {% if not product.online_sell %}line-through{%endif%}">Zu Ihrer Wunschadresse</span>
+                </div>
+              </div>
+              <div class="flex items-center justify-center lg:justify-start">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-truck w-5 h-5" viewBox="0 0 16 16">
+                  <path d="M0 3.5A1.5 1.5 0 0 1 1.5 2h9A1.5 1.5 0 0 1 12 3.5V5h1.02a1.5 1.5 0 0 1 1.17.563l1.481 1.85a1.5 1.5 0 0 1 .329.938V10.5a1.5 1.5 0 0 1-1.5 1.5H14a2 2 0 1 1-4 0H5a2 2 0 1 1-3.998-.085A1.5 1.5 0 0 1 0 10.5zm1.294 7.456A2 2 0 0 1 4.732 11h5.536a2 2 0 0 1 .732-.732V3.5a.5.5 0 0 0-.5-.5h-9a.5.5 0 0 0-.5.5v7a.5.5 0 0 0 .294.456M12 10a2 2 0 0 1 1.732 1h.768a.5.5 0 0 0 .5-.5V8.35a.5.5 0 0 0-.11-.312l-1.48-1.85A.5.5 0 0 0 13.02 6H12zm-9 1a1 1 0 1 0 0 2 1 1 0 0 0 0-2m9 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2" />
+                </svg>
+                <div class="ml-2 mt-3">
+                  <p class="text-sm font-semibold">Kostenlose Abholung</p>
+                  <span class="text-xs">In unserem Shop</span>
+                  <p class="text-xs mb-2">Bahnhofsallee 38,23909 Ratzeburg</p>
+                </div>
+              </div>
+              
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="mt-28">
+    <div class="flex h-11 w-full items-center justify-center bg-slate-200">
+      <div class="flex h-full items-center justify-center border-b-4 border-blue-500">
+        <p class="text-base font-medium">Beschreibung</p>
+      </div>
+    </div>
+    <div class="container mx-auto grid max-w-5xl grid-cols-1 lg:grid-cols-2 gap-8 mt-10">
+      <div class="mb-4 px-5 lg:mb-0 lg:px-0">
+        <h1 class="text-xl font-extrabold uppercase">{{product.title}}</h1>
+        <p class="mt-6">{{product.description}}</p>
+        <p class="mt-6">Hersteller: <strong>{{product.brand.name}}</strong></p>
+        <div class="mt-6 flex flex-wrap gap-4 w-full">
+          {% for category in product.categories.all %}
+          <span class="me-2 rounded bg-blue-100 px-2.5 py-0.5 text-base font-medium text-blue-800">{{category.name}}</span>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="hidden justify-center lg:flex">
+        <img src="{{product.title_image.url}}" class="rounded-lg max-w-72" alt="" />
+      </div>
+    </div>
+  </div>
+  
+
+{%endblock content%}
+
+{% block javascriptend %}
+  {% compress js %}
+      <script defer src="{% static 'js/products/product-detail.js' %}"></script>
+    {% endcompress js %}
+{% endblock javascriptend %}
+
+
+
+
+
+
+
+
+

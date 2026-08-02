@@ -1,0 +1,578 @@
+{% extends "cmsbase.html" %}
+{% load compress static %}
+{% block title %} {{ block.super }} | CMS - Seiteninhalt {% endblock %}
+
+{% block content %}
+{% include "pages/cms/components/ImageSelectModal.html" %}
+{% include "pages/cms/components/ButtonSlotModal.html" %}
+
+<div class="mx-auto mt-4 max-w-6xl px-4 sm:mt-8 sm:px-6">
+
+  <!-- ── Header ── -->
+  <div class="sticky top-[4.25rem] z-30 mb-6 rounded-2xl border border-gray-200 bg-white/95 px-5 py-4 shadow-sm backdrop-blur flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <h1 class="text-2xl">
+      <a href="{% url 'cms:sites' %}" class="text-blue-500">Seiten</a>
+      / <a href="{% url 'cms:site_leistungen' %}" class="text-blue-500">Leistungen (/leistungen)</a>
+      / <span>CMS Info (/leistungen/cms)</span>
+    </h1>
+    <div>
+      {% csrf_token %}
+      <a class="block w-full rounded bg-green-500 px-4 py-3 text-center font-bold text-white hover:cursor-pointer hover:bg-green-700 sm:w-auto sm:py-2"
+         id="saveTextData" name="main_cmsinfo">
+        Speichern
+      </a>
+    </div>
+  </div>
+
+  <div class="mt-8 space-y-8 pb-20">
+
+    <!-- ══════════════════════════════════════════
+         HERO
+    ══════════════════════════════════════════ -->
+    <section class="rounded-2xl bg-blue-50 p-6">
+      <p class="mb-4 text-xs font-semibold uppercase tracking-wider text-blue-700">Hero</p>
+      <div class="text-content flex flex-col gap-3" key="main_cmsinfo_hero">
+        <input inputType="title" type="text"
+               class="w-full rounded-lg border-2 border-blue-200 bg-blue-50 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-blue-700 focus:border-blue-500 focus:bg-white focus:outline-none"
+               placeholder="Overline (kleine Überschrift)"
+               value="{{ textContent_hero.title|default:'Content Management System' }}">
+	          <input inputType="header" type="text"
+	                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-2xl font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+	                 placeholder="Überschrift"
+	                 value="{{ textContent_hero.header|default:'Deine Website. Deine Inhalte. Deine Kontrolle.' }}">
+	          <textarea inputType="description" rows="5"
+	                    class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-base leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_hero.description|default:"Mit dem YooLink CMS pflegst du Texte, Bilder, Team, Preise, Blog und sogar deinen Produkt-Showcase selbst - direkt im Browser, ohne Vorkenntnisse und ohne auf eine Agentur zu warten." }}</textarea>
+	        </div>
+        <div class="mt-2">
+          <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-blue-700">Buttons dieser Sektion</p>
+          <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            {% include "pages/cms/components/_button_slot.html" with button=cmsinfo_btn_hero slot_key="main_cmsinfo_hero_cta" label="Hauptbutton" %}
+            {% include "pages/cms/components/_button_slot.html" with button=cmsinfo_btn_demo slot_key="main_cmsinfo_demo_cta" label="Zweitbutton (mit Icon)" %}
+          </div>
+        </div>
+    </section>
+
+	        <!-- DEMO – Probier es aus -->
+    <section class="rounded-2xl bg-blue-50 p-6">
+      <p class="mb-4 text-xs font-semibold uppercase tracking-wider text-blue-700">Probier es aus (Live-Demo)</p>
+      <div class="text-content flex flex-col gap-3" key="main_cmsinfo_demo">
+        <input inputType="header" type="text"
+               class="w-full rounded-lg border-2 border-blue-200 bg-blue-50 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-blue-700 focus:border-blue-500 focus:bg-white focus:outline-none"
+               placeholder="Overline (kleine Überschrift)"
+               value="{{ textContent_demo.header|default:'Probier es aus' }}">
+        <input inputType="title" type="text"
+               class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-xl font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+               value="{{ textContent_demo.title|default:'So fühlt sich das YooLink CMS an' }}">
+        <textarea inputType="description" rows="3"
+                  class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-base leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_demo.description|default:"Links bearbeiten, rechts zusehen: Ändere Texte, Farben und Inhalte der Beispiel-Website - genau so einfach pflegst du später deine echte Seite. Kein Login, kein Risiko, einfach klicken." }}</textarea>
+      </div>
+    </section>
+      <p class="mt-3 text-xs italic text-gray-500">Die interaktive Beispiel-Website (Marios Pizzeria) ist eine feste Demo im Template und wird hier nicht gepflegt.</p>
+    </section>
+
+<!-- ══════════════════════════════════════════
+	         FEATURE GRID
+	    ══════════════════════════════════════════ -->
+	    <section class="rounded-2xl bg-blue-50 p-6">
+	      <p class="mb-4 text-xs font-semibold uppercase tracking-wider text-blue-700">Feature Grid</p>
+	      <div class="space-y-6">
+        <div class="text-content flex flex-col gap-3" key="main_cmsinfo_sec1">
+        <input inputType="header" type="text"
+               class="w-full rounded-lg border-2 border-blue-200 bg-blue-50 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-blue-700 focus:border-blue-500 focus:bg-white focus:outline-none"
+               placeholder="Overline (kleine Überschrift)"
+               value="{{ textContent_sec1.header|default:'Ein CMS, alles drin' }}">
+	          <input inputType="title" type="text"
+	                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-xl font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+	                 value="{{ textContent_sec1.title|default:'Verwalte den Inhalt deiner Website jederzeit und ohne Hilfe' }}">
+	          <textarea inputType="description" rows="5"
+	                    class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-base leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_sec1.description|default:"Deine Website ist in klar verständliche Bereiche unterteilt. Jeden davon pflegst du selbst - vom Text auf der Startseite bis zum Produkt-Showcase. Und das CMS wächst ständig weiter." }}</textarea>
+	        </div>
+
+        <div>
+          <p class="mb-3 text-xs font-semibold uppercase tracking-wider text-blue-700"><i class="bi bi-grid-3x3-gap mr-1"></i>Feature-Kacheln (Titel &amp; Text editierbar, Icons fest)</p>
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm ring-1 ring-blue-100" key="main_cmsinfo_feat1">
+              <div class="flex items-center gap-2">
+                <span class="grid h-8 w-8 place-items-center rounded-lg bg-blue-100 text-blue-700"><i class="bi bi-fonts"></i></span>
+                <span class="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Kachel 1 · Icon fest</span>
+              </div>
+              <input inputType="title" type="text"
+                     class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                     value="{{ textContent_feat1.title|default:'Texte & Inhalte' }}">
+              <textarea inputType="description" rows="3"
+                        class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_feat1.description|default:"Überschriften, Beschreibungen und Buttons jeder Seite direkt bearbeiten - Abschnitt für Abschnitt, ganz ohne Code." }}</textarea>
+            </div>
+            <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm ring-1 ring-blue-100" key="main_cmsinfo_feat2">
+              <div class="flex items-center gap-2">
+                <span class="grid h-8 w-8 place-items-center rounded-lg bg-blue-100 text-blue-700"><i class="bi bi-images"></i></span>
+                <span class="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Kachel 2 · Icon fest</span>
+              </div>
+              <input inputType="title" type="text"
+                     class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                     value="{{ textContent_feat2.title|default:'Bilder, Videos & Galerien' }}">
+              <textarea inputType="description" rows="3"
+                        class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_feat2.description|default:"Medien hochladen, zuschneiden lassen und flexibel platzieren - inklusive Galerien und automatischer Optimierung." }}</textarea>
+            </div>
+            <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm ring-1 ring-blue-100" key="main_cmsinfo_feat3">
+              <div class="flex items-center gap-2">
+                <span class="grid h-8 w-8 place-items-center rounded-lg bg-blue-100 text-blue-700"><i class="bi bi-people"></i></span>
+                <span class="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Kachel 3 · Icon fest</span>
+              </div>
+              <input inputType="title" type="text"
+                     class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                     value="{{ textContent_feat3.title|default:'Team-Verwaltung' }}">
+              <textarea inputType="description" rows="3"
+                        class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_feat3.description|default:"Mitarbeiter mit Foto und Position anlegen, per Drag & Drop sortieren und mit einem Klick ein- oder ausblenden." }}</textarea>
+            </div>
+            <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm ring-1 ring-blue-100" key="main_cmsinfo_feat4">
+              <div class="flex items-center gap-2">
+                <span class="grid h-8 w-8 place-items-center rounded-lg bg-blue-100 text-blue-700"><i class="bi bi-hand-index"></i></span>
+                <span class="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Kachel 4 · Icon fest</span>
+              </div>
+              <input inputType="title" type="text"
+                     class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                     value="{{ textContent_feat4.title|default:'Preise & Button-Designer' }}">
+              <textarea inputType="description" rows="3"
+                        class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_feat4.description|default:"Preiskarten pflegen und Buttons im Mini-Designer gestalten: Farbe wählen, Linkziel anklicken, live Vorschau sehen." }}</textarea>
+            </div>
+            <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm ring-1 ring-blue-100" key="main_cmsinfo_feat5">
+              <div class="flex items-center gap-2">
+                <span class="grid h-8 w-8 place-items-center rounded-lg bg-blue-100 text-blue-700"><i class="bi bi-journal-richtext"></i></span>
+                <span class="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Kachel 5 · Icon fest</span>
+              </div>
+              <input inputType="title" type="text"
+                     class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                     value="{{ textContent_feat5.title|default:'Blog-Builder' }}">
+              <textarea inputType="description" rows="3"
+                        class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_feat5.description|default:"SEO-starke Beiträge mit Texten, Bildern und Videos zusammenstellen - dein direkter Draht zu besseren Google-Rankings." }}</textarea>
+            </div>
+            <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm ring-1 ring-blue-100" key="main_cmsinfo_feat6">
+              <div class="flex items-center gap-2">
+                <span class="grid h-8 w-8 place-items-center rounded-lg bg-blue-100 text-blue-700"><i class="bi bi-box-seam"></i></span>
+                <span class="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Kachel 6 · Icon fest</span>
+              </div>
+              <input inputType="title" type="text"
+                     class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                     value="{{ textContent_feat6.title|default:'Produkt-Showcase' }}">
+              <textarea inputType="description" rows="3"
+                        class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_feat6.description|default:"Produkte mit Bildern, Preisen und Spezifikationen präsentieren - übersichtlich wie in einem Katalog, ganz ohne Online-Shop." }}</textarea>
+            </div>
+            <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm ring-1 ring-blue-100" key="main_cmsinfo_feat7">
+              <div class="flex items-center gap-2">
+                <span class="grid h-8 w-8 place-items-center rounded-lg bg-blue-100 text-blue-700"><i class="bi bi-question-circle"></i></span>
+                <span class="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Kachel 7 · Icon fest</span>
+              </div>
+              <input inputType="title" type="text"
+                     class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                     value="{{ textContent_feat7.title|default:'FAQ & Öffnungszeiten' }}">
+              <textarea inputType="description" rows="3"
+                        class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_feat7.description|default:"Häufige Fragen beantworten und Öffnungszeiten zentral pflegen - deine Besucher finden Antworten, bevor sie fragen." }}</textarea>
+            </div>
+            <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm ring-1 ring-blue-100" key="main_cmsinfo_feat8">
+              <div class="flex items-center gap-2">
+                <span class="grid h-8 w-8 place-items-center rounded-lg bg-blue-100 text-blue-700"><i class="bi bi-translate"></i></span>
+                <span class="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Kachel 8 · Icon fest</span>
+              </div>
+              <input inputType="title" type="text"
+                     class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                     value="{{ textContent_feat8.title|default:'Mehrsprachigkeit' }}">
+              <textarea inputType="description" rows="3"
+                        class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_feat8.description|default:"Alle Inhalte in mehreren Sprachen pflegen - Besucher sehen deine Website automatisch in ihrer Sprache." }}</textarea>
+            </div>
+            <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm ring-1 ring-blue-100" key="main_cmsinfo_feat9">
+              <div class="flex items-center gap-2">
+                <span class="grid h-8 w-8 place-items-center rounded-lg bg-blue-100 text-blue-700"><i class="bi bi-person-badge"></i></span>
+                <span class="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Kachel 9 · Icon fest</span>
+              </div>
+              <input inputType="title" type="text"
+                     class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                     value="{{ textContent_feat9.title|default:'Benutzer & Rollen' }}">
+              <textarea inputType="description" rows="3"
+                        class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_feat9.description|default:"Mehrere Benutzer mit eigenen Zugängen und fein abgestuften Rechten - jeder im Team sieht genau das, was er braucht." }}</textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+	    </section>
+
+	    <!-- ══════════════════════════════════════════
+	         SCREENSHOT TABS
+	    ══════════════════════════════════════════ -->
+	    <section class="rounded-2xl bg-blue-50 p-6">
+	      <p class="mb-4 text-xs font-semibold uppercase tracking-wider text-blue-700">Ein Blick ins CMS</p>
+	      <div class="space-y-6">
+	        <div class="text-content flex flex-col gap-3" key="main_cmsinfo_sec2">
+        <input inputType="header" type="text"
+               class="w-full rounded-lg border-2 border-blue-200 bg-blue-50 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-blue-700 focus:border-blue-500 focus:bg-white focus:outline-none"
+               placeholder="Overline (kleine Überschrift)"
+               value="{{ textContent_sec2.header|default:'Ein Blick ins CMS' }}">
+	          <input inputType="title" type="text"
+	                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-xl font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+	                 value="{{ textContent_sec2.title|default:'Klick dich durch die Bereiche' }}">
+	          <textarea inputType="description" rows="4"
+	                    class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-base leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_sec2.description|default:"Vom Dashboard über die Seitenverwaltung bis zu den Dateien: Wähle einen Bereich und sieh dir an, wie er im CMS aussieht." }}</textarea>
+	        </div>
+
+	        <div>
+	          <p class="mb-2 text-xs font-semibold text-blue-600 uppercase tracking-wider">
+	            <i class="bi bi-eye mr-1"></i>Vorschau-Bilder der sieben Tabs
+	          </p>
+	          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="relative overflow-hidden rounded-xl bg-gray-200 ring-1 ring-slate-200">
+              <span class="edit-img absolute left-2 top-2 z-40 inline-block rounded-full bg-blue-500 px-2 py-1 text-sm font-semibold text-white hover:cursor-pointer"><i class="bi bi-pencil-square"></i></span>
+              <span class="absolute bottom-2 left-2 z-30 rounded-full bg-white/90 px-2 py-0.5 text-xs font-bold text-blue-900">Dashboard</span>
+              {% if image_shot_dashboard %}
+              <img src="{{ image_shot_dashboard.file.url }}" imgId="{{ image_shot_dashboard.id }}" key="main_cmsinfo_shot_dashboard" alt="Dashboard Vorschau" class="content-image h-40 w-full object-cover rounded-xl" />
+              {% else %}
+              <img src="{% static 'images/cmsinfo/cmsinfohero.png' %}" imgId="-1" key="main_cmsinfo_shot_dashboard" alt="Dashboard Vorschau" class="content-image h-40 w-full object-contain rounded-xl bg-gray-300" />
+              {% endif %}
+            </div>
+            <div class="relative overflow-hidden rounded-xl bg-gray-200 ring-1 ring-slate-200">
+              <span class="edit-img absolute left-2 top-2 z-40 inline-block rounded-full bg-blue-500 px-2 py-1 text-sm font-semibold text-white hover:cursor-pointer"><i class="bi bi-pencil-square"></i></span>
+              <span class="absolute bottom-2 left-2 z-30 rounded-full bg-white/90 px-2 py-0.5 text-xs font-bold text-blue-900">Team</span>
+              {% if image_sec1_preview_1 %}
+              <img src="{{ image_sec1_preview_1.file.url }}" imgId="{{ image_sec1_preview_1.id }}" key="main_cmsinfo_sec1_preview_1" alt="Team Vorschau" class="content-image h-40 w-full object-cover rounded-xl" />
+              {% else %}
+              <img src="" imgId="-1" key="main_cmsinfo_sec1_preview_1" alt="Team Vorschau" class="content-image h-40 w-full object-cover rounded-xl bg-gray-300" />
+              {% endif %}
+            </div>
+            <div class="relative overflow-hidden rounded-xl bg-gray-200 ring-1 ring-slate-200">
+              <span class="edit-img absolute left-2 top-2 z-40 inline-block rounded-full bg-blue-500 px-2 py-1 text-sm font-semibold text-white hover:cursor-pointer"><i class="bi bi-pencil-square"></i></span>
+              <span class="absolute bottom-2 left-2 z-30 rounded-full bg-white/90 px-2 py-0.5 text-xs font-bold text-blue-900">FAQ</span>
+              {% if image_sec1_preview_2 %}
+              <img src="{{ image_sec1_preview_2.file.url }}" imgId="{{ image_sec1_preview_2.id }}" key="main_cmsinfo_sec1_preview_2" alt="FAQ Vorschau" class="content-image h-40 w-full object-cover rounded-xl" />
+              {% else %}
+              <img src="" imgId="-1" key="main_cmsinfo_sec1_preview_2" alt="FAQ Vorschau" class="content-image h-40 w-full object-cover rounded-xl bg-gray-300" />
+              {% endif %}
+            </div>
+            <div class="relative overflow-hidden rounded-xl bg-gray-200 ring-1 ring-slate-200">
+              <span class="edit-img absolute left-2 top-2 z-40 inline-block rounded-full bg-blue-500 px-2 py-1 text-sm font-semibold text-white hover:cursor-pointer"><i class="bi bi-pencil-square"></i></span>
+              <span class="absolute bottom-2 left-2 z-30 rounded-full bg-white/90 px-2 py-0.5 text-xs font-bold text-blue-900">Einstellungen</span>
+              {% if image_sec1_preview_3 %}
+              <img src="{{ image_sec1_preview_3.file.url }}" imgId="{{ image_sec1_preview_3.id }}" key="main_cmsinfo_sec1_preview_3" alt="Einstellungen Vorschau" class="content-image h-40 w-full object-cover rounded-xl" />
+              {% else %}
+              <img src="" imgId="-1" key="main_cmsinfo_sec1_preview_3" alt="Einstellungen Vorschau" class="content-image h-40 w-full object-cover rounded-xl bg-gray-300" />
+              {% endif %}
+            </div>
+            <div class="relative overflow-hidden rounded-xl bg-gray-200 ring-1 ring-slate-200">
+              <span class="edit-img absolute left-2 top-2 z-40 inline-block rounded-full bg-blue-500 px-2 py-1 text-sm font-semibold text-white hover:cursor-pointer"><i class="bi bi-pencil-square"></i></span>
+              <span class="absolute bottom-2 left-2 z-30 rounded-full bg-white/90 px-2 py-0.5 text-xs font-bold text-blue-900">Seiten</span>
+              {% if image_sec1_preview_4 %}
+              <img src="{{ image_sec1_preview_4.file.url }}" imgId="{{ image_sec1_preview_4.id }}" key="main_cmsinfo_sec1_preview_4" alt="Seiten Vorschau" class="content-image h-40 w-full object-cover rounded-xl" />
+              {% else %}
+              <img src="" imgId="-1" key="main_cmsinfo_sec1_preview_4" alt="Seiten Vorschau" class="content-image h-40 w-full object-cover rounded-xl bg-gray-300" />
+              {% endif %}
+            </div>
+            <div class="relative overflow-hidden rounded-xl bg-gray-200 ring-1 ring-slate-200">
+              <span class="edit-img absolute left-2 top-2 z-40 inline-block rounded-full bg-blue-500 px-2 py-1 text-sm font-semibold text-white hover:cursor-pointer"><i class="bi bi-pencil-square"></i></span>
+              <span class="absolute bottom-2 left-2 z-30 rounded-full bg-white/90 px-2 py-0.5 text-xs font-bold text-blue-900">Dateien</span>
+              {% if image_sec2_preview_1 %}
+              <img src="{{ image_sec2_preview_1.file.url }}" imgId="{{ image_sec2_preview_1.id }}" key="main_cmsinfo_sec2_preview_1" alt="Dateien Vorschau" class="content-image h-40 w-full object-cover rounded-xl" />
+              {% else %}
+              <img src="" imgId="-1" key="main_cmsinfo_sec2_preview_1" alt="Dateien Vorschau" class="content-image h-40 w-full object-cover rounded-xl bg-gray-300" />
+              {% endif %}
+            </div>
+            <div class="relative overflow-hidden rounded-xl bg-gray-200 ring-1 ring-slate-200">
+              <span class="edit-img absolute left-2 top-2 z-40 inline-block rounded-full bg-blue-500 px-2 py-1 text-sm font-semibold text-white hover:cursor-pointer"><i class="bi bi-pencil-square"></i></span>
+              <span class="absolute bottom-2 left-2 z-30 rounded-full bg-white/90 px-2 py-0.5 text-xs font-bold text-blue-900">Galerien</span>
+              {% if image_sec2_preview_2 %}
+              <img src="{{ image_sec2_preview_2.file.url }}" imgId="{{ image_sec2_preview_2.id }}" key="main_cmsinfo_sec2_preview_2" alt="Galerien Vorschau" class="content-image h-40 w-full object-cover rounded-xl" />
+              {% else %}
+              <img src="" imgId="-1" key="main_cmsinfo_sec2_preview_2" alt="Galerien Vorschau" class="content-image h-40 w-full object-cover rounded-xl bg-gray-300" />
+              {% endif %}
+            </div>
+          </div>
+	        </div>
+
+	      </div>
+	    </section>
+
+        <!-- PRODUCTS – Produkte & Showcase -->
+    <section class="rounded-2xl bg-blue-50 p-6">
+      <p class="mb-4 text-xs font-semibold uppercase tracking-wider text-blue-700">Produkte &amp; Showcase</p>
+      <div class="text-content flex flex-col gap-3" key="main_cmsinfo_products">
+        <input inputType="header" type="text"
+               class="w-full rounded-lg border-2 border-blue-200 bg-blue-50 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-blue-700 focus:border-blue-500 focus:bg-white focus:outline-none"
+               placeholder="Overline (kleine Überschrift)"
+               value="{{ textContent_products.header|default:'Produkte & Showcase' }}">
+        <input inputType="title" type="text"
+               class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-xl font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+               value="{{ textContent_products.title|default:'Präsentiere deine Produkte - ganz ohne Online-Shop' }}">
+        <textarea inputType="description" rows="3"
+                  class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-base leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_products.description|default:"Stelle dein Sortiment wie in einem digitalen Katalog aus: mit Bildern, Beschreibungen, Kategorien und Spezifikationen. Ob ein Preis angezeigt wird oder „Preis auf Anfrage“ steht, entscheidest du pro Produkt - Interessenten melden sich direkt bei dir." }}</textarea>
+      </div>
+      <div class="mt-3">
+        <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-blue-700">Button</p>
+        {% include "pages/cms/components/_button_slot.html" with button=cmsinfo_btn_products slot_key="main_cmsinfo_products_cta" label="Live-Beispiel-Link" %}
+      </div>
+      <div class="mt-3 flex flex-col gap-2 border-t border-blue-200 pt-3">
+          <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Bullet-Punkte</p>
+            <div class="text-content flex items-center gap-2" key="main_cmsinfo_products_bullet1">
+              <svg class="h-4 w-4 flex-shrink-0 text-blue-900" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+              <input inputType="title" type="text" class="flex-1 rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm font-medium focus:border-blue-500 focus:bg-white focus:outline-none"
+                     value="{{ textContent_products_bullet1.title|default:'Showcase-Modus: präsentieren statt verkaufen' }}">
+            </div>
+            <div class="text-content flex items-center gap-2" key="main_cmsinfo_products_bullet2">
+              <svg class="h-4 w-4 flex-shrink-0 text-blue-900" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+              <input inputType="title" type="text" class="flex-1 rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm font-medium focus:border-blue-500 focus:bg-white focus:outline-none"
+                     value="{{ textContent_products_bullet2.title|default:'Preis pro Produkt anzeigen oder verbergen („Preis auf Anfrage“)' }}">
+            </div>
+            <div class="text-content flex items-center gap-2" key="main_cmsinfo_products_bullet3">
+              <svg class="h-4 w-4 flex-shrink-0 text-blue-900" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+              <input inputType="title" type="text" class="flex-1 rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm font-medium focus:border-blue-500 focus:bg-white focus:outline-none"
+                     value="{{ textContent_products_bullet3.title|default:'Bilder, Kategorien, Marken und Spezifikationen einfach pflegen' }}">
+            </div>
+            <div class="text-content flex items-center gap-2" key="main_cmsinfo_products_bullet4">
+              <svg class="h-4 w-4 flex-shrink-0 text-blue-900" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+              <input inputType="title" type="text" class="flex-1 rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm font-medium focus:border-blue-500 focus:bg-white focus:outline-none"
+                     value="{{ textContent_products_bullet4.title|default:'Anfragen laufen direkt über deine Kontaktseite bei dir ein' }}">
+            </div>
+      </div>
+    </section>
+
+<!-- ══════════════════════════════════════════
+         BLOG – Text + Bullets links, Bild rechts
+    ══════════════════════════════════════════ -->
+    <section class="rounded-2xl bg-blue-50 p-6">
+      <p class="mb-4 text-xs font-semibold uppercase tracking-wider text-blue-700">Blog</p>
+      <div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
+
+        <!-- Links: Text + Bullets -->
+        <div class="flex flex-col gap-3">
+	          <div class="text-content flex flex-col gap-3" key="main_cmsinfo_blog">
+        <input inputType="header" type="text"
+               class="w-full rounded-lg border-2 border-blue-200 bg-blue-50 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-blue-700 focus:border-blue-500 focus:bg-white focus:outline-none"
+               placeholder="Overline (kleine Überschrift)"
+               value="{{ textContent_blog.header|default:'Blog-Builder' }}">
+	            <input inputType="title" type="text"
+	                   class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-xl font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+	                   value="{{ textContent_blog.title|default:'Verbessere dein Google-Ranking mit eigenen Beiträgen' }}">
+	            <textarea inputType="description" rows="4"
+	                      class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-base leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_blog.description|default:"Mit dem integrierten Blog-Builder erstellst du Beiträge mit Texten, Bildern und Videos in klar strukturierten Layouts. Regelmäßige, relevante Inhalte sind der stärkste Hebel für deine Sichtbarkeit bei Google." }}</textarea>
+          </div>
+          <div class="flex flex-col gap-2 border-t border-blue-200 pt-3">
+            <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Bullet-Punkte</p>
+            <div class="text-content flex items-center gap-2" key="main_cmsinfo_blog_bullet1">
+              <svg class="h-4 w-4 flex-shrink-0 text-blue-900" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+              <input inputType="title" type="text"
+                     class="flex-1 rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm font-medium focus:border-blue-500 focus:bg-white focus:outline-none"
+                     value="{{ textContent_blog_bullet1.title|default:'Suchmaschinenoptimierte Inhalte gezielt erstellen' }}">
+            </div>
+            <div class="text-content flex items-center gap-2" key="main_cmsinfo_blog_bullet2">
+              <svg class="h-4 w-4 flex-shrink-0 text-blue-900" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+              <input inputType="title" type="text"
+                     class="flex-1 rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm font-medium focus:border-blue-500 focus:bg-white focus:outline-none"
+                     value="{{ textContent_blog_bullet2.title|default:'Strukturierte Layouts mit Texten, Bildern, Videos und mehr' }}">
+            </div>
+            <div class="text-content flex items-center gap-2" key="main_cmsinfo_blog_bullet3">
+              <svg class="h-4 w-4 flex-shrink-0 text-blue-900" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+              <input inputType="title" type="text"
+                     class="flex-1 rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm font-medium focus:border-blue-500 focus:bg-white focus:outline-none"
+                     value="{{ textContent_blog_bullet3.title|default:'Einfache Verwaltung und Bearbeitung bestehender Beiträge' }}">
+            </div>
+          </div>
+        </div>
+
+        <!-- Rechts: Blog-Bild -->
+        <div class="relative overflow-hidden rounded-xl bg-gray-200 shadow-xl ring-1 ring-slate-200">
+          <span class="edit-img absolute left-2 top-2 z-40 inline-block rounded-full bg-orange-500 px-2 py-1 text-sm font-semibold text-white hover:cursor-pointer"><i class="bi bi-pencil-square"></i></span>
+          {% if image_blog %}
+          <img src="{{ image_blog.file.url }}" imgId="{{ image_blog.id }}" key="main_cmsinfo_blog_image" alt="Blog Bild" class="content-image h-full min-h-[16rem] w-full object-cover" />
+          {% else %}
+          <img src="" imgId="-1" key="main_cmsinfo_blog_image" alt="Blog Bild" class="content-image h-full min-h-[16rem] w-full object-cover bg-gray-300" />
+          {% endif %}
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         COMPANY – Bild links, Text + Bullets rechts
+    ══════════════════════════════════════════ -->
+    <section class="rounded-2xl bg-blue-50 p-6">
+      <p class="mb-4 text-xs font-semibold uppercase tracking-wider text-blue-700">Company / Unternehmensdaten</p>
+      <div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
+
+        <!-- Links: Company-Bild -->
+        <div class="relative overflow-hidden rounded-xl bg-gray-200 shadow-xl ring-1 ring-slate-200">
+          <span class="edit-img absolute left-2 top-2 z-40 inline-block rounded-full bg-orange-500 px-2 py-1 text-sm font-semibold text-white hover:cursor-pointer"><i class="bi bi-pencil-square"></i></span>
+          {% if image_company %}
+          <img src="{{ image_company.file.url }}" imgId="{{ image_company.id }}" key="main_cmsinfo_company_image" alt="Company Bild" class="content-image h-full min-h-[16rem] w-full object-cover" />
+          {% else %}
+          <img src="" imgId="-1" key="main_cmsinfo_company_image" alt="Company Bild" class="content-image h-full min-h-[16rem] w-full object-cover bg-gray-300" />
+          {% endif %}
+        </div>
+
+        <!-- Rechts: Text + Bullets -->
+        <div class="flex flex-col gap-3">
+	          <div class="text-content flex flex-col gap-3" key="main_cmsinfo_company">
+        <input inputType="header" type="text"
+               class="w-full rounded-lg border-2 border-blue-200 bg-blue-50 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-blue-700 focus:border-blue-500 focus:bg-white focus:outline-none"
+               placeholder="Overline (kleine Überschrift)"
+               value="{{ textContent_company.header|default:'Unternehmensdaten' }}">
+	            <input inputType="title" type="text"
+	                   class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-xl font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+	                   value="{{ textContent_company.title|default:'Alle Unternehmensdaten an einem Ort' }}">
+	            <textarea inputType="description" rows="4"
+	                      class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-base leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_company.description|default:"Adresse, Kontaktdaten, Logo, Social-Media-Profile: Pflege alle wichtigen Informationen zentral - die Website übernimmt sie automatisch an jeder Stelle, an der sie gebraucht werden." }}</textarea>
+          </div>
+          <div class="flex flex-col gap-2 border-t border-blue-200 pt-3">
+            <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Bullet-Punkte</p>
+            <div class="text-content flex items-center gap-2" key="main_cmsinfo_company_bullet1">
+              <svg class="h-4 w-4 flex-shrink-0 text-blue-900" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+              <input inputType="title" type="text"
+                     class="flex-1 rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm font-medium focus:border-blue-500 focus:bg-white focus:outline-none"
+                     value="{{ textContent_company_bullet1.title|default:'Zentrale Verwaltung aller Unternehmensdaten' }}">
+            </div>
+            <div class="text-content flex items-center gap-2" key="main_cmsinfo_company_bullet2">
+              <svg class="h-4 w-4 flex-shrink-0 text-blue-900" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+              <input inputType="title" type="text"
+                     class="flex-1 rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm font-medium focus:border-blue-500 focus:bg-white focus:outline-none"
+                     value="{{ textContent_company_bullet2.title|default:'Dynamische Anzeige auf der Website' }}">
+            </div>
+            <div class="text-content flex items-center gap-2" key="main_cmsinfo_company_bullet3">
+              <svg class="h-4 w-4 flex-shrink-0 text-blue-900" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+              <input inputType="title" type="text"
+                     class="flex-1 rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm font-medium focus:border-blue-500 focus:bg-white focus:outline-none"
+                     value="{{ textContent_company_bullet3.title|default:'Logos, Bilder und andere Dateien einfach integrieren' }}">
+            </div>
+            <div class="text-content flex items-center gap-2" key="main_cmsinfo_company_bullet4">
+              <svg class="h-4 w-4 flex-shrink-0 text-blue-900" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+              <input inputType="title" type="text"
+                     class="flex-1 rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm font-medium focus:border-blue-500 focus:bg-white focus:outline-none"
+                     value="{{ textContent_company_bullet4.title|default:'Übersichtliches und intuitives Interface' }}">
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+        <!-- SECURITY – Benutzer & Sicherheit -->
+    <section class="rounded-2xl bg-blue-50 p-6">
+      <p class="mb-4 text-xs font-semibold uppercase tracking-wider text-blue-700">Benutzer &amp; Sicherheit</p>
+      <div class="text-content flex flex-col gap-3" key="main_cmsinfo_security">
+        <input inputType="header" type="text"
+               class="w-full rounded-lg border-2 border-blue-200 bg-blue-50 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-blue-700 focus:border-blue-500 focus:bg-white focus:outline-none"
+               placeholder="Overline (kleine Überschrift)"
+               value="{{ textContent_security.header|default:'Benutzer & Sicherheit' }}">
+        <input inputType="title" type="text"
+               class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-xl font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+               value="{{ textContent_security.title|default:'Dein Team arbeitet mit - jeder mit den richtigen Rechten' }}">
+        <textarea inputType="description" rows="3"
+                  class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-base leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_security.description|default:"Das YooLink CMS ist für Teams gebaut: Lege beliebig viele Benutzer an und bestimme pro Person, welche Bereiche sie bearbeiten darf. Die Marketing-Kollegin pflegt den Blog, der Azubi die Öffnungszeiten - und der Login bleibt dank Zwei-Faktor-Authentifizierung sicher." }}</textarea>
+      </div>
+      <div class="mt-3 flex flex-col gap-2 border-t border-blue-200 pt-3">
+          <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Bullet-Punkte</p>
+            <div class="text-content flex items-center gap-2" key="main_cmsinfo_security_bullet1">
+              <svg class="h-4 w-4 flex-shrink-0 text-blue-900" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+              <input inputType="title" type="text" class="flex-1 rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm font-medium focus:border-blue-500 focus:bg-white focus:outline-none"
+                     value="{{ textContent_security_bullet1.title|default:'Eigene Zugänge für jedes Team-Mitglied' }}">
+            </div>
+            <div class="text-content flex items-center gap-2" key="main_cmsinfo_security_bullet2">
+              <svg class="h-4 w-4 flex-shrink-0 text-blue-900" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+              <input inputType="title" type="text" class="flex-1 rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm font-medium focus:border-blue-500 focus:bg-white focus:outline-none"
+                     value="{{ textContent_security_bullet2.title|default:'Rollen mit fein abgestuften Rechten pro CMS-Bereich' }}">
+            </div>
+            <div class="text-content flex items-center gap-2" key="main_cmsinfo_security_bullet3">
+              <svg class="h-4 w-4 flex-shrink-0 text-blue-900" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+              <input inputType="title" type="text" class="flex-1 rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm font-medium focus:border-blue-500 focus:bg-white focus:outline-none"
+                     value="{{ textContent_security_bullet3.title|default:'Sicherer Login mit Zwei-Faktor-Authentifizierung (2FA)' }}">
+            </div>
+            <div class="text-content flex items-center gap-2" key="main_cmsinfo_security_bullet4">
+              <svg class="h-4 w-4 flex-shrink-0 text-blue-900" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+              <input inputType="title" type="text" class="flex-1 rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm font-medium focus:border-blue-500 focus:bg-white focus:outline-none"
+                     value="{{ textContent_security_bullet4.title|default:'Automatischer Spam-Schutz für Kontaktanfragen' }}">
+            </div>
+      </div>
+    </section>
+
+<!-- ══════════════════════════════════════════
+         TRUST / STATS – 2-Spalten wie public
+    ══════════════════════════════════════════ -->
+    <section class="rounded-2xl bg-blue-50 p-6">
+      <p class="mb-4 text-xs font-semibold uppercase tracking-wider text-blue-700">Vertrauen &amp; Zahlen</p>
+      <div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
+
+        <!-- Links: Trust-Text -->
+        <div class="text-content flex flex-col gap-3" key="main_cmsinfo_trust">
+          <input inputType="header" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-sm font-semibold text-blue-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_trust.header|default:'Von Unternehmen im Einsatz' }}">
+	          <input inputType="title" type="text"
+	                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-xl font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+	                 value="{{ textContent_trust.title|default:'Vertrauen von Anfang an - Zahlen, die für sich sprechen' }}">
+	          <textarea inputType="description" rows="4"
+	                    class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-base leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_trust.description|default:"Unternehmen aus unterschiedlichen Branchen pflegen ihre Websites bereits selbst mit dem YooLink CMS - zuverlässig, sicher und ohne Agentur-Wartezeiten." }}</textarea>
+        </div>
+
+        <!-- Rechts: 4 Stats (2×2) -->
+        <div class="grid grid-cols-2 gap-4">
+          <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm" key="main_cmsinfo_stat1">
+            <input inputType="title" type="text"
+                   class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-lg font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                   value="{{ textContent_stat1.title|default:'99.99% Betriebszeit' }}">
+            <textarea inputType="description" rows="2"
+                      class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_stat1.description|default:"Unsere Systeme laufen zuverlässig - ohne merkbare Ausfälle." }}</textarea>
+          </div>
+          <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm" key="main_cmsinfo_stat2">
+            <input inputType="title" type="text"
+                   class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-lg font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                   value="{{ textContent_stat2.title|default:'10+ aktive Nutzer' }}">
+            <textarea inputType="description" rows="2"
+                      class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_stat2.description|default:"Teams aus unterschiedlichsten Branchen nutzen YooLink bereits heute." }}</textarea>
+          </div>
+          <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm" key="main_cmsinfo_stat3">
+            <input inputType="title" type="text"
+                   class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-lg font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                   value="{{ textContent_stat3.title|default:'Mehrsprachigkeit inklusive' }}">
+            <textarea inputType="description" rows="2"
+                      class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_stat3.description|default:"Pflege deine Website-Inhalte ganz einfach in jeder gewünschten Sprache." }}</textarea>
+          </div>
+          <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm" key="main_cmsinfo_stat4">
+	            <input inputType="title" type="text"
+	                   class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-lg font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+	                   value="{{ textContent_stat4.title|default:'Nahtlose Integration' }}">
+            <textarea inputType="description" rows="2"
+                      class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_stat4.description|default:"YooLink lässt sich unkompliziert in bestehende Workflows integrieren." }}</textarea>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         BOTTOM CTA – dunkel, zentriert
+    ══════════════════════════════════════════ -->
+    <section class="rounded-2xl bg-gray-700 p-8">
+      <p class="mb-4 text-xs font-semibold uppercase tracking-wider text-gray-300">Bottom CTA</p>
+      <div class="text-content mx-auto flex max-w-xl flex-col items-center gap-3 text-center" key="main_cmsinfo_bottomcta">
+        <input inputType="title" type="text"
+               class="w-full rounded-lg border-2 border-gray-500 bg-gray-600 px-4 py-2 text-xl font-bold text-white placeholder-gray-400 focus:border-blue-400 focus:bg-gray-500 focus:outline-none"
+               value="{{ textContent_bottomcta.title|default:'Jetzt unverbindlich Kontakt aufnehmen' }}">
+        <textarea inputType="description" rows="3"
+                  class="w-full rounded-lg border-2 border-gray-500 bg-gray-600 px-4 py-2 text-base text-white placeholder-gray-400 focus:border-blue-400 focus:bg-gray-500 focus:outline-none">{{ textContent_bottomcta.description|default:"Du suchst nach einem flexiblen, leistungsstarken und einfachen CMS? Wir beraten dich persönlich!" }}</textarea>
+        <div class="w-full text-left">
+          {% include "pages/cms/components/_button_slot.html" with button=cmsinfo_btn_bottomcta slot_key="main_cmsinfo_bottomcta" label="Abschluss-Button" %}
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block javascriptend %}
+{% compress js %}
+<script defer src="{% static 'js/cms.js' %}"></script>
+<script defer src="{% static 'js/cms/content/siteManager.js' %}"></script>
+<script src="{% static 'js/cms/content/save-text.js' %}"></script>
+<script defer src="{% static 'js/cms/unsaved-guard.js' %}"></script>
+<script src="{% static 'js/cms/content/button-slot.js' %}"></script>
+<script defer>
+  $(document).ready(function () {
+    loadImages(false);
+  });
+</script>
+{% endcompress js %}
+{% endblock %}

@@ -1,0 +1,393 @@
+{% extends "cmsbase.html" %}
+{% load compress static %}
+{% block title %}{{ block.super }} | CMS | {{ form_title }}{% endblock %}
+
+{% block content %}
+{% include "pages/cms/components/ImageSelectModal.html" %}
+{% include "pages/cms/components/GalerySelectModal.html" %}
+
+<div class="container mx-auto mt-4 max-w-6xl px-2 sm:mt-8 sm:px-4">
+
+    <!-- Breadcrumb -->
+    <nav class="text-sm text-gray-500" aria-label="Breadcrumb">
+        <ol class="flex flex-wrap items-center gap-1">
+            <li><a href="{% url 'cms:sites' %}" class="text-blue-600 hover:underline">Seiten</a></li>
+            <li class="text-gray-300">/</li>
+            <li><a href="{% url 'cms:site_kunden' %}" class="text-blue-600 hover:underline">Kunden</a></li>
+            <li class="text-gray-300">/</li>
+            <li><a href="{% url 'cms:customer-list' %}" class="text-blue-600 hover:underline">Kundenliste</a></li>
+            <li class="text-gray-300">/</li>
+            <li class="font-semibold text-gray-700" id="live-title">{{ customer.name|default:"Neuer Kunde" }}</li>
+        </ol>
+    </nav>
+
+    <!-- Hero Header -->
+    <header class="mt-4 overflow-hidden rounded-3xl bg-gradient-to-br from-blue-900 via-blue-800 to-blue-700 text-white shadow-xl">
+        <div class="relative px-6 py-6 sm:px-8 sm:py-7">
+            <div class="absolute inset-y-0 right-0 hidden w-1/2 bg-[radial-gradient(circle_at_70%_30%,rgba(255,255,255,0.15),transparent_60%)] md:block" aria-hidden="true"></div>
+            <div class="relative flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+                <div class="max-w-2xl">
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-blue-200">
+                        {% if customer %}Kunde bearbeiten{% else %}Neuer Kunde{% endif %}
+                    </p>
+                    <h1 class="mt-1.5 text-xl font-bold leading-tight tracking-tight sm:text-2xl">
+                        <span id="live-hero-title">{{ customer.name|default:"Neuer Kunde" }}</span>
+                    </h1>
+                    <p class="mt-2 text-sm text-blue-100">
+                        Pflege Inhalte, Bilder, Galerie und Detailseite.
+                        {% if customer.slug %}
+                            Slug: <code class="rounded bg-white/10 px-1.5 py-0.5 font-mono text-[11px]">/kunden/{{ customer.slug }}/</code>
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="flex flex-col gap-2 sm:flex-row md:flex-col md:items-end">
+                    {% if customer %}
+                        {% if customer.has_detail %}
+                            <a href="{% url 'kunde-detail' customer.slug %}" target="_blank" rel="noopener noreferrer"
+                                class="inline-flex items-center justify-center gap-2 rounded-xl border border-white/30 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/20">
+                                <i class="bi bi-box-arrow-up-right"></i> Detailseite öffnen
+                            </a>
+                        {% endif %}
+                    {% endif %}
+                    <button type="submit" form="customer-form"
+                        class="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-bold text-blue-900 shadow-lg transition hover:-translate-y-0.5 hover:bg-blue-50">
+                        <i class="bi bi-check2-circle text-base"></i>
+                        {{ submit_label }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <form id="customer-form" class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3"
+        data-customer-id="{{ customer.id|default_if_none:'' }}"
+        data-create-url="{% url 'cms:customer-create' %}"
+        {% if customer %}data-edit-url="{% url 'cms:customer-edit' customer.id %}"{% endif %}
+        data-list-url="{% url 'cms:customer-list' %}">
+        {% csrf_token %}
+
+        <!-- Hauptspalte -->
+        <div class="space-y-6 lg:col-span-2">
+
+            <!-- BASISDATEN -->
+            <section class="overflow-hidden rounded-2xl bg-white shadow-md ring-1 ring-gray-200">
+                <header class="flex items-center gap-3 border-b border-gray-100 px-5 py-4 sm:px-6">
+                    <span class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-blue-100 text-blue-700">
+                        <i class="bi bi-person-vcard text-lg"></i>
+                    </span>
+                    <div>
+                        <h2 class="text-base font-bold text-gray-900">Basisdaten</h2>
+                        <p class="text-xs text-gray-500">Name, Branche und Webseite des Kunden.</p>
+                    </div>
+                </header>
+                <div class="grid grid-cols-1 gap-5 p-5 sm:p-6 md:grid-cols-2">
+                    <div class="md:col-span-2">
+                        <label class="mb-1 block text-sm font-semibold text-gray-700">Name des Kunden *</label>
+                        <input type="text" id="name" required
+                            value="{{ customer.name|default:'' }}"
+                            class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="mb-1 block text-sm font-semibold text-gray-700">Untertitel / Branche</label>
+                        <input type="text" id="subtitle"
+                            value="{{ customer.subtitle|default:'' }}"
+                            placeholder="z.B. Steuerkanzlei oder Reiseveranstalter"
+                            class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
+                    </div>
+
+                    <div>
+                        <label class="mb-1 block text-sm font-semibold text-gray-700">Webseite (URL)</label>
+                        <div class="relative">
+                            <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"><i class="bi bi-globe2"></i></span>
+                            <input type="url" id="website_url"
+                                value="{{ customer.website_url|default:'' }}"
+                                placeholder="https://www.beispiel.de/"
+                                class="w-full rounded-xl border border-gray-300 bg-white py-2.5 pl-9 pr-4 text-sm shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="mb-1 block text-sm font-semibold text-gray-700">Webseite (Anzeige)</label>
+                        <input type="text" id="website_display"
+                            value="{{ customer.website_display|default:'' }}"
+                            placeholder="beispiel.de"
+                            class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
+                    </div>
+
+                    <div>
+                        <label class="mb-1 block text-sm font-semibold text-gray-700">Veröffentlichungsdatum</label>
+                        <input type="date" id="published_date"
+                            value="{{ customer.published_date|date:'Y-m-d' }}"
+                            class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
+                    </div>
+                    <div>
+                        <label class="mb-1 block text-sm font-semibold text-gray-700">Sektion auf /kunden</label>
+                        <select id="section"
+                            class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
+                            {% for value, label in section_choices %}
+                                <option value="{{ value }}" {% if customer.section == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </section>
+
+            <!-- BILDER -->
+            <section class="overflow-hidden rounded-2xl bg-white shadow-md ring-1 ring-gray-200">
+                <header class="flex items-center gap-3 border-b border-gray-100 px-5 py-4 sm:px-6">
+                    <span class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-purple-100 text-purple-700">
+                        <i class="bi bi-images text-lg"></i>
+                    </span>
+                    <div>
+                        <h2 class="text-base font-bold text-gray-900">Bilder</h2>
+                        <p class="text-xs text-gray-500">Wähle Bilder aus deiner Mediathek oder lade neue hoch.</p>
+                    </div>
+                </header>
+
+                <div class="grid grid-cols-1 gap-5 p-5 sm:p-6 lg:grid-cols-3">
+                    {% include "pages/cms/content/customers/_image_picker.html" with target="titleImage" label="Titelbild" hint="Karte auf /kunden" image=customer.title_image rounded_class="rounded-xl object-cover" placeholder_icon="bi-easel2" %}
+                    {% include "pages/cms/content/customers/_image_picker.html" with target="bannerImage" label="Banner-Bild" hint="Hero-Bild der Detailseite" image=customer.banner_image rounded_class="rounded-xl object-cover" placeholder_icon="bi-aspect-ratio" %}
+                    {% include "pages/cms/content/customers/_image_picker.html" with target="logoImage" label="Logo" hint="Optional - rund/quadratisch" image=customer.logo rounded_class="rounded-xl object-contain p-3" placeholder_icon="bi-bookmark-star" placeholder_label="Optional" %}
+                </div>
+
+                <div class="grid grid-cols-1 gap-5 border-t border-gray-100 bg-gray-50 p-5 sm:p-6 md:grid-cols-2">
+                    <div>
+                        <label class="mb-1 block text-sm font-semibold text-gray-700">Logo-Darstellung</label>
+                        <select id="logo_style"
+                            class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
+                            {% for value, label in logo_style_choices %}
+                                <option value="{{ value }}" {% if customer.logo_style == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="mb-1 block text-sm font-semibold text-gray-700">Initialen (Fallback ohne Logo)</label>
+                        <input type="text" id="logo_fallback_text" maxlength="8"
+                            value="{{ customer.logo_fallback_text|default:'' }}"
+                            placeholder='z.B. "U" für Uhrmann'
+                            class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
+                    </div>
+                </div>
+            </section>
+
+            <!-- GALERIE -->
+            <section class="overflow-hidden rounded-2xl bg-white shadow-md ring-1 ring-gray-200">
+                <header class="flex items-center gap-3 border-b border-gray-100 px-5 py-4 sm:px-6">
+                    <span class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-pink-100 text-pink-700">
+                        <i class="bi bi-collection-play text-lg"></i>
+                    </span>
+                    <div>
+                        <h2 class="text-base font-bold text-gray-900">Galerie</h2>
+                        <p class="text-xs text-gray-500">Optional - erscheint im Bereich „Eindrücke" der Detailseite.</p>
+                    </div>
+                </header>
+                <div class="p-5 sm:p-6">
+                    <div id="galeryPickerBox" class="galery-container flex flex-col gap-3 rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 p-5 sm:flex-row sm:items-center sm:justify-between"
+                        galery-id="{{ customer.gallery.id|default:'-1' }}">
+                        <div class="flex items-start gap-3">
+                            <span class="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-white text-pink-600 shadow-sm ring-1 ring-gray-200">
+                                <i class="bi bi-images text-lg"></i>
+                            </span>
+                            <div class="min-w-0">
+                                <p class="text-sm font-semibold text-gray-900" id="galeryPickerTitle">
+                                    {% if customer.gallery %}{{ customer.gallery.title }}{% else %}Keine Galerie ausgewählt{% endif %}
+                                </p>
+                                <p class="text-xs text-gray-500" id="galeryPickerDescription">
+                                    {% if customer.gallery %}{{ customer.gallery.description|truncatechars:120 }}{% else %}Verbinde optional eine vorhandene Galerie aus deinem System.{% endif %}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex flex-shrink-0 gap-2">
+                            <button type="button" id="customerSelectGalery"
+                                class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-blue-700">
+                                <i class="bi bi-search"></i>
+                                Auswählen
+                            </button>
+                            <button type="button" id="customerClearGalery"
+                                class="inline-flex items-center gap-2 rounded-lg bg-gray-200 px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-300">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
+                        <div class="carousel hidden"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- INHALTE -->
+            <section class="overflow-hidden rounded-2xl bg-white shadow-md ring-1 ring-gray-200">
+                <header class="flex items-center gap-3 border-b border-gray-100 px-5 py-4 sm:px-6">
+                    <span class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-amber-100 text-amber-700">
+                        <i class="bi bi-fonts text-lg"></i>
+                    </span>
+                    <div>
+                        <h2 class="text-base font-bold text-gray-900">Inhalte</h2>
+                        <p class="text-xs text-gray-500">Texte für Detailseite und Vorschau-Karte.</p>
+                    </div>
+                </header>
+                <div class="space-y-5 p-5 sm:p-6">
+                    <div>
+                        <label class="mb-1 block text-sm font-semibold text-gray-700">Kurzbeschreibung</label>
+                        <textarea id="short_description" rows="2"
+                            placeholder="Kurzer Satz, der den Kunden beschreibt."
+                            class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">{{ customer.short_description|default:'' }}</textarea>
+                        <p class="mt-1 text-xs text-gray-500">Erscheint auf der Übersichtskarte und im Detail-Hero.</p>
+                    </div>
+
+                    <div>
+                        <label class="mb-1 block text-sm font-semibold text-gray-700">Beschreibung (Detailseite)</label>
+                        <textarea id="description" rows="6"
+                            placeholder="Längere Beschreibung des Projekts und Kunden."
+                            class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm leading-relaxed shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">{{ customer.description|default:'' }}</textarea>
+                    </div>
+
+                    <div>
+                        <label class="mb-1 block text-sm font-semibold text-gray-700">Erbrachte Leistungen</label>
+                        <textarea id="services_text" rows="4"
+                            placeholder="Eine Leistung pro Zeile, z.B.&#10;CMS&#10;Webdesign&#10;Logo"
+                            class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">{{ customer.services_text|default:'' }}</textarea>
+                        <p class="mt-1 text-xs text-gray-500">Eine Zeile pro Leistung - wird als Liste auf der Detailseite angezeigt.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 gap-5 rounded-xl bg-blue-50 p-4 sm:grid-cols-3">
+                        <div class="sm:col-span-2">
+                            <label class="mb-1 block text-sm font-semibold text-gray-700">Stimme des Kunden / Testimonial</label>
+                            <textarea id="testimonial" rows="3"
+                                placeholder="Optional: Zitat des Kunden"
+                                class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm italic shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">{{ customer.testimonial|default:'' }}</textarea>
+                        </div>
+                        <div>
+                            <label class="mb-1 block text-sm font-semibold text-gray-700">Autor*in des Zitats</label>
+                            <input type="text" id="testimonial_author"
+                                value="{{ customer.testimonial_author|default:'' }}"
+                                placeholder="z.B. Geschäftsführerin"
+                                class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+
+        <!-- Sidebar -->
+        <aside class="space-y-6 lg:sticky lg:top-24 lg:self-start">
+            <section class="overflow-hidden rounded-2xl bg-white shadow-md ring-1 ring-gray-200">
+                <header class="flex items-center gap-3 border-b border-gray-100 px-5 py-4">
+                    <span class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-green-100 text-green-700">
+                        <i class="bi bi-toggles2 text-lg"></i>
+                    </span>
+                    <div>
+                        <h2 class="text-base font-bold text-gray-900">Veröffentlichung</h2>
+                        <p class="text-xs text-gray-500">Status auf der öffentlichen Seite.</p>
+                    </div>
+                </header>
+                <div class="space-y-3 p-5">
+                    <label class="flex cursor-pointer items-start justify-between gap-3 rounded-xl border border-gray-200 bg-gray-50 p-3 transition hover:bg-white">
+                        <div>
+                            <p class="text-sm font-semibold text-gray-900">Aktiv auf /kunden</p>
+                            <p class="text-xs text-gray-500">Erscheint in der Übersicht.</p>
+                        </div>
+                        <input type="checkbox" id="active" class="mt-1 h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            {% if not customer or customer.active %}checked{% endif %}>
+                    </label>
+                    <label class="flex cursor-pointer items-start justify-between gap-3 rounded-xl border border-gray-200 bg-gray-50 p-3 transition hover:bg-white">
+                        <div>
+                            <p class="text-sm font-semibold text-gray-900">Detailseite veröffentlichen</p>
+                            <p class="text-xs text-gray-500">Eigene Unterseite unter /kunden/&lt;slug&gt;.</p>
+                        </div>
+                        <input type="checkbox" id="show_detail_page" class="mt-1 h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            {% if not customer or customer.show_detail_page %}checked{% endif %}>
+                    </label>
+                </div>
+            </section>
+
+            <section class="overflow-hidden rounded-2xl bg-white shadow-md ring-1 ring-gray-200">
+                <header class="flex items-center gap-3 border-b border-gray-100 px-5 py-4">
+                    <span class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-blue-100 text-blue-700">
+                        <i class="bi bi-eye text-lg"></i>
+                    </span>
+                    <h2 class="text-base font-bold text-gray-900">Live-Vorschau</h2>
+                </header>
+                <div class="p-5">
+                    <div class="overflow-hidden rounded-2xl bg-white ring-1 ring-gray-200">
+                        <div id="previewImage" class="h-32 w-full bg-blue-100 bg-cover bg-center"
+                            style="{% if customer.title_image and customer.title_image.file %}background-image: url('{{ customer.title_image.file.url }}'){% endif %}">
+                            <div id="previewImagePlaceholder" class="flex h-full w-full items-center justify-center text-blue-300 {% if customer.title_image %}hidden{% endif %}">
+                                <i class="bi bi-image text-4xl"></i>
+                            </div>
+                        </div>
+                        <div class="px-4 pt-4 pb-5">
+
+                            <!-- Standard layout: Logo + Name nebeneinander -->
+                            <div id="previewStandardLayout" class="-mt-8 flex items-center gap-3 {% if customer.logo_style == 'wide' and customer.logo %}hidden{% endif %}">
+                                <div id="previewLogoBox" class="flex h-12 w-12 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white p-1.5 shadow-md ring-1 ring-gray-200 {% if not customer.logo %}hidden{% endif %}">
+                                    <img id="previewLogoImage" src="{% if customer.logo and customer.logo.file %}{{ customer.logo.file.url }}{% endif %}" class="h-full w-full object-contain">
+                                </div>
+                                <div id="previewFallbackBadge" class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-blue-900 text-base font-bold text-white shadow-md {% if customer.logo %}hidden{% endif %}">
+                                    <span id="previewFallback">{% if customer.logo_fallback_text %}{{ customer.logo_fallback_text|slice:":1"|upper }}{% elif customer.name %}{{ customer.name|slice:":1"|upper }}{% else %}?{% endif %}</span>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <p id="previewName" class="truncate text-sm font-bold text-gray-900">{{ customer.name|default:"Neuer Kunde" }}</p>
+                                    <p id="previewSubline" class="truncate text-xs text-gray-500">{% firstof customer.website_display customer.subtitle "—" %}</p>
+                                </div>
+                            </div>
+
+                            <!-- Wide logo layout: nur Logo, ohne Hintergrund -->
+                            <div id="previewWideLayout" class="{% if customer.logo_style != 'wide' or not customer.logo %}hidden{% endif %}">
+                                <div class="flex h-12 w-full items-center pt-2">
+                                    <img id="previewWideLogoImage" src="{% if customer.logo and customer.logo.file %}{{ customer.logo.file.url }}{% endif %}" class="h-full max-w-full object-contain object-left">
+                                </div>
+                                <p id="previewWideName" class="mt-2 truncate text-sm font-bold text-gray-900">{{ customer.name|default:"Neuer Kunde" }}</p>
+                                <p id="previewWideSubline" class="truncate text-xs text-gray-500">{% firstof customer.website_display customer.subtitle "—" %}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="mt-3 text-xs text-gray-500">So erscheint die Karte ungefähr auf <a href="{% url 'kunden' %}" target="_blank" class="text-blue-600 hover:underline">/kunden</a>.</p>
+                </div>
+            </section>
+
+            {% if customer %}
+            <section class="overflow-hidden rounded-2xl bg-white shadow-md ring-1 ring-gray-200">
+                <header class="flex items-center gap-3 border-b border-gray-100 px-5 py-4">
+                    <span class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-gray-100 text-gray-700">
+                        <i class="bi bi-info-circle text-lg"></i>
+                    </span>
+                    <h2 class="text-base font-bold text-gray-900">Metadaten</h2>
+                </header>
+                <dl class="space-y-2 p-5 text-sm">
+                    <div class="flex justify-between gap-3">
+                        <dt class="text-gray-500">Slug</dt>
+                        <dd class="truncate font-mono text-xs text-gray-900">/kunden/{{ customer.slug }}/</dd>
+                    </div>
+                    <div class="flex justify-between gap-3">
+                        <dt class="text-gray-500">Erstellt</dt>
+                        <dd class="text-gray-900">{{ customer.created_at|date:"d.m.Y" }}</dd>
+                    </div>
+                    <div class="flex justify-between gap-3">
+                        <dt class="text-gray-500">Aktualisiert</dt>
+                        <dd class="text-gray-900">{{ customer.updated_at|date:"d.m.Y H:i" }}</dd>
+                    </div>
+                    <div class="flex justify-between gap-3">
+                        <dt class="text-gray-500">Reihenfolge</dt>
+                        <dd class="text-gray-900">#{{ customer.order }}</dd>
+                    </div>
+                </dl>
+            </section>
+            {% endif %}
+        </aside>
+    </form>
+</div>
+
+<!-- Mobile sticky save -->
+<div class="fixed bottom-3 left-1/2 z-30 -translate-x-1/2 lg:hidden">
+    <button type="submit" form="customer-form"
+        class="inline-flex items-center justify-center gap-2 rounded-full bg-blue-900 px-6 py-3 text-sm font-bold text-white shadow-2xl transition hover:bg-blue-800">
+        <i class="bi bi-check2-circle text-lg"></i>
+        {{ submit_label }}
+    </button>
+</div>
+
+{% endblock %}
+
+{% block javascriptend %}
+<script defer src="{% static 'js/cms/content/customers/customer-form.js' %}"></script>
+{% endblock %}

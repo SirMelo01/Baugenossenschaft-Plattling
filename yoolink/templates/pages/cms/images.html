@@ -1,0 +1,229 @@
+{% extends 'cmsbase.html' %}
+{% load compress static %}
+{% block title %} {{block.super}} | CMS | Fotos{% endblock %}
+
+{% block content %}
+
+<!-- **************** Edit-Image-Modal **************** -->
+<!-- Will be opened if the user clicks on one of the info buttons -->
+<div class="fixed inset-0 z-[80] hidden items-center justify-center bg-slate-950/70 p-3 backdrop-blur-sm lg:min-w-[16rem]"
+    id="editModal" data-prismjs-copy-timeout="500">
+    <div class="modal-container max-h-[92vh] w-full max-w-2xl overflow-hidden rounded-3xl bg-white shadow-2xl ring-1 ring-slate-200">
+        <!-- Modal header -->
+        <div class="flex items-center gap-3 border-b border-slate-100 px-6 py-4">
+            <span class="grid h-10 w-10 flex-shrink-0 place-items-center rounded-xl bg-blue-100 text-blue-600"><i class="bi bi-pencil-square text-lg"></i></span>
+            <div class="min-w-0 flex-1">
+                <p class="text-xs font-semibold uppercase tracking-wide text-blue-600">Mediathek</p>
+                <h3 class="text-lg font-semibold text-slate-900" id="infoTitle">Bild bearbeiten</h3>
+            </div>
+            <button type="button" id="closeModal"
+                class="grid h-9 w-9 flex-shrink-0 place-items-center rounded-xl text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+                data-modal-hide="defaultModal">
+                <i class="bi bi-x-lg"></i>
+                <span class="sr-only">Schließen</span>
+            </button>
+        </div>
+
+        <!-- Modal body -->
+        <div class="max-h-[70vh] space-y-5 overflow-auto p-6" id="previewBody">
+            <!-- Vorschau -->
+            <div class="flex items-center gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                <div class="h-24 w-32 flex-shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-white">
+                    <img id="editPreview" src="" alt="Vorschau" class="h-full w-full object-cover">
+                </div>
+                <div class="min-w-0">
+                    <p id="editPreviewName" class="truncate text-sm font-semibold text-slate-800">Bild</p>
+                    <p class="mt-0.5 text-xs text-slate-400">Vorschau des ausgewählten Bildes</p>
+                </div>
+            </div>
+
+            <!-- Felder -->
+            <div class="grid grid-cols-1 gap-4">
+                <div>
+                    <label for="imgPlace" class="mb-1.5 block text-sm font-medium text-slate-700">Anzeigeplatz</label>
+                    <select id="imgPlace"
+                        class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+                        <option value="nothing" selected>Keine Beziehung</option>
+                        <option value="main_hero">Hero</option>
+                        <option value="main_cms">CMS</option>
+                        <option value="main_responsive_team">Team</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="imgTitle" class="mb-1.5 block text-sm font-medium text-slate-700">Bildtitel <span class="font-normal text-slate-400">(auch Alt-Text für Screenreader)</span></label>
+                    <textarea id="imgTitle" rows="2" placeholder="Beschreibe das Bild – dient auch als Alt-Text für die Barrierefreiheit"
+                        class="w-full resize-y rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm leading-relaxed text-slate-800 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal footer -->
+        <div class="flex justify-end gap-2 border-t border-slate-100 px-6 py-4">
+            <button type="button" id="cancelEdit"
+                class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50">
+                Abbrechen
+            </button>
+            <button id="selectImg"
+                class="inline-flex items-center justify-center gap-2 rounded-xl bg-green-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-green-700">
+                <i class="bi bi-check2"></i> Speichern
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="container mx-auto mt-4 sm:mt-8">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <h1 class="text-2xl">
+      <a href="{% url 'cms:cms-files' %}" class="text-blue-500">Dateien</a> - Bilderübersicht
+      <span class="ml-2 text-sm text-gray-500">({{ total_count }} Bilder)</span>
+    </h1>
+
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+      <div class="inline-flex rounded-lg border border-gray-200 bg-gray-50 p-1" aria-label="Ansicht auswÃ¤hlen">
+        <button type="button" class="image-view-btn inline-flex h-9 items-center justify-center gap-1.5 rounded-md border px-3 text-xs font-semibold transition" data-view="large" title="GroÃŸe Bilder">
+          <i class="bi bi-grid-3x3-gap"></i>
+          <span class="hidden md:inline">Groß</span>
+        </button>
+        <button type="button" class="image-view-btn inline-flex h-9 items-center justify-center gap-1.5 rounded-md border px-3 text-xs font-semibold transition" data-view="small" title="Kleine Bilder">
+          <i class="bi bi-grid"></i>
+          <span class="hidden md:inline">Klein</span>
+        </button>
+        <button type="button" class="image-view-btn inline-flex h-9 items-center justify-center gap-1.5 rounded-md border px-3 text-xs font-semibold transition" data-view="list" title="Liste">
+          <i class="bi bi-list-ul"></i>
+          <span class="hidden md:inline">Liste</span>
+        </button>
+      </div>
+
+      {# Pro-Seite Auswahl (optional) #}
+      <form method="get" class="flex items-center justify-between gap-2 sm:justify-start">
+        <label class="text-sm text-gray-600">Pro Seite</label>
+        <select name="per_page" class="rounded-md border-gray-300 text-sm"
+                onchange="this.form.submit()">
+          <option value="12" {% if per_page == 12 %}selected{% endif %}>12</option>
+          <option value="24" {% if per_page == 24 %}selected{% endif %}>24</option>
+          <option value="48" {% if per_page == 48 %}selected{% endif %}>48</option>
+          <option value="96" {% if per_page == 96 %}selected{% endif %}>96</option>
+        </select>
+        {% comment %} Erhalte andere GET-Parameter (falls du später Filter hinzufügst) {% endcomment %}
+        {% for key, val in request.GET.items %}
+          {% if key != 'per_page' and key != 'page' %}
+            <input type="hidden" name="{{ key }}" value="{{ val }}">
+          {% endif %}
+        {% endfor %}
+      </form>
+
+      <a href="{% url 'cms:upload' %}"
+         class="flex w-full items-center justify-center gap-2 rounded bg-blue-500 px-4 py-3 font-bold text-white hover:bg-blue-700 sm:w-auto sm:py-2">
+        <i class="bi bi-upload"></i>
+        Bilder hochladen
+      </a>
+      {% if non_webp_count %}
+        <button type="button" id="convertWebpImages"
+          class="flex w-full items-center justify-center gap-2 rounded bg-slate-900 px-4 py-3 font-bold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-400 sm:w-auto sm:py-2"
+          data-count="{{ non_webp_count }}">
+          <i class="bi bi-filetype-webp"></i>
+          WebP konvertieren
+        </button>
+      {% endif %}
+    </div>
+  </div>
+
+  {% csrf_token %}
+
+  {% if files %}
+    <div id="imageGallery" class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 sm:mt-8">
+      {% for file in files %}
+        <div class="image-card relative overflow-hidden rounded-lg">
+          <a href="{{ file.file.url }}" target="_blank" rel="noopener" class="image-link block">
+            <img place="{{ file.place }}" key="{{ file.id }}" src="{{ file.file.url }}"
+                 {% if file.responsive_srcset %}srcset="{{ file.responsive_srcset }}" sizes="(min-width: 1280px) 25vw, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"{% endif %}
+                 title="{{ file.title }}" alt="{{ file.title }}"
+                 class="image-thumb h-64 w-full object-cover border rounded-lg shadow-lg">
+          </a>
+
+          <div class="image-list-details hidden min-w-0 flex-1 pr-20">
+            <p class="truncate text-sm font-semibold text-gray-900">{{ file.title|default:"Ohne Titel" }}</p>
+            <p class="mt-1 truncate text-xs text-gray-500">{{ file.file.name }}</p>
+            <p class="mt-1 text-xs text-gray-400">
+              {% if file.place and file.place != "nothing" %}{{ file.place }}{% else %}Keine Beziehung{% endif %}
+            </p>
+          </div>
+
+          {% if not file.mobile_file %}
+            <button type="button"
+                    class="generate-mobile absolute left-1/2 top-1/2 z-30 inline-flex -translate-x-1/2 -translate-y-1/2 items-center gap-2 rounded-full bg-blue-600 px-4 py-2 text-xs font-bold text-white shadow-lg ring-2 ring-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300"
+                    data-id="{{ file.id }}">
+              <i class="bi bi-phone"></i>
+              Mobil erstellen
+            </button>
+          {% endif %}
+
+          <span class="image-format-badge absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-full bg-white/95 px-2 py-1 text-xs font-semibold text-gray-700 shadow ring-1 ring-gray-200">
+            {{ file.file_extension }}{% if file.mobile_file %}<span class="text-blue-600">+ Mobil</span>{% endif %}
+          </span>
+
+          <button type="button" class="deleter absolute right-2 top-2 z-30 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/95 text-red-700 shadow-sm ring-1 ring-red-100 transition hover:bg-red-50 hover:text-red-800"
+                id="{{ file.id }}" title="Bild löschen">
+            <i class="bi bi-trash"></i>
+          </button>
+
+          <button type="button" class="edit-img not-sortable absolute left-2 top-2 z-30 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/95 text-blue-700 shadow-sm ring-1 ring-blue-100 transition hover:bg-blue-50 hover:text-blue-900" title="Bearbeiten">
+            <i class="bi bi-pencil-square"></i>
+          </button>
+        </div>
+      {% endfor %}
+    </div>
+
+    {% if page_obj.paginator.num_pages > 1 %}
+      <nav class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between" aria-label="Pagination">
+        <div class="text-sm text-gray-600">
+          Seite {{ page_obj.number }} von {{ page_obj.paginator.num_pages }} –
+          Einträge {{ page_obj.start_index }}–{{ page_obj.end_index }} von {{ page_obj.paginator.count }}
+        </div>
+
+        <div class="flex flex-wrap items-center gap-1">
+          {% if page_obj.has_previous %}
+            <a href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ page_obj.previous_page_number }}"
+               class="px-3 py-1 rounded-md border text-sm hover:bg-gray-50">
+              ‹ Zurück
+            </a>
+          {% else %}
+            <span class="px-3 py-1 rounded-md border text-sm text-gray-400">‹ Zurück</span>
+          {% endif %}
+
+          {# kompakte Seitenzahlen #}
+          {% for num in page_obj.paginator.page_range %}
+            {% if num == page_obj.number %}
+              <span class="px-3 py-1 rounded-md bg-blue-500 text-white text-sm">{{ num }}</span>
+            {% elif num >= page_obj.number|add:-2 and num <= page_obj.number|add:2 %}
+              <a href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ num }}"
+                 class="px-3 py-1 rounded-md border text-sm hover:bg-gray-50">{{ num }}</a>
+            {% elif num == 1 or num == page_obj.paginator.num_pages %}
+              <a href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ num }}"
+                 class="px-3 py-1 rounded-md border text-sm hover:bg-gray-50">{{ num }}</a>
+            {% elif forloop.first or forloop.last %}
+              <span class="px-2 text-gray-400">…</span>
+            {% endif %}
+          {% endfor %}
+
+          {% if page_obj.has_next %}
+            <a href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ page_obj.next_page_number }}"
+               class="px-3 py-1 rounded-md border text-sm hover:bg-gray-50">
+              Weiter ›
+            </a>
+          {% else %}
+            <span class="px-3 py-1 rounded-md border text-sm text-gray-400">Weiter ›</span>
+          {% endif %}
+        </div>
+      </nav>
+    {% endif %}
+  {% else %}
+    <div class="mt-10 text-gray-500">Keine Bilder vorhanden.</div>
+  {% endif %}
+</div>
+
+{% endblock %}
+
+{% block javascriptend %}
+<script src="{% static 'js/cms/files/images.js' %}"></script>
+{% endblock %}

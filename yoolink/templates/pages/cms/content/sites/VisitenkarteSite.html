@@ -1,0 +1,270 @@
+{% extends "cmsbase.html" %}
+{% load compress static %}
+{% block title %} {{ block.super }} | CMS - Visitenkarten {% endblock %}
+
+{% block content %}
+{% include "pages/cms/components/ImageSelectModal.html" %}
+
+<div class="mx-auto mt-4 max-w-6xl px-4 sm:mt-8 sm:px-6">
+
+  <!-- ── Header ── -->
+  <div class="sticky top-[4.25rem] z-30 mb-6 rounded-2xl border border-gray-200 bg-white/95 px-5 py-4 shadow-sm backdrop-blur flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <h1 class="text-2xl">
+      <a href="{% url 'cms:sites' %}" class="text-blue-500">Seiten</a>
+      / <a href="{% url 'cms:site_leistungen' %}" class="text-blue-500">Leistungen (/leistungen)</a>
+      / <span>Visitenkarten (/leistungen/visitenkarte)</span>
+    </h1>
+    <div>
+      {% csrf_token %}
+      <a class="block w-full rounded bg-green-500 px-4 py-3 text-center font-bold text-white hover:cursor-pointer hover:bg-green-700 sm:w-auto sm:py-2"
+         id="saveTextData" name="main_visitenkarte">
+        Speichern
+      </a>
+    </div>
+  </div>
+
+  <div class="mt-8 space-y-8 pb-20">
+
+    <!-- ══════════════════════════════════════════
+         HERO
+    ══════════════════════════════════════════ -->
+    <section class="rounded-2xl bg-blue-50 p-6">
+      <p class="mb-4 text-xs font-semibold uppercase tracking-wider text-blue-700">Hero</p>
+      <div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
+        <!-- Text -->
+        <div class="flex flex-col gap-3">
+          <div class="text-content flex flex-col gap-3" key="main_visitenkarte_hero">
+            <input inputType="header" type="text"
+                   class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-sm font-semibold uppercase tracking-widest text-blue-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+                   placeholder="Über-Tagline (z. B. 'Visitenkarten Design')"
+                   value="{{ textContent_hero.header|default:'Visitenkarten Design' }}">
+            <input inputType="title" type="text"
+                   class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-2xl font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                   placeholder="Überschrift (H1)"
+                   value="{{ textContent_hero.title|default:'Visitenkarten, die in Erinnerung bleiben.' }}">
+            <textarea inputType="description" rows="5"
+                      class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-base leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_hero.description|default:"Eine Visitenkarte ist mehr als ein Stück Papier - sie ist der erste haptische Eindruck deiner Marke. Wir gestalten hochwertige Visitenkarten, die deine Persönlichkeit transportieren und einen bleibenden Eindruck hinterlassen." }}</textarea>
+            <input inputType="buttonText" type="text"
+                   class="self-start rounded-md bg-blue-900 px-6 py-3 text-sm font-bold text-white"
+                   value="{{ textContent_hero.buttonText|default:'Visitenkarte anfragen' }}">
+          </div>
+          <div class="text-content flex flex-col gap-2 border-t border-blue-200 pt-3" key="main_visitenkarte_hero_secondary">
+            <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Sekundärer Button</p>
+            <input inputType="title" type="text"
+                   class="self-start rounded-md border-2 border-blue-300 bg-white px-6 py-3 text-sm font-bold text-blue-900"
+                   value="{{ textContent_hero_secondary.title|default:'Formate ansehen' }}">
+          </div>
+        </div>
+
+        <!-- Rechts: Hero-Karte (Vorder- / Rückseite) -->
+        <div>
+          <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-orange-600">
+            <i class="bi bi-image mr-1"></i>Interaktive Hero-Karte (Vorder- &amp; Rückseite)
+          </p>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="relative overflow-hidden rounded-xl bg-gray-200 ring-1 ring-slate-200">
+              <span class="edit-img absolute left-2 top-2 z-40 inline-block rounded-full bg-orange-500 px-2 py-1 text-sm font-semibold text-white hover:cursor-pointer"><i class="bi bi-pencil-square"></i></span>
+              <span class="absolute right-2 top-2 z-40 rounded-full bg-blue-900/80 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-white">Vorderseite</span>
+              {% if image_hero_front %}
+              <img src="{{ image_hero_front.file.url }}" imgId="{{ image_hero_front.id }}" key="main_visitenkarte_hero_front" alt="Visitenkarte Vorderseite" class="content-image aspect-[85/55] w-full object-cover rounded-xl bg-white" />
+              {% else %}
+              <img src="{% static 'images/visitenkarte/Sebastian Visitenkarte EU Format vorne.png' %}" imgId="-1" key="main_visitenkarte_hero_front" alt="Visitenkarte Vorderseite" class="content-image aspect-[85/55] w-full object-cover rounded-xl bg-gray-300" />
+              {% endif %}
+            </div>
+            <div class="relative overflow-hidden rounded-xl bg-gray-200 ring-1 ring-slate-200">
+              <span class="edit-img absolute left-2 top-2 z-40 inline-block rounded-full bg-orange-500 px-2 py-1 text-sm font-semibold text-white hover:cursor-pointer"><i class="bi bi-pencil-square"></i></span>
+              <span class="absolute right-2 top-2 z-40 rounded-full bg-blue-900/80 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-white">Rückseite</span>
+              {% if image_hero_back %}
+              <img src="{{ image_hero_back.file.url }}" imgId="{{ image_hero_back.id }}" key="main_visitenkarte_hero_back" alt="Visitenkarte Rückseite" class="content-image aspect-[85/55] w-full object-cover rounded-xl bg-white" />
+              {% else %}
+              <img src="{% static 'images/visitenkarte/Sebastian Visitenkarte EU Format hinten.png' %}" imgId="-1" key="main_visitenkarte_hero_back" alt="Visitenkarte Rückseite" class="content-image aspect-[85/55] w-full object-cover rounded-xl bg-gray-300" />
+              {% endif %}
+            </div>
+          </div>
+          <p class="mt-3 text-xs text-gray-500">
+            Tipp: Karten im Format 85 × 55 mm (klassisches EU-Format) hochladen. Wenn keine Bilder gepflegt sind, werden die statischen Standard-Bilder angezeigt.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         SHOWCASE / BISHERIGE ARBEITEN
+    ══════════════════════════════════════════ -->
+    <section class="rounded-2xl bg-blue-50 p-6">
+      <p class="mb-4 text-xs font-semibold uppercase tracking-wider text-blue-700">Showcase – Bisherige Arbeiten</p>
+
+      <div class="text-content flex flex-col gap-3" key="main_visitenkarte_showcase">
+        <input inputType="header" type="text"
+               class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-sm font-semibold uppercase tracking-widest text-blue-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+               placeholder="Über-Tagline"
+               value="{{ textContent_showcase.header|default:'Unsere Visitenkarte' }}">
+        <input inputType="title" type="text"
+               class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-xl font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+               placeholder="Überschrift (H2)"
+               value="{{ textContent_showcase.title|default:'Vorder- und Rückseite im Detail' }}">
+        <textarea inputType="description" rows="3"
+                  class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-base leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_showcase.description|default:"Hier siehst du unsere eigene Visitenkarte - durchdacht in Layout, Typografie und Farbe. Genau diese Sorgfalt fließt auch in dein Design." }}</textarea>
+      </div>
+
+      <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+        <!-- Vorderseite -->
+        <div class="rounded-xl bg-white p-4 shadow-sm">
+          <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-blue-700">Vorderseite</p>
+          <div class="relative overflow-hidden rounded-xl bg-gray-200 ring-1 ring-slate-200">
+            <span class="edit-img absolute left-2 top-2 z-40 inline-block rounded-full bg-orange-500 px-2 py-1 text-sm font-semibold text-white hover:cursor-pointer"><i class="bi bi-pencil-square"></i></span>
+            {% if image_showcase_front %}
+            <img src="{{ image_showcase_front.file.url }}" imgId="{{ image_showcase_front.id }}" key="main_visitenkarte_showcase_front" alt="Showcase Vorderseite" class="content-image aspect-[85/55] w-full object-cover rounded-xl bg-white" />
+            {% else %}
+            <img src="{% static 'images/visitenkarte/Sebastian Visitenkarte EU Format vorne.png' %}" imgId="-1" key="main_visitenkarte_showcase_front" alt="Showcase Vorderseite" class="content-image aspect-[85/55] w-full object-cover rounded-xl bg-gray-300" />
+            {% endif %}
+          </div>
+          <div class="text-content mt-3 flex items-center gap-2" key="main_visitenkarte_showcase_label_front">
+            <span class="text-xs font-semibold uppercase tracking-wider text-gray-500">Label</span>
+            <input inputType="title" type="text"
+                   class="flex-1 rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none"
+                   value="{{ textContent_showcase_label_front.title|default:'Vorderseite' }}">
+          </div>
+        </div>
+
+        <!-- Rückseite -->
+        <div class="rounded-xl bg-white p-4 shadow-sm">
+          <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-blue-700">Rückseite</p>
+          <div class="relative overflow-hidden rounded-xl bg-gray-200 ring-1 ring-slate-200">
+            <span class="edit-img absolute left-2 top-2 z-40 inline-block rounded-full bg-orange-500 px-2 py-1 text-sm font-semibold text-white hover:cursor-pointer"><i class="bi bi-pencil-square"></i></span>
+            {% if image_showcase_back %}
+            <img src="{{ image_showcase_back.file.url }}" imgId="{{ image_showcase_back.id }}" key="main_visitenkarte_showcase_back" alt="Showcase Rückseite" class="content-image aspect-[85/55] w-full object-cover rounded-xl bg-white" />
+            {% else %}
+            <img src="{% static 'images/visitenkarte/Sebastian Visitenkarte EU Format hinten.png' %}" imgId="-1" key="main_visitenkarte_showcase_back" alt="Showcase Rückseite" class="content-image aspect-[85/55] w-full object-cover rounded-xl bg-gray-300" />
+            {% endif %}
+          </div>
+          <div class="text-content mt-3 flex items-center gap-2" key="main_visitenkarte_showcase_label_back">
+            <span class="text-xs font-semibold uppercase tracking-wider text-gray-500">Label</span>
+            <input inputType="title" type="text"
+                   class="flex-1 rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none"
+                   value="{{ textContent_showcase_label_back.title|default:'Rückseite' }}">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         FORMATE
+    ══════════════════════════════════════════ -->
+    <section class="rounded-2xl bg-blue-50 p-6">
+      <p class="mb-4 text-xs font-semibold uppercase tracking-wider text-blue-700">Formate (Standard &amp; Slim)</p>
+
+      <div class="text-content flex flex-col gap-3" key="main_visitenkarte_formate">
+        <input inputType="header" type="text"
+               class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-sm font-semibold uppercase tracking-widest text-blue-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+               placeholder="Über-Tagline"
+               value="{{ textContent_formate.header|default:'Zwei Formate' }}">
+        <input inputType="title" type="text"
+               class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-xl font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+               placeholder="Überschrift (H2)"
+               value="{{ textContent_formate.title|default:'Standard oder Slim - wähle dein Format' }}">
+        <textarea inputType="description" rows="3"
+                  class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-base leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_formate.description|default:"Beide Formate werden in identischer Qualität gefertigt. Welches besser zu dir passt, ist eine Frage von Stil und Markenwirkung." }}</textarea>
+      </div>
+
+      <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm" key="main_visitenkarte_format_standard">
+          <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Standard – 8,5 × 5,5 cm (Maße statisch)</p>
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-lg font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_format_standard.title|default:'Standard' }}">
+          <textarea inputType="description" rows="3"
+                    class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_format_standard.description|default:"Das klassische Visitenkarten-Format. Vertraut, gut sortierbar und passt in jedes Etui." }}</textarea>
+        </div>
+        <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm" key="main_visitenkarte_format_slim">
+          <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Slim – 9 × 5 cm (Maße statisch)</p>
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-lg font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_format_slim.title|default:'Slim' }}">
+          <textarea inputType="description" rows="3"
+                    class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_format_slim.description|default:"Etwas länger, etwas schmaler - eine moderne Alternative mit besonders elegantem Auftritt." }}</textarea>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         PAPIER & VEREDELUNG
+    ══════════════════════════════════════════ -->
+    <section class="rounded-2xl bg-blue-50 p-6">
+      <p class="mb-4 text-xs font-semibold uppercase tracking-wider text-blue-700">Papier &amp; Veredelung</p>
+
+      <div class="text-content flex flex-col gap-3" key="main_visitenkarte_papier">
+        <input inputType="header" type="text"
+               class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-sm font-semibold uppercase tracking-widest text-blue-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+               placeholder="Über-Tagline"
+               value="{{ textContent_papier.header|default:'Papier & Veredelung' }}">
+        <input inputType="title" type="text"
+               class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-xl font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+               placeholder="Überschrift (H2)"
+               value="{{ textContent_papier.title|default:'Qualität, die man fühlt' }}">
+        <textarea inputType="description" rows="3"
+                  class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-base leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_papier.description|default:"Das Papier macht den Unterschied. Wir beraten dich, welche Variante zu deiner Marke passt - vom klassischen Bilderdruck bis zur edlen Veredelung." }}</textarea>
+      </div>
+
+      <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm" key="main_visitenkarte_papier_card1">
+          <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Karte 1 – Standard (Tags statisch)</p>
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-lg font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_papier_card1.title|default:'Standard' }}">
+          <textarea inputType="description" rows="3"
+                    class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_papier_card1.description|default:"Solides Bilderdruckpapier - matt oder glänzend. Klassisch, sauber und mit gutem Preis-Leistungs-Verhältnis." }}</textarea>
+        </div>
+        <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm" key="main_visitenkarte_papier_card2">
+          <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Karte 2 – Premium (Tags statisch)</p>
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-lg font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_papier_card2.title|default:'Premium' }}">
+          <textarea inputType="description" rows="3"
+                    class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_papier_card2.description|default:"Hochwertiges Naturpapier mit angenehmer Haptik. Etwas dicker, edler und perfekt für einen bleibenden Eindruck." }}</textarea>
+        </div>
+        <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm" key="main_visitenkarte_papier_card3">
+          <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Karte 3 – Veredelt (Tags statisch)</p>
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-lg font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_papier_card3.title|default:'Veredelt' }}">
+          <textarea inputType="description" rows="3"
+                    class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_papier_card3.description|default:"Soft-Touch, Heißfolie oder partielle Lackierung - für maximalen Wow-Effekt. Hier wird die Karte zum Statement." }}</textarea>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         BOTTOM CTA – dunkel, zentriert
+    ══════════════════════════════════════════ -->
+    <section class="rounded-2xl bg-gray-700 p-8">
+      <p class="mb-4 text-xs font-semibold uppercase tracking-wider text-gray-300">Bottom CTA</p>
+      <div class="text-content mx-auto flex max-w-xl flex-col items-center gap-3 text-center" key="main_visitenkarte_bottomcta">
+        <input inputType="title" type="text"
+               class="w-full rounded-lg border-2 border-gray-500 bg-gray-600 px-4 py-2 text-xl font-bold text-white placeholder-gray-400 focus:border-blue-400 focus:bg-gray-500 focus:outline-none"
+               value="{{ textContent_bottomcta.title|default:'Bereit für deine Visitenkarte?' }}">
+        <textarea inputType="description" rows="3"
+                  class="w-full rounded-lg border-2 border-gray-500 bg-gray-600 px-4 py-2 text-base text-white placeholder-gray-400 focus:border-blue-400 focus:bg-gray-500 focus:outline-none">{{ textContent_bottomcta.description|default:"Erzähl uns von deinem Projekt - wir gestalten dir eine Visitenkarte, die zu dir passt und einen bleibenden Eindruck hinterlässt." }}</textarea>
+        <input inputType="buttonText" type="text"
+               value="{{ textContent_bottomcta.buttonText|default:'Jetzt anfragen' }}"
+               class="rounded-md bg-blue-900 px-8 py-3 text-sm font-bold text-white">
+      </div>
+    </section>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block javascriptend %}
+{% compress js %}
+<script defer src="{% static 'js/cms.js' %}"></script>
+<script defer src="{% static 'js/cms/content/siteManager.js' %}"></script>
+<script src="{% static 'js/cms/content/save-text.js' %}"></script>
+<script defer src="{% static 'js/cms/unsaved-guard.js' %}"></script>
+<script defer>
+  $(document).ready(function () {
+    loadImages(false);
+  });
+</script>
+{% endcompress js %}
+{% endblock %}

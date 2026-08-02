@@ -1,0 +1,373 @@
+/* Link and Bullet points (Quill-Editor + Blog-Vorschau) */
+
+.ql-editor a, #previewModal a {
+    color: rgb(59, 130, 246);
+}
+
+.ql-editor a:hover, #previewModal a:hover {
+    cursor: pointer;
+    color: rgb(37, 99, 235);
+}
+
+
+#previewModal li {
+    margin-bottom: 0.75rem !important;
+}
+#previewModal ul {
+    display: block !important;
+    list-style-type: disc !important;
+    margin-block-start: 1em !important;
+    margin-block-end: 1em !important;
+    padding-inline-start: 40px !important;
+}
+
+#previewModal ol {
+    display: block !important;
+    list-style-type: decimal !important;
+    margin-block-start: 1em !important;
+    margin-block-end: 1em !important;
+    padding-inline-start: 40px !important;
+}
+
+/* Quill-Text-Block im Blog-Builder: Toolbar oben abgerundet, Naht zum Textfeld
+   bündig/eckig, Textfeld unten abgerundet -> ein sauberer durchgehender Kasten. */
+.blog-rt {
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    border-radius: 0.85rem;
+}
+.blog-rt .ql-toolbar.ql-snow {
+    border: 1px solid #d1d5db;
+    border-bottom: 1px solid #eef2f7;          /* bündige Trennlinie zum Text */
+    border-radius: 0.85rem 0.85rem 0 0;        /* nur oben rund */
+    background: #f8fafc;
+    padding: 0.45rem 0.5rem 0.35rem;
+    transition: border-color .15s ease;
+}
+.blog-rt .ql-container.ql-snow {
+    border: 1px solid #d1d5db;
+    border-top: none;                          /* eckig/bündig an der Naht */
+    border-radius: 0 0 0.85rem 0.85rem;        /* nur unten rund */
+    font-size: 0.95rem;
+    transition: border-color .15s ease;
+}
+.blog-rt:focus-within .ql-toolbar.ql-snow,
+.blog-rt:focus-within .ql-container.ql-snow {
+    border-color: #3b82f6;
+}
+.blog-rt .ql-editor {
+    min-height: 6.5rem;
+    padding: 0.75rem 1rem;
+}
+.blog-rt .ql-editor.ql-blank::before {
+    font-style: normal;
+    color: #9ca3af;
+    left: 1rem;
+    right: 1rem;
+}
+.blog-rt .ql-editor img {
+    max-width: 100%;
+    border-radius: 0.5rem;
+}
+
+/* Verschieben/Löschen-Griffe hängen leicht oben am Text-Block (kleiner Überlapp),
+   ohne die Toolbar-Buttons (B/I/U …) zu überdecken. */
+#blogContent > [element-type="textArea"] {
+    padding-top: 1.4rem;
+    margin-top: 0.35rem;
+}
+
+/* Hide scrollbars (e.g. CMS sidebar) while keeping scroll via mouse/touch/keys. */
+.no-scrollbar {
+    -ms-overflow-style: none;   /* IE / old Edge */
+    scrollbar-width: none;      /* Firefox */
+}
+
+.no-scrollbar::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;              /* Chrome / Safari / new Edge */
+}
+
+/* Responsive CMS safety layer for older templates that still use desktop-first markup. */
+.cms-content-shell {
+    min-width: 0;
+}
+
+.cms-content-shell img,
+.cms-content-shell video {
+    max-width: 100%;
+}
+
+.cms-content-shell input:not([type="checkbox"]):not([type="radio"]),
+.cms-content-shell textarea,
+.cms-content-shell select {
+    max-width: 100%;
+}
+
+.cms-content-shell table {
+    width: 100%;
+}
+
+.cms-content-shell .modal {
+    padding: 0.75rem;
+}
+
+.cms-content-shell .dropzone {
+    border-radius: 1rem;
+}
+
+#imageModal {
+    z-index: 80;
+}
+
+.cms-content-shell #imageModal .image-modal-container {
+    overflow: hidden;
+}
+
+.cms-content-shell #imageModal .image-modal-body {
+    overscroll-behavior: contain;
+}
+
+.cms-switch-track,
+.cms-switch-input {
+    position: relative;
+    display: inline-block;
+    width: 2.75rem;
+    height: 1.5rem;
+    flex: 0 0 auto;
+    border-radius: 999px;
+    background: rgb(229, 231, 235);
+    vertical-align: middle;
+    transition: background-color 0.2s ease;
+}
+
+.cms-switch-track::after,
+.cms-switch-input::after {
+    content: "";
+    position: absolute;
+    top: 0.125rem;
+    left: 0.125rem;
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 999px;
+    background: white;
+    box-shadow: 0 1px 3px rgb(15 23 42 / 0.22);
+    transition: transform 0.2s ease;
+}
+
+.peer:checked + .cms-switch-track,
+.cms-switch-input:checked {
+    background: rgb(37, 99, 235);
+}
+
+.peer:checked + .cms-switch-track::after,
+.cms-switch-input:checked::after {
+    transform: translateX(1.25rem);
+}
+
+.cms-switch-input {
+    appearance: none;
+    cursor: pointer;
+}
+
+.cms-switch-input:focus-visible,
+.peer:focus-visible + .cms-switch-track {
+    outline: 2px solid rgb(59, 130, 246);
+    outline-offset: 2px;
+}
+
+.cms-content-shell #buttonBar {
+    scrollbar-width: thin;
+}
+
+.cms-content-shell #buttonBar::-webkit-scrollbar {
+    height: 0.5rem;
+}
+
+.cms-content-shell #buttonBar::-webkit-scrollbar-thumb {
+    background: rgb(203, 213, 225);
+    border-radius: 999px;
+}
+
+@media (max-width: 767px) {
+    .cms-content-shell > .container,
+    .cms-content-shell .container {
+        width: 100%;
+        max-width: 100%;
+        padding-left: 0.25rem;
+        padding-right: 0.25rem;
+    }
+
+    .cms-content-shell h1 {
+        font-size: 1.25rem;
+        line-height: 1.75rem;
+    }
+
+    .cms-content-shell > .container > h1:first-child,
+    .cms-content-shell > .container > .flex:first-child h1,
+    .cms-content-shell .container > h1:first-child,
+    .cms-content-shell .container > .flex:first-child h1 {
+        font-size: 1.125rem;
+        line-height: 1.5rem;
+        font-weight: 600;
+        word-break: break-word;
+    }
+
+    .cms-content-shell h2 {
+        font-size: 1.25rem;
+        line-height: 1.75rem;
+    }
+
+    .cms-content-shell input:not([type="checkbox"]):not([type="radio"]),
+    .cms-content-shell textarea,
+    .cms-content-shell select {
+        font-size: 1rem;
+        line-height: 1.45rem;
+        min-width: 0;
+    }
+
+    .cms-content-shell input[inputtype="title"],
+    .cms-content-shell input[inputtype="header"],
+    .cms-content-shell input[inputtype="description"],
+    .cms-content-shell input[inputtype="buttonText"],
+    .cms-content-shell textarea[inputtype="description"] {
+        font-size: 1rem;
+        line-height: 1.45rem;
+    }
+
+    .cms-content-shell textarea {
+        min-height: 6.5rem;
+    }
+
+    .cms-content-shell > .container > .flex.justify-between:first-child,
+    .cms-content-shell .container > .flex.justify-between:first-child,
+    .cms-content-shell .container > .flex.items-center.justify-between:first-child {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+    }
+
+    .cms-content-shell > .container > .flex.justify-between:first-child a,
+    .cms-content-shell > .container > .flex.justify-between:first-child button,
+    .cms-content-shell .container > .flex.justify-between:first-child a,
+    .cms-content-shell .container > .flex.justify-between:first-child button {
+        width: 100%;
+        justify-content: center;
+        text-align: center;
+    }
+
+    .cms-content-shell .grid.grid-cols-4,
+    .cms-content-shell .grid.md\:grid-cols-4 {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .cms-content-shell a[class*="bg-"],
+    .cms-content-shell button[class*="bg-"] {
+        font-size: 0.875rem;
+        line-height: 1.2rem;
+    }
+
+    .cms-content-shell a,
+    .cms-content-shell button {
+        min-width: 0;
+        white-space: normal;
+    }
+
+    .cms-content-shell .bg-blue-100 .flex.justify-center.items-center {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .cms-content-shell .bg-blue-100 .flex.justify-center.items-center > .flex-grow {
+        display: none;
+    }
+
+    .cms-content-shell table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .cms-content-shell .modal-container {
+        width: calc(100vw - 1rem);
+        max-height: calc(100vh - 1rem);
+        overflow: auto;
+    }
+
+    .cms-content-shell #imageModal .image-modal-container {
+        height: calc(100dvh - 1rem);
+        max-height: calc(100dvh - 1rem);
+        overflow: hidden;
+    }
+
+    .cms-content-shell #imageModal .image-modal-sidebar {
+        flex-shrink: 0;
+    }
+
+    .cms-content-shell #imageModal .image-modal-tab {
+        padding: 0.625rem 0.75rem;
+    }
+
+    .cms-content-shell #imageModal .image-modal-tab span + span {
+        display: none;
+    }
+
+    .cms-content-shell #imageModal #selectedImagePlaceholder {
+        min-height: 4.5rem;
+    }
+
+    .cms-content-shell #imageModal #possibleImages img {
+        height: 7.5rem;
+    }
+
+    .cms-content-shell #imageModal #imageUploadDropzone {
+        min-height: 13rem;
+        padding: 1.5rem 1rem;
+    }
+
+    .cms-content-shell #imageModal .image-modal-footer {
+        font-size: 0.8125rem;
+    }
+
+    .cms-content-shell .blog-rt,
+    .cms-content-shell .ql-toolbar,
+    .cms-content-shell .ql-container {
+        max-width: 100% !important;
+    }
+    /* Quill-Toolbar auf schmalen Screens umbrechen statt überlaufen */
+    .cms-content-shell .ql-toolbar.ql-snow {
+        white-space: normal;
+    }
+
+    .cms-content-shell .dropzone {
+        min-height: 12rem;
+        padding: 1rem;
+    }
+
+    .cms-content-shell .dropzone .dz-message {
+        margin: 2rem 0;
+    }
+
+    .cms-content-shell iframe,
+    .cms-content-shell .ql-editor iframe {
+        max-width: 100% !important;
+    }
+
+    .cms-content-shell .swal2-popup {
+        width: calc(100vw - 2rem) !important;
+    }
+}
+
+/*
+ * Avatar-/Logo-Hintergrund im CMS.
+ * Das Seiten-Logo ist oft fürs (dunkle) Navbar-Design in Weiß gehalten und wäre
+ * auf dem weißen CMS-Hintergrund unsichtbar. Per JS (logo-contrast.js) wird die
+ * Helligkeit des Logos gemessen und der Hintergrund passend gesetzt – helle Logos
+ * bekommen einen dunklen Backdrop, dunkle einen hellen. Standard bleibt neutral.
+ */
+.cms-logo-surface {
+    transition: background-color .2s ease;
+}
+
+

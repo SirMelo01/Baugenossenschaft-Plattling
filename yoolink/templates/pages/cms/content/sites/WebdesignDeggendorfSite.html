@@ -1,0 +1,451 @@
+{% extends "cmsbase.html" %}
+{% load compress static %}
+{% block title %} {{ block.super }} | CMS - Webdesign Deggendorf {% endblock %}
+
+{% block content %}
+{% include "pages/cms/components/ImageSelectModal.html" %}
+
+<div class="mx-auto mt-4 max-w-6xl px-4 sm:mt-8 sm:px-6">
+
+  <!-- ── Header ── -->
+  <div class="sticky top-[4.25rem] z-30 mb-6 rounded-2xl border border-gray-200 bg-white/95 px-5 py-4 shadow-sm backdrop-blur flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <h1 class="text-2xl">
+      <a href="{% url 'cms:sites' %}" class="text-blue-500">Seiten</a>
+      / <span>Webdesign Deggendorf (/webdesign-deggendorf)</span>
+    </h1>
+    <div>
+      {% csrf_token %}
+      <a class="block w-full rounded bg-green-500 px-4 py-3 text-center font-bold text-white hover:cursor-pointer hover:bg-green-700 sm:w-auto sm:py-2"
+         id="saveTextData" name="main_deggendorf">
+        Speichern
+      </a>
+    </div>
+  </div>
+
+  <div class="mt-8 space-y-8 pb-20">
+
+    <!-- ══════════════════════════════════════════
+         HERO (mit Skyline)
+    ══════════════════════════════════════════ -->
+    <section class="rounded-2xl bg-blue-50 p-6">
+      <p class="mb-4 text-xs font-semibold uppercase tracking-wider text-blue-700">Hero (Skyline-Hintergrund)</p>
+
+      <div class="text-content flex flex-col gap-3" key="main_deggendorf_hero">
+        <input inputType="header" type="text"
+               class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-sm font-semibold uppercase tracking-widest text-blue-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+               placeholder="Über-Tagline"
+               value="{{ textContent_hero.header|default:'Webdesign-Agentur aus dem Raum Deggendorf' }}">
+        <input inputType="title" type="text"
+               class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-2xl font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+               placeholder="Überschrift (H1, erste Zeile)"
+               value="{{ textContent_hero.title|default:'Webdesign Deggendorf –' }}">
+        <textarea inputType="description" rows="3"
+                  class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-base leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_hero.description|default:"Wir bauen moderne Websites für Unternehmen aus Deggendorf, Passau, Regensburg und ganz Niederbayern. Persönlich, individuell und mit eigenem CMS – zu einem fairen Abo-Preis ohne versteckte Kosten." }}</textarea>
+        <input inputType="buttonText" type="text"
+               class="self-start rounded-md bg-blue-900 px-6 py-3 text-sm font-bold text-white"
+               value="{{ textContent_hero.buttonText|default:'Jetzt unverbindlich anfragen' }}">
+      </div>
+
+      <div class="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2">
+        <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-3 shadow-sm" key="main_deggendorf_hero_highlight">
+          <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Hervorgehobener H1-Teil (Blau)</p>
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 text-base font-bold text-blue-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_hero_highlight.title|default:'individuelle Website ab 40 € im Monat' }}">
+        </div>
+        <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-3 shadow-sm" key="main_deggendorf_hero_secondary">
+          <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Sekundärer Button (Abo-Modelle ansehen)</p>
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-blue-300 bg-white px-3 py-2 text-sm font-bold text-blue-900"
+                 value="{{ textContent_hero_secondary.title|default:'Abo-Modelle ansehen' }}">
+        </div>
+      </div>
+
+      <p class="mt-4 mb-2 text-xs font-semibold uppercase tracking-wider text-orange-600">
+        <i class="bi bi-grid mr-1"></i>4 Stat-Kacheln im Hero
+      </p>
+      <div class="grid grid-cols-2 gap-3 md:grid-cols-4">
+        {% for i in "1234" %}
+        <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-3 shadow-sm" key="main_deggendorf_hero_stat{{i}}">
+          <p class="text-xs text-blue-700">Stat {{i}}</p>
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-2 py-1 text-sm font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                 placeholder="Großer Wert"
+                 value="{% if i == '1' %}{{ textContent_hero_stat1.title|default:'40 €' }}{% elif i == '2' %}{{ textContent_hero_stat2.title|default:'100 %' }}{% elif i == '3' %}{{ textContent_hero_stat3.title|default:'CMS' }}{% else %}{{ textContent_hero_stat4.title|default:'Lokal' }}{% endif %}">
+          <input inputType="description" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-2 py-1 text-xs focus:border-blue-500 focus:bg-white focus:outline-none"
+                 placeholder="Label"
+                 value="{% if i == '1' %}{{ textContent_hero_stat1.description|default:'Start-Abo / Monat' }}{% elif i == '2' %}{{ textContent_hero_stat2.description|default:'Individuelles Design' }}{% elif i == '3' %}{{ textContent_hero_stat3.description|default:'Inkl. eigenem System' }}{% else %}{{ textContent_hero_stat4.description|default:'Persönlich vor Ort' }}{% endif %}">
+        </div>
+        {% endfor %}
+      </div>
+
+      <p class="mt-4 mb-2 text-xs font-semibold uppercase tracking-wider text-orange-600">
+        <i class="bi bi-image mr-1"></i>Stadtübersicht / Skyline (Hero-Hintergrundbild)
+      </p>
+      <div class="relative max-w-2xl overflow-hidden rounded-xl bg-gray-200 ring-1 ring-slate-200">
+        <span class="edit-img absolute left-2 top-2 z-40 inline-block rounded-full bg-orange-500 px-2 py-1 text-sm font-semibold text-white hover:cursor-pointer"><i class="bi bi-pencil-square"></i></span>
+        {% if image_skyline %}
+        <img src="{{ image_skyline.file.url }}" imgId="{{ image_skyline.id }}" key="main_deggendorf_skyline" alt="Stadtübersicht Deggendorf" class="content-image aspect-[16/9] w-full rounded-xl object-cover bg-white" />
+        {% else %}
+        <img src="{% static 'images/deggendorf/skyline.png' %}" imgId="-1" key="main_deggendorf_skyline" alt="Stadtübersicht Deggendorf" class="content-image aspect-[16/9] w-full rounded-xl object-cover bg-gray-300" />
+        {% endif %}
+      </div>
+      <p class="mt-2 text-xs text-gray-500">Wird als Hintergrundbild im Hero verwendet. Ohne eigenes Bild wird die Standard-Aquarell-Illustration angezeigt.</p>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         INTRO (mit Grabkirche)
+    ══════════════════════════════════════════ -->
+    <section class="rounded-2xl bg-blue-50 p-6">
+      <p class="mb-4 text-xs font-semibold uppercase tracking-wider text-blue-700">Intro – Webdesign aus Deggendorf (mit Grabkirche)</p>
+
+      <div class="text-content flex flex-col gap-3" key="main_deggendorf_intro">
+        <input inputType="header" type="text"
+               class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-sm font-semibold uppercase tracking-widest text-blue-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+               placeholder="Über-Tagline"
+               value="{{ textContent_intro.header|default:'Eine Agentur aus der Region' }}">
+        <input inputType="title" type="text"
+               class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-xl font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+               value="{{ textContent_intro.title|default:'Webdesign aus Deggendorf – persönlich, individuell und sichtbar' }}">
+        <textarea inputType="description" rows="4"
+                  class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-base leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_intro.description|default:"Sie suchen eine Webdesign-Agentur in Deggendorf, die nicht nur Templates ausliefert, sondern Ihr Unternehmen wirklich versteht? YooLink ist genau das: ein lokales Team mit Sitz in Niederbayern, das moderne Websites für Handwerker, Dienstleister, Ärzte, Restaurants und Mittelständler aus der Region entwickelt." }}</textarea>
+      </div>
+
+      <div class="text-content mt-3 flex flex-col gap-2" key="main_deggendorf_intro_p2">
+        <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Zweiter Absatz</p>
+        <textarea inputType="description" rows="4"
+                  class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-base leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_intro_p2.description|default:"Statt Standardlösungen liefern wir Websites, die zu Ihrer Marke passen – handgemacht, technisch sauber und mit Liebe zum Detail. Persönliche Beratung in Deggendorf, schnelle Reaktionszeiten und ein fairer Abo-Preis ab 40 € im Monat machen uns zu einem verlässlichen Partner für Ihren digitalen Auftritt." }}</textarea>
+      </div>
+
+      <p class="mt-4 mb-2 text-xs font-semibold uppercase tracking-wider text-orange-600">
+        <i class="bi bi-list-check mr-1"></i>4 Bullet-Punkte (Titel = fettes Stichwort, Beschreibung = Rest)
+      </p>
+      <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+        {% for bullet in "1234" %}
+        <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-3 shadow-sm" key="main_deggendorf_intro_bullet{{bullet}}">
+          <p class="text-xs text-blue-700">Bullet {{bullet}}</p>
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                 placeholder="Stichwort (fett)"
+                 value="{% if bullet == '1' %}{{ textContent_intro_bullet1.title|default:'Lokal verwurzelt' }}{% elif bullet == '2' %}{{ textContent_intro_bullet2.title|default:'Individuell statt Baukasten' }}{% elif bullet == '3' %}{{ textContent_intro_bullet3.title|default:'Faires Abo-Modell' }}{% else %}{{ textContent_intro_bullet4.title|default:'Eigenes CMS inklusive' }}{% endif %}">
+          <input inputType="description" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none"
+                 placeholder="Beschreibung"
+                 value="{% if bullet == '1' %}{{ textContent_intro_bullet1.description|default:'wir kennen den Markt in Deggendorf und Umgebung.' }}{% elif bullet == '2' %}{{ textContent_intro_bullet2.description|default:'jede Website ist ein eigenes Projekt.' }}{% elif bullet == '3' %}{{ textContent_intro_bullet3.description|default:'planbare Kosten ab 40 € im Monat.' }}{% else %}{{ textContent_intro_bullet4.description|default:'Inhalte selbst pflegen ohne Zusatzkosten.' }}{% endif %}">
+        </div>
+        {% endfor %}
+      </div>
+
+      <p class="mt-4 mb-2 text-xs font-semibold uppercase tracking-wider text-orange-600">
+        <i class="bi bi-image mr-1"></i>Bild &amp; Bildunterschrift (Grabkirche)
+      </p>
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div class="relative overflow-hidden rounded-xl bg-gray-200 ring-1 ring-slate-200">
+          <span class="edit-img absolute left-2 top-2 z-40 inline-block rounded-full bg-orange-500 px-2 py-1 text-sm font-semibold text-white hover:cursor-pointer"><i class="bi bi-pencil-square"></i></span>
+          {% if image_intro %}
+          <img src="{{ image_intro.file.url }}" imgId="{{ image_intro.id }}" key="main_deggendorf_intro_image" alt="Grabkirche Deggendorf" class="content-image aspect-[3/4] w-full rounded-xl object-cover bg-white" />
+          {% else %}
+          <img src="{% static 'images/deggendorf/grabkirche.png' %}" imgId="-1" key="main_deggendorf_intro_image" alt="Grabkirche Deggendorf" class="content-image aspect-[3/4] w-full rounded-xl object-cover bg-gray-300" />
+          {% endif %}
+        </div>
+        <div class="text-content flex flex-col gap-2 self-start rounded-xl bg-white p-4 shadow-sm" key="main_deggendorf_intro_caption">
+          <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Bildunterschrift</p>
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_intro_caption.title|default:'Grabkirche St. Peter und Paul, Deggendorf' }}">
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         WARUM YOOLINK – 6 USP-Karten
+    ══════════════════════════════════════════ -->
+    <section class="rounded-2xl bg-blue-50 p-6">
+      <p class="mb-4 text-xs font-semibold uppercase tracking-wider text-blue-700">Warum YooLink (6 USP-Karten)</p>
+
+      <div class="text-content flex flex-col gap-3" key="main_deggendorf_warum">
+        <input inputType="header" type="text"
+               class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-sm font-semibold uppercase tracking-widest text-blue-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+               value="{{ textContent_warum.header|default:'Warum YooLink' }}">
+        <input inputType="title" type="text"
+               class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-xl font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+               value="{{ textContent_warum.title|default:'Was uns von anderen Agenturen in Deggendorf unterscheidet' }}">
+        <textarea inputType="description" rows="3"
+                  class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-base leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_warum.description|default:"Wir bauen keine Websites von der Stange. Jedes Projekt entsteht in enger Abstimmung mit Ihnen – mit klarem Fokus auf Ergebnisse: mehr Sichtbarkeit, mehr Anfragen und eine Website, die zu Ihrem Unternehmen passt." }}</textarea>
+      </div>
+
+      <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+        <!-- Card 1 -->
+        <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm" key="main_deggendorf_warum_card1">
+          <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Karte 1 (Icon: Cash-Coin)</p>
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-base font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_warum_card1.title|default:'Faires Abo-Modell ab 40 €' }}">
+          <textarea inputType="description" rows="3"
+                    class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_warum_card1.description|default:"Sie zahlen einen kleinen monatlichen Beitrag – inklusive Hosting, SSL, Wartung und laufenden Updates. Keine Überraschungen, keine versteckten Folgekosten." }}</textarea>
+        </div>
+        <!-- Card 2 -->
+        <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm" key="main_deggendorf_warum_card2">
+          <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Karte 2 (Icon: Window-Stack)</p>
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-base font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_warum_card2.title|default:'Eigenes CMS inklusive' }}">
+          <textarea inputType="description" rows="3"
+                    class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_warum_card2.description|default:"Mit unserem hauseigenen Content-Management-System pflegen Sie Texte, Bilder und Blogartikel selbst – schnell, intuitiv und ohne laufende Änderungsgebühren." }}</textarea>
+        </div>
+        <!-- Card 3 -->
+        <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm" key="main_deggendorf_warum_card3">
+          <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Karte 3 (Icon: Vector-Pen)</p>
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-base font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_warum_card3.title|default:'100 % individuelles Design' }}">
+          <textarea inputType="description" rows="3"
+                    class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_warum_card3.description|default:"Kein Theme, kein Baukasten – jede Website entsteht maßgeschneidert für Ihre Marke. Klare Strukturen, durchdachte Nutzerführung und ein Look, der im Kopf bleibt." }}</textarea>
+        </div>
+        <!-- Card 4 -->
+        <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm" key="main_deggendorf_warum_card4">
+          <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Karte 4 (Icon: Geo-Alt)</p>
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-base font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_warum_card4.title|default:'Lokal in Deggendorf' }}">
+          <textarea inputType="description" rows="3"
+                    class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_warum_card4.description|default:"Persönliche Termine vor Ort, kurze Wege und ein direkter Ansprechpartner – statt Hotline aus dem Großraum-Callcenter. Wir kennen die Region." }}</textarea>
+        </div>
+        <!-- Card 5 -->
+        <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm" key="main_deggendorf_warum_card5">
+          <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Karte 5 (Icon: Bar-Chart)</p>
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-base font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_warum_card5.title|default:'Lokale SEO inklusive' }}">
+          <textarea inputType="description" rows="3"
+                    class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_warum_card5.description|default:"Wir optimieren Ihre Website von Anfang an für die Suche – damit Sie bei „Suchbegriff + Deggendorf“ gefunden werden und Anfragen aus der Region erhalten." }}</textarea>
+        </div>
+        <!-- Card 6 (Premium, dunkel) -->
+        <div class="text-content flex flex-col gap-2 rounded-xl bg-blue-900 p-4 text-white shadow-sm" key="main_deggendorf_warum_card6">
+          <p class="text-xs font-semibold uppercase tracking-wider text-blue-200">Karte 6 (Icon: Shield-Check, dunkel)</p>
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-blue-700 bg-blue-800 px-3 py-1.5 text-base font-bold text-white placeholder-blue-300 focus:border-blue-300 focus:bg-blue-700 focus:outline-none"
+                 value="{{ textContent_warum_card6.title|default:'DSGVO &amp; Hosting in Deutschland' }}">
+          <textarea inputType="description" rows="3"
+                    class="w-full rounded-lg border-2 border-blue-700 bg-blue-800 px-3 py-1.5 text-sm text-white placeholder-blue-300 focus:border-blue-300 focus:bg-blue-700 focus:outline-none">{{ textContent_warum_card6.description|default:"Ihre Website läuft auf deutschen Servern bei Hetzner – DSGVO-konform, schnell und stabil. Vollständiger Datenschutz inklusive." }}</textarea>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         PREISE / ABO-MODELLE
+    ══════════════════════════════════════════ -->
+    <section class="rounded-2xl bg-blue-50 p-6">
+      <p class="mb-4 text-xs font-semibold uppercase tracking-wider text-blue-700">Preise &amp; Abo-Modelle</p>
+
+      <div class="text-content flex flex-col gap-3" key="main_deggendorf_preise">
+        <input inputType="header" type="text"
+               class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-sm font-semibold uppercase tracking-widest text-blue-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+               value="{{ textContent_preise.header|default:'Preise &amp; Abo-Modell' }}">
+        <input inputType="title" type="text"
+               class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-xl font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+               value="{{ textContent_preise.title|default:'Transparente Preise – ab 40 € im Monat' }}">
+        <textarea inputType="description" rows="3"
+                  class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-base leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_preise.description|default:"Statt einmaliger Riesensumme zahlen Sie eine geringe monatliche Pauschale. Darin enthalten: Hosting, Pflege, Updates und persönlicher Support – damit Ihre Website über Jahre aktuell, sicher und schnell bleibt." }}</textarea>
+      </div>
+
+      <!-- Preiskarten werden zentral über die Preiskachel verwaltet (geteilt mit der Hauptseite) -->
+      <div class="mt-4 flex flex-col gap-4 rounded-xl border border-blue-200 bg-white p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h3 class="text-base font-semibold text-gray-800 flex items-center gap-2">
+            <i class="bi bi-cash-coin text-gray-500"></i> Preiskarten
+          </h3>
+          <p class="mt-1 text-sm text-gray-500">
+            Die Preiskarten werden zentral über die Preiskachel gepflegt und sind mit der Hauptseite identisch.
+            Änderungen hier wirken sich auf beide Seiten aus.
+          </p>
+          <p class="mt-2 text-sm text-gray-700">Aktuelle Preiskarten: <strong>{{ pricing_count }}</strong></p>
+        </div>
+        <a href="{% url 'cms:pricingcard-list' %}"
+           class="self-start rounded bg-blue-500 px-4 py-2 text-center font-bold text-white hover:bg-blue-700 sm:self-auto">
+          Preiskarten verwalten
+        </a>
+      </div>
+
+      <div class="text-content mt-4 flex flex-col gap-2" key="main_deggendorf_preise_footnote">
+        <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Fußnote unter den Karten</p>
+        <input inputType="description" type="text"
+               class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none"
+               value="{{ textContent_preise_footnote.description|default:'Alle Preise verstehen sich zzgl. einmaliger Einrichtungspauschale.' }}">
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         ÜBER DEGGENDORF (mit Altem Rathaus)
+    ══════════════════════════════════════════ -->
+    <section class="rounded-2xl bg-blue-50 p-6">
+      <p class="mb-4 text-xs font-semibold uppercase tracking-wider text-blue-700">Über Deggendorf (mit Altem Rathaus)</p>
+
+      <div class="text-content flex flex-col gap-3" key="main_deggendorf_about">
+        <input inputType="header" type="text"
+               class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-sm font-semibold uppercase tracking-widest text-blue-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+               value="{{ textContent_about.header|default:'Webdesign mit Wurzeln in Niederbayern' }}">
+        <input inputType="title" type="text"
+               class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-xl font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+               value="{{ textContent_about.title|default:'Warum eine lokale Agentur in Deggendorf für Ihr Unternehmen den Unterschied macht' }}">
+        <textarea inputType="description" rows="4"
+                  class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-base leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_about.description|default:"Deggendorf ist mehr als nur eine Stadt – es ist das wirtschaftliche Herz des niederbayerischen Donauraums. Mit Hochschule, Technologie-Campus und einer starken mittelständischen Wirtschaft ist die Region ein Standort mit Zukunft. Genau hier sind wir zu Hause." }}</textarea>
+      </div>
+
+      <div class="text-content mt-3 flex flex-col gap-2" key="main_deggendorf_about_p2">
+        <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Zweiter Absatz</p>
+        <textarea inputType="description" rows="4"
+                  class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-base leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_about_p2.description|default:"Wer in Deggendorf, Plattling oder Osterhofen ein Unternehmen führt, braucht mehr als nur eine Website – er braucht eine digitale Visitenkarte, die online dieselbe Qualität ausstrahlt wie sein Betrieb vor Ort. Wir verstehen den regionalen Markt, kennen die Besonderheiten unserer Kunden und entwickeln Websites, die zu Ihrer Geschichte passen." }}</textarea>
+      </div>
+
+      <p class="mt-4 mb-2 text-xs font-semibold uppercase tracking-wider text-orange-600">
+        <i class="bi bi-grid-3x3-gap mr-1"></i>4 Info-Kacheln
+      </p>
+      <div class="grid grid-cols-2 gap-3 md:grid-cols-4">
+        {% for t in "1234" %}
+        <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-3 shadow-sm" key="main_deggendorf_about_tile{{t}}">
+          <p class="text-xs text-blue-700">Kachel {{t}}</p>
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-2 py-1 text-xs font-semibold uppercase tracking-widest text-blue-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+                 placeholder="Label"
+                 value="{% if t == '1' %}{{ textContent_about_tile1.title|default:'Standort' }}{% elif t == '2' %}{{ textContent_about_tile2.title|default:'Region' }}{% elif t == '3' %}{{ textContent_about_tile3.title|default:'Termine' }}{% else %}{{ textContent_about_tile4.title|default:'Hosting' }}{% endif %}">
+          <input inputType="description" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-2 py-1 text-sm font-semibold focus:border-blue-500 focus:bg-white focus:outline-none"
+                 placeholder="Wert"
+                 value="{% if t == '1' %}{{ textContent_about_tile1.description|default:'Deggendorf' }}{% elif t == '2' %}{{ textContent_about_tile2.description|default:'Niederbayern' }}{% elif t == '3' %}{{ textContent_about_tile3.description|default:'vor Ort möglich' }}{% else %}{{ textContent_about_tile4.description|default:'Deutschland' }}{% endif %}">
+        </div>
+        {% endfor %}
+      </div>
+
+      <p class="mt-4 mb-2 text-xs font-semibold uppercase tracking-wider text-orange-600">
+        <i class="bi bi-image mr-1"></i>Bild &amp; Bildunterschrift (Altes Rathaus)
+      </p>
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div class="relative overflow-hidden rounded-xl bg-gray-200 ring-1 ring-slate-200">
+          <span class="edit-img absolute left-2 top-2 z-40 inline-block rounded-full bg-orange-500 px-2 py-1 text-sm font-semibold text-white hover:cursor-pointer"><i class="bi bi-pencil-square"></i></span>
+          {% if image_about %}
+          <img src="{{ image_about.file.url }}" imgId="{{ image_about.id }}" key="main_deggendorf_about_image" alt="Altes Rathaus Deggendorf" class="content-image aspect-[3/4] w-full rounded-xl object-cover bg-white" />
+          {% else %}
+          <img src="{% static 'images/deggendorf/altes-rathaus.png' %}" imgId="-1" key="main_deggendorf_about_image" alt="Altes Rathaus Deggendorf" class="content-image aspect-[3/4] w-full rounded-xl object-cover bg-gray-300" />
+          {% endif %}
+        </div>
+        <div class="text-content flex flex-col gap-2 self-start rounded-xl bg-white p-4 shadow-sm" key="main_deggendorf_about_caption">
+          <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Bildunterschrift</p>
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_about_caption.title|default:'Altes Rathaus, Deggendorf' }}">
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         UNSER VORGEHEN (4 Schritte)
+    ══════════════════════════════════════════ -->
+    <section class="rounded-2xl bg-blue-50 p-6">
+      <p class="mb-4 text-xs font-semibold uppercase tracking-wider text-blue-700">Unser Vorgehen (4 Schritte)</p>
+
+      <div class="text-content flex flex-col gap-3" key="main_deggendorf_prozess">
+        <input inputType="header" type="text"
+               class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-sm font-semibold uppercase tracking-widest text-blue-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+               value="{{ textContent_prozess.header|default:'Unser Vorgehen' }}">
+        <input inputType="title" type="text"
+               class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-xl font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+               value="{{ textContent_prozess.title|default:'Vom Erstgespräch in Deggendorf bis zum Go-Live' }}">
+        <textarea inputType="description" rows="3"
+                  class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-base leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_prozess.description|default:"Sie wissen jederzeit, woran wir gerade arbeiten – und wann der nächste Schritt fällig ist. Klar strukturiert und ohne Überraschungen." }}</textarea>
+      </div>
+
+      <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {% for s in "1234" %}
+        <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm" key="main_deggendorf_prozess_step{{s}}">
+          <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Schritt {{s}}</p>
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-base font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{% if s == '1' %}{{ textContent_prozess_step1.title|default:'Kennenlernen' }}{% elif s == '2' %}{{ textContent_prozess_step2.title|default:'Konzept &amp; Design' }}{% elif s == '3' %}{{ textContent_prozess_step3.title|default:'Umsetzung' }}{% else %}{{ textContent_prozess_step4.title|default:'Launch &amp; Betreuung' }}{% endif %}">
+          <textarea inputType="description" rows="3"
+                    class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none">{% if s == '1' %}{{ textContent_prozess_step1.description|default:"Wir treffen uns persönlich in Deggendorf oder telefonisch – verstehen Ihr Unternehmen, Ihre Ziele und Ihre Zielgruppe." }}{% elif s == '2' %}{{ textContent_prozess_step2.description|default:"Wir entwickeln Struktur und Layout – modern, klar und perfekt auf Ihre Marke abgestimmt." }}{% elif s == '3' %}{{ textContent_prozess_step3.description|default:"Wir programmieren Ihre Website mit Django und Tailwind CSS – schnell, sicher und mobil optimiert." }}{% else %}{{ textContent_prozess_step4.description|default:"Wir gehen mit Ihnen live und kümmern uns langfristig um Pflege, Updates und Optimierung im Abo." }}{% endif %}</textarea>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         MAPS + BOTTOM CTA
+    ══════════════════════════════════════════ -->
+    <section class="rounded-2xl bg-gray-700 p-6">
+      <p class="mb-4 text-xs font-semibold uppercase tracking-wider text-gray-300">Maps-Bereich + CTA (dunkelgraue Sektion)</p>
+
+      <div class="text-content flex flex-col gap-3" key="main_deggendorf_maps">
+        <input inputType="header" type="text"
+               class="w-full rounded-lg border-2 border-gray-500 bg-gray-600 px-4 py-2 text-sm font-semibold uppercase tracking-widest text-blue-300 placeholder-gray-400 focus:border-blue-400 focus:bg-gray-500 focus:outline-none"
+               value="{{ textContent_maps.header|default:'Unser Einzugsgebiet' }}">
+        <input inputType="title" type="text"
+               class="w-full rounded-lg border-2 border-gray-500 bg-gray-600 px-4 py-2 text-xl font-bold text-white placeholder-gray-400 focus:border-blue-400 focus:bg-gray-500 focus:outline-none"
+               value="{{ textContent_maps.title|default:'Webdesign-Agentur direkt aus dem Raum Deggendorf' }}">
+        <textarea inputType="description" rows="3"
+                  class="w-full rounded-lg border-2 border-gray-500 bg-gray-600 px-4 py-2 text-base text-white placeholder-gray-400 focus:border-blue-400 focus:bg-gray-500 focus:outline-none">{{ textContent_maps.description|default:"Wir betreuen Kunden im gesamten Landkreis Deggendorf und darüber hinaus. Persönlicher Kontakt vor Ort ist für uns selbstverständlich." }}</textarea>
+      </div>
+
+      <p class="mt-4 mb-2 text-xs font-semibold uppercase tracking-wider text-blue-300">Info-Panel (links neben der Karte, blauer Hintergrund)</p>
+      <div class="rounded-xl bg-blue-900 p-4">
+        <div class="text-content flex flex-col gap-2" key="main_deggendorf_maps_panel">
+          <input inputType="header" type="text"
+                 class="w-full rounded-lg border-2 border-blue-700 bg-blue-800 px-3 py-1.5 text-xs font-semibold uppercase tracking-widest text-blue-300 placeholder-blue-300 focus:border-blue-300 focus:bg-blue-700 focus:outline-none"
+                 placeholder="Eyebrow"
+                 value="{{ textContent_maps_panel.header|default:'YooLink Webdesign' }}">
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-blue-700 bg-blue-800 px-3 py-1.5 text-lg font-bold text-white placeholder-blue-300 focus:border-blue-300 focus:bg-blue-700 focus:outline-none"
+                 placeholder="Überschrift im Panel"
+                 value="{{ textContent_maps_panel.title|default:'Aus der Region – für die Region.' }}">
+          <textarea inputType="description" rows="3"
+                    class="w-full rounded-lg border-2 border-blue-700 bg-blue-800 px-3 py-1.5 text-sm text-white placeholder-blue-300 focus:border-blue-300 focus:bg-blue-700 focus:outline-none">{{ textContent_maps_panel.description|default:"Sie suchen einen verlässlichen Partner für Ihre Website in Deggendorf? Lassen Sie uns reden – persönlich, ehrlich und mit ehrlicher Preisstruktur." }}</textarea>
+        </div>
+
+        <div class="text-content mt-3 flex flex-col gap-2" key="main_deggendorf_maps_region">
+          <p class="text-xs font-semibold uppercase tracking-wider text-blue-300">Region-Zeile (Label + Liste)</p>
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-blue-700 bg-blue-800 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-white placeholder-blue-300 focus:border-blue-300 focus:bg-blue-700 focus:outline-none"
+                 placeholder="Label"
+                 value="{{ textContent_maps_region.title|default:'Region' }}">
+          <input inputType="description" type="text"
+                 class="w-full rounded-lg border-2 border-blue-700 bg-blue-800 px-3 py-1 text-sm text-white placeholder-blue-300 focus:border-blue-300 focus:bg-blue-700 focus:outline-none"
+                 placeholder="Städteliste"
+                 value="{{ textContent_maps_region.description|default:'Deggendorf · Plattling · Osterhofen · Metten · ganz Niederbayern' }}">
+        </div>
+
+        <div class="text-content mt-3 flex flex-col gap-2" key="main_deggendorf_maps_response">
+          <p class="text-xs font-semibold uppercase tracking-wider text-blue-300">Response-Time Badge</p>
+          <input inputType="description" type="text"
+                 class="w-full rounded-lg border-2 border-blue-700 bg-blue-800 px-3 py-1 text-sm text-white placeholder-blue-300 focus:border-blue-300 focus:bg-blue-700 focus:outline-none"
+                 value="{{ textContent_maps_response.description|default:'Antwort meist innerhalb von 24 Stunden' }}">
+        </div>
+
+        <p class="mt-3 text-xs italic text-blue-300">Telefonnummer und Kontakt-Link sind statisch / aus globalen Einstellungen.</p>
+      </div>
+
+      <div class="text-content mt-4 flex flex-col gap-2 rounded-xl bg-gray-600 p-4" key="main_deggendorf_bottomcta">
+        <p class="text-xs font-semibold uppercase tracking-wider text-gray-300">Bottom-CTA-Button (unter der Karte)</p>
+        <input inputType="buttonText" type="text"
+               class="self-start rounded-md bg-blue-900 px-8 py-3 text-sm font-bold text-white"
+               value="{{ textContent_bottomcta.buttonText|default:'Jetzt Erstgespräch anfragen' }}">
+      </div>
+    </section>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block javascriptend %}
+{% compress js %}
+<script defer src="{% static 'js/cms.js' %}"></script>
+<script defer src="{% static 'js/cms/content/siteManager.js' %}"></script>
+<script src="{% static 'js/cms/content/save-text.js' %}"></script>
+<script defer src="{% static 'js/cms/unsaved-guard.js' %}"></script>
+<script defer>
+  $(document).ready(function () {
+    loadImages(false);
+  });
+</script>
+{% endcompress js %}
+{% endblock %}

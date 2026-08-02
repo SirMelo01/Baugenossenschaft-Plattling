@@ -1,0 +1,7 @@
+{% comment %}
+Colored icon chip. Params: tone, icon, cls (extra size classes).
+Literal class strings per tone so Tailwind's content scanner picks them up.
+{% endcomment %}
+<span class="inline-flex items-center justify-center rounded-xl {{ cls }} {% if tone == 'sky' %}bg-sky-100 text-sky-600{% elif tone == 'indigo' %}bg-indigo-100 text-indigo-600{% elif tone == 'violet' %}bg-violet-100 text-violet-600{% elif tone == 'emerald' %}bg-emerald-100 text-emerald-600{% elif tone == 'amber' %}bg-amber-100 text-amber-600{% elif tone == 'rose' %}bg-rose-100 text-rose-600{% elif tone == 'teal' %}bg-teal-100 text-teal-600{% elif tone == 'slate' %}bg-slate-100 text-slate-600{% else %}bg-blue-100 text-blue-600{% endif %}">
+    <i class="bi {{ icon }}"></i>
+</span>

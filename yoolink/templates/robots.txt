@@ -1,0 +1,11 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /cms/
+Disallow: /api/
+Disallow: /auth-token/
+Disallow: /accounts/
+Disallow: /users/
+Disallow: /cart/
+Disallow: /order/
+
+Sitemap: {{ request.scheme }}://{{ request.get_host }}/sitemap.xml

@@ -1,0 +1,123 @@
+{% extends 'cmsbase.html' %}
+{% load static compress %}
+{% block title %} {{block.super}} | CMS | Fotos{% endblock %}
+
+{% block javascript %}
+<!--
+Dropzone.js is available under the MIT License:
+https://www.dropzone.dev/
+-->
+<script src="{% static 'js/libs/dropzone.min.js' %}"></script>
+<link rel="stylesheet" href="{% static 'css/cms/libs/dropzone.min.css' %}" type="text/css" />
+<style>
+  #my-dropzone.dropzone {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+    gap: 1rem;
+  }
+  #my-dropzone .dz-message {
+    grid-column: 1 / -1;
+  }
+  #my-dropzone .dz-preview {
+    margin: 0;
+    width: 100%;
+    min-height: 15rem;
+  }
+  #my-dropzone .dz-preview .dz-image {
+    margin: 0 auto;
+  }
+  #my-dropzone .dz-preview .dz-remove {
+    display: block;
+    margin-top: .5rem;
+    font-size: .8rem;
+  }
+  #my-dropzone .upload-optimization-summary {
+    margin-top: .5rem;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: .35rem;
+    font-size: .72rem;
+    line-height: 1.1;
+  }
+  #my-dropzone .upload-optimization-summary span {
+    border-radius: 9999px;
+    background: #eff6ff;
+    color: #1d4ed8;
+    padding: .2rem .45rem;
+    white-space: nowrap;
+  }
+</style>
+{% endblock %}
+{% block content %}
+
+<div class="container mx-auto mt-4 sm:mt-8">
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <h1 class="text-2xl ">CMS - Upload</h1>
+    <a href="{% url 'cms:images-view' %}" class="w-full rounded bg-blue-500 px-4 py-3 text-center font-bold text-white hover:bg-blue-700 sm:w-auto sm:py-2">
+      Alle Bilder ansehen
+    </a>
+  </div>
+    <form action="{% url 'cms:post-upload' %}" method="POST" class="dropzone mt-8" id="my-dropzone">
+        {% csrf_token %}
+        <div class="fallback">
+          <input name="file" type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple />
+        </div>
+      </form>
+      <div class="mt-4 rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-900">
+        Neue statische Bilder werden automatisch als WebP gespeichert und komprimiert. Pro Upload wird zusätzlich eine kleinere mobile Variante gespeichert. Animierte GIFs bleiben erhalten.
+      </div>
+</div>
+
+{% endblock %}
+
+{% block javascriptend %}
+{% compress js %}
+<script>
+  var csrftoken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+  Dropzone.autoDiscover = false;
+  $('.dropzone').dropzone({
+    addRemoveLinks: true,
+    acceptedFiles: 'image/jpeg,image/png,image/webp,image/gif',
+    success: function(file, response) {
+      if (response && response.image && response.image.id) {
+        file.uploadedImageId = response.image.id;
+      }
+      if (file.previewElement && response && response.image && response.image.optimization) {
+        var optimization = response.image.optimization;
+        var desktop = optimization.desktop || {};
+        var mobile = optimization.mobile || {};
+        var detailNode = document.createElement('div');
+        var desktopSaved = optimization.desktop_saved_percent || 0;
+        var mobileSaved = optimization.mobile_saved_percent || 0;
+        detailNode.className = 'upload-optimization-summary';
+        detailNode.title = optimization.note || 'Bild wurde optimiert';
+        detailNode.innerHTML =
+          '<span>Original ' + (optimization.original_size_kb || 0) + ' KB</span>' +
+          '<span>Desktop ' + (desktop.size_kb || 0) + ' KB' + (desktopSaved > 0 ? ' / -' + desktopSaved + '%' : '') + '</span>' +
+          '<span>Mobil ' + (mobile.size_kb || 0) + ' KB' + (mobileSaved > 0 ? ' / -' + mobileSaved + '%' : '') + '</span>';
+        file.previewElement.appendChild(detailNode);
+      }
+    },
+    removedfile: function(file) {
+      var deleteUrl = file.uploadedImageId ? '../images/delete/' + file.uploadedImageId + '/' : 'delete/' + file.name + '/';
+
+      $.ajax({
+        type: 'post',
+        url: deleteUrl,
+        data: {csrfmiddlewaretoken: csrftoken,},
+        success: function(response) {
+          console.log(response)
+          if(response.error) {
+            return void 0;
+          }
+        }
+      });
+      var _ref;
+      return (_ref = file.previewElement) != null ? _ref.parentNode.removeChild(file.previewElement) : void 0;
+    }
+  })
+
+</script>
+{% endcompress js %}
+{% endblock javascriptend %}

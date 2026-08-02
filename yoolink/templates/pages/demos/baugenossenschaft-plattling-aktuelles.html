@@ -1,0 +1,258 @@
+{% extends "pages/demos/_bgp_base.html" %}
+{% load static %}
+
+{% block title %}Aktuelles | Baugenossenschaft Plattling eG{% endblock title %}
+{% block meta_description %}Neuigkeiten der Baugenossenschaft Plattling eG: Meldungen zu Mitgliederversammlungen, Modernisierungen, Stellenangeboten und Jubiläen - chronologisch sortiert.{% endblock %}
+
+{% block demo_css %}
+<style>
+  /* Filterleiste */
+  .bgp-filter {
+    border: 1px solid #DCE9EF;
+    background-color: #ffffff;
+    color: #4B6671;
+    transition: background-color .2s ease, border-color .2s ease, color .2s ease;
+  }
+  .bgp-filter:hover { border-color: #C9DEE6; background-color: #F4FAFC; }
+  .bgp-filter.is-active {
+    background-color: #2E434C;
+    border-color: #2E434C;
+    color: #ffffff;
+  }
+
+  /* Meldungskarten der Uebersicht: Klick loest bewusst nichts aus */
+  .bgp-news-card { cursor: pointer; }
+  .bgp-news-card:hover .bgp-news-cta i { transform: translateX(4px); }
+  .bgp-news-cta i { transition: transform .25s ease; }
+
+  /* Hervorgehobene Top-Meldung */
+  .bgp-news-lead { background: linear-gradient(150deg, #3A505A 0%, #2E434C 100%); }
+</style>
+{% endblock demo_css %}
+
+{% block content %}
+{% url 'ycms:demo-detail' slug='baugenossenschaft-plattling' as bgp_home_url %}
+{% url 'ycms:demo-subpage' slug='baugenossenschaft-plattling' subpage='kontakt' as bgp_kontakt_url %}
+
+<!-- SEITENKOPF -->
+<section class="bgp-hero relative overflow-hidden px-4 py-16 text-white lg:py-20">
+  <div class="bgp-hero-pattern" aria-hidden="true"></div>
+  <div class="relative mx-auto max-w-6xl">
+    <nav class="mb-6 flex items-center gap-2 text-sm text-white/60" aria-label="Brotkrumen-Navigation">
+      <a href="{{ bgp_home_url }}" class="bgp-focus rounded transition hover:text-white">Startseite</a>
+      <i class="bi bi-chevron-right text-[10px]"></i>
+      <span class="font-semibold text-white">Aktuelles</span>
+    </nav>
+    <div class="max-w-2xl">
+      <p class="bgp-text-yellow mb-4 text-sm font-semibold uppercase tracking-widest">Aktuelles</p>
+      <h1 class="mb-5 text-4xl font-bold leading-tight tracking-tight sm:text-5xl">Neuigkeiten aus der Genossenschaft</h1>
+      <p class="text-base leading-7 text-white/80 md:text-lg">
+        Meldungen aus dem Genossenschaftsleben: Mitgliederversammlungen, Modernisierungen an unseren
+        Objekten, Stellenangebote und alles, was unsere Mitglieder und Mieter betrifft.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- TOP-MELDUNG -->
+<section class="bg-white px-4 pt-16 lg:pt-20">
+  <div class="mx-auto max-w-6xl">
+    <article class="bgp-news-card bgp-news-lead relative overflow-hidden rounded-2xl p-8 text-white shadow-xl transition-transform duration-300 hover:-translate-y-1 sm:p-10"
+             data-category="versammlung" data-aos="fade-up">
+      <div class="relative grid gap-8 lg:grid-cols-3 lg:items-center">
+        <div class="lg:col-span-2">
+          <div class="mb-5 flex flex-wrap items-center gap-3">
+            <span class="bgp-bg-yellow bgp-text-navy-dark rounded-md px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider">Versammlung</span>
+            <span class="text-xs font-semibold text-white/50">01.07.2026</span>
+            <span class="rounded-md border border-white/20 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-white/70">Top-Meldung</span>
+          </div>
+          <h2 class="mb-4 text-2xl font-bold leading-snug sm:text-3xl">Mitgliederversammlung 2026</h2>
+          <p class="bgp-text-ice max-w-2xl text-base leading-7">
+            Reges Interesse im "Hotel Zur Isar": Sebastian Lallinger (Vorstand) und Bürgermeister Hans
+            Schmalhofer (Aufsichtsrat) wurden für weitere drei Jahre bestätigt. Die Dividende bleibt bei 3&nbsp;%.
+          </p>
+          <span class="bgp-news-cta bgp-text-yellow mt-6 inline-flex items-center gap-2 text-sm font-bold">
+            Meldung lesen <i class="bi bi-arrow-right"></i>
+          </span>
+        </div>
+        <div class="hidden justify-end lg:flex">
+          <span class="inline-flex h-28 w-28 items-center justify-center rounded-3xl border border-white/15 bg-white/5">
+            <i class="bi bi-people bgp-text-yellow text-5xl"></i>
+          </span>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- ALLE MELDUNGEN -->
+<section class="bg-white px-4 py-16 lg:py-20">
+  <div class="mx-auto max-w-6xl">
+
+    <div class="mb-10 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between" data-aos="fade-up">
+      <h2 class="bgp-text-navy-dark text-2xl font-bold tracking-tight">Alle Meldungen</h2>
+      <div class="flex flex-wrap gap-2" role="group" aria-label="Meldungen filtern">
+        <button type="button" data-filter="alle" class="bgp-filter bgp-focus is-active rounded-lg px-4 py-2 text-sm font-bold">Alle</button>
+        <button type="button" data-filter="versammlung" class="bgp-filter bgp-focus rounded-lg px-4 py-2 text-sm font-bold">Versammlung</button>
+        <button type="button" data-filter="modernisierung" class="bgp-filter bgp-focus rounded-lg px-4 py-2 text-sm font-bold">Modernisierung</button>
+        <button type="button" data-filter="stellenangebot" class="bgp-filter bgp-focus rounded-lg px-4 py-2 text-sm font-bold">Stellenangebot</button>
+        <button type="button" data-filter="jubilaeum" class="bgp-filter bgp-focus rounded-lg px-4 py-2 text-sm font-bold">Jubiläum</button>
+      </div>
+    </div>
+
+    <div id="bgpNewsGrid" class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+
+      <article class="bgp-card-hover bgp-news-card flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm"
+               data-category="stellenangebot" data-aos="fade-up" data-aos-delay="0">
+        <div class="bgp-bg-navy flex items-center justify-between px-6 py-3">
+          <span class="text-xs font-bold uppercase tracking-wider text-white/80">Stellenangebot</span>
+          <span class="bgp-text-yellow text-xs font-bold">09.07.2026</span>
+        </div>
+        <div class="flex flex-1 flex-col p-6">
+          <h3 class="bgp-text-navy-dark mb-3 text-lg font-bold leading-snug">Kaufmännischer Mitarbeiter (m/w/d) in Teilzeit gesucht</h3>
+          <p class="flex-1 text-sm leading-6 text-gray-600">Wir suchen Verstärkung für unsere Verwaltung. Alle Details finden Sie in der Stellenbeschreibung - bei Fragen stehen wir gerne zur Verfügung.</p>
+          <span class="bgp-news-cta bgp-text-navy mt-4 inline-flex items-center gap-2 text-sm font-bold">
+            <i class="bi bi-file-earmark-pdf"></i> Stellenanzeige ansehen
+          </span>
+        </div>
+      </article>
+
+      <article class="bgp-card-hover bgp-news-card flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm"
+               data-category="jubilaeum" data-aos="fade-up" data-aos-delay="100">
+        <div class="bgp-bg-navy flex items-center justify-between px-6 py-3">
+          <span class="text-xs font-bold uppercase tracking-wider text-white/80">Jubiläum</span>
+          <span class="bgp-text-yellow text-xs font-bold">01.07.2025</span>
+        </div>
+        <div class="flex flex-1 flex-col p-6">
+          <h3 class="bgp-text-navy-dark mb-3 text-lg font-bold leading-snug">25 Jahre im Dienst: Norbert Kirchberger</h3>
+          <p class="flex-1 text-sm leading-6 text-gray-600">Wir gratulieren unserem Hausmeister herzlich zum 25-jährigen Dienstjubiläum! Mit Kompetenz und seiner freundlichen Art ist er bei Mietern wie Kollegen gleichermaßen geschätzt.</p>
+          <span class="bgp-news-cta bgp-text-navy mt-4 inline-flex items-center gap-2 text-sm font-bold">
+            Mehr erfahren <i class="bi bi-arrow-right"></i>
+          </span>
+        </div>
+      </article>
+
+      <article class="bgp-card-hover bgp-news-card flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm"
+               data-category="modernisierung" data-aos="fade-up" data-aos-delay="200">
+        <div class="bgp-bg-navy flex items-center justify-between px-6 py-3">
+          <span class="text-xs font-bold uppercase tracking-wider text-white/80">Modernisierung</span>
+          <span class="bgp-text-yellow text-xs font-bold">14.03.2025</span>
+        </div>
+        <div class="flex flex-1 flex-col p-6">
+          <h3 class="bgp-text-navy-dark mb-3 text-lg font-bold leading-snug">Neue Heizanlage in der Schillerstraße</h3>
+          <p class="flex-1 text-sm leading-6 text-gray-600">Die Heizanlage unserer Wohnanlage in der Schillerstraße wurde vollständig erneuert - der Energieverbrauch sinkt um rund 18&nbsp;%.</p>
+          <span class="bgp-news-cta bgp-text-navy mt-4 inline-flex items-center gap-2 text-sm font-bold">
+            Mehr erfahren <i class="bi bi-arrow-right"></i>
+          </span>
+        </div>
+      </article>
+
+      <article class="bgp-card-hover bgp-news-card flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm"
+               data-category="versammlung" data-aos="fade-up" data-aos-delay="0">
+        <div class="bgp-bg-navy flex items-center justify-between px-6 py-3">
+          <span class="text-xs font-bold uppercase tracking-wider text-white/80">Versammlung</span>
+          <span class="bgp-text-yellow text-xs font-bold">28.06.2024</span>
+        </div>
+        <div class="flex flex-1 flex-col p-6">
+          <h3 class="bgp-text-navy-dark mb-3 text-lg font-bold leading-snug">Mitgliederversammlung 2024: Dividende erneut bei 3&nbsp;%</h3>
+          <p class="flex-1 text-sm leading-6 text-gray-600">Solides Geschäftsjahr 2023: Die Mitgliederversammlung beschloss, die Dividende auf die Geschäftsanteile unverändert zu lassen.</p>
+          <span class="bgp-news-cta bgp-text-navy mt-4 inline-flex items-center gap-2 text-sm font-bold">
+            Mehr erfahren <i class="bi bi-arrow-right"></i>
+          </span>
+        </div>
+      </article>
+
+      <article class="bgp-card-hover bgp-news-card flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm"
+               data-category="modernisierung" data-aos="fade-up" data-aos-delay="100">
+        <div class="bgp-bg-navy flex items-center justify-between px-6 py-3">
+          <span class="text-xs font-bold uppercase tracking-wider text-white/80">Modernisierung</span>
+          <span class="bgp-text-yellow text-xs font-bold">05.11.2023</span>
+        </div>
+        <div class="flex flex-1 flex-col p-6">
+          <h3 class="bgp-text-navy-dark mb-3 text-lg font-bold leading-snug">Aufzugsanlage modernisiert</h3>
+          <p class="flex-1 text-sm leading-6 text-gray-600">Barrierefrei und leiser: Die Aufzugsanlage in einem unserer Objekte wurde auf den aktuellen Stand der Technik gebracht.</p>
+          <span class="bgp-news-cta bgp-text-navy mt-4 inline-flex items-center gap-2 text-sm font-bold">
+            Mehr erfahren <i class="bi bi-arrow-right"></i>
+          </span>
+        </div>
+      </article>
+
+      <article class="bgp-card-hover bgp-news-card flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm"
+               data-category="jubilaeum" data-aos="fade-up" data-aos-delay="200">
+        <div class="bgp-bg-navy flex items-center justify-between px-6 py-3">
+          <span class="text-xs font-bold uppercase tracking-wider text-white/80">Jubiläum</span>
+          <span class="bgp-text-yellow text-xs font-bold">09.09.2021</span>
+        </div>
+        <div class="flex flex-1 flex-col p-6">
+          <h3 class="bgp-text-navy-dark mb-3 text-lg font-bold leading-snug">100 Jahre Baugenossenschaft Plattling eG</h3>
+          <p class="flex-1 text-sm leading-6 text-gray-600">1921 gegründet, 100 Jahre später ein fester Bestandteil von Plattling: Wir feierten unser Jubiläum mit Mitgliedern, Mietern und der Stadt.</p>
+          <span class="bgp-news-cta bgp-text-navy mt-4 inline-flex items-center gap-2 text-sm font-bold">
+            Mehr erfahren <i class="bi bi-arrow-right"></i>
+          </span>
+        </div>
+      </article>
+
+    </div>
+
+    <p id="bgpNewsEmpty" class="hidden rounded-2xl border border-dashed border-gray-300 py-12 text-center text-sm text-gray-500">
+      Zu diesem Filter gibt es aktuell keine Meldungen.
+    </p>
+  </div>
+</section>
+
+<!-- ABSCHLUSS -->
+<section class="bgp-bg-ice px-4 py-16">
+  <div class="mx-auto max-w-6xl">
+    <div class="flex flex-col items-start gap-6 rounded-2xl bg-white p-7 shadow-sm sm:flex-row sm:items-center sm:p-9" data-aos="fade-up">
+      <span class="bgp-bg-yellow inline-flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl">
+        <i class="bi bi-envelope-paper bgp-text-navy-dark text-2xl"></i>
+      </span>
+      <div class="flex-1">
+        <h2 class="bgp-text-navy-dark mb-1 text-lg font-bold">Keine Neuigkeit verpassen</h2>
+        <p class="text-sm leading-6 text-gray-600">
+          Wichtige Meldungen schicken wir unseren Mitgliedern auch per Post. Fragen zu einer Meldung?
+          Melden Sie sich einfach bei uns.
+        </p>
+      </div>
+      <a href="{{ bgp_kontakt_url }}" class="bgp-btn-navy bgp-focus inline-flex flex-shrink-0 items-center gap-2 rounded-xl px-6 py-3.5 text-sm font-bold shadow-lg transition-transform duration-300 hover:-translate-y-0.5">
+        Kontakt aufnehmen <i class="bi bi-arrow-right"></i>
+      </a>
+    </div>
+  </div>
+</section>
+
+{% endblock content %}
+
+{% block demo_js %}
+<script>
+  /* Filter nach Kategorie - rein clientseitig, wie im CMS spaeter serverseitig */
+  (function () {
+    var buttons = document.querySelectorAll('[data-filter]');
+    var cards = document.querySelectorAll('#bgpNewsGrid [data-category]');
+    var empty = document.getElementById('bgpNewsEmpty');
+
+    buttons.forEach(function (button) {
+      button.addEventListener('click', function () {
+        var filter = button.dataset.filter;
+        var visible = 0;
+
+        buttons.forEach(function (other) { other.classList.toggle('is-active', other === button); });
+
+        cards.forEach(function (card) {
+          var show = filter === 'alle' || card.dataset.category === filter;
+          card.classList.toggle('hidden', !show);
+          // Sichtbare Karten sofort einblenden: AOS wuerde sonst auf ein
+          // Scroll-Ereignis warten und die Karten blass stehen lassen.
+          if (show) {
+            card.classList.add('aos-animate');
+            visible += 1;
+          }
+        });
+
+        empty.classList.toggle('hidden', visible > 0);
+        if (window.AOS) { AOS.refresh(); }
+      });
+    });
+  })();
+</script>
+{% endblock demo_js %}

@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Café Musterkunde{% endblock title %}
+{% block meta_description %}Beispiel-Landingpage für ein fiktives Café - interne Demo für Kundenpräsentationen.{% endblock %}
+{% block robots %}noindex, nofollow{% endblock %}
+
+{# Eigenständige Demo-Seite: keine YooLink-Navigation/-Footer, damit sie wie die Seite eines echten Kunden wirkt. #}
+{% block navbar %}{% endblock navbar %}
+{% block cookies %}{% endblock cookies %}
+{% block site_banner %}{% endblock site_banner %}
+{% block footer %}
+<footer class="bg-amber-950 px-4 py-10 text-center text-sm text-amber-100">
+    <p>&copy; {% now "Y" %} Café Musterkunde - fiktive Demo-Landingpage</p>
+</footer>
+{% endblock footer %}
+
+{% block content %}
+
+<!-- HERO -->
+<section class="bg-gradient-to-br from-amber-900 via-amber-800 to-amber-950 px-4 pb-20 pt-20 text-white lg:pt-28">
+    <div class="mx-auto grid max-w-6xl items-center gap-10 px-4 md:grid-cols-2">
+        <div>
+            <p class="mb-4 inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-amber-100 backdrop-blur">
+                <i class="bi bi-cup-hot"></i> Café &amp; Rösterei
+            </p>
+            <h1 class="mb-6 text-3xl font-bold leading-none tracking-tight sm:text-5xl xl:text-6xl">
+                Café Musterkunde
+            </h1>
+            <p class="mb-8 max-w-xl text-base leading-7 text-amber-100 md:text-lg xl:text-xl">
+                Handgemachter Kaffee, frisch gebackene Kuchen und ein gemütlicher Rückzugsort mitten in der Stadt. Von 8 bis 18 Uhr für dich da.
+            </p>
+            <div class="flex flex-wrap gap-4">
+                <a href="#angebot" class="inline-block rounded-md bg-white px-8 py-4 text-base font-bold text-amber-900 shadow-xl transition-transform duration-300 ease-in-out hover:-translate-y-1 hover:scale-105 hover:bg-amber-50">
+                    Unser Angebot
+                </a>
+                <a href="#kontakt" class="inline-block rounded-md border border-white/50 bg-transparent px-8 py-4 text-base font-bold text-white transition-transform duration-300 ease-in-out hover:-translate-y-1 hover:scale-105 hover:bg-white/10">
+                    Öffnungszeiten &amp; Kontakt
+                </a>
+            </div>
+        </div>
+        <div class="relative flex justify-center">
+            <div class="aspect-square w-full max-w-md rounded-3xl bg-white/10 shadow-2xl ring-1 ring-white/20 backdrop-blur-sm flex items-center justify-center">
+                <i class="bi bi-cup-hot text-9xl text-white/40"></i>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ÜBER UNS -->
+<section class="bg-white px-4 py-20">
+    <div class="mx-auto grid max-w-6xl items-center gap-12 px-4 md:grid-cols-2">
+        <div>
+            <p class="mb-4 text-sm font-semibold uppercase tracking-widest text-amber-800">Über uns</p>
+            <h2 class="mb-6 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl sm:leading-none">
+                Kaffee mit Herz, seit über 10 Jahren
+            </h2>
+            <p class="text-base leading-7 text-gray-600 md:text-lg">
+                Café Musterkunde ist ein fiktiver Beispielbetrieb - diese Seite zeigt, wie eine moderne Landingpage
+                für ein lokales Café aussehen könnte: klar strukturiert, einladend gestaltet und auf das Wesentliche fokussiert.
+            </p>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+            <div class="rounded-xl bg-amber-50 p-6 text-center ring-1 ring-amber-100">
+                <i class="bi bi-egg-fried mb-2 block text-3xl text-amber-800"></i>
+                <p class="text-sm font-bold text-gray-900">Frisch gebacken</p>
+            </div>
+            <div class="rounded-xl bg-amber-50 p-6 text-center ring-1 ring-amber-100">
+                <i class="bi bi-globe-europe-africa mb-2 block text-3xl text-amber-800"></i>
+                <p class="text-sm font-bold text-gray-900">Fair gehandelt</p>
+            </div>
+            <div class="rounded-xl bg-amber-50 p-6 text-center ring-1 ring-amber-100">
+                <i class="bi bi-house-heart mb-2 block text-3xl text-amber-800"></i>
+                <p class="text-sm font-bold text-gray-900">Gemütlich</p>
+            </div>
+            <div class="rounded-xl bg-amber-900 p-6 text-center">
+                <i class="bi bi-people mb-2 block text-3xl text-white"></i>
+                <p class="text-sm font-bold text-white">Für alle offen</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ANGEBOT -->
+<section id="angebot" class="bg-amber-50 px-4 py-20">
+    <div class="mx-auto max-w-6xl px-4">
+        <div class="mx-auto mb-16 max-w-2xl text-center">
+            <p class="mb-4 text-sm font-semibold uppercase tracking-widest text-amber-800">Unser Angebot</p>
+            <h2 class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl sm:leading-none">Für jeden Geschmack etwas dabei</h2>
+        </div>
+        <div class="grid grid-cols-1 gap-8 md:grid-cols-3">
+            <div class="rounded-xl bg-white p-8 shadow-md ring-1 ring-gray-200">
+                <div class="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 text-amber-800">
+                    <i class="bi bi-cup-hot text-2xl"></i>
+                </div>
+                <h3 class="mb-3 text-xl font-bold tracking-tight text-gray-900">Kaffeespezialitäten</h3>
+                <p class="text-base leading-7 text-gray-600">Espresso, Cappuccino, Filterkaffee und mehr - geröstet in unserer eigenen Rösterei.</p>
+            </div>
+            <div class="rounded-xl bg-white p-8 shadow-md ring-1 ring-gray-200">
+                <div class="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 text-amber-800">
+                    <i class="bi bi-cake2 text-2xl"></i>
+                </div>
+                <h3 class="mb-3 text-xl font-bold tracking-tight text-gray-900">Hausgemachtes Gebäck</h3>
+                <p class="text-base leading-7 text-gray-600">Kuchen und Torten, täglich frisch gebacken - mit saisonalen Zutaten aus der Region.</p>
+            </div>
+            <div class="rounded-xl bg-white p-8 shadow-md ring-1 ring-gray-200">
+                <div class="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 text-amber-800">
+                    <i class="bi bi-cup-straw text-2xl"></i>
+                </div>
+                <h3 class="mb-3 text-xl font-bold tracking-tight text-gray-900">Frühstück &amp; Snacks</h3>
+                <p class="text-base leading-7 text-gray-600">Von herzhaft bis süß - unser Frühstücksangebot ist bis 12 Uhr verfügbar.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ÖFFNUNGSZEITEN / KONTAKT -->
+<section id="kontakt" class="bg-white px-4 py-20">
+    <div class="mx-auto grid max-w-6xl items-start gap-12 px-4 md:grid-cols-2">
+        <div>
+            <p class="mb-4 text-sm font-semibold uppercase tracking-widest text-amber-800">Öffnungszeiten</p>
+            <h2 class="mb-6 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl sm:leading-none">Wir freuen uns auf dich</h2>
+            <dl class="divide-y divide-gray-100 text-sm">
+                <div class="flex justify-between py-3"><dt class="text-gray-500">Montag - Freitag</dt><dd class="font-semibold text-gray-900">08:00 - 18:00 Uhr</dd></div>
+                <div class="flex justify-between py-3"><dt class="text-gray-500">Samstag</dt><dd class="font-semibold text-gray-900">09:00 - 16:00 Uhr</dd></div>
+                <div class="flex justify-between py-3"><dt class="text-gray-500">Sonntag</dt><dd class="font-semibold text-gray-900">geschlossen</dd></div>
+            </dl>
+        </div>
+        <div class="rounded-2xl bg-amber-50 p-8 ring-1 ring-amber-100">
+            <p class="mb-4 text-sm font-semibold uppercase tracking-widest text-amber-800">Kontakt</p>
+            <ul class="space-y-3 text-base text-gray-700">
+                <li class="flex items-center gap-3"><i class="bi bi-geo-alt text-amber-800"></i> Musterstraße 1, 94469 Deggendorf</li>
+                <li class="flex items-center gap-3"><i class="bi bi-telephone text-amber-800"></i> 0991 123456</li>
+                <li class="flex items-center gap-3"><i class="bi bi-envelope text-amber-800"></i> hallo@cafe-musterkunde.de</li>
+            </ul>
+            <p class="mt-6 text-xs text-gray-500">Diese Kontaktdaten sind Platzhalter für Demozwecke.</p>
+        </div>
+    </div>
+</section>
+
+{% endblock content %}

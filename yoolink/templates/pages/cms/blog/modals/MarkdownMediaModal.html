@@ -1,0 +1,131 @@
+<div class="fixed inset-0 z-[80] hidden items-center justify-center bg-slate-950/70 p-2 backdrop-blur-sm sm:p-4"
+    id="markdownMediaModal">
+    <div class="modal-container markdown-media-modal-container flex h-[calc(100dvh-1rem)] w-full max-w-6xl flex-col overflow-hidden rounded-lg bg-white shadow-2xl ring-1 ring-slate-200 sm:h-auto sm:max-h-[90vh]">
+        <div class="flex flex-shrink-0 items-start justify-between border-b border-slate-200 px-4 py-4 sm:px-6 sm:py-5">
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-wide text-blue-700">Markdown</p>
+                <h3 class="mt-1 text-2xl font-semibold text-slate-950">Element einfügen</h3>
+            </div>
+            <button type="button" id="closeMarkdownMediaModal"
+                class="rounded-md p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-900">
+                <i class="bi bi-x-lg"></i>
+                <span class="sr-only">Schließen</span>
+            </button>
+        </div>
+
+        <div class="grid min-h-0 flex-1 grid-cols-1 overflow-y-auto lg:grid-cols-[17rem_minmax(0,1fr)]">
+            <aside class="border-b border-slate-200 bg-slate-50 p-3 sm:p-4 lg:border-b-0 lg:border-r">
+                <div class="grid grid-cols-2 gap-2 lg:grid-cols-1">
+                    <button type="button" class="markdown-media-tab rounded-md bg-blue-900 px-4 py-3 text-left text-sm font-semibold text-white shadow-sm" data-target="markdownYoutubePanel">
+                        <span class="block">YouTube</span>
+                    </button>
+                    <button type="button" class="markdown-media-tab rounded-md px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:bg-white hover:text-slate-950" data-target="markdownVideoPanel">
+                        <span class="block">CMS Video</span>
+                    </button>
+                    <button type="button" class="markdown-media-tab rounded-md px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:bg-white hover:text-slate-950" data-target="markdownGalleryPanel">
+                        <span class="block">Galerie</span>
+                    </button>
+                    <button type="button" class="markdown-media-tab rounded-md px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:bg-white hover:text-slate-950" data-target="markdownFilePanel">
+                        <span class="block">Datei</span>
+                    </button>
+                    <button type="button" class="markdown-media-tab rounded-md px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:bg-white hover:text-slate-950" data-target="markdownCodePanel">
+                        <span class="block">Code</span>
+                    </button>
+                </div>
+            </aside>
+
+            <div class="min-h-0 p-4 sm:p-6">
+                <section id="markdownYoutubePanel" class="markdown-media-panel flex min-h-0 flex-col gap-4 lg:h-full">
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <label class="block text-sm font-semibold text-slate-900 sm:col-span-2">
+                            URL
+                            <input id="markdownYoutubeUrl" type="url" class="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100" placeholder="https://www.youtube.com/watch?v=...">
+                        </label>
+                        <label class="block text-sm font-semibold text-slate-900 sm:col-span-2">
+                            Titel
+                            <input id="markdownYoutubeTitle" type="text" class="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100" placeholder="Beschreibender Videotitel">
+                        </label>
+                        <label class="block text-sm font-semibold text-slate-900">
+                            Breite
+                            <input id="markdownYoutubeWidth" type="text" class="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100" placeholder="100%">
+                        </label>
+                        <label class="block text-sm font-semibold text-slate-900">
+                            Höhe
+                            <input id="markdownYoutubeHeight" type="text" class="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100" placeholder="315px">
+                        </label>
+                    </div>
+                </section>
+
+                <section id="markdownVideoPanel" class="markdown-media-panel hidden min-h-0 flex-col gap-4 lg:h-full">
+                    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <h4 class="text-lg font-semibold text-slate-950">CMS Videos</h4>
+                        <button id="reloadMarkdownVideos" type="button" class="rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700">Laden</button>
+                    </div>
+                    <div id="markdownVideoLibrary" class="grid min-h-[12rem] grid-cols-1 gap-3 overflow-auto rounded-lg border border-slate-200 bg-slate-50 p-3 sm:grid-cols-2 lg:grid-cols-3"></div>
+                    <p id="markdownVideoEmpty" class="hidden text-sm text-slate-500">Keine Videos gefunden.</p>
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <label class="block text-sm font-semibold text-slate-900">
+                            Breite
+                            <input id="markdownVideoWidth" type="text" class="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100" placeholder="100%">
+                        </label>
+                        <label class="block text-sm font-semibold text-slate-900">
+                            Höhe
+                            <input id="markdownVideoHeight" type="text" class="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100" placeholder="auto">
+                        </label>
+                    </div>
+                </section>
+
+                <section id="markdownGalleryPanel" class="markdown-media-panel hidden min-h-0 flex-col gap-4 lg:h-full">
+                    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <h4 class="text-lg font-semibold text-slate-950">Galerien</h4>
+                        <button id="reloadMarkdownGalleries" type="button" class="rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700">Laden</button>
+                    </div>
+                    <div id="markdownGalleryLibrary" class="grid min-h-[12rem] grid-cols-1 gap-3 overflow-auto rounded-lg border border-slate-200 bg-slate-50 p-3 sm:grid-cols-2 lg:grid-cols-3"></div>
+                    <p id="markdownGalleryEmpty" class="hidden text-sm text-slate-500">Keine Galerien gefunden.</p>
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <label class="block text-sm font-semibold text-slate-900">
+                            Breite
+                            <input id="markdownGalleryWidth" type="text" class="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100" placeholder="100%">
+                        </label>
+                        <label class="block text-sm font-semibold text-slate-900">
+                            Höhe
+                            <input id="markdownGalleryHeight" type="text" class="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100" placeholder="420px">
+                        </label>
+                    </div>
+                </section>
+
+                <section id="markdownFilePanel" class="markdown-media-panel hidden min-h-0 flex-col gap-4 lg:h-full">
+                    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <h4 class="text-lg font-semibold text-slate-950">Dateien</h4>
+                        <button id="reloadMarkdownFiles" type="button" class="rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700">Laden</button>
+                    </div>
+                    <input id="markdownFileSearch" type="search" placeholder="Dateien suchen" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+                    <div id="markdownFileLibrary" class="grid min-h-[12rem] grid-cols-1 gap-3 overflow-auto rounded-lg border border-slate-200 bg-slate-50 p-3 sm:grid-cols-2 lg:grid-cols-3"></div>
+                    <p id="markdownFileEmpty" class="hidden text-sm text-slate-500">Keine Dateien gefunden.</p>
+                </section>
+
+                <section id="markdownCodePanel" class="markdown-media-panel hidden min-h-0 flex-col gap-4 lg:h-full">
+                    <label class="block text-sm font-semibold text-slate-900">
+                        Sprache
+                        <input id="markdownCodeLanguage" type="text" class="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100" placeholder="html">
+                    </label>
+                    <label class="block flex-1 text-sm font-semibold text-slate-900">
+                        Code
+                        <textarea id="markdownCodeSource" rows="12" class="mt-1 min-h-[16rem] w-full rounded-md border border-slate-300 px-3 py-2 font-mono text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100" placeholder="<div>...</div>"></textarea>
+                    </label>
+                </section>
+            </div>
+        </div>
+
+        <div class="flex flex-shrink-0 flex-col gap-3 border-t border-slate-200 bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-4">
+            <button type="button" id="cancelMarkdownMedia"
+                class="inline-flex items-center justify-center rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 hover:text-slate-950">
+                Abbrechen
+            </button>
+            <button type="button" id="insertMarkdownMedia"
+                class="inline-flex items-center justify-center rounded-md bg-blue-700 px-5 py-2 text-sm font-semibold text-white transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50">
+                Einfügen
+            </button>
+        </div>
+    </div>
+</div>

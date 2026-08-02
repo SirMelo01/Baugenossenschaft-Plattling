@@ -1,0 +1,806 @@
+{% extends 'cmsbase.html' %}
+{% load compress static %}
+
+{% block title %}{{ block.super }} | CMS | Produkt erstellen{% endblock %}
+
+{% block javascript %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/cms/slick/slick-carousel.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/cms/slick/slick-theme.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/libs/quill.snow.css' %}" />
+
+<style>
+  #descriptionEditorWrap .ql-toolbar.ql-snow {
+    border: none;
+    border-bottom: 1px solid #e5e7eb;
+    background: #f9fafb;
+    border-radius: 0.75rem 0.75rem 0 0;
+    font-family: inherit;
+  }
+
+  #descriptionEditorWrap .ql-container.ql-snow {
+    border: none;
+    font-family: inherit;
+    font-size: 0.95rem;
+  }
+
+  #descriptionEditorWrap .ql-editor {
+    min-height: 220px;
+    color: #1f2937;
+  }
+
+  #descriptionEditorWrap .ql-editor.ql-blank::before {
+    color: #9ca3af;
+    font-style: normal;
+  }
+
+  #descriptionEditorWrap .ql-editor img {
+    max-width: 100%;
+    border-radius: 0.75rem;
+    margin: 0.5rem 0;
+  }
+</style>
+
+<style>
+  .autocomplete-list::-webkit-scrollbar {
+    width: 12px;
+  }
+
+  .autocomplete-list::-webkit-scrollbar-thumb {
+    background-color: #3490dc;
+    border-radius: 6px;
+  }
+
+  .autocomplete-list::-webkit-scrollbar-track {
+    background-color: #f1f1f1;
+    border-radius: 6px;
+  }
+
+  .product-gallery-wrapper .slick-prev,
+  .product-gallery-wrapper .slick-next {
+    z-index: 20;
+    width: 36px;
+    height: 36px;
+  }
+
+  .product-gallery-wrapper .slick-prev {
+    left: 8px;
+  }
+
+  .product-gallery-wrapper .slick-next {
+    right: 8px;
+  }
+
+  .product-gallery-wrapper .slick-prev:before,
+  .product-gallery-wrapper .slick-next:before {
+    font-size: 28px;
+    color: #2563eb;
+    opacity: 1;
+  }
+
+  .product-gallery-wrapper .slick-dots {
+    bottom: -30px;
+  }
+
+  .product-gallery-wrapper .slick-slide {
+    padding: 0 4px;
+  }
+
+  .collapsible-content {
+    overflow: hidden;
+    transition: max-height 0.28s ease, opacity 0.22s ease, margin 0.22s ease;
+    max-height: 5000px;
+    opacity: 1;
+  }
+
+  .collapsible-card.is-collapsed .collapsible-content {
+    max-height: 0;
+    opacity: 0;
+    margin-top: 0 !important;
+  }
+
+  .collapsible-trigger-icon {
+    transition: transform 0.25s ease;
+  }
+
+  .collapsible-card.is-collapsed .collapsible-trigger-icon {
+    transform: rotate(-90deg);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+{% include "pages/cms/components/GalerySelectModal.html" %}
+{% include "pages/cms/components/AnyFileSelectModal.html" %}
+{% include "pages/cms/components/ProductTaxonomyModal.html" %}
+
+<div class="container mx-auto max-w-7xl px-3 py-8 lg:px-0">
+  <div class="sticky top-[4.25rem] z-30 mb-8 rounded-2xl border border-gray-200 bg-white/95 px-5 py-4 shadow-sm backdrop-blur">
+    <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+      <div>
+        <h1 class="text-2xl font-semibold text-gray-900">
+          <a href="{% url 'cms:products' %}" class="text-blue-500 hover:text-blue-700">Produkte</a>
+          <span class="mx-2 text-gray-400">/</span>
+          <span id="titleSpan">Neues Produkt</span>
+        </h1>
+        <p class="mt-1 text-sm text-gray-500">Erstelle Produktdaten, Medien, Galerie, Spezifikationen und Dateianhänge</p>
+      </div>
+
+      <div class="flex flex-wrap gap-3">
+        <button
+          type="button"
+          id="createProduct"
+          class="flex items-center rounded-xl bg-green-500 px-4 py-2 font-semibold text-white transition hover:bg-green-700"
+        >
+          <i class="bi bi-plus-circle mr-2"></i>
+          <svg class="mr-2 hidden h-5 w-5 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          Erstellen
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <form action="" id="createProductForm" class="space-y-6">
+    {% csrf_token %}
+
+    <div class="grid grid-cols-1 gap-6 xl:grid-cols-3">
+      <div class="space-y-6 xl:col-span-2">
+
+        <div class="collapsible-card rounded-2xl border border-gray-200 bg-white shadow-sm pb-4" data-collapsible>
+          <button
+            type="button"
+            class="flex w-full items-start justify-between gap-4 px-5 py-5 text-left"
+            data-collapsible-trigger
+          >
+            <div>
+              <h2 class="text-lg font-semibold text-gray-900">Stammdaten</h2>
+              <p class="text-sm text-gray-500">Titel, Beschreibung, Hersteller und Kategorien</p>
+            </div>
+
+            <span class="mt-1 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-600">
+              <svg class="collapsible-trigger-icon h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </span>
+          </button>
+
+          <div class="collapsible-content px-5 pb-5">
+            <div class="space-y-5 border-t border-gray-100 pt-5">
+              <div>
+                <label class="mb-2 block text-sm font-semibold text-gray-700" for="title">Titel</label>
+                <input
+                  id="title"
+                  name="title"
+                  type="text"
+                  value=""
+                  required
+                  class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-800 focus:border-blue-500 focus:bg-white focus:outline-none"
+                  placeholder="Produktname"
+                />
+              </div>
+
+              <div>
+                <label class="mb-2 block text-sm font-semibold text-gray-700" for="descriptionEditor">Beschreibung</label>
+                <textarea id="description" name="description" class="hidden" aria-hidden="true"></textarea>
+                <div id="descriptionEditorWrap" class="overflow-hidden rounded-xl border border-gray-200 bg-white focus-within:border-blue-500">
+                  <div id="descriptionEditor"></div>
+                </div>
+                <p class="mt-2 text-xs text-gray-500">Nutze die Werkzeugleiste für Überschriften, Fettschrift, Listen, Links und Bilder.</p>
+              </div>
+
+              <div class="xl:max-w-sm">
+                <label class="mb-2 block text-sm font-semibold text-gray-700" for="sku">Artikelnummer (optional)</label>
+                <input
+                  id="sku"
+                  name="sku"
+                  type="text"
+                  value=""
+                  maxlength="64"
+                  class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-800 focus:border-blue-500 focus:bg-white focus:outline-none"
+                  placeholder="z.B. ART-1024"
+                />
+              </div>
+
+              <div>
+                <label class="mb-2 block text-sm font-semibold text-gray-700">Zuordnung</label>
+                <div class="grid grid-cols-1 gap-3 lg:grid-cols-3">
+                  <div class="flex h-full flex-col rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                    <div class="flex items-start justify-between gap-2">
+                      <div class="min-w-0">
+                        <p class="text-sm font-semibold text-gray-800">Gruppierung</p>
+                        <p class="mt-0.5 text-xs text-gray-500">Abschnitt auf der Produktseite</p>
+                      </div>
+                      <button
+                        type="button"
+                        data-kind="group"
+                        class="taxonomy-open shrink-0 rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-sm font-semibold text-blue-600 transition hover:border-blue-300 hover:bg-blue-50"
+                      >
+                        Wählen
+                      </button>
+                    </div>
+                    <div id="selectedGroupChips" class="mt-auto flex min-h-[2.25rem] flex-wrap items-center gap-2 pt-3" data-empty-text="Keine Gruppierung zugeordnet"></div>
+                  </div>
+
+                  <div class="flex h-full flex-col rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                    <div class="flex items-start justify-between gap-2">
+                      <div class="min-w-0">
+                        <p class="text-sm font-semibold text-gray-800">Hersteller</p>
+                        <p class="mt-0.5 text-xs text-gray-500">Marke des Produkts</p>
+                      </div>
+                      <button
+                        type="button"
+                        data-kind="brand"
+                        class="taxonomy-open shrink-0 rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-sm font-semibold text-blue-600 transition hover:border-blue-300 hover:bg-blue-50"
+                      >
+                        Wählen
+                      </button>
+                    </div>
+                    <div id="selectedBrandChips" class="mt-auto flex min-h-[2.25rem] flex-wrap items-center gap-2 pt-3" data-empty-text="Kein Hersteller zugeordnet"></div>
+                  </div>
+
+                  <div class="flex h-full flex-col rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                    <div class="flex items-start justify-between gap-2">
+                      <div class="min-w-0">
+                        <p class="text-sm font-semibold text-gray-800">Kategorien</p>
+                        <p class="mt-0.5 text-xs text-gray-500">Filter-Schlagworte, mehrere möglich</p>
+                      </div>
+                      <button
+                        type="button"
+                        data-kind="category"
+                        class="taxonomy-open shrink-0 rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-sm font-semibold text-blue-600 transition hover:border-blue-300 hover:bg-blue-50"
+                      >
+                        Wählen
+                      </button>
+                    </div>
+                    <div id="selectedCategoryChips" class="mt-auto flex min-h-[2.25rem] flex-wrap items-center gap-2 pt-3" data-empty-text="Keine Kategorien zugeordnet"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="collapsible-card rounded-2xl border border-gray-200 bg-white shadow-sm pb-4" data-collapsible>
+          <button
+            type="button"
+            class="flex w-full items-start justify-between gap-4 px-5 py-5 text-left"
+            data-collapsible-trigger
+          >
+            <div>
+              <h2 class="text-lg font-semibold text-gray-900">Spezifikationen</h2>
+              <p class="text-sm text-gray-500">Beliebige Merkmale wie Länge, Breite, PS, Material oder Farbe</p>
+            </div>
+
+            <span class="mt-1 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-600">
+              <svg class="collapsible-trigger-icon h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </span>
+          </button>
+
+          <div class="collapsible-content px-5 pb-5">
+            <div class="border-t border-gray-100 pt-5">
+              <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <h3 class="text-base font-semibold text-gray-900">Produktdetails</h3>
+                  <p class="text-sm text-gray-500">Füge beliebig viele Spezifikationen hinzu</p>
+                </div>
+
+                <button
+                  type="button"
+                  id="addSpecificationRow"
+                  class="rounded-xl bg-blue-500 px-4 py-2 font-semibold text-white transition hover:bg-blue-700"
+                >
+                  Spezifikation hinzufügen
+                </button>
+              </div>
+
+              <div id="productSpecificationsList" class="space-y-3"></div>
+
+              <div
+                id="noSpecificationsPlaceholder"
+                class="mt-3 rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-4 text-sm text-gray-500"
+              >
+                Noch keine Spezifikationen vorhanden
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="collapsible-card rounded-2xl border border-gray-200 bg-white shadow-sm pb-4" data-collapsible>
+          <button
+            type="button"
+            class="flex w-full items-start justify-between gap-4 px-5 py-5 text-left"
+            data-collapsible-trigger
+          >
+            <div>
+              <h2 class="text-lg font-semibold text-gray-900">Preis und Verfügbarkeit</h2>
+              <p class="text-sm text-gray-500">Preislogik und Shopstatus des Produkts</p>
+            </div>
+
+            <span class="mt-1 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-600">
+              <svg class="collapsible-trigger-icon h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </span>
+          </button>
+
+          <div class="collapsible-content px-5 pb-5">
+            <div class="grid grid-cols-1 gap-5 border-t border-gray-100 pt-5 lg:grid-cols-2">
+              <div>
+                <label class="mb-2 block text-sm font-semibold text-gray-700" for="price">Preis</label>
+                <input
+                  id="price"
+                  name="price"
+                  type="text"
+                  value=""
+                  required
+                  class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-800 focus:border-blue-500 focus:bg-white focus:outline-none"
+                  placeholder="205,20"
+                />
+              </div>
+
+              <div>
+                <label class="mb-2 block text-sm font-semibold text-gray-700" for="reducedPrice">Reduzierter Preis</label>
+                <input
+                  id="reducedPrice"
+                  name="reducedPrice"
+                  type="text"
+                  value=""
+                  class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-800 focus:border-blue-500 focus:bg-white focus:outline-none"
+                  placeholder="199,90"
+                />
+              </div>
+
+              <div>
+                <label class="mb-2 block text-sm font-semibold text-gray-700" for="weight">Produktgewicht in kg</label>
+                <input
+                  id="weight"
+                  name="weight"
+                  type="text"
+                  value=""
+                  required
+                  class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-800 focus:border-blue-500 focus:bg-white focus:outline-none"
+                  placeholder="1,5"
+                />
+              </div>
+
+              <div>
+                <label class="mb-2 block text-sm font-semibold text-gray-700" for="priceNote">Preishinweis (optional)</label>
+                <input
+                  id="priceNote"
+                  name="priceNote"
+                  type="text"
+                  value=""
+                  maxlength="120"
+                  class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-800 focus:border-blue-500 focus:bg-white focus:outline-none"
+                  placeholder='z.B. "pro Stück" oder "zzgl. Versand"'
+                />
+              </div>
+
+              <div class="lg:col-span-2">
+                <label class="mb-3 block text-sm font-semibold text-gray-700">Status</label>
+
+                <div class="grid grid-cols-1 gap-3 md:grid-cols-2 2xl:grid-cols-3">
+                  <label class="rounded-2xl border border-gray-200 bg-gray-50 p-4 transition hover:border-blue-400 hover:bg-white">
+                    <div class="flex items-start justify-between gap-3">
+                      <div>
+                        <p class="text-sm font-semibold text-gray-800">Aktiv</p>
+                        <p class="mt-1 text-xs text-gray-500">Öffentlich sichtbar</p>
+                      </div>
+
+                      <span class="relative inline-flex h-6 w-11 shrink-0 items-center">
+                        <input
+                          type="checkbox"
+                          role="switch"
+                          id="activeSwitch"
+                          class="peer sr-only"
+                        />
+                        <span class="absolute inset-0 rounded-full bg-gray-300 transition peer-checked:bg-blue-500"></span>
+                        <span class="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition peer-checked:translate-x-5"></span>
+                      </span>
+                    </div>
+                  </label>
+
+                  <label class="rounded-2xl border border-gray-200 bg-gray-50 p-4 transition hover:border-blue-400 hover:bg-white">
+                    <div class="flex items-start justify-between gap-3">
+                      <div>
+                        <p class="text-sm font-semibold text-gray-800">In Stock</p>
+                        <p class="mt-1 text-xs text-gray-500">Lagerbestand vorhanden</p>
+                      </div>
+
+                      <span class="relative inline-flex h-6 w-11 shrink-0 items-center">
+                        <input
+                          checked
+                          type="checkbox"
+                          role="switch"
+                          id="stockSwitch"
+                          class="peer sr-only"
+                        />
+                        <span class="absolute inset-0 rounded-full bg-gray-300 transition peer-checked:bg-blue-500"></span>
+                        <span class="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition peer-checked:translate-x-5"></span>
+                      </span>
+                    </div>
+                  </label>
+
+                  <label class="rounded-2xl border border-gray-200 bg-gray-50 p-4 transition hover:border-blue-400 hover:bg-white">
+                    <div class="flex items-start justify-between gap-3">
+                      <div>
+                        <p class="text-sm font-semibold text-gray-800">Lieferung möglich</p>
+                        <p class="mt-1 text-xs text-gray-500">Produkt kann an Kunden geliefert werden</p>
+                      </div>
+
+                      <span class="relative inline-flex h-6 w-11 shrink-0 items-center">
+                        <input
+                          type="checkbox"
+                          role="switch"
+                          id="onlineSwitch"
+                          class="peer sr-only"
+                        />
+                        <span class="absolute inset-0 rounded-full bg-gray-300 transition peer-checked:bg-blue-500"></span>
+                        <span class="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition peer-checked:translate-x-5"></span>
+                      </span>
+                    </div>
+                  </label>
+
+                  <label class="rounded-2xl border border-gray-200 bg-gray-50 p-4 transition hover:border-blue-400 hover:bg-white">
+                    <div class="flex items-start justify-between gap-3">
+                      <div>
+                        <p class="text-sm font-semibold text-gray-800">Reduziert</p>
+                        <p class="mt-1 text-xs text-gray-500">Sonderpreis aktiv</p>
+                      </div>
+
+                      <span class="relative inline-flex h-6 w-11 shrink-0 items-center">
+                        <input
+                          type="checkbox"
+                          role="switch"
+                          id="reducedSwitch"
+                          class="peer sr-only"
+                        />
+                        <span class="absolute inset-0 rounded-full bg-gray-300 transition peer-checked:bg-blue-500"></span>
+                        <span class="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition peer-checked:translate-x-5"></span>
+                      </span>
+                    </div>
+                  </label>
+
+                  <label class="rounded-2xl border border-gray-200 bg-gray-50 p-4 transition hover:border-blue-400 hover:bg-white">
+                    <div class="flex items-start justify-between gap-3">
+                      <div>
+                        <p class="text-sm font-semibold text-gray-800">Showcase only</p>
+                        <p class="mt-1 text-xs text-gray-500">Standard: Produkte werden nur präsentiert, kein Online Kauf</p>
+                      </div>
+
+                      <span class="relative inline-flex h-6 w-11 shrink-0 items-center">
+                        <input
+                          checked
+                          disabled
+                          type="checkbox"
+                          role="switch"
+                          id="showcaseOnlySwitch"
+                          class="peer sr-only"
+                        />
+                        <span class="absolute inset-0 rounded-full bg-gray-300 transition peer-checked:bg-blue-500"></span>
+                        <span class="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition peer-checked:translate-x-5"></span>
+                      </span>
+                    </div>
+                  </label>
+
+                  <label class="rounded-2xl border border-gray-200 bg-gray-50 p-4 transition hover:border-blue-400 hover:bg-white">
+                    <div class="flex items-start justify-between gap-3">
+                      <div>
+                        <p class="text-sm font-semibold text-gray-800">Preis im Showcase anzeigen</p>
+                        <p class="mt-1 text-xs text-gray-500">Preis sichtbar lassen, aber ohne Kaufaktion</p>
+                      </div>
+
+                      <span class="relative inline-flex h-6 w-11 shrink-0 items-center">
+                        <input
+                          checked
+                          type="checkbox"
+                          role="switch"
+                          id="showPriceWhenShowcaseSwitch"
+                          class="peer sr-only"
+                        />
+                        <span class="absolute inset-0 rounded-full bg-gray-300 transition peer-checked:bg-blue-500"></span>
+                        <span class="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition peer-checked:translate-x-5"></span>
+                      </span>
+                    </div>
+                  </label>
+
+                  <label class="rounded-2xl border border-gray-200 bg-gray-50 p-4 transition hover:border-blue-400 hover:bg-white">
+                    <div class="flex items-start justify-between gap-3">
+                      <div>
+                        <p class="text-sm font-semibold text-gray-800">Hervorheben</p>
+                        <p class="mt-1 text-xs text-gray-500">Produkt wird auf der Produktseite zuerst angezeigt</p>
+                      </div>
+
+                      <span class="relative inline-flex h-6 w-11 shrink-0 items-center">
+                        <input
+                          type="checkbox"
+                          role="switch"
+                          id="featuredSwitch"
+                          class="peer sr-only"
+                        />
+                        <span class="absolute inset-0 rounded-full bg-gray-300 transition peer-checked:bg-blue-500"></span>
+                        <span class="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition peer-checked:translate-x-5"></span>
+                      </span>
+                    </div>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="collapsible-card rounded-2xl border border-gray-200 bg-white shadow-sm pb-4" data-collapsible>
+          <button
+            type="button"
+            class="flex w-full items-start justify-between gap-4 px-5 py-5 text-left"
+            data-collapsible-trigger
+          >
+            <div>
+              <h2 class="text-lg font-semibold text-gray-900">Dateien</h2>
+              <p class="text-sm text-gray-500">Beliebig viele Dateien dem Produkt zuordnen</p>
+            </div>
+
+            <span class="mt-1 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-600">
+              <svg class="collapsible-trigger-icon h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </span>
+          </button>
+
+          <div class="collapsible-content px-5 pb-5">
+            <div class="border-t border-gray-100 pt-5">
+              <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <h3 class="text-base font-semibold text-gray-900">Zugeordnete Dateien</h3>
+                  <p class="text-sm text-gray-500">Dateien auswählen, entfernen und direkt überblicken</p>
+                </div>
+
+                <button
+                  type="button"
+                  class="edit-files rounded-xl bg-blue-500 px-4 py-2 font-semibold text-white transition hover:bg-blue-700"
+                >
+                  Dateien auswählen
+                </button>
+              </div>
+
+              <div id="selectedProductFiles" class="grid grid-cols-1 gap-3 md:grid-cols-2">
+                <div class="rounded-xl border border-dashed border-gray-300 p-4 text-sm text-gray-500">
+                  Noch keine Dateien zugeordnet
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="space-y-6">
+        <div class="collapsible-card rounded-2xl border border-gray-200 bg-white shadow-sm pb-4" data-collapsible>
+          <button
+            type="button"
+            class="flex w-full items-start justify-between gap-4 px-5 py-5 text-left"
+            data-collapsible-trigger
+          >
+            <div>
+              <h2 class="text-lg font-semibold text-gray-900">Titelbild</h2>
+              <p class="text-sm text-gray-500">Bild hochladen und Vorschau direkt sehen</p>
+            </div>
+
+            <span class="mt-1 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-600">
+              <svg class="collapsible-trigger-icon h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </span>
+          </button>
+
+          <div class="collapsible-content px-5 pb-5">
+            <div class="space-y-4 border-t border-gray-100 pt-5">
+              <div class="rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50 p-5 text-center">
+                <svg class="mx-auto mb-4 w-20 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+
+                <label class="inline-block">
+                  <input
+                    required
+                    id="titleImgUpload"
+                    class="hidden"
+                    type="file"
+                    accept="image/jpg,image/png,image/jpeg,image/gif"
+                  />
+                  <span class="inline-block cursor-pointer rounded-xl bg-indigo-600 px-4 py-2 font-semibold text-white transition hover:bg-indigo-500">
+                    Bild auswählen
+                  </span>
+                </label>
+
+                <p class="mt-3 text-sm text-gray-500">Bitte lade ein Titelbild für das Produkt hoch</p>
+              </div>
+
+              <div class="flex min-h-[18rem] items-center justify-center rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                <img id="productImage" src="{% static 'images/placeholder-image.svg' %}" alt="Kein Bild" class="max-h-72 rounded-xl object-contain">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="collapsible-card rounded-2xl border border-gray-200 bg-white shadow-sm pb-4" data-collapsible>
+          <button
+            type="button"
+            class="flex w-full items-start justify-between gap-4 px-5 py-5 text-left"
+            data-collapsible-trigger
+          >
+            <div>
+              <h2 class="text-lg font-semibold text-gray-900">Galerie</h2>
+              <p class="text-sm text-gray-500">Zusätzliche Bilder dem Produkt zuordnen</p>
+            </div>
+
+            <span class="mt-1 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-600">
+              <svg class="collapsible-trigger-icon h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </span>
+          </button>
+
+          <div class="collapsible-content px-5 pb-5">
+            <div class="border-t border-gray-100 pt-5">
+              <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <h3 class="text-base font-semibold text-gray-900">Bildergalerie</h3>
+                  <p class="text-sm text-gray-500">Zusätzliche Bilder auswählen und direkt prüfen</p>
+                </div>
+
+                <button
+                  type="button"
+                  class="edit-galery rounded-xl bg-blue-500 px-4 py-2 font-semibold text-white transition hover:bg-blue-700"
+                >
+                  Wählen
+                </button>
+              </div>
+
+              <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                <div class="product-gallery-wrapper relative mx-auto max-w-md">
+                  <div id="productGalery" class="carousel rounded-xl">
+                    <div class="flex h-72 items-center justify-center rounded-xl border border-dashed border-gray-300 text-sm text-gray-500">
+                      Noch keine Galerie ausgewählt
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="collapsible-card rounded-2xl border border-gray-200 bg-white shadow-sm pb-4" data-collapsible>
+          <button
+            type="button"
+            class="flex w-full items-start justify-between gap-4 px-5 py-5 text-left"
+            data-collapsible-trigger
+          >
+            <div>
+              <h2 class="text-lg font-semibold text-gray-900">Hinweise</h2>
+              <p class="text-sm text-gray-500">Wichtige Informationen zum Erstellen</p>
+            </div>
+
+            <span class="mt-1 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-600">
+              <svg class="collapsible-trigger-icon h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </span>
+          </button>
+
+          <div class="collapsible-content px-5 pb-5">
+            <div class="border-t border-gray-100 pt-5">
+              <div class="grid grid-cols-1 gap-3">
+                <div class="flex items-start gap-3 rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                  <span class="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </span>
+                  <p class="text-sm leading-6 text-gray-700">Ein Titelbild ist beim Erstellen verpflichtend</p>
+                </div>
+
+                <div class="flex items-start gap-3 rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                  <span class="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </span>
+                  <p class="text-sm leading-6 text-gray-700">Preis und reduzierter Preis werden beim Speichern geprüft</p>
+                </div>
+
+                <div class="flex items-start gap-3 rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                  <span class="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </span>
+                  <p class="text-sm leading-6 text-gray-700">Dateien, Galerie und Spezifikationen können direkt mit angelegt werden</p>
+                </div>
+
+                <div class="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+                  <span class="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z" />
+                    </svg>
+                  </span>
+                  <p class="text-sm leading-6 text-amber-800">Showcase Produkte sind nicht für den Online Kauf gedacht</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+
+<div
+  id="productFormConfig"
+  data-categories-url="{% url 'cms:get-categories' %}"
+  data-brands-url="{% url 'cms:get-brands' %}"
+  data-groups-url="{% url 'cms:get-groups' %}"
+  data-group-create-url="{% url 'cms:group-create' %}"
+  data-group-move-url="{% url 'cms:group-move' group_id=0 %}"
+  data-group-delete-url="{% url 'cms:group-delete' group_id=0 %}"
+  data-products-url="{% url 'cms:products' %}"
+  data-create-url="{% url 'cms:product-create-upload' %}"
+  data-galleries-url="{% url 'cms:all-galerien' %}"
+  data-gallery-images-url="{% url 'cms:galery-get-images' %}"
+  data-anyfiles-url="{% url 'cms:anyfiles-all' %}"
+  data-description-image-url="{% url 'cms:product-description-image' %}"
+></div>
+
+{% endblock %}
+
+{% block javascriptend %}
+{% compress js %}
+<script src="{% static 'js/libs/quill/quill.min.js' %}"></script>
+<script src="{% static 'js/cms/products/product-taxonomy.js' %}"></script>
+<script src="{% static 'js/cms/products/product-detail.js' %}"></script>
+<script src="{% static 'js/cms/products/product-galery.js' %}"></script>
+<script src="{% static 'js/cms/products/product-files.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/cms/slick/slick.min.js' %}"></script>
+
+<script>
+  $('.carousel').slick({
+    dots: true,
+    arrows: true,
+    infinite: true,
+    slidesToShow: 1,
+    slidesToScroll: 1,
+    autoplay: true,
+    autoplaySpeed: 3000
+  })
+
+  function setCollapsibleState(card, collapsed) {
+    if (collapsed) {
+      card.classList.add('is-collapsed')
+    } else {
+      card.classList.remove('is-collapsed')
+    }
+  }
+
+  $(document).ready(function () {
+    loadGalerien(false)
+
+    $('[data-collapsible]').each(function () {
+      const card = this
+      const shouldStartCollapsed = card.dataset.collapsed === 'true'
+      setCollapsibleState(card, shouldStartCollapsed)
+    })
+
+    $(document).on('click', '[data-collapsible-trigger]', function () {
+      const card = $(this).closest('[data-collapsible]')[0]
+      const isCollapsed = card.classList.contains('is-collapsed')
+      setCollapsibleState(card, !isCollapsed)
+    })
+  })
+</script>
+{% endcompress js %}
+{% endblock javascriptend %}

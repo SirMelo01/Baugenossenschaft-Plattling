@@ -1,0 +1,7 @@
+# PostgreSQL
+# ------------------------------------------------------------------------------
+POSTGRES_HOST=postgres
+POSTGRES_PORT=5432
+POSTGRES_DB=yoolink
+POSTGRES_USER=kcxDijrHoEvdsCumDskCVVwendqldRCj
+POSTGRES_PASSWORD=4qr3RGXiQ0kSHD8TpZ2zw9WokKPz30nAb2BO2EcMFnF1hmknJw6d7ZNI3C2abONx

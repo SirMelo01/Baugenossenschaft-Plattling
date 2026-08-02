@@ -1,0 +1,234 @@
+{% extends "cmsbase.html" %}
+{% load compress static %}
+{% block title %} {{ block.super }} | CMS - Medien {% endblock %}
+
+{% block content %}
+
+<div class="mx-auto mt-4 max-w-6xl px-4 sm:mt-8 sm:px-6">
+
+  <!-- ── Header ── -->
+  <div class="sticky top-[4.25rem] z-30 mb-6 rounded-2xl border border-gray-200 bg-white/95 px-5 py-4 shadow-sm backdrop-blur flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <h1 class="text-2xl">
+      <a href="{% url 'cms:sites' %}" class="text-blue-500">Seiten</a>
+      / <a href="{% url 'cms:site_leistungen' %}" class="text-blue-500">Leistungen (/leistungen)</a>
+      / <span>Medien (/leistungen/medien)</span>
+    </h1>
+    <div>
+      {% csrf_token %}
+      <a class="block w-full rounded bg-green-500 px-4 py-3 text-center font-bold text-white hover:cursor-pointer hover:bg-green-700 sm:w-auto sm:py-2"
+         id="saveTextData" name="main_medien">
+        Speichern
+      </a>
+    </div>
+  </div>
+
+  <div class="mt-8 space-y-8 pb-20">
+
+    <!-- ══════════════════════════════════════════
+         HERO
+    ══════════════════════════════════════════ -->
+    <section class="rounded-2xl bg-blue-50 p-6">
+      <p class="mb-4 text-xs font-semibold uppercase tracking-wider text-blue-700">Hero</p>
+      <div class="flex flex-col gap-3">
+        <div class="text-content flex flex-col gap-3" key="main_medien_hero">
+          <input inputType="header" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-sm font-semibold uppercase tracking-widest text-blue-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+                 placeholder="Über-Tagline (z. B. 'Medien & Bildmaterial')"
+                 value="{{ textContent_hero.header|default:'Medien & Bildmaterial' }}">
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-2xl font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                 placeholder="Überschrift (H1)"
+                 value="{{ textContent_hero.title|default:'Eine Website wirkt nur mit den richtigen Bildern.' }}">
+          <textarea inputType="description" rows="5"
+                    class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-base leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_hero.description|default:"Professionelles Webdesign braucht mehr als gute Typografie und kluges Layout - es braucht echte, individuelle Bilder, die deine Marke greifbar machen. Wir produzieren das passende Bildmaterial direkt mit und sorgen so für einen stimmigen Gesamtauftritt aus einer Hand." }}</textarea>
+          <input inputType="buttonText" type="text"
+                 class="self-start rounded-md bg-blue-900 px-6 py-3 text-sm font-bold text-white"
+                 value="{{ textContent_hero.buttonText|default:'Website mit Bildern anfragen' }}">
+        </div>
+        <div class="text-content flex flex-col gap-2 border-t border-blue-200 pt-3" key="main_medien_hero_secondary">
+          <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Sekundärer Button</p>
+          <input inputType="title" type="text"
+                 class="self-start rounded-md border-2 border-blue-300 bg-white px-6 py-3 text-sm font-bold text-blue-900"
+                 value="{{ textContent_hero_secondary.title|default:'So läuft es ab' }}">
+        </div>
+        <div class="text-content flex flex-col gap-2 border-t border-blue-200 pt-3" key="main_medien_hero_hint">
+          <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Hero-Badge an der Grafik</p>
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-sm font-semibold focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_hero_hint.title|default:'Bilder die deine Marke erzählen' }}">
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         INHALTSARTEN (Section + 4 Karten)
+    ══════════════════════════════════════════ -->
+    <section class="rounded-2xl bg-blue-50 p-6">
+      <p class="mb-4 text-xs font-semibold uppercase tracking-wider text-blue-700">Inhaltsarten</p>
+
+      <div class="text-content flex flex-col gap-3" key="main_medien_inhalte">
+        <input inputType="header" type="text"
+               class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-sm font-semibold uppercase tracking-widest text-blue-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+               placeholder="Über-Tagline"
+               value="{{ textContent_inhalte.header|default:'Was wir festhalten' }}">
+        <input inputType="title" type="text"
+               class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-xl font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+               placeholder="Überschrift (H2)"
+               value="{{ textContent_inhalte.title|default:'Inhalte, die deine Marke erlebbar machen' }}">
+        <textarea inputType="description" rows="3"
+                  class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-base leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_inhalte.description|default:"Wir bringen die Inhalte, die deine Website erst lebendig machen. Egal ob Menschen, Räume, Abläufe oder Atmosphäre - wir setzen sie so in Szene, dass sie zu deinem digitalen Auftritt passen." }}</textarea>
+      </div>
+
+      <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm" key="main_medien_inhalte_card1">
+          <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Karte 1 (Icon statisch)</p>
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-lg font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_inhalte_card1.title|default:'Menschen' }}">
+          <textarea inputType="description" rows="3"
+                    class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_inhalte_card1.description|default:"Mitarbeiterfotos, Teambilder und Portraits, die deinem Unternehmen ein Gesicht geben." }}</textarea>
+        </div>
+        <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm" key="main_medien_inhalte_card2">
+          <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Karte 2 (Icon statisch)</p>
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-lg font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_inhalte_card2.title|default:'Räume' }}">
+          <textarea inputType="description" rows="3"
+                    class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_inhalte_card2.description|default:"Innenaufnahmen, Aussenansichten und Atmosphäre - so wird dein Standort sichtbar." }}</textarea>
+        </div>
+        <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm" key="main_medien_inhalte_card3">
+          <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Karte 3 (Icon statisch)</p>
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-lg font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_inhalte_card3.title|default:'Abläufe' }}">
+          <textarea inputType="description" rows="3"
+                    class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_inhalte_card3.description|default:"Wie dein Unternehmen arbeitet - Schritt für Schritt visuell festgehalten." }}</textarea>
+        </div>
+        <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm" key="main_medien_inhalte_card4">
+          <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Karte 4 (Icon statisch)</p>
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-lg font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_inhalte_card4.title|default:'Marke' }}">
+          <textarea inputType="description" rows="3"
+                    class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_inhalte_card4.description|default:"Symbolische Aufnahmen, die deine Werte und deinen Charakter transportieren." }}</textarea>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         PROZESS / ABLAUF (Section + 3 Steps)
+    ══════════════════════════════════════════ -->
+    <section class="rounded-2xl bg-blue-50 p-6">
+      <p class="mb-4 text-xs font-semibold uppercase tracking-wider text-blue-700">Ablauf (Schritt-Nummern statisch)</p>
+
+      <div class="text-content flex flex-col gap-3" key="main_medien_prozess">
+        <input inputType="header" type="text"
+               class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-sm font-semibold uppercase tracking-widest text-blue-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+               placeholder="Über-Tagline"
+               value="{{ textContent_prozess.header|default:'Ablauf' }}">
+        <input inputType="title" type="text"
+               class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-xl font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+               placeholder="Überschrift (H2)"
+               value="{{ textContent_prozess.title|default:'Wie Bilder und Website zusammenfinden' }}">
+        <textarea inputType="description" rows="3"
+                  class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-base leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_prozess.description|default:"Die Bildproduktion ist nicht ein nachgelagerter Schritt - sie ist ein integraler Teil deiner Website. Vom Briefing bis zur Live-Schaltung greifen die Phasen ineinander." }}</textarea>
+      </div>
+
+      <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm" key="main_medien_prozess_step1">
+          <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Schritt 1</p>
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-lg font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_prozess_step1.title|default:'Planung' }}">
+          <textarea inputType="description" rows="4"
+                    class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_prozess_step1.description|default:"Wir analysieren mit dir, welche Inhalte deine Website braucht - welche Stimmung, welche Motive, welche Anzahl." }}</textarea>
+        </div>
+        <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm" key="main_medien_prozess_step2">
+          <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Schritt 2</p>
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-lg font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_prozess_step2.title|default:'Aufnahme' }}">
+          <textarea inputType="description" rows="4"
+                    class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_prozess_step2.description|default:"Wir kommen vor Ort, halten die Inhalte professionell fest und passen sie auf den Look deiner Website an." }}</textarea>
+        </div>
+        <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm" key="main_medien_prozess_step3">
+          <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Schritt 3</p>
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-lg font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_prozess_step3.title|default:'Integration' }}">
+          <textarea inputType="description" rows="4"
+                    class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_prozess_step3.description|default:"Die fertigen Bilder werden direkt in die Website eingebaut - in passender Auflösung, optimiert und perfekt platziert." }}</textarea>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         MEHRWERT / AUS EINER HAND (Section + 3 Bullets)
+    ══════════════════════════════════════════ -->
+    <section class="rounded-2xl bg-blue-50 p-6">
+      <p class="mb-4 text-xs font-semibold uppercase tracking-wider text-blue-700">Aus einer Hand (Grafik statisch)</p>
+
+      <div class="text-content flex flex-col gap-3" key="main_medien_mehrwert">
+        <input inputType="header" type="text"
+               class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-sm font-semibold uppercase tracking-widest text-blue-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+               placeholder="Über-Tagline"
+               value="{{ textContent_mehrwert.header|default:'Aus einer Hand' }}">
+        <input inputType="title" type="text"
+               class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-xl font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+               placeholder="Überschrift (H2)"
+               value="{{ textContent_mehrwert.title|default:'Design, Bilder, Code - alles aus einem Guss.' }}">
+        <textarea inputType="description" rows="3"
+                  class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-base leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_mehrwert.description|default:"Wenn Webdesign und Bildproduktion in einer Hand liegen, entsteht ein stimmiger Gesamtauftritt - ohne Stilbruch, ohne Reibungsverluste, ohne Abstimmungsmarathon." }}</textarea>
+      </div>
+
+      <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm" key="main_medien_mehrwert_bullet1">
+          <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Punkt 1</p>
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_mehrwert_bullet1.title|default:'Bilder, die exakt zum Layout und zur Farbwelt passen' }}">
+        </div>
+        <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm" key="main_medien_mehrwert_bullet2">
+          <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Punkt 2</p>
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_mehrwert_bullet2.title|default:'Ein Ansprechpartner statt drei Dienstleister' }}">
+        </div>
+        <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm" key="main_medien_mehrwert_bullet3">
+          <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Punkt 3</p>
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_mehrwert_bullet3.title|default:'Kürzere Wege, schnellere Umsetzung, bessere Ergebnisse' }}">
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         BOTTOM CTA – dunkel, zentriert
+    ══════════════════════════════════════════ -->
+    <section class="rounded-2xl bg-gray-700 p-8">
+      <p class="mb-4 text-xs font-semibold uppercase tracking-wider text-gray-300">Bottom CTA</p>
+      <div class="text-content mx-auto flex max-w-xl flex-col items-center gap-3 text-center" key="main_medien_bottomcta">
+        <input inputType="title" type="text"
+               class="w-full rounded-lg border-2 border-gray-500 bg-gray-600 px-4 py-2 text-xl font-bold text-white placeholder-gray-400 focus:border-blue-400 focus:bg-gray-500 focus:outline-none"
+               value="{{ textContent_bottomcta.title|default:'Bereit für eine Website mit echten Bildern?' }}">
+        <textarea inputType="description" rows="3"
+                  class="w-full rounded-lg border-2 border-gray-500 bg-gray-600 px-4 py-2 text-base text-white placeholder-gray-400 focus:border-blue-400 focus:bg-gray-500 focus:outline-none">{{ textContent_bottomcta.description|default:"Erzähl uns von deinem Projekt - wir entwickeln dir eine Website inklusive passendem Bildmaterial. Ein Auftritt, der nicht nach Bilddatenbank aussieht, sondern nach dir." }}</textarea>
+        <input inputType="buttonText" type="text"
+               value="{{ textContent_bottomcta.buttonText|default:'Jetzt anfragen' }}"
+               class="rounded-md bg-blue-900 px-8 py-3 text-sm font-bold text-white">
+      </div>
+    </section>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block javascriptend %}
+{% compress js %}
+<script defer src="{% static 'js/cms.js' %}"></script>
+<script defer src="{% static 'js/cms/content/siteManager.js' %}"></script>
+<script src="{% static 'js/cms/content/save-text.js' %}"></script>
+<script defer src="{% static 'js/cms/unsaved-guard.js' %}"></script>
+{% endcompress js %}
+{% endblock %}

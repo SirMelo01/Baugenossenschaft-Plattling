@@ -1,0 +1,35 @@
+{% extends "base.html" %} {% load compress static %}
+
+{% block title %}{{block.super}} | Oops!{% endblock title %}
+
+{% block content %}
+
+<section class="flex h-screen shadow-xl w-full items-center justify-center bg-blue-50">
+    <div class="w-96 rounded-2xl bg-white p-2">
+      <div class="my-5 flex w-full items-center justify-center">
+        <div class="rounded-full bg-red-100 p-3">
+          <div class="rounded-full bg-red-600 p-2 text-xl font-bold text-white">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-ban" viewBox="0 0 16 16">
+              <path d="M15 8a6.97 6.97 0 0 0-1.71-4.584l-9.874 9.875A7 7 0 0 0 15 8M2.71 12.584l9.874-9.875a7 7 0 0 0-9.874 9.874ZM16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0" />
+            </svg>
+          </div>
+        </div>
+      </div>
+      <div class="text-center">
+        <h2 class="mb-7 text-xl font-semibold">Oops!</h2>
+        <div class="flex justify-center">
+          <p class="w-3/4">{{error}}</p>
+        </div>
+      </div>
+      <div class="mt-7 mb-4 w-full flex justify-center px-5">
+      <a href="{{saveLink}}" class="bg-red-500 hover:bg-red-600 p-2 rounded-xl text-white w-full text-center">Zurückkehren zum letzten sicheren Punkt</a>
+      </div>
+    </div>
+  </section>
+  
+
+
+
+{%endblock content%}
+{% block javascriptend %}
+{% endblock javascriptend %}

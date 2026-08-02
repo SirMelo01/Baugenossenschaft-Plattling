@@ -1,0 +1,234 @@
+{% extends "cmsbase.html" %}
+{% load compress static %}
+{% block title %} {{ block.super }} | CMS - Leistungen {% endblock %}
+
+{% block content %}
+{% include "pages/cms/components/ImageSelectModal.html" %}
+
+<div class="container mx-auto mt-4 sm:mt-8">
+  <div class="sticky top-[4.25rem] z-30 mb-6 rounded-2xl border border-gray-200 bg-white/95 px-5 py-4 shadow-sm backdrop-blur flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <h1 class="text-2xl"><a href="{% url 'cms:sites' %}" class="text-blue-500">Seiten</a> / <span>Leistungen (/leistungen)</span></h1>
+    <div>
+      {% csrf_token %}
+      <a class="mr-6 rounded bg-green-500 px-4 py-2 font-bold text-white hover:cursor-pointer hover:bg-green-700"
+         id="saveTextData" name="main_leistungen">
+        Speichern
+      </a>
+    </div>
+  </div>
+
+  <div class="mt-8 flex w-full justify-center">
+    <div class="flex max-w-4xl items-center md:px-8">
+      <div class="text-content max-w-2xl md:mx-auto sm:text-center lg:max-w-4xl" key="main_leistungen_intro">
+        <input inputType="header" type="text"
+               class="inline-block w-72 appearance-none rounded-lg border-2 border-gray-200 bg-gray-200 px-4 py-2 text-center text-xs font-semibold uppercase leading-tight tracking-wider text-teal-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+               value="{{ textContent_intro.header|default:'Unsere Leistungen' }}">
+        <textarea inputType="description" rows="4"
+                  class="mt-3 mb-6 w-full appearance-none rounded-lg border-2 border-gray-200 bg-gray-200 px-4 py-2 text-center text-base font-medium leading-tight tracking-tight text-teal-900 focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_intro.description|default:"Wir entwickeln moderne Weblösungen mit einem klaren Leistungsspektrum - von CMS und Webdesign bis zu Logos und individuellen Webapps." }}</textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="space-y-12 pb-20">
+    <section class="grid gap-8 rounded-lg bg-blue-50 p-6 md:grid-cols-2">
+      <div class="text-content" key="main_leistungen_cms">
+        <input inputType="title" type="text"
+               class="mb-4 mt-3 inline-block w-full rounded-lg border-2 border-gray-200 bg-gray-200 px-4 py-2 text-center text-2xl font-bold tracking-tight text-teal-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+               value="{{ textContent_cms.title|default:'Eigenes CMS' }}">
+        <textarea inputType="description" rows="6"
+                  class="mb-4 w-full appearance-none rounded-lg border-2 border-gray-200 bg-gray-200 px-4 py-2 text-base leading-tight text-gray-800 focus:border-blue-500 focus:bg-white focus:outline-none md:text-lg">{{ textContent_cms.description|default:"Unser eigens entwickeltes Content-Management-System ermöglicht dir intuitive Inhaltspflege - ganz ohne technische Hürden." }}</textarea>
+        <input inputType="buttonText"
+               value="{{ textContent_cms.buttonText|default:'Mehr erfahren' }}"
+               class="rounded-md bg-blue-400 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500" />
+      </div>
+      <div class="relative">
+        <span class="edit-img absolute left-0 top-0 z-40 inline-block rounded-full bg-orange-500 px-2 py-1 text-sm font-semibold text-white hover:cursor-pointer"><i class="bi bi-pencil-square"></i></span>
+        {% if image_cms %}
+        <img src="{{ image_cms.file.url }}" imgId="{{ image_cms.id }}" key="main_leistungen_cms_image" alt="{{ image_cms.title|default:'CMS Vorschau' }}" class="content-image h-72 w-full rounded-xl object-cover shadow-xl" />
+        {% else %}
+        <img src="{% static 'images/CMS-2.0.png' %}" imgId="-1" key="main_leistungen_cms_image" alt="CMS Vorschau" class="content-image h-72 w-full rounded-xl object-cover shadow-xl" />
+        {% endif %}
+      </div>
+    </section>
+
+    <section class="grid gap-8 rounded-lg bg-blue-50 p-6 md:grid-cols-2">
+      <div class="relative order-2 md:order-1">
+        <span class="edit-img absolute left-0 top-0 z-40 inline-block rounded-full bg-orange-500 px-2 py-1 text-sm font-semibold text-white hover:cursor-pointer"><i class="bi bi-pencil-square"></i></span>
+        {% if image_webdesign %}
+        <img src="{{ image_webdesign.file.url }}" imgId="{{ image_webdesign.id }}" key="main_leistungen_webdesign_image" alt="{{ image_webdesign.title|default:'Website Vorschau' }}" class="content-image h-72 w-full rounded-xl object-cover shadow-xl" />
+        {% else %}
+        <img src="{% static 'images/references/THP_Full-min.png' %}" imgId="-1" key="main_leistungen_webdesign_image" alt="Website Vorschau" class="content-image h-72 w-full rounded-xl object-cover shadow-xl" />
+        {% endif %}
+      </div>
+      <div class="text-content order-1 md:order-2" key="main_leistungen_webdesign">
+        <input inputType="title" type="text"
+               class="mb-4 mt-3 inline-block w-full rounded-lg border-2 border-gray-200 bg-gray-200 px-4 py-2 text-center text-2xl font-bold tracking-tight text-teal-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+               value="{{ textContent_webdesign.title|default:'Webdesign' }}">
+        <textarea inputType="description" rows="6"
+                  class="mb-4 w-full appearance-none rounded-lg border-2 border-gray-200 bg-gray-200 px-4 py-2 text-base leading-tight text-gray-800 focus:border-blue-500 focus:bg-white focus:outline-none md:text-lg">{{ textContent_webdesign.description|default:"Ob Onepager oder komplexe Unternehmensseite - wir entwickeln moderne Websites mit klarem Design, sauberer Technik und DSGVO-konformem Hosting aus Deutschland. Erfahre, wie wir dabei vorgehen." }}</textarea>
+        <input inputType="buttonText"
+               value="{{ textContent_webdesign.buttonText|default:'Mehr erfahren' }}"
+               class="rounded-md bg-blue-400 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500" />
+      </div>
+    </section>
+
+    <section class="rounded-lg bg-blue-50 p-6 text-center">
+      <div class="text-content mx-auto max-w-4xl" key="main_leistungen_logos">
+        <input inputType="title" type="text"
+               class="mb-4 mt-3 inline-block w-full rounded-lg border-2 border-gray-200 bg-gray-200 px-4 py-2 text-center text-2xl font-bold tracking-tight text-teal-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+               value="{{ textContent_logos.title|default:'Logo Design' }}">
+        <textarea inputType="description" rows="5"
+                  class="mb-4 w-full appearance-none rounded-lg border-2 border-gray-200 bg-gray-200 px-4 py-2 text-base leading-tight text-gray-800 focus:border-blue-500 focus:bg-white focus:outline-none md:text-lg">{{ textContent_logos.description|default:"Wir entwickeln einzigartige Logos - von schlicht bis verspielt - genau auf dein Unternehmen abgestimmt." }}</textarea>
+        <input inputType="buttonText"
+               value="{{ textContent_logos.buttonText|default:'Ansehen' }}"
+               class="rounded-md bg-blue-400 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500" />
+      </div>
+      <div class="mx-auto mt-6 grid max-w-4xl grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="relative rounded-xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
+          <span class="edit-img absolute left-2 top-2 z-40 inline-block rounded-full bg-orange-500 px-2 py-1 text-sm font-semibold text-white hover:cursor-pointer"><i class="bi bi-pencil-square"></i></span>
+          {% if image_logo_1 %}
+          <img src="{{ image_logo_1.file.url }}" imgId="{{ image_logo_1.id }}" key="main_leistungen_logo_1" alt="{{ image_logo_1.title|default:'Logo 1' }}" class="content-image h-24 w-full rounded-xl object-contain" />
+          {% else %}
+          <img src="https://www.tierheilpraxis-meissner.net/img/logo.png" imgId="-1" key="main_leistungen_logo_1" alt="Tierheilpraxis Meissner Logo" class="content-image h-24 w-full rounded-xl object-contain" />
+          {% endif %}
+        </div>
+        <div class="relative rounded-xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
+          <span class="edit-img absolute left-2 top-2 z-40 inline-block rounded-full bg-orange-500 px-2 py-1 text-sm font-semibold text-white hover:cursor-pointer"><i class="bi bi-pencil-square"></i></span>
+          {% if image_logo_2 %}
+          <img src="{{ image_logo_2.file.url }}" imgId="{{ image_logo_2.id }}" key="main_leistungen_logo_2" alt="{{ image_logo_2.title|default:'Logo 2' }}" class="content-image h-24 w-full rounded-xl object-contain" />
+          {% else %}
+          <img src="{% static 'images/references/knn-truck.svg' %}" imgId="-1" key="main_leistungen_logo_2" alt="KNN Truck Claim Logo" class="content-image h-24 w-full rounded-xl object-contain" />
+          {% endif %}
+        </div>
+        <div class="relative rounded-xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
+          <span class="edit-img absolute left-2 top-2 z-40 inline-block rounded-full bg-orange-500 px-2 py-1 text-sm font-semibold text-white hover:cursor-pointer"><i class="bi bi-pencil-square"></i></span>
+          {% if image_logo_3 %}
+          <img src="{{ image_logo_3.file.url }}" imgId="{{ image_logo_3.id }}" key="main_leistungen_logo_3" alt="{{ image_logo_3.title|default:'Logo 3' }}" class="content-image h-24 w-full rounded-xl object-contain" />
+          {% else %}
+          <img src="{% static 'images/references/yoolinklogo.png' %}" imgId="-1" key="main_leistungen_logo_3" alt="Yoolink Logo" class="content-image h-24 w-full rounded-xl object-contain" />
+          {% endif %}
+        </div>
+        <div class="relative rounded-xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
+          <span class="edit-img absolute left-2 top-2 z-40 inline-block rounded-full bg-orange-500 px-2 py-1 text-sm font-semibold text-white hover:cursor-pointer"><i class="bi bi-pencil-square"></i></span>
+          {% if image_logo_4 %}
+          <img src="{{ image_logo_4.file.url }}" imgId="{{ image_logo_4.id }}" key="main_leistungen_logo_4" alt="{{ image_logo_4.title|default:'Logo 4' }}" class="content-image h-24 w-full rounded-xl object-contain" />
+          {% else %}
+          <img src="{% static 'images/references/rsautoglaslogo.png' %}" imgId="-1" key="main_leistungen_logo_4" alt="RSAutoglas Logo" class="content-image h-24 w-full rounded-xl object-contain" />
+          {% endif %}
+        </div>
+      </div>
+    </section>
+
+    <section class="grid gap-8 rounded-lg bg-blue-50 p-6 md:grid-cols-2">
+      <div class="text-content" key="main_leistungen_custom">
+        <input inputType="title" type="text"
+               class="mb-4 mt-3 inline-block w-full rounded-lg border-2 border-gray-200 bg-gray-200 px-4 py-2 text-center text-2xl font-bold tracking-tight text-teal-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+               value="{{ textContent_custom.title|default:'Custom Webentwicklung' }}">
+        <textarea inputType="description" rows="6"
+                  class="mb-4 w-full appearance-none rounded-lg border-2 border-gray-200 bg-gray-200 px-4 py-2 text-base leading-tight text-gray-800 focus:border-blue-500 focus:bg-white focus:outline-none md:text-lg">{{ textContent_custom.description|default:"Individuelle Anforderungen? Kein Problem. Von Webapps über API-Backends bis hin zu Real-Time-Projekten: Wir entwickeln maßgeschneiderte Lösungen." }}</textarea>
+        <input inputType="buttonText"
+               value="{{ textContent_custom.buttonText|default:'Projekt anfragen' }}"
+               class="rounded-md bg-blue-400 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500" />
+      </div>
+      <div class="relative">
+        <span class="edit-img absolute left-0 top-0 z-40 inline-block rounded-full bg-orange-500 px-2 py-1 text-sm font-semibold text-white hover:cursor-pointer"><i class="bi bi-pencil-square"></i></span>
+        {% if image_custom %}
+        <img src="{{ image_custom.file.url }}" imgId="{{ image_custom.id }}" key="main_leistungen_custom_image" alt="{{ image_custom.title|default:'Individuelle Webentwicklung' }}" class="content-image h-72 w-full rounded-xl object-cover shadow-xl" />
+        {% else %}
+        <img src="{% static 'images/references/MovieBattle_BG.png' %}" imgId="-1" key="main_leistungen_custom_image" alt="Individuelle Webentwicklung" class="content-image h-72 w-full rounded-xl object-cover shadow-xl" />
+        {% endif %}
+      </div>
+    </section>
+
+    <!-- Visitenkarten -->
+    <section class="rounded-lg bg-blue-50 p-6">
+      <div class="text-content mx-auto max-w-4xl" key="main_leistungen_visitenkarten">
+        <input inputType="title" type="text"
+               class="mb-4 mt-3 inline-block w-full rounded-lg border-2 border-gray-200 bg-gray-200 px-4 py-2 text-center text-2xl font-bold tracking-tight text-teal-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+               value="{{ textContent_visitenkarten.title|default:'Visitenkarten' }}">
+        <textarea inputType="description" rows="4"
+                  class="mb-4 w-full appearance-none rounded-lg border-2 border-gray-200 bg-gray-200 px-4 py-2 text-base leading-tight text-gray-800 focus:border-blue-500 focus:bg-white focus:outline-none md:text-lg">{{ textContent_visitenkarten.description|default:"Ein erster Eindruck zählt - und der beginnt oft mit einer Visitenkarte. Wir gestalten für dich professionelle Visitenkarten, die zu deiner Marke passen und im Gedächtnis bleiben. Von schlicht-elegant bis kreativ-modern." }}</textarea>
+        <input inputType="buttonText"
+               value="{{ textContent_visitenkarten.buttonText|default:'Visitenkarte anfragen' }}"
+               class="rounded-md bg-blue-400 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500" />
+      </div>
+      <p class="mx-auto mt-6 max-w-4xl text-xs font-semibold uppercase tracking-wider text-gray-500">Vorschau-Bilder (4 Visitenkarten-Slots)</p>
+      <div class="mx-auto mt-3 grid max-w-4xl grid-cols-2 gap-4 lg:grid-cols-4">
+        <div class="relative rounded-xl bg-gray-100 shadow-md ring-1 ring-slate-200">
+          <span class="edit-img absolute left-2 top-2 z-40 inline-block rounded-full bg-orange-500 px-2 py-1 text-sm font-semibold text-white hover:cursor-pointer"><i class="bi bi-pencil-square"></i></span>
+          {% if image_vk_1 %}
+          <img src="{{ image_vk_1.file.url }}" imgId="{{ image_vk_1.id }}" key="main_leistungen_vk_1" alt="Visitenkarte 1" class="content-image aspect-[1.75/1] w-full rounded-xl object-cover" />
+          {% else %}
+          <img src="" imgId="-1" key="main_leistungen_vk_1" alt="Visitenkarte 1" class="content-image aspect-[1.75/1] w-full rounded-xl object-cover bg-gray-200" />
+          {% endif %}
+        </div>
+        <div class="relative rounded-xl bg-gray-100 shadow-md ring-1 ring-slate-200">
+          <span class="edit-img absolute left-2 top-2 z-40 inline-block rounded-full bg-orange-500 px-2 py-1 text-sm font-semibold text-white hover:cursor-pointer"><i class="bi bi-pencil-square"></i></span>
+          {% if image_vk_2 %}
+          <img src="{{ image_vk_2.file.url }}" imgId="{{ image_vk_2.id }}" key="main_leistungen_vk_2" alt="Visitenkarte 2" class="content-image aspect-[1.75/1] w-full rounded-xl object-cover" />
+          {% else %}
+          <img src="" imgId="-1" key="main_leistungen_vk_2" alt="Visitenkarte 2" class="content-image aspect-[1.75/1] w-full rounded-xl object-cover bg-gray-200" />
+          {% endif %}
+        </div>
+        <div class="relative rounded-xl bg-gray-100 shadow-md ring-1 ring-slate-200">
+          <span class="edit-img absolute left-2 top-2 z-40 inline-block rounded-full bg-orange-500 px-2 py-1 text-sm font-semibold text-white hover:cursor-pointer"><i class="bi bi-pencil-square"></i></span>
+          {% if image_vk_3 %}
+          <img src="{{ image_vk_3.file.url }}" imgId="{{ image_vk_3.id }}" key="main_leistungen_vk_3" alt="Visitenkarte 3" class="content-image aspect-[1.75/1] w-full rounded-xl object-cover" />
+          {% else %}
+          <img src="" imgId="-1" key="main_leistungen_vk_3" alt="Visitenkarte 3" class="content-image aspect-[1.75/1] w-full rounded-xl object-cover bg-gray-200" />
+          {% endif %}
+        </div>
+        <div class="relative rounded-xl bg-gray-100 shadow-md ring-1 ring-slate-200">
+          <span class="edit-img absolute left-2 top-2 z-40 inline-block rounded-full bg-orange-500 px-2 py-1 text-sm font-semibold text-white hover:cursor-pointer"><i class="bi bi-pencil-square"></i></span>
+          {% if image_vk_4 %}
+          <img src="{{ image_vk_4.file.url }}" imgId="{{ image_vk_4.id }}" key="main_leistungen_vk_4" alt="Visitenkarte 4" class="content-image aspect-[1.75/1] w-full rounded-xl object-cover" />
+          {% else %}
+          <img src="" imgId="-1" key="main_leistungen_vk_4" alt="Visitenkarte 4" class="content-image aspect-[1.75/1] w-full rounded-xl object-cover bg-gray-200" />
+          {% endif %}
+        </div>
+      </div>
+    </section>
+
+    <!-- Medien -->
+    <section class="grid gap-8 rounded-lg bg-blue-50 p-6 md:grid-cols-2">
+      <div class="text-content" key="main_leistungen_medien">
+        <input inputType="title" type="text"
+               class="mb-4 mt-3 inline-block w-full rounded-lg border-2 border-gray-200 bg-gray-200 px-4 py-2 text-center text-2xl font-bold tracking-tight text-teal-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+               value="{{ textContent_medien.title|default:'Medien & Fotografie' }}">
+        <textarea inputType="description" rows="6"
+                  class="mb-4 w-full appearance-none rounded-lg border-2 border-gray-200 bg-gray-200 px-4 py-2 text-base leading-tight text-gray-800 focus:border-blue-500 focus:bg-white focus:outline-none md:text-lg">{{ textContent_medien.description|default:"Wir kommen zu dir und deinem Unternehmen - für professionelle Fotos, 3D-Aufnahmen und Videomaterial, das deine Produkte und Räumlichkeiten optimal in Szene setzt." }}</textarea>
+        <div class="mb-4 flex flex-wrap gap-2">
+          <span class="inline-flex items-center gap-1 rounded-full bg-blue-200 px-3 py-1 text-xs font-semibold text-blue-900"><i class="bi bi-camera"></i> Fotografie</span>
+          <span class="inline-flex items-center gap-1 rounded-full bg-blue-200 px-3 py-1 text-xs font-semibold text-blue-900"><i class="bi bi-badge-3d"></i> 3D-Aufnahmen</span>
+          <span class="inline-flex items-center gap-1 rounded-full bg-blue-200 px-3 py-1 text-xs font-semibold text-blue-900"><i class="bi bi-camera-video"></i> Video</span>
+        </div>
+        <input inputType="buttonText"
+               value="{{ textContent_medien.buttonText|default:'Mehr erfahren' }}"
+               class="rounded-md bg-blue-400 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500" />
+      </div>
+      <div class="relative">
+        <span class="edit-img absolute left-0 top-0 z-40 inline-block rounded-full bg-orange-500 px-2 py-1 text-sm font-semibold text-white hover:cursor-pointer"><i class="bi bi-pencil-square"></i></span>
+        {% if image_medien %}
+        <img src="{{ image_medien.file.url }}" imgId="{{ image_medien.id }}" key="main_leistungen_medien_image" alt="{{ image_medien.title|default:'Medien & Fotografie' }}" class="content-image h-72 w-full rounded-xl object-cover shadow-xl" />
+        {% else %}
+        <img src="" imgId="-1" key="main_leistungen_medien_image" alt="Medien & Fotografie" class="content-image h-72 w-full rounded-xl object-cover shadow-xl bg-gray-200" />
+        {% endif %}
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %}
+
+{% block javascriptend %}
+{% compress js %}
+<script defer src="{% static 'js/cms.js' %}"></script>
+<script defer src="{% static 'js/cms/content/siteManager.js' %}"></script>
+<script src="{% static 'js/cms/content/save-text.js' %}"></script>
+<script defer src="{% static 'js/cms/unsaved-guard.js' %}"></script>
+<script defer>
+  $(document).ready(function () {
+    loadImages(false);
+  });
+</script>
+{% endcompress js %}
+{% endblock %}

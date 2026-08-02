@@ -1,0 +1,41 @@
+/*!
+ * flag-icons v7.2.3 (https://github.com/lipis/flag-icons)
+ * Copyright 2024 Lipis
+ * Licensed under MIT (https://github.com/lipis/flag-icons/blob/main/LICENSE)
+ * Änderungen: Nicht benötigte Flags entfernt und Klassennamen angepasst
+ */
+.fib, .fi {
+    background-size: contain;
+    background-position: 50%;
+    background-repeat: no-repeat;
+  }
+  
+  .fi {
+    position: relative;
+    display: inline-block;
+    width: 1.333333em;
+    line-height: 1em;
+  }
+  .fi:before {
+    content: " ";
+  }
+  .fi.fis {
+    width: 1em;
+  }
+  
+  .fi-gb {
+    background-image: url(../flags/4x3/gb.svg);
+  }
+  .fi-gb.fis {
+    background-image: url(../flags/1x1/gb.svg);
+  }
+
+  .fi-de {
+    background-image: url(../flags/4x3/de.svg);
+  }
+  .fi-de.fis {
+    background-image: url(../flags/1x1/de.svg);
+  }
+  
+  
+  

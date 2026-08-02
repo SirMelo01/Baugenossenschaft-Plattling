@@ -1,0 +1,552 @@
+{% extends "cmsbase.html" %}
+{% load compress static %}
+{% block title %} {{block.super}} | CMS - Hauptseite {% endblock %}
+
+{% block javascript %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/cms/slick/slick-carousel.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/cms/slick/slick-theme.css' %}" />
+<style>
+    /* Slick arrows/dots styling, scoped to this editor */
+    #mainsiteEditor .carousel .slick-prev,
+    #mainsiteEditor .carousel .slick-next {
+        z-index: 20;
+        width: 34px;
+        height: 34px;
+    }
+
+    #mainsiteEditor .carousel .slick-prev {
+        left: 8px;
+    }
+
+    #mainsiteEditor .carousel .slick-next {
+        right: 8px;
+    }
+
+    #mainsiteEditor .carousel .slick-prev:before,
+    #mainsiteEditor .carousel .slick-next:before {
+        font-size: 26px;
+        color: #2563eb;
+        opacity: 1;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+{% include "pages/cms/components/GalerySelectModal.html" %}
+{% include "pages/cms/components/VideoSelectModal.html" %}
+
+<div id="mainsiteEditor" class="container mx-auto max-w-7xl px-3 py-6 lg:px-0">
+
+    <!-- ── Sticky Header (immer sichtbar, auch beim Scrollen) ── -->
+    <div class="sticky top-[4.25rem] z-30 mb-8 rounded-2xl border border-gray-200 bg-white/95 px-5 py-4 shadow-sm backdrop-blur">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div class="min-w-0">
+                <h1 class="text-2xl font-semibold text-gray-900">
+                    <a href="{% url 'cms:sites' %}" class="js-guard-nav text-blue-500 hover:text-blue-700">Seiten</a>
+                    <span class="mx-2 text-gray-400">/</span>
+                    <span id="titleSpan">Hauptseite</span>
+                </h1>
+                <p class="mt-1 text-sm text-gray-500">
+                    Alle Abschnitte der Startseite an einem Ort &ndash; untereinander wie auf der echten Seite.
+                </p>
+            </div>
+
+            <div class="flex flex-shrink-0 flex-wrap items-center gap-3">
+                {% csrf_token %}
+                <span id="dirtyBadge" data-unsaved-badge
+                    class="hidden items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1.5 text-xs font-semibold text-amber-800 ring-1 ring-amber-200">
+                    <span class="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-amber-500"></span> Nicht gespeichert
+                </span>
+                <a class="block w-full cursor-pointer rounded-xl bg-green-500 px-5 py-3 text-center font-bold text-white transition hover:bg-green-700 sm:w-auto sm:py-2"
+                    id="saveTextData" name="main">
+                    <i class="bi bi-save2 mr-1"></i> Speichern
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="space-y-6 pb-24">
+
+        <!-- ══════════════════════════════════════════ HERO ══════════════════════════════════════════ -->
+        <section class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+            <div class="mb-5 flex items-center gap-3">
+                <span class="grid h-9 w-9 place-items-center rounded-full bg-blue-100 text-blue-700"><i class="bi bi-stars"></i></span>
+                <div>
+                    <h2 class="text-lg font-bold text-gray-900">Hero Section</h2>
+                    <p class="text-sm text-gray-500">Der erste Eindruck ganz oben auf der Startseite.</p>
+                </div>
+            </div>
+
+            <div class="grid gap-8 lg:grid-cols-2">
+                <!-- Texte -->
+                <div class="text-content flex flex-col gap-5" key="main_hero">
+                    <div>
+                        <label class="mb-1 block text-sm font-medium text-gray-600">Überschrift</label>
+                        <input inputType="title" type="text"
+                            class="w-full appearance-none rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2 text-lg font-bold leading-tight tracking-tight text-gray-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+                            value="{{ hero_text.title|default:'Webdesign - YooLink' }}">
+                    </div>
+                    <div>
+                        <label class="mb-1 block text-sm font-medium text-gray-600">Beschreibung</label>
+                        <textarea inputType="description" rows="7"
+                            class="w-full appearance-none rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2 text-base leading-relaxed text-gray-800 focus:border-blue-500 focus:bg-white focus:outline-none">{{ hero_text.description|default:"Wir entwickeln moderne Websites, die Ihre Marke stärken und Besucher zu Kunden machen. Als Webdesign-Agentur aus Niederbayern setzen wir auf klares Design, schnelle Ladezeiten und durchdachte SEO." }}</textarea>
+                    </div>
+                    <div>
+                        <label class="mb-1 block text-sm font-medium text-gray-600">Button-Text</label>
+                        <input inputType="buttonText" type="text"
+                            class="w-full appearance-none rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2 text-base font-medium leading-tight text-gray-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+                            value="{{ hero_text.buttonText|default:'Kontakt' }}">
+                    </div>
+                </div>
+
+                <!-- Bilder (Galerie) -->
+                <div>
+                    <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-orange-600">
+                        <i class="bi bi-images mr-1"></i>Rotierender Card-Slider
+                    </p>
+                    <div class="galery-container relative w-full" galery-id="-1" key="main_hero">
+                        <span class="edit-galery not-sortable absolute left-2 top-2 z-40 inline-block rounded-full bg-orange-500 px-2 py-1 text-sm font-semibold text-white hover:cursor-pointer"
+                            title="Bilder bearbeiten">
+                            <i class="bi bi-pencil-square"></i>
+                        </span>
+                        <div class="carousel rounded-lg">
+                            {% if heroImages %}
+                                {% for img in heroImages %}
+                                <div><img src="{{img.upload.url}}" alt="{{img.title}}" class="h-96 w-full rounded-xl object-cover" /></div>
+                                {% endfor %}
+                            {% else %}
+                                <div><img src="{% static 'images/Template1.png' %}" alt="Template Design" class="h-96 w-full rounded-xl object-cover" /></div>
+                                <div><img src="{% static 'images/Template2.png' %}" alt="Template Design" class="h-96 w-full rounded-xl object-cover" /></div>
+                                <div><img src="{% static 'images/Template3.png' %}" alt="Template Design" class="h-96 w-full rounded-xl object-cover" /></div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ══════════════════════════════════════════ RESPONSIVE ══════════════════════════════════════════ -->
+        <section class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+            <div class="mb-5 flex items-center gap-3">
+                <span class="grid h-9 w-9 place-items-center rounded-full bg-blue-100 text-blue-700"><i class="bi bi-phone"></i></span>
+                <div>
+                    <h2 class="text-lg font-bold text-gray-900">Responsive Section</h2>
+                    <p class="text-sm text-gray-500">Darstellung auf Desktop, Tablet und Handy.</p>
+                </div>
+            </div>
+
+            <!-- Texte -->
+            <div class="text-content grid gap-5 lg:grid-cols-2" key="main_responsive">
+                <div class="lg:col-span-2">
+                    <label class="mb-1 block text-sm font-medium text-gray-600">Header / Badge</label>
+                    <input inputType="header" type="text"
+                        class="w-full appearance-none rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2 text-xs font-semibold uppercase leading-tight tracking-wider text-gray-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+                        value="{{ responsive_text.header|default:'Optimiert für alle Geräte' }}">
+                </div>
+                <div>
+                    <label class="mb-1 block text-sm font-medium text-gray-600">Überschrift</label>
+                    <input inputType="title" type="text"
+                        class="w-full appearance-none rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2 text-lg font-bold leading-tight tracking-tight text-gray-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+                        value="{{ responsive_text.title|default:'Responsive Webdesign' }}">
+                </div>
+                <div>
+                    <label class="mb-1 block text-sm font-medium text-gray-600">Beschreibung</label>
+                    <textarea inputType="description" rows="4"
+                        class="w-full appearance-none rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2 text-base leading-relaxed text-gray-800 focus:border-blue-500 focus:bg-white focus:outline-none">{{ responsive_text.description|default:"Mehr als die Hälfte aller Aufrufe kommen heute vom Smartphone. Unsere Websites passen sich automatisch an jedes Display an – vom Desktop über das Tablet bis zum Handy. So überzeugen Sie Kunden auf jedem Gerät." }}</textarea>
+                </div>
+            </div>
+
+            <!-- Galerien -->
+            <div class="mt-6 grid gap-8 lg:grid-cols-2">
+                <div>
+                    <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-orange-600"><i class="bi bi-laptop mr-1"></i>Desktop-Modus</p>
+                    <div class="galery-container relative w-full" galery-id="-1" key="main_responsive_desktop">
+                        <span class="edit-galery not-sortable absolute left-2 top-2 z-40 inline-block rounded-full bg-orange-500 px-2 py-1 text-sm font-semibold text-white hover:cursor-pointer" title="Bilder bearbeiten">
+                            <i class="bi bi-pencil-square"></i>
+                        </span>
+                        <div class="carousel rounded-lg">
+                            {% if responsiveDesktopImages %}
+                                {% for img in responsiveDesktopImages %}
+                                <div><img src="{{img.upload.url}}" alt="{{img.title}}" class="h-96 w-full rounded-xl object-cover" /></div>
+                                {% endfor %}
+                            {% else %}
+                                <div><img src="{% static 'images/MacBook-RSAutoglas1.png' %}" alt="Desktop-Vorschau" class="h-96 w-full rounded-xl object-cover" /></div>
+                                <div><img src="{% static 'images/MacBook-RSAutoglas2.png' %}" alt="Desktop-Vorschau" class="h-96 w-full rounded-xl object-cover" /></div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-orange-600"><i class="bi bi-phone mr-1"></i>Handy-Modus</p>
+                    <div class="galery-container relative w-full" galery-id="-1" key="main_responsive_handy">
+                        <span class="edit-galery not-sortable absolute left-2 top-2 z-40 inline-block rounded-full bg-orange-500 px-2 py-1 text-sm font-semibold text-white hover:cursor-pointer" title="Bilder bearbeiten">
+                            <i class="bi bi-pencil-square"></i>
+                        </span>
+                        <div class="carousel rounded-lg">
+                            {% if responsiveHandyImages %}
+                                {% for img in responsiveHandyImages %}
+                                <div><img src="{{img.upload.url}}" alt="{{img.title}}" class="h-96 w-full rounded-xl object-cover" /></div>
+                                {% endfor %}
+                            {% else %}
+                                <div><img src="{% static 'images/iPhone-RSAutoglas.png' %}" alt="Handy-Vorschau" class="h-96 w-full rounded-xl object-cover" /></div>
+                                <div><img src="{% static 'images/iPhone-RSAutoglas.png' %}" alt="Handy-Vorschau" class="h-96 w-full rounded-xl object-cover" /></div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ══════════════════════════════════════════ CMS ══════════════════════════════════════════ -->
+        <section class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+            <div class="mb-5 flex items-center gap-3">
+                <span class="grid h-9 w-9 place-items-center rounded-full bg-blue-100 text-blue-700"><i class="bi bi-pencil-square"></i></span>
+                <div>
+                    <h2 class="text-lg font-bold text-gray-900">CMS Section</h2>
+                    <p class="text-sm text-gray-500">Vorstellung des eigenen Content-Management-Systems.</p>
+                </div>
+            </div>
+
+            <div class="grid gap-8 lg:grid-cols-2">
+                <!-- Texte -->
+                <div class="text-content flex flex-col gap-5" key="main_cms">
+                    <div>
+                        <label class="mb-1 block text-sm font-medium text-gray-600">Header / Badge</label>
+                        <input inputType="header" type="text"
+                            class="w-full appearance-none rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2 text-xs font-semibold uppercase leading-tight tracking-wider text-gray-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+                            value="{{ cms_text.header|default:'Eigenes CMS' }}">
+                    </div>
+                    <div>
+                        <label class="mb-1 block text-sm font-medium text-gray-600">Überschrift</label>
+                        <input inputType="title" type="text"
+                            class="w-full appearance-none rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2 text-lg font-bold leading-tight tracking-tight text-gray-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+                            value="{{ cms_text.title|default:'Inhalte selbst pflegen – ganz ohne Code' }}">
+                    </div>
+                    <div>
+                        <label class="mb-1 block text-sm font-medium text-gray-600">Beschreibung</label>
+                        <textarea inputType="description" rows="6"
+                            class="w-full appearance-none rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2 text-base leading-relaxed text-gray-800 focus:border-blue-500 focus:bg-white focus:outline-none">{{ cms_text.description|default:"Mit unserem Content-Management-System aktualisieren Sie Texte, Bilder und Blogartikel jederzeit selbst. Schnell, intuitiv und ohne laufende Kosten für jede kleine Änderung." }}</textarea>
+                    </div>
+                    <div>
+                        <label class="mb-1 block text-sm font-medium text-gray-600">Button-Text</label>
+                        <input inputType="buttonText" type="text"
+                            class="w-full appearance-none rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2 text-base font-medium leading-tight text-gray-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+                            value="{{ cms_text.buttonText|default:'Angebot ansehen' }}">
+                    </div>
+                </div>
+
+                <!-- Video -->
+                <div>
+                    <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-orange-600"><i class="bi bi-camera-video mr-1"></i>Vorschau-Video</p>
+                    <div class="relative w-full overflow-hidden rounded-md shadow">
+                        <video class="content-video h-auto w-full rounded-md object-cover" key="main_cms"
+                            videoId="{% if cmsVideo %}{{ cmsVideo.id }}{% else %}-1{% endif %}"
+                            {% if cmsVideo %}src="{{ cmsVideo.file.url }}" poster="{{ cmsVideo.thumbnail.url }}"
+                            {% else %}src="" poster="{% static 'images/designImg/filler.png' %}"{% endif %}
+                            controls></video>
+                        <span class="edit-video not-sortable absolute left-2 top-2 z-40 inline-block rounded-full bg-orange-500 px-2 py-1 text-sm font-semibold text-white hover:cursor-pointer" title="Video bearbeiten">
+                            <i class="bi bi-pencil-square"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ══════════════════════════════════════════ KNOW-HOW ══════════════════════════════════════════ -->
+        <section class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+            <div class="mb-5 flex items-center gap-3">
+                <span class="grid h-9 w-9 place-items-center rounded-full bg-blue-100 text-blue-700"><i class="bi bi-lightbulb"></i></span>
+                <div>
+                    <h2 class="text-lg font-bold text-gray-900">Know-How Section</h2>
+                    <p class="text-sm text-gray-500">Stärken-Übersicht mit drei Karten.</p>
+                </div>
+            </div>
+
+            <!-- Texte -->
+            <div class="text-content grid gap-5 lg:grid-cols-2" key="main_know_how">
+                <div class="lg:col-span-2">
+                    <label class="mb-1 block text-sm font-medium text-gray-600">Header / Badge</label>
+                    <input inputType="header" type="text"
+                        class="w-full appearance-none rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2 text-xs font-semibold uppercase leading-tight tracking-wider text-gray-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+                        value="{{ knowhow_text.header|default:'Know-how' }}">
+                </div>
+                <div>
+                    <label class="mb-1 block text-sm font-medium text-gray-600">Überschrift</label>
+                    <input inputType="title" type="text"
+                        class="w-full appearance-none rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2 text-lg font-bold leading-tight tracking-tight text-gray-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+                        value="{{ knowhow_text.title|default:'Was wir richtig gut können' }}">
+                </div>
+                <div>
+                    <label class="mb-1 block text-sm font-medium text-gray-600">Beschreibung</label>
+                    <textarea inputType="description" rows="4"
+                        class="w-full appearance-none rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2 text-base leading-relaxed text-gray-800 focus:border-blue-500 focus:bg-white focus:outline-none">{{ knowhow_text.description|default:"Webdesign ist mehr als hübsche Bilder. Wir verbinden ansprechendes Design mit technischer Performance und gezielter SEO – damit Ihre Website nicht nur gefällt, sondern auch gefunden wird und konvertiert." }}</textarea>
+                </div>
+            </div>
+
+            <!-- Karten -->
+            <p class="mb-3 mt-6 text-xs font-semibold uppercase tracking-wider text-gray-500">Karten</p>
+            <div class="grid gap-6 md:grid-cols-3">
+                <!-- Karte 1 -->
+                <div class="text-content rounded-xl border border-gray-200 bg-gray-50 p-5" key="main_know_how_card_1">
+                    <div class="mb-4 flex justify-center">
+                        <div class="grid h-12 w-12 place-items-center rounded-full bg-blue-200/60 shadow"><i class="bi bi-columns-gap text-2xl text-blue-900"></i></div>
+                    </div>
+                    <label class="mb-1 block text-sm font-medium text-gray-600">Titel</label>
+                    <input inputType="title" type="text"
+                        class="mb-3 w-full appearance-none rounded-lg border-2 border-gray-200 bg-white px-4 py-2 text-center text-base font-semibold leading-tight text-gray-900 focus:border-blue-500 focus:outline-none"
+                        value="{{ knowhow_card_1.title|default:'Individuelles Design' }}">
+                    <label class="mb-1 block text-sm font-medium text-gray-600">Beschreibung</label>
+                    <textarea inputType="description" rows="8"
+                        class="w-full appearance-none rounded-lg border-2 border-gray-200 bg-white px-4 py-2 text-sm leading-relaxed text-gray-800 focus:border-blue-500 focus:outline-none">{{ knowhow_card_1.description|default:"Jede Website entsteht maßgeschneidert für Ihre Marke. Klare Strukturen, durchdachte Nutzerführung und ein Design, das im Gedächtnis bleibt – keine Templates von der Stange." }}</textarea>
+                </div>
+                <!-- Karte 2 -->
+                <div class="text-content rounded-xl border border-gray-200 bg-gray-50 p-5" key="main_know_how_card_2">
+                    <div class="mb-4 flex justify-center">
+                        <div class="grid h-12 w-12 place-items-center rounded-full bg-blue-200/60 shadow"><i class="bi bi-bar-chart text-2xl text-blue-900"></i></div>
+                    </div>
+                    <label class="mb-1 block text-sm font-medium text-gray-600">Titel</label>
+                    <input inputType="title" type="text"
+                        class="mb-3 w-full appearance-none rounded-lg border-2 border-gray-200 bg-white px-4 py-2 text-center text-base font-semibold leading-tight text-gray-900 focus:border-blue-500 focus:outline-none"
+                        value="{{ knowhow_card_2.title|default:'SEO & Sichtbarkeit' }}">
+                    <label class="mb-1 block text-sm font-medium text-gray-600">Beschreibung</label>
+                    <textarea inputType="description" rows="8"
+                        class="w-full appearance-none rounded-lg border-2 border-gray-200 bg-white px-4 py-2 text-sm leading-relaxed text-gray-800 focus:border-blue-500 focus:outline-none">{{ knowhow_card_2.description|default:"Wir bauen Ihre Website so, dass Google sie liebt: saubere Struktur, schnelle Ladezeiten und gezielte On-Page-Optimierung für bessere Rankings und mehr organischen Traffic." }}</textarea>
+                </div>
+                <!-- Karte 3 -->
+                <div class="text-content rounded-xl border border-gray-200 bg-gray-50 p-5" key="main_know_how_card_3">
+                    <div class="mb-4 flex justify-center">
+                        <div class="grid h-12 w-12 place-items-center rounded-full bg-blue-200/60 shadow"><i class="bi bi-code-slash text-2xl text-blue-900"></i></div>
+                    </div>
+                    <label class="mb-1 block text-sm font-medium text-gray-600">Titel</label>
+                    <input inputType="title" type="text"
+                        class="mb-3 w-full appearance-none rounded-lg border-2 border-gray-200 bg-white px-4 py-2 text-center text-base font-semibold leading-tight text-gray-900 focus:border-blue-500 focus:outline-none"
+                        value="{{ knowhow_card_3.title|default:'Saubere Technik' }}">
+                    <label class="mb-1 block text-sm font-medium text-gray-600">Beschreibung</label>
+                    <textarea inputType="description" rows="8"
+                        class="w-full appearance-none rounded-lg border-2 border-gray-200 bg-white px-4 py-2 text-sm leading-relaxed text-gray-800 focus:border-blue-500 focus:outline-none">{{ knowhow_card_3.description|default:"Modernes Frontend trifft auf solides Backend. Wir setzen auf bewährte Tools, sauberen Code und nachhaltige Architektur – für eine Website, die schnell läuft und langfristig wartbar bleibt." }}</textarea>
+                </div>
+            </div>
+        </section>
+
+        <!-- ══════════════════════════════════════════ KUNDEN ══════════════════════════════════════════ -->
+        <section class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+            <div class="mb-5 flex items-center gap-3">
+                <span class="grid h-9 w-9 place-items-center rounded-full bg-blue-100 text-blue-700"><i class="bi bi-people"></i></span>
+                <div>
+                    <h2 class="text-lg font-bold text-gray-900">Kunden Section</h2>
+                    <p class="text-sm text-gray-500">Referenz-Block auf der Startseite. Einzelne Kunden werden separat verwaltet.</p>
+                </div>
+            </div>
+
+            <div class="text-content flex flex-col gap-5" key="main_kunden">
+                <div class="grid gap-5 lg:grid-cols-2">
+                    <div>
+                        <label class="mb-1 block text-sm font-medium text-gray-600">Header / Badge</label>
+                        <input inputType="header" type="text"
+                            class="w-full appearance-none rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2 text-xs font-semibold uppercase leading-tight tracking-wider text-gray-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+                            value="{{ kunden_text.header|default:'Referenzen' }}">
+                    </div>
+                    <div>
+                        <label class="mb-1 block text-sm font-medium text-gray-600">Überschrift</label>
+                        <input inputType="title" type="text"
+                            class="w-full appearance-none rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2 text-lg font-bold leading-tight tracking-tight text-gray-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+                            value="{{ kunden_text.title|default:'Websites, die wir umgesetzt haben' }}">
+                    </div>
+                </div>
+                <div>
+                    <label class="mb-1 block text-sm font-medium text-gray-600">Beschreibung</label>
+                    <textarea inputType="description" rows="5"
+                        class="w-full appearance-none rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2 text-base leading-relaxed text-gray-800 focus:border-blue-500 focus:bg-white focus:outline-none">{{ kunden_text.description|default:"Vom Zahnarzt bis zum Reiseanbieter – unsere Kunden kommen aus den unterschiedlichsten Branchen. Was sie verbindet: der Wunsch nach einer modernen, benutzerfreundlichen Website, die überzeugt. Mit durchdachtem Design und technischem Know-how setzen wir jedes Projekt individuell und mit viel Liebe zum Detail um." }}</textarea>
+                </div>
+                <div class="sm:max-w-sm">
+                    <label class="mb-1 block text-sm font-medium text-gray-600">Button-Text</label>
+                    <input inputType="buttonText" type="text"
+                        class="w-full appearance-none rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2 text-base font-medium leading-tight text-gray-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+                        value="{{ kunden_text.buttonText|default:'Alle Kunden ansehen' }}">
+                </div>
+            </div>
+        </section>
+
+        <!-- ══════════════════════════════════════════ STANDORTE ══════════════════════════════════════════ -->
+        <section class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+            <div class="mb-5 flex items-center gap-3">
+                <span class="grid h-9 w-9 place-items-center rounded-full bg-blue-100 text-blue-700"><i class="bi bi-geo-alt"></i></span>
+                <div>
+                    <h2 class="text-lg font-bold text-gray-900">Standorte / Einzugsgebiet</h2>
+                    <p class="text-sm text-gray-500">Karte mit lokalen Landingpages. Die Standorte (Pins) werden separat verwaltet.</p>
+                </div>
+            </div>
+
+            <div class="grid gap-8 lg:grid-cols-2">
+                <div class="text-content flex flex-col gap-5" key="main_standorte">
+                    <div>
+                        <label class="mb-1 block text-sm font-medium text-gray-600">Header / Badge</label>
+                        <input inputType="header" type="text"
+                            class="w-full appearance-none rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2 text-xs font-semibold uppercase leading-tight tracking-wider text-gray-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+                            value="{{ standorte_text.header|default:'Einzugsgebiet' }}">
+                    </div>
+                    <div>
+                        <label class="mb-1 block text-sm font-medium text-gray-600">Überschrift</label>
+                        <input inputType="title" type="text"
+                            class="w-full appearance-none rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2 text-lg font-bold leading-tight tracking-tight text-gray-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+                            value="{{ standorte_text.title|default:'Webdesign für Niederbayern – von Regensburg bis Passau' }}">
+                    </div>
+                    <div>
+                        <label class="mb-1 block text-sm font-medium text-gray-600">Beschreibung</label>
+                        <textarea inputType="description" rows="5"
+                            class="w-full appearance-none rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2 text-base leading-relaxed text-gray-800 focus:border-blue-500 focus:bg-white focus:outline-none">{{ standorte_text.description|default:"Unser Sitz ist in Deggendorf – mitten in Niederbayern. Von hier aus betreuen wir Unternehmen in der gesamten Region: persönlich, vor Ort und mit kurzen Wegen. Für ausgewählte Städte finden Sie eigene Seiten mit allen Infos zu Webdesign in Ihrer Nähe." }}</textarea>
+                    </div>
+                    <div>
+                        <label class="mb-1 block text-sm font-medium text-gray-600">Hinweis &bdquo;Deutschlandweit im Einsatz&ldquo;</label>
+                        <input inputType="buttonText" type="text"
+                            class="w-full appearance-none rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2 text-base leading-tight text-gray-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+                            value="{{ standorte_text.buttonText|default:'Niederbayern ist unser Zuhause – Projekte setzen wir deutschlandweit um, remote genauso persönlich wie vor Ort.' }}">
+                    </div>
+                </div>
+
+                {% url 'cms:location-list' as location_manage_url %}
+                {% include "pages/cms/content/sites/mainsite/_manage_card.html" with title="Standorte (Pins)" icon="bi-geo-alt" count=location_count count_label="Aktuelle Standorte" url=location_manage_url %}
+            </div>
+        </section>
+
+        <!-- ══════════════════════════════════════════ PREIS ══════════════════════════════════════════ -->
+        <section class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+            <div class="mb-5 flex items-center gap-3">
+                <span class="grid h-9 w-9 place-items-center rounded-full bg-blue-100 text-blue-700"><i class="bi bi-cash-coin"></i></span>
+                <div>
+                    <h2 class="text-lg font-bold text-gray-900">Preis Section</h2>
+                    <p class="text-sm text-gray-500">Einleitungstext. Die Preiskarten werden separat verwaltet.</p>
+                </div>
+            </div>
+
+            <div class="grid gap-8 lg:grid-cols-2">
+                <div class="text-content flex flex-col gap-5" key="main_price">
+                    <div>
+                        <label class="mb-1 block text-sm font-medium text-gray-600">Header / Badge</label>
+                        <input inputType="header" type="text"
+                            class="w-full appearance-none rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2 text-xs font-semibold uppercase leading-tight tracking-wider text-gray-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+                            value="{{ price_text.header|default:'Preise' }}">
+                    </div>
+                    <div>
+                        <label class="mb-1 block text-sm font-medium text-gray-600">Überschrift</label>
+                        <input inputType="title" type="text"
+                            class="w-full appearance-none rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2 text-lg font-bold leading-tight tracking-tight text-gray-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+                            value="{{ price_text.title|default:'Faire Preise ohne Überraschungen' }}">
+                    </div>
+                    <div>
+                        <label class="mb-1 block text-sm font-medium text-gray-600">Beschreibung</label>
+                        <textarea inputType="description" rows="5"
+                            class="w-full appearance-none rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2 text-base leading-relaxed text-gray-800 focus:border-blue-500 focus:bg-white focus:outline-none">{{ price_text.description|default:"Sie wissen vorher genau, was Sie investieren. Keine versteckten Kosten, keine Folgegebühren für Änderungen – nur transparente Pakete, die zu Ihrem Unternehmen passen." }}</textarea>
+                    </div>
+                </div>
+
+                <!-- Verwaltung (jump-away) -->
+                {% url 'cms:pricingcard-list' as price_manage_url %}
+                {% include "pages/cms/content/sites/mainsite/_manage_card.html" with title="Preiskarten" icon="bi-cash-coin" count=pricing_count count_label="Aktuelle Preiskarten" url=price_manage_url %}
+            </div>
+        </section>
+
+        <!-- ══════════════════════════════════════════ TEAM ══════════════════════════════════════════ -->
+        <section class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+            <div class="mb-5 flex items-center gap-3">
+                <span class="grid h-9 w-9 place-items-center rounded-full bg-blue-100 text-blue-700"><i class="bi bi-person-badge"></i></span>
+                <div>
+                    <h2 class="text-lg font-bold text-gray-900">Team Section</h2>
+                    <p class="text-sm text-gray-500">Einleitungstext. Die Mitarbeiter werden separat verwaltet.</p>
+                </div>
+            </div>
+
+            <div class="grid gap-8 lg:grid-cols-2">
+                <div class="text-content flex flex-col gap-5" key="main_team">
+                    <div>
+                        <label class="mb-1 block text-sm font-medium text-gray-600">Header / Badge</label>
+                        <input inputType="header" type="text"
+                            class="w-full appearance-none rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2 text-xs font-semibold uppercase leading-tight tracking-wider text-gray-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+                            value="{{ team_text.header|default:'Team' }}">
+                    </div>
+                    <div>
+                        <label class="mb-1 block text-sm font-medium text-gray-600">Überschrift</label>
+                        <input inputType="title" type="text"
+                            class="w-full appearance-none rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2 text-lg font-bold leading-tight tracking-tight text-gray-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+                            value="{{ team_text.title|default:'Die Köpfe hinter YooLink' }}">
+                    </div>
+                    <div>
+                        <label class="mb-1 block text-sm font-medium text-gray-600">Beschreibung</label>
+                        <textarea inputType="description" rows="5"
+                            class="w-full appearance-none rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2 text-base leading-relaxed text-gray-800 focus:border-blue-500 focus:bg-white focus:outline-none">{{ team_text.description|default:"Ein eingespieltes Team aus Niederbayern mit langjähriger Erfahrung in Webentwicklung, Design und SEO. Persönlicher Kontakt, kurze Wege und volle Verantwortung für Ihr Projekt – von der ersten Skizze bis zum Go-Live." }}</textarea>
+                    </div>
+                </div>
+
+                {% url 'cms:team-list' as team_manage_url %}
+                {% include "pages/cms/content/sites/mainsite/_manage_card.html" with title="Mitarbeiter" icon="bi-people" count=member_count count_label="Aktuelle Mitarbeiter" url=team_manage_url %}
+            </div>
+        </section>
+
+        <!-- ══════════════════════════════════════════ FAQ ══════════════════════════════════════════ -->
+        <section class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+            <div class="mb-5 flex items-center gap-3">
+                <span class="grid h-9 w-9 place-items-center rounded-full bg-blue-100 text-blue-700"><i class="bi bi-question-lg"></i></span>
+                <div>
+                    <h2 class="text-lg font-bold text-gray-900">FAQ Section</h2>
+                    <p class="text-sm text-gray-500">Einleitungstext. Die einzelnen Fragen werden separat verwaltet.</p>
+                </div>
+            </div>
+
+            <div class="grid gap-8 lg:grid-cols-2">
+                <div class="text-content flex flex-col gap-5" key="main_faq">
+                    <div>
+                        <label class="mb-1 block text-sm font-medium text-gray-600">Header / Badge</label>
+                        <input inputType="header" type="text"
+                            class="w-full appearance-none rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2 text-xs font-semibold uppercase leading-tight tracking-wider text-gray-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+                            value="{{ faq_text.header|default:'FAQ' }}">
+                    </div>
+                    <div>
+                        <label class="mb-1 block text-sm font-medium text-gray-600">Überschrift</label>
+                        <input inputType="title" type="text"
+                            class="w-full appearance-none rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2 text-lg font-bold leading-tight tracking-tight text-gray-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+                            value="{{ faq_text.title|default:'Antworten auf die häufigsten Fragen' }}">
+                    </div>
+                    <div>
+                        <label class="mb-1 block text-sm font-medium text-gray-600">Beschreibung</label>
+                        <textarea inputType="description" rows="5"
+                            class="w-full appearance-none rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2 text-base leading-relaxed text-gray-800 focus:border-blue-500 focus:bg-white focus:outline-none">{{ faq_text.description|default:"Sie haben Fragen zu Ablauf, Preisen oder Technik? Hier finden Sie die wichtigsten Antworten. Wenn etwas fehlt, melden Sie sich gerne direkt bei uns." }}</textarea>
+                    </div>
+                </div>
+
+                {% url 'cms:faq-view' as faq_manage_url %}
+                {% include "pages/cms/content/sites/mainsite/_manage_card.html" with title="FAQ" icon="bi-question-lg" count=faq_count count_label="Aktuelle FAQs" url=faq_manage_url %}
+            </div>
+        </section>
+
+    </div>
+</div>
+
+{% endblock content %}
+
+{% block javascriptend %}
+{% compress js %}
+<script defer src="{% static 'js/cms.js' %}"></script>
+<script defer src="{% static 'js/cms/content/siteManager.js' %}"></script>
+<script src="{% static 'js/cms/content/save-text.js' %}"></script>
+<script defer src="{% static 'js/cms/unsaved-guard.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/cms/slick/slick.min.js' %}"></script>
+<script>
+    $('#mainsiteEditor .carousel').slick({
+        dots: true,
+        arrows: true,
+        infinite: true,
+        slidesToShow: 1,
+        slidesToScroll: 1,
+        autoplay: true,
+        autoplaySpeed: 3500,
+    });
+</script>
+<script defer>
+    $(document).ready(function () {
+        loadGalerien(false);
+        loadVideos(false);
+    });
+</script>
+{% endcompress js %}
+{% endblock javascriptend %}

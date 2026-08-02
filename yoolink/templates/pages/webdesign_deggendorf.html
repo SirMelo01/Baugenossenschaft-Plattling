@@ -1,0 +1,663 @@
+{% extends "base.html" %}
+{% load compress static i18n %}
+
+{% block title %}{{ block.super }} | Webdesign Deggendorf – Website ab 40 € im Monat{% endblock title %}
+
+{% block meta_description %}Webdesign aus Deggendorf für Unternehmen aus Deggendorf, Plattling, Osterhofen und ganz Niederbayern. Individuelle Websites mit eigenem CMS, transparenten Abo-Preisen ab 40 € im Monat und persönlicher Betreuung vor Ort.{% endblock %}
+
+{% block canonical_url %}https://yoolink.de{% if request.LANGUAGE_CODE == 'en' %}{{ en_url }}{% else %}{{ de_url }}{% endif %}{% endblock %}
+
+{% block og_title %}Webdesign Deggendorf – YooLink | Website ab 40 € im Monat{% endblock %}
+{% block og_description %}Lokale Webdesign-Agentur aus dem Raum Deggendorf. Individuelle Websites mit eigenem CMS, faires Abo-Modell und persönlicher Kontakt vor Ort.{% endblock %}
+{% block twitter_title %}Webdesign Deggendorf – YooLink | Website ab 40 € im Monat{% endblock %}
+{% block twitter_description %}Individuelle Websites mit eigenem CMS für Unternehmen aus Deggendorf und Niederbayern. Abo ab 40 € im Monat – transparent und persönlich.{% endblock %}
+
+{% block og_image %}https://yoolink.de{% if image_skyline %}{{ image_skyline.file.url }}{% else %}{% static 'images/deggendorf/skyline.png' %}{% endif %}{% endblock %}
+{% block twitter_image %}https://yoolink.de{% if image_skyline %}{{ image_skyline.file.url }}{% else %}{% static 'images/deggendorf/skyline.png' %}{% endif %}{% endblock %}
+
+{% block css %}
+{% compress css %}
+<link href="{% static 'css/wellen.css' %}" rel="stylesheet" />
+<link rel="stylesheet" href="{% static 'css/aos.css' %}" />
+<style>
+  body { overflow-x: hidden; } /* auf body statt html -> sticky Navbar funktioniert */
+
+  /* HERO Skyline */
+  .dg-hero {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    background-color: #1e3a8a;
+  }
+  .dg-hero__skyline {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+    opacity: 0.9;
+    z-index: 0;
+  }
+  .dg-hero__veil {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(180deg,
+        rgba(15, 23, 42, 0.55) 0%,
+        rgba(30, 58, 138, 0.30) 25%,
+        rgba(30, 58, 138, 0.20) 45%,
+        rgba(239, 246, 255, 0.80) 80%,
+        #eff6ff 95%);
+    z-index: 1;
+  }
+  .dg-hero__glow {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background:
+      radial-gradient(ellipse at 50% 35%, rgba(59, 130, 246, 0.25) 0%, rgba(30, 58, 138, 0) 55%);
+    pointer-events: none;
+  }
+  /* Leichter Text-Schatten nur für die Hero-Description */
+  .dg-hero__lead {
+    text-shadow: 0 2px 6px rgba(15, 23, 42, 0.35), 0 1px 2px rgba(15, 23, 42, 0.25);
+  }
+  .dg-hero__inner { position: relative; z-index: 2; }
+
+  /* Watercolor frames for paintings */
+  .dg-paint {
+    position: relative;
+    border-radius: 0.85rem;
+    overflow: hidden;
+    box-shadow:
+      0 30px 60px -25px rgba(15, 23, 42, 0.35),
+      0 10px 20px -8px rgba(15, 23, 42, 0.18),
+      inset 0 0 0 1px rgba(15, 23, 42, 0.06);
+    background: #fefcf6;
+  }
+  .dg-paint img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .dg-paint__caption {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 0.65rem 1rem;
+    background: linear-gradient(180deg, rgba(15,23,42,0) 0%, rgba(15,23,42,0.65) 100%);
+    color: #fff;
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  @media (max-width: 1023px) {
+    [data-aos="fade-left"],
+    [data-aos="fade-right"],
+    [data-aos="fade-up-left"],
+    [data-aos="fade-up-right"] {
+      transform: translate3d(0, 60px, 0);
+    }
+  }
+</style>
+{% endcompress css %}
+{% endblock css %}
+
+{% block javascript %}
+{% compress js %}
+<script defer src="{% static 'js/aos.js' %}"></script>
+{% endcompress %}
+{% endblock javascript %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": ["ProfessionalService", "LocalBusiness"],
+  "@id": "https://yoolink.de/webdesign-deggendorf/#business",
+  "name": "YooLink – Webdesign Deggendorf",
+  "description": "Lokale Webdesign-Agentur aus dem Raum Deggendorf. Individuelle Websites mit eigenem CMS, faires Abo-Modell ab 40 € im Monat und persönliche Betreuung in Niederbayern.",
+  "url": "https://yoolink.de/webdesign-deggendorf/",
+  "telephone": "+491705977862",
+  "priceRange": "ab 40 €/Monat",
+  "image": "https://yoolink.de{% if image_skyline %}{{ image_skyline.file.url }}{% else %}{% static 'images/deggendorf/skyline.png' %}{% endif %}",
+  "address": {
+    "@type": "PostalAddress",
+    "addressLocality": "Deggendorf",
+    "addressRegion": "Bayern",
+    "addressCountry": "DE"
+  },
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": 48.8407,
+    "longitude": 12.9583
+  },
+  "areaServed": [
+    { "@type": "City", "name": "Deggendorf" },
+    { "@type": "City", "name": "Plattling" },
+    { "@type": "City", "name": "Osterhofen" },
+    { "@type": "City", "name": "Metten" },
+    { "@type": "AdministrativeArea", "name": "Landkreis Deggendorf" },
+    { "@type": "AdministrativeArea", "name": "Niederbayern" }
+  ],
+  "makesOffer": {
+    "@type": "Offer",
+    "priceCurrency": "EUR",
+    "price": "40",
+    "itemOffered": {
+      "@type": "Service",
+      "name": "Webdesign Deggendorf",
+      "serviceType": "Webdesign mit CMS im Abo-Modell",
+      "areaServed": "Niederbayern"
+    }
+  }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Startseite", "item": "https://yoolink.de/" },
+    { "@type": "ListItem", "position": 2, "name": "Webdesign Deggendorf", "item": "https://yoolink.de/webdesign-deggendorf/" }
+  ]
+}
+</script>
+{% endblock %}
+
+{% block content %}
+
+<!-- =========================
+     HERO mit Skyline Deggendorf
+========================= -->
+<section class="dg-hero -mt-5">
+  <img class="dg-hero__skyline" src="{% if image_skyline %}{{ image_skyline.file.url }}{% else %}{% static 'images/deggendorf/skyline.png' %}{% endif %}" alt="Stadtansicht von Deggendorf an der Donau – Blick über die Altstadt mit Kirchtürmen und Hügellandschaft Niederbayerns, im Aquarellstil" width="1448" height="1086" fetchpriority="high" decoding="async">
+  <div class="dg-hero__veil" aria-hidden="true"></div>
+  <div class="dg-hero__glow" aria-hidden="true"></div>
+
+  <div class="dg-hero__inner relative z-10 mx-auto max-w-6xl px-4 pt-[3.25rem] pb-36 lg:pt-[6.25rem] lg:pb-48 text-center">
+    <p class="mb-4 text-sm font-semibold uppercase tracking-widest text-blue-200" data-aos="fade-up">
+      {{ textContent_hero.header|default:"Webdesign-Agentur aus dem Raum Deggendorf" }}
+    </p>
+    <h1 class="mb-6 text-3xl font-bold leading-tight tracking-tight text-white drop-shadow-md sm:text-5xl xl:text-6xl"
+        data-aos="fade-up" data-aos-delay="100">
+      {{ textContent_hero.title|default:"Webdesign Deggendorf –" }}<br class="hidden sm:block">
+      <span class="text-blue-200">{{ textContent_hero_highlight.title|default:"individuelle Website ab 40 € im Monat" }}</span>
+    </h1>
+    <p class="dg-hero__lead mx-auto mt-6 max-w-2xl text-base leading-7 text-blue-50 md:text-lg xl:text-xl"
+       data-aos="fade-up" data-aos-delay="200">
+      {{ textContent_hero.description|default:"Wir bauen moderne Websites für Unternehmen aus Deggendorf, Passau, Regensburg und ganz Niederbayern. Persönlich, individuell und mit eigenem CMS – zu einem fairen Abo-Preis ohne versteckte Kosten." }}
+    </p>
+
+    <div class="mt-10 flex flex-wrap justify-center gap-4" data-aos="fade-up" data-aos-delay="300">
+      <a href="{% url 'kontakt' %}"
+         class="inline-block rounded-md bg-blue-900 px-8 py-4 text-base font-bold text-white shadow-xl transition-transform duration-300 ease-in-out hover:-translate-y-1 hover:scale-105 hover:bg-blue-700">
+        {{ textContent_hero.buttonText|default:"Jetzt unverbindlich anfragen" }}
+      </a>
+      <a href="#preise"
+         class="inline-block rounded-md border-2 border-blue-900 bg-white px-8 py-4 text-base font-bold text-blue-900 shadow-md transition-transform duration-300 ease-in-out hover:-translate-y-1 hover:scale-105 hover:bg-blue-50">
+        {{ textContent_hero_secondary.title|default:"Abo-Modelle ansehen" }}
+      </a>
+    </div>
+
+    <div class="mx-auto mt-12 grid max-w-3xl grid-cols-2 gap-4 sm:grid-cols-4" data-aos="fade-up" data-aos-delay="400">
+      <div class="rounded-xl bg-white/90 px-3 py-4 ring-1 ring-blue-100 backdrop-blur-sm shadow-lg">
+        <p class="text-2xl font-bold text-blue-900">{{ textContent_hero_stat1.title|default:"40 €" }}</p>
+        <p class="text-xs text-gray-600">{{ textContent_hero_stat1.description|default:"Start-Abo / Monat" }}</p>
+      </div>
+      <div class="rounded-xl bg-white/90 px-3 py-4 ring-1 ring-blue-100 backdrop-blur-sm shadow-lg">
+        <p class="text-2xl font-bold text-blue-900">{{ textContent_hero_stat2.title|default:"100 %" }}</p>
+        <p class="text-xs text-gray-600">{{ textContent_hero_stat2.description|default:"Individuelles Design" }}</p>
+      </div>
+      <div class="rounded-xl bg-white/90 px-3 py-4 ring-1 ring-blue-100 backdrop-blur-sm shadow-lg">
+        <p class="text-2xl font-bold text-blue-900">{{ textContent_hero_stat3.title|default:"CMS" }}</p>
+        <p class="text-xs text-gray-600">{{ textContent_hero_stat3.description|default:"Inkl. eigenem System" }}</p>
+      </div>
+      <div class="rounded-xl bg-white/90 px-3 py-4 ring-1 ring-blue-100 backdrop-blur-sm shadow-lg">
+        <p class="text-2xl font-bold text-blue-900">{{ textContent_hero_stat4.title|default:"Lokal" }}</p>
+        <p class="text-xs text-gray-600">{{ textContent_hero_stat4.description|default:"Persönlich vor Ort" }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="bg-blue-50">
+
+  <!-- =========================
+       Webdesign aus Deggendorf - Intro mit Kirche
+  ========================= -->
+  <section class="px-4 py-20">
+    <div class="mx-auto max-w-6xl">
+      <div class="grid items-center gap-12 lg:grid-cols-2">
+        <div data-aos="fade-right">
+          <p class="mb-4 text-sm font-semibold uppercase tracking-widest text-blue-900">
+            {{ textContent_intro.header|default:"Eine Agentur aus der Region" }}
+          </p>
+          <h2 class="mb-6 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl sm:leading-none">
+            {{ textContent_intro.title|default:"Webdesign aus Deggendorf – persönlich, individuell und sichtbar" }}
+          </h2>
+          <p class="mb-5 text-base leading-7 text-gray-700 md:text-lg">
+            {{ textContent_intro.description|default:"Sie suchen eine Webdesign-Agentur in Deggendorf, die nicht nur Templates ausliefert, sondern Ihr Unternehmen wirklich versteht? YooLink ist genau das: ein lokales Team mit Sitz in Niederbayern, das moderne Websites für Handwerker, Dienstleister, Ärzte, Restaurants und Mittelständler aus der Region entwickelt." }}
+          </p>
+          <p class="mb-5 text-base leading-7 text-gray-700 md:text-lg">
+            {{ textContent_intro_p2.description|default:"Statt Standardlösungen liefern wir Websites, die zu Ihrer Marke passen – handgemacht, technisch sauber und mit Liebe zum Detail. Persönliche Beratung in Deggendorf, schnelle Reaktionszeiten und ein fairer Abo-Preis ab 40 € im Monat machen uns zu einem verlässlichen Partner für Ihren digitalen Auftritt." }}
+          </p>
+          <ul class="mt-6 space-y-3">
+            <li class="flex items-start gap-3">
+              <i class="bi bi-geo-alt-fill mt-1 text-blue-900"></i>
+              <span class="text-gray-800"><strong>{{ textContent_intro_bullet1.title|default:"Lokal verwurzelt" }}</strong> – {{ textContent_intro_bullet1.description|default:"wir kennen den Markt in Deggendorf und Umgebung." }}</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <i class="bi bi-stars mt-1 text-blue-900"></i>
+              <span class="text-gray-800"><strong>{{ textContent_intro_bullet2.title|default:"Individuell statt Baukasten" }}</strong> – {{ textContent_intro_bullet2.description|default:"jede Website ist ein eigenes Projekt." }}</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <i class="bi bi-piggy-bank-fill mt-1 text-blue-900"></i>
+              <span class="text-gray-800"><strong>{{ textContent_intro_bullet3.title|default:"Faires Abo-Modell" }}</strong> – {{ textContent_intro_bullet3.description|default:"planbare Kosten ab 40 € im Monat." }}</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <i class="bi bi-window-stack mt-1 text-blue-900"></i>
+              <span class="text-gray-800"><strong>{{ textContent_intro_bullet4.title|default:"Eigenes CMS inklusive" }}</strong> – {{ textContent_intro_bullet4.description|default:"Inhalte selbst pflegen ohne Zusatzkosten." }}</span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="relative" data-aos="fade-left">
+          <div class="dg-paint mx-auto aspect-[3/4] w-full max-w-md">
+            <img src="{% if image_intro %}{{ image_intro.file.url }}{% else %}{% static 'images/deggendorf/grabkirche.png' %}{% endif %}"
+                 alt="Grabkirche St. Peter und Paul in Deggendorf – barocker Kirchturm mit goldener Zwiebelhaube als Wahrzeichen der Altstadt"
+                 title="Grabkirche St. Peter und Paul – Deggendorf"
+                 loading="lazy" />
+            <div class="dg-paint__caption">{{ textContent_intro_caption.title|default:"Grabkirche St. Peter und Paul, Deggendorf" }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Gradient -->
+  <div class="h-20 bg-gradient-to-b from-blue-50 to-blue-100"></div>
+
+  <!-- =========================
+       Warum YooLink – USP Cards
+  ========================= -->
+  <section class="bg-blue-100 px-4 py-20">
+    <div class="mx-auto max-w-6xl">
+      <div class="mx-auto mb-14 max-w-3xl text-center" data-aos="fade-up">
+        <p class="mb-4 text-sm font-semibold uppercase tracking-widest text-blue-900">
+          {{ textContent_warum.header|default:"Warum YooLink" }}
+        </p>
+        <h2 class="mb-6 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl sm:leading-none">
+          {{ textContent_warum.title|default:"Was uns von anderen Agenturen in Deggendorf unterscheidet" }}
+        </h2>
+        <p class="text-base leading-7 text-gray-700 md:text-lg xl:text-xl">
+          {{ textContent_warum.description|default:"Wir bauen keine Websites von der Stange. Jedes Projekt entsteht in enger Abstimmung mit Ihnen – mit klarem Fokus auf Ergebnisse: mehr Sichtbarkeit, mehr Anfragen und eine Website, die zu Ihrem Unternehmen passt." }}
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+        <div class="rounded-xl bg-white p-8 shadow-md ring-1 ring-gray-200 transition duration-300 hover:-translate-y-1 hover:shadow-xl"
+             data-aos="fade-up" data-aos-delay="0">
+          <div class="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-900">
+            <i class="bi bi-cash-coin text-2xl"></i>
+          </div>
+          <h3 class="mb-3 text-xl font-bold tracking-tight text-gray-900">{{ textContent_warum_card1.title|default:"Faires Abo-Modell ab 40 €" }}</h3>
+          <p class="text-base leading-7 text-gray-600">
+            {{ textContent_warum_card1.description|default:"Sie zahlen einen kleinen monatlichen Beitrag – inklusive Hosting, SSL, Wartung und laufenden Updates. Keine Überraschungen, keine versteckten Folgekosten." }}
+          </p>
+        </div>
+
+        <div class="rounded-xl bg-white p-8 shadow-md ring-1 ring-gray-200 transition duration-300 hover:-translate-y-1 hover:shadow-xl"
+             data-aos="fade-up" data-aos-delay="100">
+          <div class="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-900">
+            <i class="bi bi-window-stack text-2xl"></i>
+          </div>
+          <h3 class="mb-3 text-xl font-bold tracking-tight text-gray-900">{{ textContent_warum_card2.title|default:"Eigenes CMS inklusive" }}</h3>
+          <p class="text-base leading-7 text-gray-600">
+            {{ textContent_warum_card2.description|default:"Mit unserem hauseigenen Content-Management-System pflegen Sie Texte, Bilder und Blogartikel selbst – schnell, intuitiv und ohne laufende Änderungsgebühren." }}
+          </p>
+        </div>
+
+        <div class="rounded-xl bg-white p-8 shadow-md ring-1 ring-gray-200 transition duration-300 hover:-translate-y-1 hover:shadow-xl"
+             data-aos="fade-up" data-aos-delay="200">
+          <div class="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-900">
+            <i class="bi bi-vector-pen text-2xl"></i>
+          </div>
+          <h3 class="mb-3 text-xl font-bold tracking-tight text-gray-900">{{ textContent_warum_card3.title|default:"100 % individuelles Design" }}</h3>
+          <p class="text-base leading-7 text-gray-600">
+            {{ textContent_warum_card3.description|default:"Kein Theme, kein Baukasten – jede Website entsteht maßgeschneidert für Ihre Marke. Klare Strukturen, durchdachte Nutzerführung und ein Look, der im Kopf bleibt." }}
+          </p>
+        </div>
+
+        <div class="rounded-xl bg-white p-8 shadow-md ring-1 ring-gray-200 transition duration-300 hover:-translate-y-1 hover:shadow-xl"
+             data-aos="fade-up" data-aos-delay="0">
+          <div class="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-900">
+            <i class="bi bi-geo-alt text-2xl"></i>
+          </div>
+          <h3 class="mb-3 text-xl font-bold tracking-tight text-gray-900">{{ textContent_warum_card4.title|default:"Lokal in Deggendorf" }}</h3>
+          <p class="text-base leading-7 text-gray-600">
+            {{ textContent_warum_card4.description|default:"Persönliche Termine vor Ort, kurze Wege und ein direkter Ansprechpartner – statt Hotline aus dem Großraum-Callcenter. Wir kennen die Region." }}
+          </p>
+        </div>
+
+        <div class="rounded-xl bg-white p-8 shadow-md ring-1 ring-gray-200 transition duration-300 hover:-translate-y-1 hover:shadow-xl"
+             data-aos="fade-up" data-aos-delay="100">
+          <div class="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-900">
+            <i class="bi bi-bar-chart text-2xl"></i>
+          </div>
+          <h3 class="mb-3 text-xl font-bold tracking-tight text-gray-900">{{ textContent_warum_card5.title|default:"Lokale SEO inklusive" }}</h3>
+          <p class="text-base leading-7 text-gray-600">
+            {{ textContent_warum_card5.description|default:"Wir optimieren Ihre Website von Anfang an für die Suche – damit Sie bei „Suchbegriff + Deggendorf“ gefunden werden und Anfragen aus der Region erhalten." }}
+          </p>
+        </div>
+
+        <div class="rounded-xl bg-blue-900 p-8 shadow-md transition duration-300 hover:-translate-y-1 hover:shadow-xl"
+             data-aos="fade-up" data-aos-delay="200">
+          <div class="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white">
+            <i class="bi bi-shield-check text-2xl"></i>
+          </div>
+          <h3 class="mb-3 text-xl font-bold tracking-tight text-white">{{ textContent_warum_card6.title|default:"DSGVO &amp; Hosting in Deutschland" }}</h3>
+          <p class="text-base leading-7 text-blue-100">
+            {{ textContent_warum_card6.description|default:"Ihre Website läuft auf deutschen Servern bei Hetzner – DSGVO-konform, schnell und stabil. Vollständiger Datenschutz inklusive." }}
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="h-20 bg-gradient-to-b from-blue-100 to-blue-200"></div>
+
+  <!-- =========================
+       Preise / Abo-Modelle
+  ========================= -->
+  <section id="preise" class="bg-blue-200 px-4 py-20">
+    <div class="mx-auto max-w-6xl">
+      <div class="mx-auto mb-14 max-w-3xl text-center" data-aos="fade-up">
+        <p class="mb-4 text-sm font-semibold uppercase tracking-widest text-blue-900">
+          {{ textContent_preise.header|default:"Preise &amp; Abo-Modell" }}
+        </p>
+        <h2 class="mb-6 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl sm:leading-none">
+          {{ textContent_preise.title|default:"Transparente Preise – ab 40 € im Monat" }}
+        </h2>
+        <p class="text-base leading-7 text-gray-700 md:text-lg xl:text-xl">
+          {{ textContent_preise.description|default:"Statt einmaliger Riesensumme zahlen Sie eine geringe monatliche Pauschale. Darin enthalten: Hosting, Pflege, Updates und persönlicher Support – damit Ihre Website über Jahre aktuell, sicher und schnell bleibt." }}
+        </p>
+      </div>
+
+      <div class="mx-auto grid max-w-5xl gap-8 md:grid-cols-3">
+        {% for card in pricing_cards %}
+          <div data-aos="{{ card.animation }}" data-aos-delay="{{ card.animation_delay }}"
+               class="{% if forloop.counter0 == 1 %}lg:z-10 lg:scale-105{% endif %}">
+            {% if forloop.counter0 == 1 %}
+              {% include "pages/components/pricing_card.html" with card=card featured=True %}
+            {% else %}
+              {% include "pages/components/pricing_card.html" with card=card featured=False %}
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+
+      <p class="mt-10 text-center text-sm text-gray-700">
+        {{ textContent_preise_footnote.description|default:"Alle Preise verstehen sich zzgl. einmaliger Einrichtungspauschale." }}
+        <a href="{% url 'leistungen_cms' %}" class="text-blue-900 font-semibold underline-offset-2 hover:underline">Details zum CMS</a>
+        ·
+        <a href="{% url 'home' %}#Preise" class="text-blue-900 font-semibold underline-offset-2 hover:underline">Alle Leistungen</a>
+      </p>
+    </div>
+  </section>
+</div>
+
+<!-- =========================
+     Über Deggendorf – mit Altes Rathaus
+========================= -->
+<section class="bg-blue-200 px-4 py-20">
+  <div class="mx-auto max-w-6xl">
+    <div class="grid items-center gap-12 lg:grid-cols-[3fr_2fr]">
+      <div data-aos="fade-right">
+        <p class="mb-4 text-sm font-semibold uppercase tracking-widest text-blue-900">
+          {{ textContent_about.header|default:"Webdesign mit Wurzeln in Niederbayern" }}
+        </p>
+        <h2 class="mb-6 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl sm:leading-none">
+          {{ textContent_about.title|default:"Warum eine lokale Agentur in Deggendorf für Ihr Unternehmen den Unterschied macht" }}
+        </h2>
+        <p class="mb-5 text-base leading-7 text-gray-700 md:text-lg">
+          {{ textContent_about.description|default:"Deggendorf ist mehr als nur eine Stadt – es ist das wirtschaftliche Herz des niederbayerischen Donauraums. Mit Hochschule, Technologie-Campus und einer starken mittelständischen Wirtschaft ist die Region ein Standort mit Zukunft. Genau hier sind wir zu Hause." }}
+        </p>
+        <p class="mb-5 text-base leading-7 text-gray-700 md:text-lg">
+          {{ textContent_about_p2.description|default:"Wer in Deggendorf, Plattling oder Osterhofen ein Unternehmen führt, braucht mehr als nur eine Website – er braucht eine digitale Visitenkarte, die online dieselbe Qualität ausstrahlt wie sein Betrieb vor Ort. Wir verstehen den regionalen Markt, kennen die Besonderheiten unserer Kunden und entwickeln Websites, die zu Ihrer Geschichte passen." }}
+        </p>
+
+        <div class="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <div class="rounded-xl bg-blue-50 p-4 text-center ring-1 ring-blue-100">
+            <p class="text-xs uppercase tracking-widest text-blue-900">{{ textContent_about_tile1.title|default:"Standort" }}</p>
+            <p class="mt-1 text-sm font-semibold text-gray-900">{{ textContent_about_tile1.description|default:"Deggendorf" }}</p>
+          </div>
+          <div class="rounded-xl bg-blue-50 p-4 text-center ring-1 ring-blue-100">
+            <p class="text-xs uppercase tracking-widest text-blue-900">{{ textContent_about_tile2.title|default:"Region" }}</p>
+            <p class="mt-1 text-sm font-semibold text-gray-900">{{ textContent_about_tile2.description|default:"Niederbayern" }}</p>
+          </div>
+          <div class="rounded-xl bg-blue-50 p-4 text-center ring-1 ring-blue-100">
+            <p class="text-xs uppercase tracking-widest text-blue-900">{{ textContent_about_tile3.title|default:"Termine" }}</p>
+            <p class="mt-1 text-sm font-semibold text-gray-900">{{ textContent_about_tile3.description|default:"vor Ort möglich" }}</p>
+          </div>
+          <div class="rounded-xl bg-blue-50 p-4 text-center ring-1 ring-blue-100">
+            <p class="text-xs uppercase tracking-widest text-blue-900">{{ textContent_about_tile4.title|default:"Hosting" }}</p>
+            <p class="mt-1 text-sm font-semibold text-gray-900">{{ textContent_about_tile4.description|default:"Deutschland" }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="relative" data-aos="fade-left">
+        <div class="dg-paint mx-auto aspect-[3/4] w-full max-w-sm">
+          <img src="{% if image_about %}{{ image_about.file.url }}{% else %}{% static 'images/deggendorf/altes-rathaus.png' %}{% endif %}"
+               alt="Altes Rathaus Deggendorf – historisches Wahrzeichen am Oberen Stadtplatz mit Stufengiebel und Uhrturm"
+               title="Altes Rathaus Deggendorf"
+               loading="lazy" />
+          <div class="dg-paint__caption">{{ textContent_about_caption.title|default:"Altes Rathaus, Deggendorf" }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =========================
+     Vorgehen – So entsteht Ihre Website
+========================= -->
+<section class="bg-blue-200 px-4 py-20">
+  <div class="mx-auto max-w-6xl">
+    <div class="mx-auto mb-16 max-w-3xl text-center" data-aos="fade-up">
+      <p class="mb-4 text-sm font-semibold uppercase tracking-widest text-blue-900">
+        {{ textContent_prozess.header|default:"Unser Vorgehen" }}
+      </p>
+      <h2 class="mb-6 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl sm:leading-none">
+        {{ textContent_prozess.title|default:"Vom Erstgespräch in Deggendorf bis zum Go-Live" }}
+      </h2>
+      <p class="text-base leading-7 text-gray-700 md:text-lg xl:text-xl">
+        {{ textContent_prozess.description|default:"Sie wissen jederzeit, woran wir gerade arbeiten – und wann der nächste Schritt fällig ist. Klar strukturiert und ohne Überraschungen." }}
+      </p>
+    </div>
+
+    <div class="relative">
+      <div class="absolute hidden lg:block top-8 left-[10%] right-[10%] h-0.5 bg-gradient-to-r from-blue-200 via-blue-500 to-blue-200" aria-hidden="true"></div>
+      <ol class="relative grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4 lg:gap-4">
+        <li class="relative flex flex-col" data-aos="fade-up" data-aos-delay="0">
+          <div class="relative z-10 mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-blue-900 text-xl font-bold text-white shadow-lg ring-4 ring-white">1</div>
+          <div class="flex-1 rounded-xl bg-white p-6 ring-1 ring-gray-200 transition duration-300 hover:-translate-y-1 hover:shadow-md">
+            <h3 class="mb-3 text-lg font-bold tracking-tight text-gray-900">{{ textContent_prozess_step1.title|default:"Kennenlernen" }}</h3>
+            <p class="text-sm leading-7 text-gray-600">
+              {{ textContent_prozess_step1.description|default:"Wir treffen uns persönlich in Deggendorf oder telefonisch – verstehen Ihr Unternehmen, Ihre Ziele und Ihre Zielgruppe." }}
+            </p>
+          </div>
+        </li>
+        <li class="relative flex flex-col" data-aos="fade-up" data-aos-delay="100">
+          <div class="relative z-10 mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-blue-900 text-xl font-bold text-white shadow-lg ring-4 ring-white">2</div>
+          <div class="flex-1 rounded-xl bg-white p-6 ring-1 ring-gray-200 transition duration-300 hover:-translate-y-1 hover:shadow-md">
+            <h3 class="mb-3 text-lg font-bold tracking-tight text-gray-900">{{ textContent_prozess_step2.title|default:"Konzept &amp; Design" }}</h3>
+            <p class="text-sm leading-7 text-gray-600">
+              {{ textContent_prozess_step2.description|default:"Wir entwickeln Struktur und Layout – modern, klar und perfekt auf Ihre Marke abgestimmt." }}
+            </p>
+          </div>
+        </li>
+        <li class="relative flex flex-col" data-aos="fade-up" data-aos-delay="200">
+          <div class="relative z-10 mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-blue-900 text-xl font-bold text-white shadow-lg ring-4 ring-white">3</div>
+          <div class="flex-1 rounded-xl bg-white p-6 ring-1 ring-gray-200 transition duration-300 hover:-translate-y-1 hover:shadow-md">
+            <h3 class="mb-3 text-lg font-bold tracking-tight text-gray-900">{{ textContent_prozess_step3.title|default:"Umsetzung" }}</h3>
+            <p class="text-sm leading-7 text-gray-600">
+              {{ textContent_prozess_step3.description|default:"Wir programmieren Ihre Website mit Django und Tailwind CSS – schnell, sicher und mobil optimiert." }}
+            </p>
+          </div>
+        </li>
+        <li class="relative flex flex-col" data-aos="fade-up" data-aos-delay="300">
+          <div class="relative z-10 mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-blue-900 text-xl font-bold text-white shadow-lg ring-4 ring-white">4</div>
+          <div class="flex-1 rounded-xl bg-white p-6 ring-1 ring-gray-200 transition duration-300 hover:-translate-y-1 hover:shadow-md">
+            <h3 class="mb-3 text-lg font-bold tracking-tight text-gray-900">{{ textContent_prozess_step4.title|default:"Launch &amp; Betreuung" }}</h3>
+            <p class="text-sm leading-7 text-gray-600">
+              {{ textContent_prozess_step4.description|default:"Wir gehen mit Ihnen live und kümmern uns langfristig um Pflege, Updates und Optimierung im Abo." }}
+            </p>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<div class="h-6 bg-[#6b7280]"></div>
+
+<!-- =========================
+     Google Maps + Bottom CTA (kombiniert)
+========================= -->
+<section class="bg-gray-700 px-4 pt-20 pb-16 lg:pt-24 lg:pb-20">
+  <div class="mx-auto max-w-6xl">
+    <div class="mx-auto mb-10 max-w-3xl text-center" data-aos="fade-up">
+      <p class="mb-4 text-sm font-semibold uppercase tracking-widest text-blue-300">{{ textContent_maps.header|default:"Unser Einzugsgebiet" }}</p>
+      <h2 class="mb-4 text-3xl font-bold tracking-tight text-white sm:text-4xl">
+        {{ textContent_maps.title|default:"Webdesign-Agentur direkt aus dem Raum Deggendorf" }}
+      </h2>
+      <p class="text-base leading-7 text-gray-200 md:text-lg">
+        {{ textContent_maps.description|default:"Wir betreuen Kunden im gesamten Landkreis Deggendorf und darüber hinaus. Persönlicher Kontakt vor Ort ist für uns selbstverständlich." }}
+      </p>
+    </div>
+
+    <div class="overflow-hidden rounded-3xl shadow-2xl ring-1 ring-white/10">
+      {% if google_maps_embed_api_key %}
+      <div class="grid lg:grid-cols-[2fr_3fr]">
+        <!-- Info Panel -->
+        <div class="relative flex flex-col justify-between bg-blue-900 p-8 text-white sm:p-10">
+          <div class="pointer-events-none absolute -top-16 -right-16 h-64 w-64 rounded-full bg-blue-700/30 blur-3xl"></div>
+          <div class="pointer-events-none absolute -bottom-16 -left-10 h-56 w-56 rounded-full bg-blue-800/40 blur-3xl"></div>
+          <div class="relative">
+            <p class="mb-1 text-xs font-semibold uppercase tracking-widest text-blue-300">{{ textContent_maps_panel.header|default:"YooLink Webdesign" }}</p>
+            <h3 class="text-2xl font-bold tracking-tight sm:text-3xl">{{ textContent_maps_panel.title|default:"Aus der Region – für die Region." }}</h3>
+            <p class="mt-3 text-sm leading-7 text-blue-100">
+              {{ textContent_maps_panel.description|default:"Sie suchen einen verlässlichen Partner für Ihre Website in Deggendorf? Lassen Sie uns reden – persönlich, ehrlich und mit ehrlicher Preisstruktur." }}
+            </p>
+
+            <div class="mt-8 space-y-6">
+              <div class="flex items-start gap-4">
+                <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-blue-800 text-blue-200">
+                  <i class="bi bi-geo-alt text-lg"></i>
+                </div>
+                <div>
+                  <p class="text-xs font-semibold uppercase tracking-wider text-blue-300">{{ textContent_maps_region.title|default:"Region" }}</p>
+                  <p class="mt-0.5 text-sm leading-relaxed text-white">{{ textContent_maps_region.description|default:"Deggendorf · Plattling · Osterhofen · Metten · ganz Niederbayern" }}</p>
+                </div>
+              </div>
+              <div class="flex items-start gap-4">
+                <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-blue-800 text-blue-200">
+                  <i class="bi bi-telephone text-lg"></i>
+                </div>
+                <div>
+                  <p class="text-xs font-semibold uppercase tracking-wider text-blue-300">{% trans "deggendorf_phone_label" %}</p>
+                  <a href="tel:+491705977862" class="mt-0.5 block text-sm text-white transition hover:text-blue-200">+49 170 5977862</a>
+                </div>
+              </div>
+              <div class="flex items-start gap-4">
+                <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-blue-800 text-blue-200">
+                  <i class="bi bi-envelope text-lg"></i>
+                </div>
+                <div>
+                  <p class="text-xs font-semibold uppercase tracking-wider text-blue-300">{% trans "deggendorf_appointment_label" %}</p>
+                  <a href="{% url 'kontakt' %}" class="mt-0.5 block text-sm text-white transition hover:text-blue-200">{% trans "deggendorf_appointment_cta" %} →</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="relative mt-10">
+            <div class="flex items-center gap-3 rounded-2xl bg-blue-800/60 px-4 py-3 backdrop-blur-sm">
+              <span class="relative flex h-2.5 w-2.5 flex-shrink-0">
+                <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75"></span>
+                <span class="relative inline-flex h-2.5 w-2.5 rounded-full bg-green-400"></span>
+              </span>
+              <p class="text-xs text-blue-100">{{ textContent_maps_response.description|default:"Antwort meist innerhalb von 24 Stunden" }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Map -->
+        <div class="h-[420px] w-full lg:h-auto lg:min-h-[480px]">
+          <div class="flex h-full w-full flex-col items-start justify-end bg-slate-100 p-6"
+               data-cookie-placeholder>
+            <div class="max-w-sm rounded-2xl bg-white p-5 shadow-lg">
+              <p class="font-semibold text-gray-900">Google Maps ist deaktiviert.</p>
+              <p class="mt-1 text-sm text-gray-500">Die Karte wird erst nach Ihrer Einwilligung für externe Medien geladen.</p>
+              <button type="button"
+                      class="mt-3 rounded-lg bg-blue-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-800"
+                      data-consent-action="open-settings">
+                Cookie-Auswahl öffnen
+              </button>
+            </div>
+          </div>
+          <iframe
+            class="hidden h-full w-full"
+            title="Google Maps – Webdesign-Agentur Region Deggendorf"
+            loading="lazy"
+            allowfullscreen
+            referrerpolicy="no-referrer-when-downgrade"
+            data-cookie-src="https://www.google.com/maps/embed/v1/view?key={{ google_maps_embed_api_key }}&center=48.8336,12.9575&zoom=12&maptype=roadmap"
+          ></iframe>
+        </div>
+      </div>
+      {% else %}
+      <div class="flex h-[200px] items-center justify-center bg-amber-50 px-6">
+        <div class="text-center">
+          <p class="font-semibold text-amber-800">Google Maps API Key fehlt.</p>
+          <p class="mt-1 text-sm text-amber-600">Bitte <strong>GOOGLE_MAPS_EMBED_API_KEY</strong> in der .env setzen.</p>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- CTA Button unter der Karte -->
+    <div class="mx-auto mt-12 text-center" data-aos="fade-up">
+      <a href="{% url 'kontakt' %}"
+         class="inline-block rounded-md bg-blue-900 px-8 py-4 text-base font-bold text-white shadow-xl transition-transform duration-300 ease-in-out hover:-translate-y-1 hover:scale-105 hover:bg-blue-700">
+        {{ textContent_bottomcta.buttonText|default:"Jetzt Erstgespräch anfragen" }}
+      </a>
+    </div>
+  </div>
+</section>
+
+{% endblock content %}
+
+{% block javascriptend %}
+{% compress js %}
+<script defer src="{% static 'js/aos.js' %}"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    if (!window.AOS) return;
+    AOS.init({
+      duration: 800,
+      once: true,
+      easing: 'ease-out',
+      disable: "phone"
+    });
+  });
+</script>
+{% endcompress js %}
+{% endblock javascriptend %}

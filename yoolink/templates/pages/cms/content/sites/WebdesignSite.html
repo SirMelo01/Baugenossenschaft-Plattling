@@ -1,0 +1,594 @@
+{% extends "cmsbase.html" %}
+{% load compress static %}
+{% block title %} {{ block.super }} | CMS - Webdesign {% endblock %}
+
+{% block content %}
+
+<div class="mx-auto mt-4 max-w-6xl px-4 sm:mt-8 sm:px-6">
+
+  <!-- ── Header ── -->
+  <div class="sticky top-[4.25rem] z-30 mb-6 rounded-2xl border border-gray-200 bg-white/95 px-5 py-4 shadow-sm backdrop-blur flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <h1 class="text-2xl">
+      <a href="{% url 'cms:sites' %}" class="text-blue-500">Seiten</a>
+      / <a href="{% url 'cms:site_leistungen' %}" class="text-blue-500">Leistungen (/leistungen)</a>
+      / <span>Webdesign (/leistungen/webdesign)</span>
+    </h1>
+    <div>
+      {% csrf_token %}
+      <a class="block w-full rounded bg-green-500 px-4 py-3 text-center font-bold text-white hover:cursor-pointer hover:bg-green-700 sm:w-auto sm:py-2"
+         id="saveTextData" name="main_webdesign">
+        Speichern
+      </a>
+    </div>
+  </div>
+
+  <div class="mt-8 space-y-8 pb-20">
+
+    <!-- ══════════════════════════════════════════
+         HERO
+    ══════════════════════════════════════════ -->
+    <section class="rounded-2xl bg-blue-50 p-6">
+      <p class="mb-4 text-xs font-semibold uppercase tracking-wider text-blue-700">Hero</p>
+      <div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
+        <!-- Text -->
+        <div class="flex flex-col gap-3">
+          <div class="text-content flex flex-col gap-3" key="main_webdesign_hero">
+            <input inputType="header" type="text"
+                   class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-sm font-semibold uppercase tracking-widest text-blue-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+                   placeholder="Über-Tagline (z. B. 'Webdesign Agentur')"
+                   value="{{ textContent_hero.header|default:'Webdesign Agentur' }}">
+            <input inputType="title" type="text"
+                   class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-2xl font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                   placeholder="Überschrift (H1)"
+                   value="{{ textContent_hero.title|default:'Moderne Website erstellen lassen - mit Strategie, Design und solider Technik' }}">
+            <textarea inputType="description" rows="5"
+                      class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-base leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_hero.description|default:"Wir entwickeln professionelle Websites, die deine Marke sichtbar machen, deine Kunden überzeugen und über Jahre hinweg performant bleiben. Vom ersten Konzept bis zur fertigen Seite - durchdacht, sauber programmiert und nachhaltig betrieben." }}</textarea>
+            <input inputType="buttonText" type="text"
+                   class="self-start rounded-md bg-blue-900 px-6 py-3 text-sm font-bold text-white"
+                   value="{{ textContent_hero.buttonText|default:'Projekt jetzt anfragen' }}">
+          </div>
+          <div class="text-content flex flex-col gap-2 border-t border-blue-200 pt-3" key="main_webdesign_hero_secondary">
+            <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Sekundärer Button</p>
+            <input inputType="title" type="text"
+                   class="self-start rounded-md border-2 border-blue-300 bg-white px-6 py-3 text-sm font-bold text-blue-900"
+                   value="{{ textContent_hero_secondary.title|default:'So arbeiten wir' }}">
+          </div>
+        </div>
+
+        <!-- Rechts: Hero-Badges -->
+        <div>
+          <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-orange-600">
+            <i class="bi bi-tags mr-1"></i>Hero-Badges (3 Stück, Icons sind statisch)
+          </p>
+          <div class="flex flex-col gap-3">
+            <div class="text-content flex items-center gap-2 rounded-xl bg-white p-3 shadow-sm" key="main_webdesign_hero_badge1">
+              <span class="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-900"><i class="bi bi-code-slash"></i></span>
+              <input inputType="title" type="text"
+                     class="flex-1 rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                     value="{{ textContent_hero_badge1.title|default:'Django' }}">
+            </div>
+            <div class="text-content flex items-center gap-2 rounded-xl bg-white p-3 shadow-sm" key="main_webdesign_hero_badge2">
+              <span class="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-900"><i class="bi bi-wind"></i></span>
+              <input inputType="title" type="text"
+                     class="flex-1 rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                     value="{{ textContent_hero_badge2.title|default:'Tailwind CSS' }}">
+            </div>
+            <div class="text-content flex items-center gap-2 rounded-xl bg-blue-900 p-3 text-white shadow-sm" key="main_webdesign_hero_badge3">
+              <span class="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-white/10"><i class="bi bi-shield-lock"></i></span>
+              <input inputType="title" type="text"
+                     class="flex-1 rounded-lg border-2 border-blue-700 bg-blue-800 px-3 py-1.5 text-sm font-bold text-white placeholder-blue-300 focus:border-blue-300 focus:bg-blue-700 focus:outline-none"
+                     value="{{ textContent_hero_badge3.title|default:'DSGVO-konform' }}">
+            </div>
+            <p class="text-xs italic text-gray-500">Browser-Mockup und Code-Vorschau sind dekorativ und statisch.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         UNSER ANSATZ
+    ══════════════════════════════════════════ -->
+    <section class="rounded-2xl bg-blue-50 p-6">
+      <p class="mb-4 text-xs font-semibold uppercase tracking-wider text-blue-700">Unser Ansatz</p>
+
+      <div class="text-content flex flex-col gap-3" key="main_webdesign_ansatz">
+        <input inputType="header" type="text"
+               class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-sm font-semibold uppercase tracking-widest text-blue-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+               placeholder="Über-Tagline"
+               value="{{ textContent_ansatz.header|default:'Unser Ansatz' }}">
+        <input inputType="title" type="text"
+               class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-xl font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+               placeholder="Überschrift (H2)"
+               value="{{ textContent_ansatz.title|default:'Wie wir moderne Websites konzipieren und umsetzen' }}">
+        <textarea inputType="description" rows="3"
+                  class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-base leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_ansatz.description|default:"Eine erfolgreiche Website entsteht nicht aus einer guten Idee allein - sie ist das Ergebnis von strategischer Planung, durchdachtem Design und sauberer technischer Umsetzung. Wir verbinden alle drei Disziplinen und liefern dir eine Website, die nicht nur gut aussieht, sondern messbar funktioniert." }}</textarea>
+      </div>
+
+      <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm" key="main_webdesign_ansatz_card1">
+          <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Karte 1 (Icon: Compass)</p>
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-lg font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_ansatz_card1.title|default:'Strategische Planung' }}">
+          <textarea inputType="description" rows="3"
+                    class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_ansatz_card1.description|default:"Bevor die erste Zeile Code entsteht, klären wir Ziele, Zielgruppe und Inhalte. So entstehen Websites, die echte Geschäftsergebnisse liefern - nicht nur Klicks." }}</textarea>
+        </div>
+        <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm" key="main_webdesign_ansatz_card2">
+          <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Karte 2 (Icon: Vector-Pen)</p>
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-lg font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_ansatz_card2.title|default:'Modernes Webdesign' }}">
+          <textarea inputType="description" rows="3"
+                    class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_ansatz_card2.description|default:"Wir gestalten klare, zeitgemäße Oberflächen mit Fokus auf Lesbarkeit, Hierarchie und Benutzerführung - perfekt abgestimmt auf deine Marke." }}</textarea>
+        </div>
+        <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm" key="main_webdesign_ansatz_card3">
+          <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Karte 3 (Icon: CPU)</p>
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-lg font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_ansatz_card3.title|default:'Saubere Entwicklung' }}">
+          <textarea inputType="description" rows="3"
+                    class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_ansatz_card3.description|default:"Hinter jeder schönen Oberfläche steckt sauber strukturierter Code - performant, sicher und langfristig wartbar. Genau so entwickeln wir." }}</textarea>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         ENTWICKLUNGSPROZESS
+    ══════════════════════════════════════════ -->
+    <section class="rounded-2xl bg-blue-50 p-6">
+      <p class="mb-4 text-xs font-semibold uppercase tracking-wider text-blue-700">Entwicklungsprozess</p>
+
+      <div class="text-content flex flex-col gap-3" key="main_webdesign_prozess">
+        <input inputType="header" type="text"
+               class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-sm font-semibold uppercase tracking-widest text-blue-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+               placeholder="Über-Tagline"
+               value="{{ textContent_prozess.header|default:'In 5 Schritten zur fertigen Website' }}">
+        <input inputType="title" type="text"
+               class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-xl font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+               value="{{ textContent_prozess.title|default:'Unser Entwicklungsprozess' }}">
+        <textarea inputType="description" rows="3"
+                  class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-base leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_prozess.description|default:"Von der ersten Idee bis zur Veröffentlichung führen wir dich durch einen klar strukturierten Prozess. So weißt du jederzeit, woran wir gerade arbeiten - und was als Nächstes ansteht." }}</textarea>
+      </div>
+
+      <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5">
+        <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm" key="main_webdesign_prozess_step1">
+          <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Schritt 1</p>
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-base font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_prozess_step1.title|default:'Beratung & Zieldefinition' }}">
+          <textarea inputType="description" rows="3"
+                    class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_prozess_step1.description|default:"Wir lernen dein Unternehmen, deine Zielgruppe und deine geschäftlichen Ziele kennen und legen das Fundament für deine neue Website." }}</textarea>
+        </div>
+        <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm" key="main_webdesign_prozess_step2">
+          <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Schritt 2</p>
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-base font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_prozess_step2.title|default:'Struktur & Konzept' }}">
+          <textarea inputType="description" rows="3"
+                    class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_prozess_step2.description|default:"Wir definieren Seitenstruktur, Inhalte und Nutzerführung - die strategische Grundlage für eine Website, die wirklich konvertiert." }}</textarea>
+        </div>
+        <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm" key="main_webdesign_prozess_step3">
+          <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Schritt 3</p>
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-base font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_prozess_step3.title|default:'Design' }}">
+          <textarea inputType="description" rows="3"
+                    class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_prozess_step3.description|default:"Wir entwerfen das visuelle Konzept - modern, klar und konsistent zu deiner Markenwelt, optimiert für alle Endgeräte." }}</textarea>
+        </div>
+        <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm" key="main_webdesign_prozess_step4">
+          <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Schritt 4</p>
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-base font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_prozess_step4.title|default:'Technische Umsetzung' }}">
+          <textarea inputType="description" rows="3"
+                    class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_prozess_step4.description|default:"Wir entwickeln deine Website mit Django und Tailwind CSS - performant, sicher und mit einer klaren Codebasis, die langfristig trägt." }}</textarea>
+        </div>
+        <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm" key="main_webdesign_prozess_step5">
+          <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Schritt 5</p>
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-base font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_prozess_step5.title|default:'Launch & Betrieb' }}">
+          <textarea inputType="description" rows="3"
+                    class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_prozess_step5.description|default:"Wir veröffentlichen deine Website auf unseren Servern bei Hetzner in Deutschland und betreuen sie zuverlässig im laufenden Betrieb." }}</textarea>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         TECH STACK
+    ══════════════════════════════════════════ -->
+    <section class="rounded-2xl bg-blue-50 p-6">
+      <p class="mb-4 text-xs font-semibold uppercase tracking-wider text-blue-700">Tech Stack (Django & Tailwind)</p>
+
+      <div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
+        <div class="flex flex-col gap-3">
+          <div class="text-content flex flex-col gap-3" key="main_webdesign_tech">
+            <input inputType="header" type="text"
+                   class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-sm font-semibold uppercase tracking-widest text-blue-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+                   placeholder="Über-Tagline"
+                   value="{{ textContent_tech.header|default:'Unsere Technologien' }}">
+            <input inputType="title" type="text"
+                   class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-xl font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                   value="{{ textContent_tech.title|default:'Django Framework & Tailwind CSS - das technische Fundament' }}">
+            <textarea inputType="description" rows="5"
+                      class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-base leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_tech.description|default:"Für die professionelle Website Entwicklung setzen wir bewusst auf zwei der ausgereiftesten Werkzeuge der Webentwicklung. Django ist ein etabliertes Python-Framework, das von Unternehmen wie Instagram, Spotify und Mozilla eingesetzt wird. Tailwind CSS ergänzt es als modernes, hochperformantes Styling-Framework." }}</textarea>
+          </div>
+
+          <div class="border-t border-blue-200 pt-3">
+            <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Vorteile (Bullet-Punkte)</p>
+            <div class="mt-2 flex flex-col gap-2">
+              <div class="text-content flex items-center gap-2" key="main_webdesign_tech_bullet1">
+                <span class="text-blue-900">✓</span>
+                <input inputType="title" type="text"
+                       class="flex-1 rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none"
+                       value="{{ textContent_tech_bullet1.title|default:'Performance: kompakter Code, kleine Bundle-Größen, schnelle Ladezeiten' }}">
+              </div>
+              <div class="text-content flex items-center gap-2" key="main_webdesign_tech_bullet2">
+                <span class="text-blue-900">✓</span>
+                <input inputType="title" type="text"
+                       class="flex-1 rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none"
+                       value="{{ textContent_tech_bullet2.title|default:'Wartbarkeit: klare Strukturen, dokumentierte Standards, langlebige Codebasis' }}">
+              </div>
+              <div class="text-content flex items-center gap-2" key="main_webdesign_tech_bullet3">
+                <span class="text-blue-900">✓</span>
+                <input inputType="title" type="text"
+                       class="flex-1 rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none"
+                       value="{{ textContent_tech_bullet3.title|default:'Skalierbarkeit: modularer Aufbau, problemlose Erweiterung um neue Funktionen' }}">
+              </div>
+              <div class="text-content flex items-center gap-2" key="main_webdesign_tech_bullet4">
+                <span class="text-blue-900">✓</span>
+                <input inputType="title" type="text"
+                       class="flex-1 rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none"
+                       value="{{ textContent_tech_bullet4.title|default:'Sicherheit: integrierter Schutz gegen XSS, CSRF und SQL-Injection' }}">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-center rounded-xl bg-gray-100 p-6">
+          <p class="text-center text-sm text-gray-500">
+            Code-Vorschau & Framework-Kacheln<br>
+            <span class="text-xs">(dekorativ, statisch)</span>
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         HOSTING BEI HETZNER
+    ══════════════════════════════════════════ -->
+    <section class="rounded-2xl bg-blue-50 p-6">
+      <p class="mb-4 text-xs font-semibold uppercase tracking-wider text-blue-700">Hosting bei Hetzner</p>
+
+      <div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
+        <div class="flex flex-col gap-3">
+          <div class="text-content flex flex-col gap-3" key="main_webdesign_hosting">
+            <input inputType="header" type="text"
+                   class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-sm font-semibold uppercase tracking-widest text-blue-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+                   placeholder="Über-Tagline"
+                   value="{{ textContent_hosting.header|default:'Hosting bei Hetzner' }}">
+            <input inputType="title" type="text"
+                   class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-xl font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                   value="{{ textContent_hosting.title|default:'Datenschutzkonformes Hosting aus Deutschland' }}">
+            <textarea inputType="description" rows="5"
+                      class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-base leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_hosting.description|default:"Wir hosten alle unsere Websites bei Hetzner - einem renommierten deutschen Anbieter mit klarem Fokus auf Datenschutz, Zuverlässigkeit und Performance. Damit erfüllen wir die strengen Anforderungen der DSGVO und bieten dir gleichzeitig erstklassige technische Rahmenbedingungen." }}</textarea>
+          </div>
+
+          <div class="border-t border-blue-200 pt-3">
+            <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Vorteile (Bullet-Punkte)</p>
+            <div class="mt-2 flex flex-col gap-2">
+              <div class="text-content flex items-center gap-2" key="main_webdesign_hosting_bullet1">
+                <span class="text-blue-900">✓</span>
+                <input inputType="title" type="text"
+                       class="flex-1 rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none"
+                       value="{{ textContent_hosting_bullet1.title|default:'Serverstandorte in Deutschland - kurze Latenzen für deutsche Besucher' }}">
+              </div>
+              <div class="text-content flex items-center gap-2" key="main_webdesign_hosting_bullet2">
+                <span class="text-blue-900">✓</span>
+                <input inputType="title" type="text"
+                       class="flex-1 rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none"
+                       value="{{ textContent_hosting_bullet2.title|default:'Vollständige DSGVO-Konformität ohne Drittland-Transfer' }}">
+              </div>
+              <div class="text-content flex items-center gap-2" key="main_webdesign_hosting_bullet3">
+                <span class="text-blue-900">✓</span>
+                <input inputType="title" type="text"
+                       class="flex-1 rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none"
+                       value="{{ textContent_hosting_bullet3.title|default:'Moderne Hardware für hohe Performance und schnelle Ladezeiten' }}">
+              </div>
+              <div class="text-content flex items-center gap-2" key="main_webdesign_hosting_bullet4">
+                <span class="text-blue-900">✓</span>
+                <input inputType="title" type="text"
+                       class="flex-1 rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none"
+                       value="{{ textContent_hosting_bullet4.title|default:'Hohe Verfügbarkeit und stabile Infrastruktur rund um die Uhr' }}">
+              </div>
+              <div class="text-content flex items-center gap-2" key="main_webdesign_hosting_bullet5">
+                <span class="text-blue-900">✓</span>
+                <input inputType="title" type="text"
+                       class="flex-1 rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none"
+                       value="{{ textContent_hosting_bullet5.title|default:'Regelmäßige Backups und transparente Sicherheitsstandards' }}">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500">Hosting-Kacheln (2x2 Grid, Icons sind statisch)</p>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-3 shadow-sm" key="main_webdesign_hosting_tile1">
+              <p class="text-xs text-blue-700"><i class="bi bi-geo-alt"></i> Kachel 1</p>
+              <input inputType="title" type="text"
+                     class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-2 py-1 text-sm font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                     value="{{ textContent_hosting_tile1.title|default:'Standort' }}">
+              <input inputType="description" type="text"
+                     class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-2 py-1 text-xs focus:border-blue-500 focus:bg-white focus:outline-none"
+                     value="{{ textContent_hosting_tile1.description|default:'Deutschland' }}">
+            </div>
+            <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-3 shadow-sm" key="main_webdesign_hosting_tile2">
+              <p class="text-xs text-blue-700"><i class="bi bi-shield-check"></i> Kachel 2</p>
+              <input inputType="title" type="text"
+                     class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-2 py-1 text-sm font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                     value="{{ textContent_hosting_tile2.title|default:'DSGVO' }}">
+              <input inputType="description" type="text"
+                     class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-2 py-1 text-xs focus:border-blue-500 focus:bg-white focus:outline-none"
+                     value="{{ textContent_hosting_tile2.description|default:'vollständig konform' }}">
+            </div>
+            <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-3 shadow-sm" key="main_webdesign_hosting_tile3">
+              <p class="text-xs text-blue-700"><i class="bi bi-lightning-charge"></i> Kachel 3</p>
+              <input inputType="title" type="text"
+                     class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-2 py-1 text-sm font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                     value="{{ textContent_hosting_tile3.title|default:'Performance' }}">
+              <input inputType="description" type="text"
+                     class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-2 py-1 text-xs focus:border-blue-500 focus:bg-white focus:outline-none"
+                     value="{{ textContent_hosting_tile3.description|default:'moderne Hardware' }}">
+            </div>
+            <div class="text-content flex flex-col gap-2 rounded-xl bg-blue-900 p-3 text-white shadow-sm" key="main_webdesign_hosting_tile4">
+              <p class="text-xs text-blue-200"><i class="bi bi-hdd-network"></i> Kachel 4 (dunkel)</p>
+              <input inputType="title" type="text"
+                     class="w-full rounded-lg border-2 border-blue-700 bg-blue-800 px-2 py-1 text-sm font-bold text-white placeholder-blue-300 focus:border-blue-300 focus:bg-blue-700 focus:outline-none"
+                     value="{{ textContent_hosting_tile4.title|default:'Verfügbarkeit' }}">
+              <input inputType="description" type="text"
+                     class="w-full rounded-lg border-2 border-blue-700 bg-blue-800 px-2 py-1 text-xs text-white placeholder-blue-300 focus:border-blue-300 focus:bg-blue-700 focus:outline-none"
+                     value="{{ textContent_hosting_tile4.description|default:'stabil & zuverlässig' }}">
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         TECHNISCHE SCHWERPUNKTE
+    ══════════════════════════════════════════ -->
+    <section class="rounded-2xl bg-blue-50 p-6">
+      <p class="mb-4 text-xs font-semibold uppercase tracking-wider text-blue-700">Technische Schwerpunkte</p>
+
+      <div class="text-content flex flex-col gap-3" key="main_webdesign_schwerpunkte">
+        <input inputType="header" type="text"
+               class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-sm font-semibold uppercase tracking-widest text-blue-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+               placeholder="Über-Tagline"
+               value="{{ textContent_schwerpunkte.header|default:'Technische Qualität' }}">
+        <input inputType="title" type="text"
+               class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-xl font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+               value="{{ textContent_schwerpunkte.title|default:'Worauf wir bei jeder Website achten' }}">
+        <textarea inputType="description" rows="3"
+                  class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-base leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_schwerpunkte.description|default:"Eine moderne Website muss heute weit mehr leisten als gut auszusehen. Sie muss schnell, sicher, mobil optimiert und zukunftsfähig sein. Diese vier Säulen sind für uns nicht verhandelbar." }}</textarea>
+      </div>
+
+      <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+        <!-- Karte 1: Performance -->
+        <div class="rounded-xl bg-white p-4 shadow-sm">
+          <div class="text-content flex flex-col gap-2" key="main_webdesign_schwerpunkte_card1">
+            <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Karte 1 (Icon: Speedometer)</p>
+            <input inputType="title" type="text"
+                   class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-lg font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                   value="{{ textContent_schwerpunkte_card1.title|default:'Ladezeiten & Performance' }}">
+            <textarea inputType="description" rows="3"
+                      class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_schwerpunkte_card1.description|default:"Schnelle Websites ranken besser, verkaufen mehr und halten Besucher länger. Wir optimieren Bilder, minimieren Assets und liefern Inhalte über performante Server aus." }}</textarea>
+          </div>
+          <p class="mt-3 text-xs font-semibold uppercase tracking-wider text-gray-500">Bullet-Punkte</p>
+          <div class="mt-1 flex flex-col gap-1.5">
+            <div class="text-content flex items-center gap-2" key="main_webdesign_schwerpunkte_card1_bullet1">
+              <span class="text-gray-400">•</span>
+              <input inputType="title" type="text"
+                     class="flex-1 rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1 text-sm focus:border-blue-500 focus:bg-white focus:outline-none"
+                     value="{{ textContent_schwerpunkte_card1_bullet1.title|default:'Optimierte Bildauslieferung und Lazy Loading' }}">
+            </div>
+            <div class="text-content flex items-center gap-2" key="main_webdesign_schwerpunkte_card1_bullet2">
+              <span class="text-gray-400">•</span>
+              <input inputType="title" type="text"
+                     class="flex-1 rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1 text-sm focus:border-blue-500 focus:bg-white focus:outline-none"
+                     value="{{ textContent_schwerpunkte_card1_bullet2.title|default:'Minimaler CSS- und JavaScript-Footprint' }}">
+            </div>
+            <div class="text-content flex items-center gap-2" key="main_webdesign_schwerpunkte_card1_bullet3">
+              <span class="text-gray-400">•</span>
+              <input inputType="title" type="text"
+                     class="flex-1 rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1 text-sm focus:border-blue-500 focus:bg-white focus:outline-none"
+                     value="{{ textContent_schwerpunkte_card1_bullet3.title|default:'Effiziente Datenbankabfragen und Caching' }}">
+            </div>
+          </div>
+        </div>
+
+        <!-- Karte 2: Mobile -->
+        <div class="rounded-xl bg-white p-4 shadow-sm">
+          <div class="text-content flex flex-col gap-2" key="main_webdesign_schwerpunkte_card2">
+            <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Karte 2 (Icon: Phone)</p>
+            <input inputType="title" type="text"
+                   class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-lg font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                   value="{{ textContent_schwerpunkte_card2.title|default:'Mobile Optimierung' }}">
+            <textarea inputType="description" rows="3"
+                      class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_schwerpunkte_card2.description|default:"Über die Hälfte aller Website-Besuche kommen vom Smartphone. Wir entwickeln deshalb konsequent responsive - vom kleinen Display bis zum großen Desktop." }}</textarea>
+          </div>
+          <p class="mt-3 text-xs font-semibold uppercase tracking-wider text-gray-500">Bullet-Punkte</p>
+          <div class="mt-1 flex flex-col gap-1.5">
+            <div class="text-content flex items-center gap-2" key="main_webdesign_schwerpunkte_card2_bullet1">
+              <span class="text-gray-400">•</span>
+              <input inputType="title" type="text"
+                     class="flex-1 rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1 text-sm focus:border-blue-500 focus:bg-white focus:outline-none"
+                     value="{{ textContent_schwerpunkte_card2_bullet1.title|default:'Mobile-First Designansatz' }}">
+            </div>
+            <div class="text-content flex items-center gap-2" key="main_webdesign_schwerpunkte_card2_bullet2">
+              <span class="text-gray-400">•</span>
+              <input inputType="title" type="text"
+                     class="flex-1 rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1 text-sm focus:border-blue-500 focus:bg-white focus:outline-none"
+                     value="{{ textContent_schwerpunkte_card2_bullet2.title|default:'Touch-optimierte Bedienelemente' }}">
+            </div>
+            <div class="text-content flex items-center gap-2" key="main_webdesign_schwerpunkte_card2_bullet3">
+              <span class="text-gray-400">•</span>
+              <input inputType="title" type="text"
+                     class="flex-1 rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1 text-sm focus:border-blue-500 focus:bg-white focus:outline-none"
+                     value="{{ textContent_schwerpunkte_card2_bullet3.title|default:'Schnelle Darstellung auch bei schwacher Verbindung' }}">
+            </div>
+          </div>
+        </div>
+
+        <!-- Karte 3: Sicherheit -->
+        <div class="rounded-xl bg-white p-4 shadow-sm">
+          <div class="text-content flex flex-col gap-2" key="main_webdesign_schwerpunkte_card3">
+            <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Karte 3 (Icon: Shield-Lock)</p>
+            <input inputType="title" type="text"
+                   class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-lg font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                   value="{{ textContent_schwerpunkte_card3.title|default:'Sicherheit' }}">
+            <textarea inputType="description" rows="3"
+                      class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_schwerpunkte_card3.description|default:"Wir nehmen die Sicherheit deiner Website ernst - vom verschlüsselten Datentransfer bis zum geschützten Datenbankzugriff. So bleibt deine Seite und deine Daten geschützt." }}</textarea>
+          </div>
+          <p class="mt-3 text-xs font-semibold uppercase tracking-wider text-gray-500">Bullet-Punkte</p>
+          <div class="mt-1 flex flex-col gap-1.5">
+            <div class="text-content flex items-center gap-2" key="main_webdesign_schwerpunkte_card3_bullet1">
+              <span class="text-gray-400">•</span>
+              <input inputType="title" type="text"
+                     class="flex-1 rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1 text-sm focus:border-blue-500 focus:bg-white focus:outline-none"
+                     value="{{ textContent_schwerpunkte_card3_bullet1.title|default:'SSL-Verschlüsselung als Standard' }}">
+            </div>
+            <div class="text-content flex items-center gap-2" key="main_webdesign_schwerpunkte_card3_bullet2">
+              <span class="text-gray-400">•</span>
+              <input inputType="title" type="text"
+                     class="flex-1 rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1 text-sm focus:border-blue-500 focus:bg-white focus:outline-none"
+                     value="{{ textContent_schwerpunkte_card3_bullet2.title|default:'Schutz vor gängigen Angriffen (XSS, CSRF, SQL-Injection)' }}">
+            </div>
+            <div class="text-content flex items-center gap-2" key="main_webdesign_schwerpunkte_card3_bullet3">
+              <span class="text-gray-400">•</span>
+              <input inputType="title" type="text"
+                     class="flex-1 rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1 text-sm focus:border-blue-500 focus:bg-white focus:outline-none"
+                     value="{{ textContent_schwerpunkte_card3_bullet3.title|default:'Regelmäßige Sicherheitsupdates der Codebasis' }}">
+            </div>
+          </div>
+        </div>
+
+        <!-- Karte 4: Skalierbarkeit (Premium-Style, dunkel) -->
+        <div class="rounded-xl bg-blue-900 p-4 text-white shadow-sm">
+          <div class="text-content flex flex-col gap-2" key="main_webdesign_schwerpunkte_card4">
+            <p class="text-xs font-semibold uppercase tracking-wider text-blue-200">Karte 4 (Icon: Arrows, Premium-Style)</p>
+            <input inputType="title" type="text"
+                   class="w-full rounded-lg border-2 border-blue-700 bg-blue-800 px-3 py-1.5 text-lg font-bold text-white placeholder-blue-300 focus:border-blue-300 focus:bg-blue-700 focus:outline-none"
+                   value="{{ textContent_schwerpunkte_card4.title|default:'Skalierbarkeit' }}">
+            <textarea inputType="description" rows="4"
+                      class="w-full rounded-lg border-2 border-blue-700 bg-blue-800 px-3 py-1.5 text-sm text-white placeholder-blue-300 focus:border-blue-300 focus:bg-blue-700 focus:outline-none">{{ textContent_schwerpunkte_card4.description|default:"Deine Website wächst mit deinem Unternehmen. Wir bauen Architekturen, die sich problemlos um neue Seiten, Funktionen oder Integrationen erweitern lassen - ohne kompletten Neubau." }}</textarea>
+          </div>
+          <p class="mt-3 text-xs font-semibold uppercase tracking-wider text-blue-200">Bullet-Punkte</p>
+          <div class="mt-1 flex flex-col gap-1.5">
+            <div class="text-content flex items-center gap-2" key="main_webdesign_schwerpunkte_card4_bullet1">
+              <span class="text-blue-300">✓</span>
+              <input inputType="title" type="text"
+                     class="flex-1 rounded-lg border-2 border-blue-700 bg-blue-800 px-3 py-1 text-sm text-white placeholder-blue-300 focus:border-blue-300 focus:bg-blue-700 focus:outline-none"
+                     value="{{ textContent_schwerpunkte_card4_bullet1.title|default:'Modularer Aufbau für nachträgliche Erweiterungen' }}">
+            </div>
+            <div class="text-content flex items-center gap-2" key="main_webdesign_schwerpunkte_card4_bullet2">
+              <span class="text-blue-300">✓</span>
+              <input inputType="title" type="text"
+                     class="flex-1 rounded-lg border-2 border-blue-700 bg-blue-800 px-3 py-1 text-sm text-white placeholder-blue-300 focus:border-blue-300 focus:bg-blue-700 focus:outline-none"
+                     value="{{ textContent_schwerpunkte_card4_bullet2.title|default:'Vorbereitet für Shop, Blog, Buchungssystem und Co.' }}">
+            </div>
+            <div class="text-content flex items-center gap-2" key="main_webdesign_schwerpunkte_card4_bullet3">
+              <span class="text-blue-300">✓</span>
+              <input inputType="title" type="text"
+                     class="flex-1 rounded-lg border-2 border-blue-700 bg-blue-800 px-3 py-1 text-sm text-white placeholder-blue-300 focus:border-blue-300 focus:bg-blue-700 focus:outline-none"
+                     value="{{ textContent_schwerpunkte_card4_bullet3.title|default:'API-fähig für Anbindungen an externe Systeme' }}">
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         WARUM DIESER ANSATZ
+    ══════════════════════════════════════════ -->
+    <section class="rounded-2xl bg-blue-50 p-6">
+      <p class="mb-4 text-xs font-semibold uppercase tracking-wider text-blue-700">Warum dieser Ansatz</p>
+
+      <div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
+        <div class="text-content flex flex-col gap-3" key="main_webdesign_warum">
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-xl font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_warum.title|default:'Warum dieser Ansatz für dich den Unterschied macht' }}">
+          <textarea inputType="description" rows="4"
+                    class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-base leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_warum.description|default:"Wir entwickeln Websites nicht nur für den Moment, sondern für die kommenden Jahre. Die Kombination aus durchdachtem Webdesign, modernen Frameworks und solidem Hosting liefert langfristig spürbar bessere Ergebnisse - in Sichtbarkeit, in Geschwindigkeit und in den Betriebskosten." }}</textarea>
+          <input inputType="buttonText" type="text"
+                 class="self-start rounded-md bg-blue-900 px-6 py-3 text-sm font-bold text-white"
+                 value="{{ textContent_warum.buttonText|default:'Unverbindlich anfragen' }}">
+        </div>
+
+        <div class="flex flex-col gap-3">
+          <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm" key="main_webdesign_warum_card1">
+            <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Karte 1 (Icon: Graph-Up-Arrow)</p>
+            <input inputType="title" type="text"
+                   class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-base font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                   value="{{ textContent_warum_card1.title|default:'Bessere Sichtbarkeit bei Google' }}">
+            <textarea inputType="description" rows="2"
+                      class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_warum_card1.description|default:"Schnelle, sauber strukturierte Websites werden von Google bevorzugt - das bedeutet bessere Rankings und mehr organische Besucher." }}</textarea>
+          </div>
+          <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm" key="main_webdesign_warum_card2">
+            <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Karte 2 (Icon: Piggy-Bank)</p>
+            <input inputType="title" type="text"
+                   class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-base font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                   value="{{ textContent_warum_card2.title|default:'Geringere Betriebskosten' }}">
+            <textarea inputType="description" rows="2"
+                      class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_warum_card2.description|default:"Wartbarer Code reduziert Folgeaufwand. Eine sauber gebaute Website spart über Jahre hinweg Geld - bei Updates, Erweiterungen und Pflege." }}</textarea>
+          </div>
+          <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm" key="main_webdesign_warum_card3">
+            <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Karte 3 (Icon: Fingerprint)</p>
+            <input inputType="title" type="text"
+                   class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-base font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                   value="{{ textContent_warum_card3.title|default:'Vertrauen durch Datenschutz' }}">
+            <textarea inputType="description" rows="2"
+                      class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_warum_card3.description|default:"DSGVO-konformes Hosting in Deutschland gibt deinen Besuchern Sicherheit - und dir die Gewissheit, rechtlich auf der sicheren Seite zu sein." }}</textarea>
+          </div>
+          <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm" key="main_webdesign_warum_card4">
+            <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Karte 4 (Icon: Arrow-Up-Right)</p>
+            <input inputType="title" type="text"
+                   class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-base font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                   value="{{ textContent_warum_card4.title|default:'Zukunftssicher und erweiterbar' }}">
+            <textarea inputType="description" rows="2"
+                      class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_warum_card4.description|default:"Du musst deine Website nicht alle paar Jahre neu bauen lassen. Unsere Basis lässt sich beliebig erweitern - egal ob neue Funktionen, Shop oder API." }}</textarea>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         BOTTOM CTA
+    ══════════════════════════════════════════ -->
+    <section class="rounded-2xl bg-gray-700 p-8">
+      <p class="mb-4 text-xs font-semibold uppercase tracking-wider text-gray-300">Bottom CTA</p>
+      <div class="text-content mx-auto flex max-w-xl flex-col items-center gap-3 text-center" key="main_webdesign_bottomcta">
+        <input inputType="title" type="text"
+               class="w-full rounded-lg border-2 border-gray-500 bg-gray-600 px-4 py-2 text-xl font-bold text-white placeholder-gray-400 focus:border-blue-400 focus:bg-gray-500 focus:outline-none"
+               value="{{ textContent_bottomcta.title|default:'Bereit für deine neue Website?' }}">
+        <textarea inputType="description" rows="3"
+                  class="w-full rounded-lg border-2 border-gray-500 bg-gray-600 px-4 py-2 text-base text-white placeholder-gray-400 focus:border-blue-400 focus:bg-gray-500 focus:outline-none">{{ textContent_bottomcta.description|default:"Erzähl uns von deinem Projekt - wir melden uns zeitnah mit einer ehrlichen Einschätzung und einem unverbindlichen Angebot." }}</textarea>
+        <input inputType="buttonText" type="text"
+               value="{{ textContent_bottomcta.buttonText|default:'Jetzt Website anfragen' }}"
+               class="rounded-md bg-blue-900 px-8 py-3 text-sm font-bold text-white">
+      </div>
+    </section>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block javascriptend %}
+{% compress js %}
+<script defer src="{% static 'js/cms.js' %}"></script>
+<script defer src="{% static 'js/cms/content/siteManager.js' %}"></script>
+<script src="{% static 'js/cms/content/save-text.js' %}"></script>
+<script defer src="{% static 'js/cms/unsaved-guard.js' %}"></script>
+{% endcompress js %}
+{% endblock %}

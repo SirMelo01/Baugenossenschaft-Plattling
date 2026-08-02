@@ -1,0 +1,239 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ block.super }} | {{ shop_settings.products_title }}{% endblock title %}
+
+{% block content %}
+<div class="container mx-auto min-h-screen max-w-7xl px-3 py-8 lg:px-4">
+
+  <div class="mb-8 overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm">
+    <div class="bg-gradient-to-br from-blue-50 via-white to-white p-6 sm:p-8">
+      <h1 class="text-3xl font-bold leading-tight tracking-tight text-gray-900 sm:text-4xl">
+        {{ shop_settings.products_title }}
+      </h1>
+
+      {% if shop_settings.products_intro %}
+        <p class="mt-3 max-w-3xl text-base leading-7 text-gray-600 md:text-lg">{{ shop_settings.products_intro }}</p>
+      {% endif %}
+
+      {% if total_products %}
+        <p class="mt-3 text-sm font-medium text-gray-400">{{ total_products }} Produkt{{ total_products|pluralize:"e" }}</p>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if not total_products %}
+    <div class="rounded-3xl border border-dashed border-gray-300 bg-white p-12 text-center shadow-sm">
+      <p class="text-lg font-semibold text-gray-700">Aktuell sind keine Produkte verfügbar</p>
+      <p class="mt-2 text-sm text-gray-500">Schauen Sie bald wieder vorbei.</p>
+    </div>
+  {% else %}
+
+  <div id="groupedShop" class="grid grid-cols-1 gap-6 lg:grid-cols-[18rem_minmax(0,1fr)] lg:items-start">
+    <!-- Sidebar -->
+    <aside class="rounded-3xl border border-gray-200 bg-white p-4 shadow-sm lg:sticky lg:top-24">
+      <div class="mb-3 flex items-center gap-2 px-1">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
+        </svg>
+        <h2 class="text-lg font-bold text-gray-900">Produktgruppen</h2>
+      </div>
+
+      <nav class="max-h-[70vh] space-y-1 overflow-y-auto pr-1">
+        <button
+          type="button"
+          data-group-target="all"
+          class="group-nav-btn flex w-full items-center justify-between gap-2 rounded-2xl border border-transparent px-3 py-2.5 text-left text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+        >
+          <span>Alle Produkte</span>
+          <span class="shrink-0 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">{{ total_products }}</span>
+        </button>
+
+        {% for group in product_groups %}
+          <div class="rounded-2xl">
+            <div class="flex items-stretch gap-1">
+              <button
+                type="button"
+                data-group-target="gruppe-{{ group.group.slug }}"
+                class="group-nav-btn flex min-w-0 flex-1 items-center justify-between gap-2 rounded-2xl border border-transparent px-3 py-2.5 text-left text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+              >
+                <span class="truncate">{{ group.group.name }}</span>
+                <span class="shrink-0 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">{{ group.products|length }}</span>
+              </button>
+
+              {% if group.products %}
+                <button
+                  type="button"
+                  data-group-expand="sub-{{ group.group.slug }}"
+                  aria-label="Produkte anzeigen"
+                  class="group-expand-btn inline-flex w-9 shrink-0 items-center justify-center rounded-2xl text-gray-400 transition hover:bg-gray-50 hover:text-gray-700"
+                >
+                  <svg class="group-expand-icon h-4 w-4 transition-transform" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+              {% endif %}
+            </div>
+
+            {% if group.products %}
+              <ul id="sub-{{ group.group.slug }}" class="hidden space-y-0.5 py-1 pl-3">
+                {% for product in group.products %}
+                  <li>
+                    <a
+                      href="{% url 'product-detail' product_id=product.id slug=product.slug %}"
+                      class="block truncate rounded-xl px-3 py-1.5 text-sm text-gray-500 transition hover:bg-blue-50 hover:text-blue-700"
+                    >
+                      {{ product.title }}
+                    </a>
+                  </li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+          </div>
+        {% endfor %}
+
+        {% if ungrouped_products %}
+          <div class="rounded-2xl">
+            <div class="flex items-stretch gap-1">
+              <button
+                type="button"
+                data-group-target="gruppe-weitere"
+                class="group-nav-btn flex min-w-0 flex-1 items-center justify-between gap-2 rounded-2xl border border-transparent px-3 py-2.5 text-left text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+              >
+                <span class="truncate">Weitere Produkte</span>
+                <span class="shrink-0 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">{{ ungrouped_products|length }}</span>
+              </button>
+
+              <button
+                type="button"
+                data-group-expand="sub-weitere"
+                aria-label="Produkte anzeigen"
+                class="group-expand-btn inline-flex w-9 shrink-0 items-center justify-center rounded-2xl text-gray-400 transition hover:bg-gray-50 hover:text-gray-700"
+              >
+                <svg class="group-expand-icon h-4 w-4 transition-transform" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+            </div>
+
+            <ul id="sub-weitere" class="hidden space-y-0.5 py-1 pl-3">
+              {% for product in ungrouped_products %}
+                <li>
+                  <a
+                    href="{% url 'product-detail' product_id=product.id slug=product.slug %}"
+                    class="block truncate rounded-xl px-3 py-1.5 text-sm text-gray-500 transition hover:bg-blue-50 hover:text-blue-700"
+                  >
+                    {{ product.title }}
+                  </a>
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% endif %}
+      </nav>
+    </aside>
+
+    <!-- Produkte -->
+    <div id="groupedSections" class="min-w-0 space-y-10">
+      {% for group in product_groups %}
+        <section data-group-section="gruppe-{{ group.group.slug }}" class="group-section scroll-mt-28">
+          <div class="mb-5 flex flex-wrap items-baseline justify-between gap-2">
+            <h2 class="text-2xl font-bold tracking-tight text-gray-900">{{ group.group.name }}</h2>
+            <span class="text-sm font-medium text-gray-400">{{ group.products|length }} Produkt{{ group.products|length|pluralize:"e" }}</span>
+          </div>
+
+          <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+            {% for product in group.products %}
+              {% include "pages/components/product_card.html" with product=product %}
+            {% endfor %}
+          </div>
+        </section>
+      {% endfor %}
+
+      {% if ungrouped_products %}
+        <section data-group-section="gruppe-weitere" class="group-section scroll-mt-28">
+          <div class="mb-5 flex flex-wrap items-baseline justify-between gap-2">
+            <h2 class="text-2xl font-bold tracking-tight text-gray-900">Weitere Produkte</h2>
+            <span class="text-sm font-medium text-gray-400">{{ ungrouped_products|length }} Produkt{{ ungrouped_products|length|pluralize:"e" }}</span>
+          </div>
+
+          <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+            {% for product in ungrouped_products %}
+              {% include "pages/components/product_card.html" with product=product %}
+            {% endfor %}
+          </div>
+        </section>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock content %}
+
+{% block javascriptend %}
+<script>
+  (function () {
+    var shop = document.getElementById("groupedShop");
+    if (!shop) {
+      return;
+    }
+
+    var navButtons = shop.querySelectorAll(".group-nav-btn");
+    var sections = shop.querySelectorAll("[data-group-section]");
+    var activeClasses = ["bg-blue-50", "text-blue-700", "border-blue-200"];
+
+    function setActiveButton(targetButton) {
+      navButtons.forEach(function (button) {
+        var isActive = button === targetButton;
+        activeClasses.forEach(function (cls) {
+          button.classList.toggle(cls, isActive);
+        });
+        button.classList.toggle("text-gray-700", !isActive);
+      });
+    }
+
+    function showGroup(target) {
+      sections.forEach(function (section) {
+        var match = target === "all" || section.getAttribute("data-group-section") === target;
+        section.classList.toggle("hidden", !match);
+      });
+    }
+
+    shop.querySelectorAll(".group-nav-btn").forEach(function (button) {
+      button.addEventListener("click", function () {
+        var target = button.getAttribute("data-group-target");
+        setActiveButton(button);
+        showGroup(target);
+
+        if (target !== "all" && window.matchMedia("(max-width: 1023px)").matches) {
+          var section = shop.querySelector('[data-group-section="' + target + '"]');
+          if (section) {
+            section.scrollIntoView({ behavior: "smooth", block: "start" });
+          }
+        }
+      });
+    });
+
+    shop.querySelectorAll(".group-expand-btn").forEach(function (button) {
+      button.addEventListener("click", function () {
+        var sublist = document.getElementById(button.getAttribute("data-group-expand"));
+        var icon = button.querySelector(".group-expand-icon");
+        if (!sublist) {
+          return;
+        }
+        var isHidden = sublist.classList.toggle("hidden");
+        if (icon) {
+          icon.style.transform = isHidden ? "" : "rotate(180deg)";
+        }
+      });
+    });
+
+    // Standard: alle Produkte sichtbar, "Alle Produkte" aktiv.
+    var firstButton = shop.querySelector('.group-nav-btn[data-group-target="all"]');
+    if (firstButton) {
+      setActiveButton(firstButton);
+      showGroup("all");
+    }
+  })();
+</script>
+{% endblock javascriptend %}

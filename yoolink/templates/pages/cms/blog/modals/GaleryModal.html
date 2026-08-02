@@ -1,0 +1,100 @@
+<div class="fixed inset-0 z-[80] hidden items-center justify-center bg-slate-950/70 p-2 backdrop-blur-sm sm:p-4 modal"
+    id="galleryModal">
+    <div class="modal-container flex h-[calc(100dvh-1rem)] w-full max-w-6xl flex-col overflow-hidden rounded-lg bg-white shadow-2xl ring-1 ring-slate-200 sm:h-auto sm:max-h-[90vh]">
+        <div class="flex flex-shrink-0 items-start justify-between border-b border-slate-200 px-4 py-4 sm:px-6 sm:py-5">
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-wide text-blue-700">Blog Builder</p>
+                <h3 class="mt-1 text-2xl font-semibold text-slate-950">Galerie bearbeiten</h3>
+                <p class="mt-1 text-sm text-slate-500">Wähle eine CMS-Galerie und steuere die Darstellung im Blog.</p>
+            </div>
+            <button type="button" id="closeGaleryModal"
+                class="rounded-md p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-900">
+                <i class="bi bi-x-lg"></i>
+                <span class="sr-only">Schließen</span>
+            </button>
+        </div>
+
+        <div class="flex min-h-0 flex-1 flex-col overflow-hidden lg:flex-row">
+            <div class="flex min-h-0 flex-1 flex-col p-4 sm:p-6">
+                <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <h4 class="text-lg font-semibold text-slate-950">CMS-Galerien</h4>
+                        <p class="text-sm text-slate-500">Die gewählte Galerie ersetzt die aktuelle Bildstrecke.</p>
+                    </div>
+                    <div class="flex flex-col gap-2 sm:flex-row">
+                        <input id="galerySearchInput" type="search" placeholder="Galerien suchen"
+                            class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:w-56">
+                        <button id="reloadGalerien" type="button"
+                            class="rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700">
+                            Laden
+                        </button>
+                    </div>
+                </div>
+
+                <div class="min-h-0 flex-1 overflow-auto rounded-lg border border-slate-200 bg-slate-50 p-3">
+                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3" id="possibleGalerien">
+                        {% for gallery in galerien %}
+                        <button type="button" galeryId="{{gallery.id}}" data-title="{{gallery.title}}"
+                            class="pGalery rounded-lg border border-slate-200 bg-white p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md">
+                            <span class="gallery-title block text-base font-semibold text-slate-950">{{gallery.title}}</span>
+                            <span class="mt-2 block max-h-20 overflow-hidden text-sm text-slate-500">{{gallery.description}}</span>
+                        </button>
+                        {% endfor %}
+                    </div>
+                    <p id="galeryEmptyState" class="hidden py-16 text-center text-sm font-semibold text-slate-500">Keine Galerien gefunden.</p>
+                </div>
+            </div>
+
+            <aside class="flex-shrink-0 overflow-y-auto border-t border-slate-200 bg-slate-50 p-4 sm:p-6 lg:w-80 lg:border-l lg:border-t-0">
+                <div class="rounded-lg border border-slate-200 bg-white p-4">
+                    <p class="text-sm font-semibold text-slate-900">Aktuelle Galerie</p>
+                    <p id="selectedGalleryLabel" class="mt-1 text-sm text-slate-500">Keine neue Galerie gewählt</p>
+                </div>
+
+                <div class="mt-4 space-y-4 rounded-lg border border-slate-200 bg-white p-4">
+                    <h4 class="text-lg font-semibold text-slate-950">Eigenschaften</h4>
+                    <label class="block text-sm font-semibold text-slate-900">
+                        Breite
+                        <input id="galeryWidth" type="text"
+                            class="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                            placeholder="100%">
+                    </label>
+                    <label class="block text-sm font-semibold text-slate-900">
+                        Höhe
+                        <input id="galeryHeight" type="text"
+                            class="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                            placeholder="420px">
+                    </label>
+                    <label class="block text-sm font-semibold text-slate-900">
+                        Alt-Text Prefix
+                        <input id="galeryAltPrefix" type="text"
+                            class="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                            placeholder="Galeriebild">
+                    </label>
+                    <label class="flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700">
+                        <input id="galeryAutoplay" type="checkbox" class="rounded border-slate-300" checked>
+                        Autoplay
+                    </label>
+                    <label class="block text-sm font-semibold text-slate-900">
+                        Geschwindigkeit
+                        <input id="galerySpeed" type="number" min="500" step="500"
+                            class="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                            placeholder="3000">
+                    </label>
+                </div>
+            </aside>
+        </div>
+
+        <div class="flex flex-shrink-0 flex-col gap-3 border-t border-slate-200 bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-4">
+            <a href="{% url 'cms:galery-create' %}" target="_blank"
+                class="inline-flex items-center justify-center rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 hover:text-slate-950">
+                <i class="bi bi-box-arrow-up-right mr-2"></i>
+                Galerie erstellen
+            </a>
+            <button id="selectGalery" type="button"
+                class="inline-flex items-center justify-center rounded-md bg-blue-700 px-5 py-2 text-sm font-semibold text-white transition hover:bg-blue-800">
+                Übernehmen
+            </button>
+        </div>
+    </div>
+</div>

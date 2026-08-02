@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% load compress static i18n %}
+
+{% block title %}{{ block.super }} | {% trans "impressum_title" %}{% endblock title %}
+
+{% block content %}
+<div class="container pt-10 pb-16 w-full mx-auto px-2 md:px-40">
+  <div>
+    <h1 class="mb-6 text-3xl font-bold leading-none tracking-tight text-center text-gray-900 sm:text-5xl xl:text-6xl">{% trans "impressum_title" %}</h1>
+  </div>
+
+  <!-- Pflichtangaben – automatisch aus den Unternehmensdaten (sprachneutral) -->
+  <div class="mt-8">
+    <h2 class="mb-3 text-xl font-bold tracking-tight text-gray-900 md:text-2xl">
+      {% if owner_data and owner_data.company_name %}{{ owner_data.company_name }}{% else %}YooLink{% endif %}
+    </h2>
+    <p>{% trans "impressum_legal_note" %}</p>
+    {% if owner_data and owner_data.owner_name %}
+      <p>{% trans "impressum_owner_label" %} <b>{{ owner_data.owner_name }}</b></p>
+    {% else %}
+      <p>{% trans "impressum_owner_label" %} <b>Sebastian Rauch</b></p>
+    {% endif %}
+  </div>
+
+  <div class="mt-6">
+    <h2 class="mb-3 text-xl font-bold tracking-tight text-gray-900 md:text-2xl">{% trans "impressum_address_heading" %}</h2>
+    {% if owner_data and owner_data.address %}
+      <p>{{ owner_data.address|linebreaksbr }}</p>
+    {% else %}
+      <p>Schanzenweg 53</p>
+      <p>94469 Deggendorf</p>
+    {% endif %}
+    <p>{% if owner_data and owner_data.address_country and owner_data.address_country != "DE" %}{{ owner_data.address_country }}{% else %}{% trans "impressum_country_default" %}{% endif %}</p>
+  </div>
+
+  <div class="mt-6">
+    <h2 class="mb-3 text-xl font-bold tracking-tight text-gray-900 md:text-2xl">{% trans "impressum_contact_heading" %}</h2>
+    {% if owner_data and owner_data.tel_number %}
+      <p>{% trans "impressum_phone_label" %} <a href="tel:{{ owner_data.tel_number }}" class="hover:underline">{{ owner_data.tel_number }}</a></p>
+    {% elif owner_data and owner_data.mobile_number %}
+      <p>{% trans "impressum_phone_label" %} <a href="tel:{{ owner_data.mobile_number }}" class="hover:underline">{{ owner_data.mobile_number }}</a></p>
+    {% else %}
+      <p>{% trans "impressum_phone_label" %} <a href="tel:+491705977862" class="hover:underline">+49 170 5977862</a></p>
+    {% endif %}
+    {% if owner_data and owner_data.fax_number %}
+      <p>{% trans "impressum_fax_label" %} {{ owner_data.fax_number }}</p>
+    {% endif %}
+    {% if owner_data and owner_data.email %}
+      <p>{% trans "impressum_email_label" %} <a href="mailto:{{ owner_data.email }}" class="hover:underline">{{ owner_data.email }}</a></p>
+    {% else %}
+      <p>{% trans "impressum_email_label" %} <a href="mailto:info@yoolink.de" class="hover:underline">info@yoolink.de</a></p>
+    {% endif %}
+    {% if owner_data and owner_data.website %}
+      <p>{% trans "impressum_website_label" %} <a href="{{ owner_data.website }}" class="hover:underline">{{ owner_data.website }}</a></p>
+    {% endif %}
+  </div>
+
+  <div class="mt-6">
+    <h2 class="mb-3 text-xl font-bold tracking-tight text-gray-900 md:text-2xl">{% trans "impressum_responsible_heading" %}</h2>
+    {% if owner_data and owner_data.owner_name %}
+      <p>{{ owner_data.owner_name }}</p>
+    {% elif owner_data and owner_data.company_name %}
+      <p>{{ owner_data.company_name }}</p>
+    {% else %}
+      <p>Sebastian Rauch</p>
+    {% endif %}
+    <p>{% trans "impressum_address_as_above" %}</p>
+  </div>
+
+  <!-- Frei konfigurierbare Blöcke aus dem CMS-Builder (mehrsprachig) -->
+  {% for block in impressum_blocks %}
+  <div class="mt-6{% if forloop.last %} mb-8{% endif %}">
+    {% if block.title %}
+    <h2 class="mb-3 text-xl font-bold tracking-tight text-gray-900 md:text-2xl">{{ block.title }}</h2>
+    {% endif %}
+    <div class="space-y-2 [&_a]:text-blue-600 [&_a]:hover:underline">{{ block.html|safe }}</div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock content %}

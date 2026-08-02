@@ -1,0 +1,127 @@
+{% load static %}
+<article class="customer-item group relative flex h-full flex-col overflow-hidden rounded-2xl bg-white shadow-md ring-1 ring-gray-200 transition hover:-translate-y-0.5 hover:shadow-xl"
+    data-id="{{ customer.id }}">
+
+    <!-- Drag Handle -->
+    <span class="drag-handle absolute left-3 top-3 z-10 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-white/95 text-gray-500 shadow-sm ring-1 ring-gray-200 opacity-0 cursor-move transition" title="Reihenfolge ändern">
+        <i class="bi bi-grip-vertical text-base"></i>
+    </span>
+
+    <!-- Status Badges -->
+    <div class="absolute right-3 top-3 z-10 flex flex-wrap gap-1.5">
+        {% if customer.active %}
+            <span class="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-semibold text-green-800 ring-1 ring-green-200">
+                <span class="h-1.5 w-1.5 rounded-full bg-green-500"></span> Aktiv
+            </span>
+        {% else %}
+            <span class="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-semibold text-red-800 ring-1 ring-red-200">
+                <span class="h-1.5 w-1.5 rounded-full bg-red-500"></span> Inaktiv
+            </span>
+        {% endif %}
+        {% if customer.show_detail_page %}
+            <span class="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-0.5 text-[11px] font-semibold text-blue-800 ring-1 ring-blue-200" title="Detailseite veröffentlicht">
+                <i class="bi bi-link-45deg"></i> Detail
+            </span>
+        {% endif %}
+    </div>
+
+    <!-- Image -->
+    <div class="relative h-44 w-full overflow-hidden bg-gradient-to-br from-blue-50 via-white to-blue-100">
+        {% if customer.title_image and customer.title_image.file %}
+            <img src="{{ customer.title_image.file.url }}" alt="{{ customer.name }}"
+                class="h-full w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" />
+        {% else %}
+            <div class="flex h-full w-full items-center justify-center text-blue-300">
+                <i class="bi bi-image text-5xl"></i>
+            </div>
+        {% endif %}
+        <div class="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-white/95 to-transparent"></div>
+    </div>
+
+    <!-- Body -->
+    <div class="flex flex-1 flex-col px-5 pb-5 {% if customer.logo_style == 'wide' and customer.logo %}pt-4{% else %}-mt-6{% endif %}">
+        <div class="relative z-10">
+            {% if customer.logo_style == 'wide' and customer.logo and customer.logo.file %}
+                <!-- Wide logo: nur das Logo, ohne Hintergrund -->
+                <div class="flex h-12 w-full items-center">
+                    <img src="{{ customer.logo.file.url }}" alt="{{ customer.name }} Logo"
+                        class="h-full max-w-full object-contain object-left" />
+                </div>
+                <p class="mt-2 truncate text-sm font-bold text-gray-900">{{ customer.name }}</p>
+                <p class="truncate text-xs text-gray-500">
+                    {% if customer.website_display %}{{ customer.website_display }}
+                    {% elif customer.subtitle %}{{ customer.subtitle }}
+                    {% else %}—{% endif %}
+                </p>
+            {% else %}
+                <div class="flex items-center gap-3">
+                    {% if customer.logo and customer.logo.file %}
+                        <div class="flex h-12 w-12 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white p-1.5 shadow-md ring-1 ring-gray-200">
+                            <img src="{{ customer.logo.file.url }}" alt="{{ customer.name }} Logo"
+                                class="h-full w-full object-contain" />
+                        </div>
+                    {% else %}
+                        <div class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-blue-900 text-base font-bold text-white shadow-md ring-1 ring-blue-200">
+                            {{ customer.logo_fallback_text|default:customer.name|slice:":1"|upper }}
+                        </div>
+                    {% endif %}
+                    <div class="min-w-0 flex-1">
+                        <p class="truncate text-base font-bold text-gray-900">{{ customer.name }}</p>
+                        <p class="truncate text-xs text-gray-500">
+                            {% if customer.website_display %}{{ customer.website_display }}
+                            {% elif customer.subtitle %}{{ customer.subtitle }}
+                            {% else %}—{% endif %}
+                        </p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        {% if customer.short_description %}
+            <p class="mt-3 line-clamp-2 text-sm text-gray-600">{{ customer.short_description }}</p>
+        {% endif %}
+
+        <div class="mt-4 flex flex-wrap items-center gap-2 text-[11px] text-gray-500">
+            {% if customer.published_date %}
+                <span class="inline-flex items-center gap-1 rounded-md bg-gray-100 px-2 py-1">
+                    <i class="bi bi-calendar3"></i>
+                    {{ customer.published_date|date:"d.m.Y" }}
+                </span>
+            {% endif %}
+            <span class="inline-flex items-center gap-1 rounded-md bg-gray-100 px-2 py-1">
+                <i class="bi bi-list-ol"></i>
+                #{{ customer.order }}
+            </span>
+            {% if customer.gallery %}
+                <span class="inline-flex items-center gap-1 rounded-md bg-blue-50 px-2 py-1 text-blue-700">
+                    <i class="bi bi-images"></i>
+                    Galerie
+                </span>
+            {% endif %}
+            {% if customer.banner_image %}
+                <span class="inline-flex items-center gap-1 rounded-md bg-blue-50 px-2 py-1 text-blue-700">
+                    <i class="bi bi-aspect-ratio"></i>
+                    Banner
+                </span>
+            {% endif %}
+        </div>
+
+        <div class="mt-auto flex items-center gap-2 pt-5">
+            <a href="{% url 'cms:customer-edit' customer.id %}"
+                class="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-blue-700">
+                <i class="bi bi-pencil-square"></i>
+                Bearbeiten
+            </a>
+            {% if customer.has_detail %}
+                <a href="{% url 'kunde-detail' customer.slug %}" target="_blank" rel="noopener noreferrer"
+                    class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-gray-100 text-gray-700 transition hover:bg-gray-200" title="Detailseite öffnen">
+                    <i class="bi bi-box-arrow-up-right"></i>
+                </a>
+            {% endif %}
+            <button type="button" class="delete-customer inline-flex h-9 w-9 items-center justify-center rounded-lg bg-red-50 text-red-600 transition hover:bg-red-100"
+                data-id="{{ customer.id }}" data-name="{{ customer.name }}" title="Löschen">
+                <i class="bi bi-trash"></i>
+            </button>
+        </div>
+    </div>
+</article>

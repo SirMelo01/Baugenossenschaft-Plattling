@@ -1,0 +1,133 @@
+{% extends "cmsbase.html" %}
+{% load compress static %}
+{% block title %} {{ block.super }} | CMS - Cookies {% endblock %}
+
+{% block content %}
+
+<div class="mx-auto mt-4 max-w-6xl px-4 sm:mt-8 sm:px-6">
+
+  <!-- ── Header ── -->
+  <div class="sticky top-[4.25rem] z-30 mb-6 rounded-2xl border border-gray-200 bg-white/95 px-5 py-4 shadow-sm backdrop-blur flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <h1 class="text-2xl">
+      <a href="{% url 'cms:sites' %}" class="text-blue-500">Seiten</a>
+      / <span>Cookies (/cookies)</span>
+    </h1>
+    <div>
+      {% csrf_token %}
+      <a class="block w-full rounded bg-green-500 px-4 py-3 text-center font-bold text-white hover:cursor-pointer hover:bg-green-700 sm:w-auto sm:py-2"
+         id="saveTextData" name="main_cookies">
+        Speichern
+      </a>
+    </div>
+  </div>
+
+  <div class="mt-8 space-y-8 pb-20">
+
+    <!-- ══════════════════════════════════════════
+         HERO / KOPFBEREICH
+    ══════════════════════════════════════════ -->
+    <section class="rounded-2xl bg-blue-50 p-6">
+      <p class="mb-4 text-xs font-semibold uppercase tracking-wider text-blue-700">Kopfbereich</p>
+      <div class="text-content flex flex-col gap-3" key="main_cookies_hero">
+        <input inputType="header" type="text"
+               class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-sm font-semibold uppercase tracking-widest text-blue-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+               placeholder="Über-Tagline"
+               value="{{ textContent_hero.header|default:'Datenschutz' }}">
+        <input inputType="title" type="text"
+               class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-2xl font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+               placeholder="Überschrift (H1)"
+               value="{{ textContent_hero.title|default:'Cookie-Einstellungen' }}">
+        <textarea inputType="description" rows="4"
+                  class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-base leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_hero.description|default:"Hier können Sie Ihre Einwilligung für optionale Dienste verwalten. Notwendige Cookies bleiben aktiv, weil sie für Sicherheit, Sprache, Warenkorb, Login und den Betrieb der Website erforderlich sind. Alle optionalen Dienste werden erst nach Ihrer aktiven Zustimmung geladen." }}</textarea>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         KATEGORIEN
+    ══════════════════════════════════════════ -->
+    <section class="rounded-2xl bg-blue-50 p-6">
+      <p class="mb-4 text-xs font-semibold uppercase tracking-wider text-blue-700">Cookie-Kategorien (Schalter &amp; Beispiele bleiben funktional/statisch)</p>
+
+      <div class="space-y-4">
+        <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm" key="main_cookies_necessary">
+          <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Notwendig (immer aktiv)</p>
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-lg font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_necessary.title|default:'Notwendig' }}">
+          <textarea inputType="description" rows="3"
+                    class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_necessary.description|default:"Session-, CSRF-, Sprach-, Warenkorb- und Consent-Cookies. Diese Cookies sind technisch erforderlich und können über dieses Formular nicht deaktiviert werden." }}</textarea>
+        </div>
+
+        <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm" key="main_cookies_analytics">
+          <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Statistik</p>
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-lg font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_analytics.title|default:'Statistik' }}">
+          <textarea inputType="description" rows="3"
+                    class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_analytics.description|default:"Aktiviert Google Analytics, um Reichweite und Nutzung der Website zu messen. Ohne Einwilligung wird Google Analytics nicht geladen." }}</textarea>
+        </div>
+
+        <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm" key="main_cookies_external">
+          <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Externe Medien &amp; Sicherheitsdienste</p>
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-lg font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_external.title|default:'Externe Medien und Sicherheitsdienste' }}">
+          <textarea inputType="description" rows="3"
+                    class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_external.description|default:"Erlaubt das Laden externer Karten, Videos und reCAPTCHA. Ohne Einwilligung erscheinen Platzhalter oder Funktionen bleiben deaktiviert." }}</textarea>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         BUTTONS
+    ══════════════════════════════════════════ -->
+    <section class="rounded-2xl bg-blue-50 p-6">
+      <p class="mb-4 text-xs font-semibold uppercase tracking-wider text-blue-700">Buttons (Beschriftung)</p>
+      <div class="text-content grid grid-cols-1 gap-3 md:grid-cols-3" key="main_cookies_actions">
+        <div class="flex flex-col gap-2">
+          <span class="text-xs font-semibold uppercase tracking-wider text-gray-500">Speichern-Button</span>
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_actions.title|default:'Auswahl speichern' }}">
+        </div>
+        <div class="flex flex-col gap-2">
+          <span class="text-xs font-semibold uppercase tracking-wider text-gray-500">Ablehnen-Button</span>
+          <input inputType="description" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_actions.description|default:'Alle ablehnen' }}">
+        </div>
+        <div class="flex flex-col gap-2">
+          <span class="text-xs font-semibold uppercase tracking-wider text-gray-500">Akzeptieren-Button</span>
+          <input inputType="buttonText" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_actions.buttonText|default:'Alle akzeptieren' }}">
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         HINWEIS
+    ══════════════════════════════════════════ -->
+    <section class="rounded-2xl bg-blue-50 p-6">
+      <p class="mb-4 text-xs font-semibold uppercase tracking-wider text-blue-700">Hinweis (Absatz mit Datenschutz-Link bleibt statisch)</p>
+      <div class="text-content flex flex-col gap-3" key="main_cookies_hinweis">
+        <input inputType="title" type="text"
+               class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-lg font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+               value="{{ textContent_hinweis.title|default:'Hinweis' }}">
+        <textarea inputType="description" rows="3"
+                  class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-base leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_hinweis.description|default:"Ihre Auswahl wird für 180 Tage gespeichert. Sie können Ihre Einwilligung jederzeit über diese Seite oder über den Link zu den Cookie-Einstellungen im Footer widerrufen oder ändern." }}</textarea>
+      </div>
+    </section>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block javascriptend %}
+{% compress js %}
+<script defer src="{% static 'js/cms.js' %}"></script>
+<script defer src="{% static 'js/cms/content/siteManager.js' %}"></script>
+<script src="{% static 'js/cms/content/save-text.js' %}"></script>
+<script defer src="{% static 'js/cms/unsaved-guard.js' %}"></script>
+{% endcompress js %}
+{% endblock %}

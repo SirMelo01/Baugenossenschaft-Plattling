@@ -1,0 +1,564 @@
+# YooLink translations.
+# Copyright (C) YooLink
+# This file is distributed under the same license as the YooLink package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-05-31 16:23+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: config/settings/base.py:42
+msgid "Deutsch"
+msgstr "Deutsch"
+
+#: config/settings/base.py:43
+msgid "Englisch"
+msgstr "Englisch"
+
+#: yoolink/templates/base.html:107 yoolink/templates/base.html:281
+msgid "NAVBAR_LEISTUNGEN"
+msgstr "Leistungen"
+
+#: yoolink/templates/base.html
+msgid "nav_leistungen_overview_title"
+msgstr "Übersicht"
+
+#: yoolink/templates/base.html
+msgid "nav_leistungen_overview_desc"
+msgstr "Alle Leistungen auf einen Blick"
+
+#: yoolink/templates/base.html
+msgid "nav_leistungen_webdesign_title"
+msgstr "Webdesign"
+
+#: yoolink/templates/base.html
+msgid "nav_leistungen_webdesign_desc"
+msgstr "Moderne Websites mit Django & Tailwind"
+
+#: yoolink/templates/base.html
+msgid "nav_leistungen_cms_title"
+msgstr "CMS"
+
+#: yoolink/templates/base.html
+msgid "nav_leistungen_cms_desc"
+msgstr "Eigenes Content-Management-System"
+
+#: yoolink/templates/base.html
+msgid "nav_leistungen_logos_title"
+msgstr "Logos"
+
+#: yoolink/templates/base.html
+msgid "nav_leistungen_logos_desc"
+msgstr "Markenlogo Design mit Strategie"
+
+#: yoolink/templates/base.html
+msgid "nav_leistungen_medien_title"
+msgstr "Medien & Fotografie"
+
+#: yoolink/templates/base.html
+msgid "nav_leistungen_medien_desc"
+msgstr "Bildmaterial direkt mit der Website"
+
+#: yoolink/templates/base.html
+msgid "nav_leistungen_visitenkarten_title"
+msgstr "Visitenkarten"
+
+#: yoolink/templates/base.html
+msgid "nav_leistungen_visitenkarten_desc"
+msgstr "Hochwertige Visitenkarten Design"
+
+#: yoolink/templates/base.html:182 yoolink/templates/base.html:319
+msgid "NAVBAR_PRICING"
+msgstr "Preise"
+
+#: yoolink/templates/base.html:188 yoolink/templates/base.html:325
+msgid "NAVBAR_REFERENCES"
+msgstr "Kunden"
+
+#: yoolink/templates/base.html:232 yoolink/templates/base.html:234
+#: yoolink/templates/base.html:337
+msgid "NAVBAR_CONTACT_BTN"
+msgstr "Kontakt"
+
+#: yoolink/templates/base.html:429 yoolink/templates/cms-login-base.html:105
+msgid "FOOTER_HEADING"
+msgstr ""
+"Ihr digitales Aushängeschild – modern, benutzerfreundlich und auf den Punkt."
+
+#: yoolink/templates/base.html:492 yoolink/templates/cms-login-base.html:166
+msgid "FOOTER_USEFUL_LINKS"
+msgstr "Nützliche Links"
+
+#: yoolink/templates/base.html:495 yoolink/templates/cms-login-base.html:169
+msgid "FOOTER_HOME"
+msgstr "Startseite"
+
+#: yoolink/templates/base.html:498 yoolink/templates/cms-login-base.html:172
+msgid "FOOTER_CONTACT"
+msgstr "Kontakt"
+
+#: yoolink/templates/base.html:501 yoolink/templates/cms-login-base.html:175
+msgid "FOOTER_REFERENCES"
+msgstr "Referenzen"
+
+#: yoolink/templates/base.html:504 yoolink/templates/cms-login-base.html:178
+msgid "FOOTER_BLOG"
+msgstr "Blog"
+
+#: yoolink/templates/base.html:509 yoolink/templates/cms-login-base.html:183
+msgid "FOOTER_Rechtliches"
+msgstr "Rechtliches"
+
+#: yoolink/templates/base.html:512 yoolink/templates/cms-login-base.html:186
+msgid "FOOTER_Impressum"
+msgstr "Impressum"
+
+#: yoolink/templates/base.html:515 yoolink/templates/cms-login-base.html:189
+msgid "FOOTER_Datenschutz"
+msgstr "Datenschutz"
+
+#: yoolink/templates/base.html:518 yoolink/templates/cms-login-base.html:192
+msgid "FOOTER_Cookies"
+msgstr "Cookies"
+
+#: yoolink/templates/pages/cms/files/files.html:11
+msgid "CMS_TITLE_IMAGE"
+msgstr "Bilder"
+
+#: yoolink/templates/pages/cms/notifications/notification_detail.html:84
+msgid "Ihre Nachricht"
+msgstr ""
+
+#: yoolink/templates/pages/components/customer_card.html:54
+#: yoolink/templates/pages/components/customer_card.html:79
+msgid "client_published_on"
+msgstr "Veröffentlicht am"
+
+#: yoolink/templates/pages/components/customer_card.html:100
+msgid "client_card_learn_more"
+msgstr "Mehr erfahren"
+
+#: yoolink/templates/pages/components/customer_card.html:100
+msgid "client_card_website"
+msgstr "Webseite"
+
+#: yoolink/templates/pages/components/customer_card.html:100
+msgid "client_card_reference"
+msgstr "Referenz"
+
+#: yoolink/templates/pages/cmsinfo.html:310
+msgid "cms_visit_clients"
+msgstr "Besuche unsere Kunden"
+
+#: yoolink/templates/pages/cmsinfo.html:316
+msgid "cms_contact_direct"
+msgstr "Kontaktiere uns direkt!"
+
+#: yoolink/templates/pages/webdesign_deggendorf.html
+msgid "deggendorf_phone_label"
+msgstr "Telefon"
+
+#: yoolink/templates/pages/webdesign_deggendorf.html
+msgid "deggendorf_appointment_label"
+msgstr "Termin"
+
+#: yoolink/templates/pages/webdesign_deggendorf.html
+msgid "deggendorf_appointment_cta"
+msgstr "Kostenloses Erstgespräch anfragen"
+
+#: yoolink/templates/pages/cookies.html
+msgid "cookies_always_active"
+msgstr "Immer aktiv"
+
+#: yoolink/templates/pages/cookies.html
+msgid "cookies_examples_label"
+msgstr "Beispiele:"
+
+#: yoolink/templates/pages/cookies.html
+msgid "Weitere Details finden Sie in der <a class=\"font-semibold text-blue-700 underline\" href=\"%(datenschutz_url)s\">Datenschutzerklärung</a>."
+msgstr ""
+
+#: yoolink/templates/pages/index.html:396
+msgid "learn_more"
+msgstr "Erfahre mehr"
+
+#: yoolink/templates/pages/index.html:573
+msgid "pricing_month"
+msgstr "Monat"
+
+#: yoolink/templates/pages/index.html:576
+msgid "pricing_one_off_payment"
+msgstr "Einmalzahlung"
+
+# Statischer Text auf der Kundenreferenz-Detailseite (kunde_detail.html)
+#: yoolink/templates/pages/kunde_detail.html:5
+msgid "case_meta_reference"
+msgstr "Referenz"
+
+#: yoolink/templates/pages/kunde_detail.html:7
+msgid "case_og_reference_by"
+msgstr "Referenz von YooLink"
+
+#: yoolink/templates/pages/kunde_detail.html:8
+msgid "case_og_default_description"
+msgstr "Referenzprojekt von YooLink"
+
+#: yoolink/templates/pages/kunde_detail.html:83
+msgid "case_breadcrumb_aria"
+msgstr "Brotkrumen"
+
+#: yoolink/templates/pages/kunde_detail.html:84
+msgid "case_breadcrumb_home"
+msgstr "Start"
+
+#: yoolink/templates/pages/kunde_detail.html:86
+msgid "case_breadcrumb_references"
+msgstr "Referenzen"
+
+#: yoolink/templates/pages/kunde_detail.html:117
+msgid "case_visit_website"
+msgstr "Webseite besuchen"
+
+#: yoolink/templates/pages/kunde_detail.html:123
+msgid "case_request_own_project"
+msgstr "Eigenes Projekt anfragen"
+
+#: yoolink/templates/pages/kunde_detail.html:155
+#: yoolink/templates/pages/kunde_detail.html:281
+msgid "case_fact_client"
+msgstr "Kunde"
+
+#: yoolink/templates/pages/kunde_detail.html:164
+#: yoolink/templates/pages/kunde_detail.html:286
+msgid "case_fact_industry"
+msgstr "Branche"
+
+#: yoolink/templates/pages/kunde_detail.html:165
+msgid "case_industry_general"
+msgstr "Allgemein"
+
+#: yoolink/templates/pages/kunde_detail.html:173
+#: yoolink/templates/pages/kunde_detail.html:302
+msgid "case_fact_live_since"
+msgstr "Live seit"
+
+#: yoolink/templates/pages/kunde_detail.html:202
+msgid "case_section_project"
+msgstr "Das Projekt"
+
+#: yoolink/templates/pages/kunde_detail.html:230
+msgid "case_section_impressions"
+msgstr "Eindrücke"
+
+#: yoolink/templates/pages/kunde_detail.html:231
+#, python-format
+msgid "%(counter)s image from the gallery"
+msgid_plural "%(counter)s images from the gallery"
+msgstr[0] "%(counter)s Bild aus der Galerie"
+msgstr[1] "%(counter)s Bilder aus der Galerie"
+
+#: yoolink/templates/pages/kunde_detail.html:259
+msgid "case_services_provided"
+msgstr "Erbrachte Leistungen"
+
+#: yoolink/templates/pages/kunde_detail.html:277
+msgid "case_quick_info"
+msgstr "Schnellinfo"
+
+#: yoolink/templates/pages/kunde_detail.html:292
+msgid "case_website"
+msgstr "Webseite"
+
+#: yoolink/templates/pages/kunde_detail.html:295
+msgid "case_open"
+msgstr "Öffnen"
+
+#: yoolink/templates/pages/kunde_detail.html:315
+msgid "case_cta_title"
+msgstr "Lust auf einen modernen Webauftritt?"
+
+#: yoolink/templates/pages/kunde_detail.html:317
+msgid "case_cta_text"
+msgstr "Wir entwickeln Webseiten, die zu deinem Unternehmen passen."
+
+#: yoolink/templates/pages/kunde_detail.html:322
+msgid "case_cta_button"
+msgstr "Jetzt anfragen"
+
+#: yoolink/templates/pages/kunde_detail.html:338
+msgid "case_more_projects"
+msgstr "Weitere Projekte"
+
+#: yoolink/templates/pages/kunde_detail.html:340
+msgid "case_related_heading"
+msgstr "Diese Referenzen könnten dich interessieren"
+
+#: yoolink/templates/pages/kunde_detail.html:351
+msgid "case_view_all_references"
+msgstr "Alle Referenzen ansehen"
+
+#: yoolink/templates/pages/leistungen.html:80
+msgid "skills_easy_changes"
+msgstr "Einfache Anpassungen"
+
+#: yoolink/templates/pages/leistungen.html:81
+msgid "skills_seo_friendly"
+msgstr "SEO-freundlich"
+
+#: yoolink/templates/pages/leistungen.html:82
+msgid "skills_modular_extendable"
+msgstr "Modular erweiterbar"
+
+#: yoolink/users/admin.py:17
+msgid "Personal info"
+msgstr ""
+
+#: yoolink/users/admin.py:19
+msgid "Permissions"
+msgstr ""
+
+#: yoolink/users/admin.py:30
+msgid "Important dates"
+msgstr ""
+
+#: yoolink/users/apps.py:7
+msgid "Users"
+msgstr ""
+
+#: yoolink/users/forms.py:25 yoolink/users/tests/test_forms.py:36
+msgid "This username has already been taken."
+msgstr ""
+
+#: yoolink/users/models.py:15
+msgid "Name of User"
+msgstr ""
+
+#: yoolink/users/views.py:23
+msgid "Information successfully updated"
+msgstr ""
+
+#: yoolink/ycms/models.py:302
+msgid "Bezieht sich auf den Original-Blog (z.B. auf Deutsch)"
+msgstr ""
+
+#: yoolink/templates/pages/leistungen_logos.html
+msgid "Skalierbarer Vektor"
+msgstr "Skalierbarer Vektor"
+
+#: yoolink/templates/pages/leistungen_logos.html
+msgid "Web & Transparenz"
+msgstr "Web & Transparenz"
+
+#: yoolink/templates/pages/leistungen_logos.html
+msgid "Universell einsetzbar"
+msgstr "Universell einsetzbar"
+
+#: yoolink/templates/pages/leistungen_logos.html
+msgid "Druckfertig"
+msgstr "Druckfertig"
+
+#: yoolink/templates/pages/leistungen_logos.html
+msgid "Optional"
+msgstr "Optional"
+
+#: yoolink/templates/pages/leistungen.html
+msgid "Fotografie"
+msgstr "Fotografie"
+
+#: yoolink/templates/pages/leistungen.html
+msgid "3D-Aufnahmen"
+msgstr "3D-Aufnahmen"
+
+#: yoolink/templates/pages/leistungen.html
+msgid "Video"
+msgstr "Video"
+
+#: yoolink/templates/pages/cmsinfo.html
+msgid "Integriert mit"
+msgstr "Integriert mit"
+
+#: yoolink/templates/pages/leistungen_visitenkarte.html
+msgid "Hover, Klick oder Drag"
+msgstr "Hover, Klick oder Drag"
+
+#: yoolink/templates/pages/leistungen_visitenkarte.html
+msgid "Standard"
+msgstr "Standard"
+
+#: yoolink/templates/pages/leistungen_visitenkarte.html
+msgid "Premium"
+msgstr "Premium"
+
+#: yoolink/templates/pages/leistungen_visitenkarte.html
+msgid "Veredelt"
+msgstr "Veredelt"
+
+#: yoolink/templates/pages/leistungen_visitenkarte.html
+msgid "matt / glanz"
+msgstr "matt / glanz"
+
+#: yoolink/templates/pages/leistungen_visitenkarte.html
+msgid "fühlbar"
+msgstr "fühlbar"
+
+#: yoolink/templates/pages/leistungen_visitenkarte.html
+msgid "Heißfolie"
+msgstr "Heißfolie"
+
+#: yoolink/templates/pages/leistungen_visitenkarte.html
+msgid "Soft-Touch"
+msgstr "Soft-Touch"
+
+#~ msgid "NAVBAR_CMS"
+#~ msgstr "CMS"
+
+#~ msgid "cookies_title"
+#~ msgstr "Cookie-Richtlinie"
+
+#~ msgid "cookies_description"
+#~ msgstr ""
+#~ "Diese Website verwendet Cookies. Weitere Informationen zu den Cookie-"
+#~ "Arten finden sich unter den jeweiligen Kategorien. Dort lassen sich auch "
+#~ "einzelne Cookies aktivieren. Die Cookie-Einstellungen können jederzeit "
+#~ "über den Link im Footer dieser Website angepasst werden."
+
+#~ msgid "cookies_imprint"
+#~ msgstr "Impressum"
+
+#~ msgid "cookies_privacy_policy"
+#~ msgstr "Datenschutz"
+
+#~ msgid "cookies_accept"
+#~ msgstr "Bestätigen"
+
+#~ msgid "cookies_decline"
+#~ msgstr "Ablehnen"
+
+#~ msgid "NAVBAR_RESPONSIVE"
+#~ msgstr "Responsive"
+
+#~ msgid "NAVBAR_TEAM"
+#~ msgstr "Team"
+
+#~ msgid "FAQ_TITLE"
+#~ msgstr "Häufig gestellte Fragen"
+
+#~ msgid "FAQ_TEXT"
+#~ msgstr ""
+#~ "Oft werden uns die gleichen Fragen gestellt, deshalb versuchen wir das "
+#~ "wichtigste hier zu beantworten. Bei weiteren Fragen können Sie sich "
+#~ "jederzeit gerne melden."
+
+msgid "impressum_title"
+msgstr "Impressum"
+
+msgid "impressum_legal_note"
+msgstr "Angaben gemäß § 5 TMG"
+
+msgid "impressum_owner_label"
+msgstr "Inhaber:"
+
+msgid "impressum_address_heading"
+msgstr "Anschrift"
+
+msgid "impressum_country_default"
+msgstr "Deutschland"
+
+msgid "impressum_contact_heading"
+msgstr "Kontakt"
+
+msgid "impressum_phone_label"
+msgstr "Telefon:"
+
+msgid "impressum_fax_label"
+msgstr "Fax:"
+
+msgid "impressum_email_label"
+msgstr "E-Mail:"
+
+msgid "impressum_website_label"
+msgstr "Website:"
+
+msgid "impressum_responsible_heading"
+msgstr "Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV"
+
+msgid "impressum_address_as_above"
+msgstr "Anschrift wie oben"
+
+msgid "contact_opening_hours_label"
+msgstr "Erreichbarkeit"
+
+msgid "contact_opening_hours_title"
+msgstr "Öffnungszeiten"
+
+msgid "contact_opening_hours_text"
+msgstr "Unsere regulären Zeiten für Anfragen, Rückrufe und persönliche Abstimmungen."
+
+msgid "opening_closed"
+msgstr "Geschlossen"
+
+msgid "opening_day_monday"
+msgstr "Montag"
+
+msgid "opening_day_tuesday"
+msgstr "Dienstag"
+
+msgid "opening_day_wednesday"
+msgstr "Mittwoch"
+
+msgid "opening_day_thursday"
+msgstr "Donnerstag"
+
+msgid "opening_day_friday"
+msgstr "Freitag"
+
+msgid "opening_day_saturday"
+msgstr "Samstag"
+
+msgid "opening_day_sunday"
+msgstr "Sonntag"
+
+msgid "blog_card_read_more"
+msgstr "Lesen"
+
+msgid "contact_map_label"
+msgstr "Standort"
+
+msgid "contact_map_title"
+msgstr "Direkt vor Ort."
+
+msgid "contact_map_text"
+msgstr "Unsere Karte zeigt dir den Standort und öffnet die Route direkt in Google Maps."
+
+msgid "contact_map_address_label"
+msgstr "Adresse"
+
+msgid "contact_map_directions"
+msgstr "Route planen"
+
+msgid "contact_map_disabled_title"
+msgstr "Google Maps ist deaktiviert."
+
+msgid "contact_map_disabled_text"
+msgstr "Die Karte wird erst nach deiner Einwilligung für externe Medien geladen."
+
+msgid "contact_map_cookie_button"
+msgstr "Cookie-Auswahl öffnen"
+
+msgid "contact_map_iframe_title"
+msgstr "Google Maps Standort"
+
+msgid "contact_map_missing_key_title"
+msgstr "Google Maps API Key fehlt."
+
+msgid "contact_map_missing_key_text"
+msgstr "Bitte GOOGLE_MAPS_EMBED_API_KEY in der .env setzen."

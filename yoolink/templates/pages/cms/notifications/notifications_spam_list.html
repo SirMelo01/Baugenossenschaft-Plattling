@@ -1,0 +1,160 @@
+{% extends "cmsbase.html" %}
+{% load i18n static %}
+
+{% block title %}{{ block.super }} | CMS | Spam{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-5xl">
+
+  {# ---------- Header ---------- #}
+  <div class="mb-6 mt-2 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <nav class="mb-1 flex items-center gap-1.5 text-sm text-slate-400">
+        <a href="{% url 'cms:cms' %}" class="font-medium text-slate-500 transition hover:text-blue-600">Dashboard</a>
+        <i class="bi bi-chevron-right text-xs"></i>
+        <a href="{% url 'cms:notifications-list' %}" class="font-medium text-slate-500 transition hover:text-blue-600">Benachrichtigungen</a>
+        <i class="bi bi-chevron-right text-xs"></i>
+        <span>Spam</span>
+      </nav>
+      <h1 class="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">Spam-Ordner</h1>
+      <p class="mt-1.5 text-slate-500">Als Spam markierte Benachrichtigungen – wiederherstellen oder endgültig löschen.</p>
+    </div>
+
+    <div class="flex flex-col gap-2 sm:flex-row">
+      <a href="{% url 'cms:notifications-list' %}"
+        class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 sm:w-auto">
+        <i class="bi bi-inbox"></i> Zur Inbox
+        {% if inbox_count %}<span class="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-bold text-slate-600">{{ inbox_count }}</span>{% endif %}
+      </a>
+
+      {% if notifications %}
+      <form id="spam-delete-all-form" method="post" action="{% url 'cms:notifications-spam-delete-all' %}">
+        {% csrf_token %}
+        <button type="submit"
+          class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm font-semibold text-rose-700 shadow-sm transition hover:bg-rose-100 sm:w-auto">
+          <i class="bi bi-trash3"></i> Alle Spam löschen
+        </button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if notifications %}
+  <div class="notif-list space-y-3">
+    {% for n in notifications %}
+    <div class="notif-item group relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md">
+      <span class="absolute inset-y-0 left-0 w-1 bg-slate-300"></span>
+
+      <div class="flex flex-col gap-4 p-4 pl-5 sm:flex-row sm:items-start sm:justify-between sm:p-5 sm:pl-6">
+        <div class="flex min-w-0 gap-3">
+          {% include "pages/cms/components/_icon_chip.html" with tone="slate" icon="bi-bell-slash-fill" cls="h-10 w-10 shrink-0 text-lg" %}
+
+          <div class="min-w-0">
+            <div class="flex flex-wrap items-center gap-2">
+              <a href="{{ n.get_absolute_url }}" class="font-semibold text-slate-900 transition hover:text-blue-700">
+                {{ n.title }}
+              </a>
+              <span class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600">
+                <i class="bi bi-slash-circle"></i> Spam
+              </span>
+            </div>
+
+            {% if n.description %}
+            <p class="mt-1.5 text-sm leading-6 text-slate-600">{{ n.description|truncatewords:40 }}</p>
+            {% endif %}
+
+            <div class="mt-2 flex items-center gap-1.5 text-xs text-slate-400">
+              <i class="bi bi-clock"></i>
+              {{ n.created_at|date:"d.m.Y · H:i" }} Uhr
+            </div>
+
+            <div class="mt-4">
+              <a href="{{ n.get_absolute_url }}"
+                class="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700">
+                <i class="bi bi-eye"></i> Details ansehen
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2 sm:flex-col sm:items-end">
+          <form method="post" action="{% url 'cms:notification-mark-ham' n.pk %}">
+            {% csrf_token %}
+            <button class="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100">
+              <i class="bi bi-arrow-counterclockwise"></i> Kein Spam
+            </button>
+          </form>
+
+          <button type="button" class="js-del-notif inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-rose-600 transition hover:border-rose-200 hover:bg-rose-50"
+            data-url="{% url 'cms:notification-delete' n.pk %}">
+            <i class="bi bi-trash3"></i> Löschen
+          </button>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {# ---------- Pagination ---------- #}
+  {% if page_obj.paginator.num_pages > 1 %}
+  <nav class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between" aria-label="Pagination">
+    <div class="text-sm text-slate-500">
+      Einträge <span class="font-semibold text-slate-700">{{ page_obj.start_index }}–{{ page_obj.end_index }}</span>
+      von <span class="font-semibold text-slate-700">{{ page_obj.paginator.count }}</span>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-1.5">
+      {% if page_obj.has_previous %}
+      <a href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ page_obj.previous_page_number }}"
+        class="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-semibold text-slate-700 transition hover:border-blue-300 hover:text-blue-700">
+        <i class="bi bi-chevron-left text-xs"></i> Zurück
+      </a>
+      {% else %}
+      <span class="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-sm font-semibold text-slate-300">
+        <i class="bi bi-chevron-left text-xs"></i> Zurück
+      </span>
+      {% endif %}
+
+      {% for num in page_obj.paginator.page_range %}
+      {% if num == page_obj.number %}
+      <span class="inline-flex h-9 min-w-[2.25rem] items-center justify-center rounded-xl bg-blue-600 px-2 text-sm font-semibold text-white">{{ num }}</span>
+      {% elif num >= page_obj.number|add:-2 and num <= page_obj.number|add:2 %}
+      <a href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ num }}"
+        class="inline-flex h-9 min-w-[2.25rem] items-center justify-center rounded-xl border border-slate-200 bg-white px-2 text-sm font-semibold text-slate-700 transition hover:border-blue-300 hover:text-blue-700">{{ num }}</a>
+      {% elif num == 1 or num == page_obj.paginator.num_pages %}
+      <a href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ num }}"
+        class="inline-flex h-9 min-w-[2.25rem] items-center justify-center rounded-xl border border-slate-200 bg-white px-2 text-sm font-semibold text-slate-700 transition hover:border-blue-300 hover:text-blue-700">{{ num }}</a>
+      {% elif forloop.first or forloop.last %}
+      <span class="px-1 text-slate-400">…</span>
+      {% endif %}
+      {% endfor %}
+
+      {% if page_obj.has_next %}
+      <a href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ page_obj.next_page_number }}"
+        class="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-semibold text-slate-700 transition hover:border-blue-300 hover:text-blue-700">
+        Weiter <i class="bi bi-chevron-right text-xs"></i>
+      </a>
+      {% else %}
+      <span class="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-sm font-semibold text-slate-300">
+        Weiter <i class="bi bi-chevron-right text-xs"></i>
+      </span>
+      {% endif %}
+    </div>
+  </nav>
+  {% endif %}
+
+  {% else %}
+  <div class="rounded-2xl border border-dashed border-slate-300 bg-white p-12 text-center shadow-sm">
+    <span class="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-emerald-100 text-emerald-600">
+      <i class="bi bi-check2-circle text-2xl"></i>
+    </span>
+    <h3 class="mt-4 text-lg font-semibold text-slate-900">Kein Spam vorhanden</h3>
+    <p class="mt-1 text-sm text-slate-500">Als Spam markierte Benachrichtigungen erscheinen hier.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block javascriptend %}
+<script src="{% static 'js/cms/notifications/notification-list.js' %}"></script>
+{% endblock %}

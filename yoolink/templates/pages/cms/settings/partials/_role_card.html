@@ -1,0 +1,82 @@
+{% comment %}
+Eine Rollen-Karte. Systemrollen werden schreibgeschützt dargestellt,
+eigene Rollen sind per AJAX editierbar (Name, Beschreibung, Berechtigungen).
+Erwartet: role (id/name/description/permissions/is_system), permission_choices.
+{% endcomment %}
+<div class="js-role-card overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm"
+     data-role-id="{{ role.id }}" data-system="{% if role.is_system %}1{% else %}0{% endif %}">
+
+    <!-- Kopf -->
+    <div class="flex flex-wrap items-center gap-3 border-b border-slate-100 bg-slate-50/60 px-6 py-4">
+        <span class="grid h-10 w-10 flex-shrink-0 place-items-center rounded-xl {% if role.is_system %}bg-slate-200 text-slate-600{% else %}bg-blue-100 text-blue-600{% endif %}">
+            <i class="bi {% if role.is_system %}bi-shield-lock-fill{% else %}bi-shield-check{% endif %}"></i>
+        </span>
+        <div class="min-w-0 flex-1">
+            <p class="js-role-title truncate text-base font-semibold text-slate-900">{{ role.name|default:"Neue Rolle" }}</p>
+            <p class="text-xs text-slate-500"><span class="js-role-count">{{ role.permissions|length }}</span> Berechtigungen</p>
+        </div>
+        {% if role.is_system %}
+        <span class="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700"><i class="bi bi-lock-fill"></i> Systemrolle</span>
+        {% endif %}
+    </div>
+
+    {% if role.is_system %}
+    <!-- Schreibgeschützt -->
+    <div class="space-y-4 px-6 py-5">
+        {% if role.description %}<p class="text-sm text-slate-500">{{ role.description }}</p>{% endif %}
+        <div>
+            <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Berechtigungen</p>
+            <div class="flex flex-wrap gap-2">
+                {% for code, label in permission_choices %}
+                    {% if code in role.permissions %}
+                    <span class="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600"><i class="bi bi-check2 text-emerald-500"></i>{{ label }}</span>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        <p class="flex items-center gap-1.5 rounded-xl bg-slate-50 px-3 py-2 text-xs text-slate-400"><i class="bi bi-info-circle"></i> Systemrolle – wird automatisch verwaltet und kann nicht bearbeitet werden.</p>
+    </div>
+    {% else %}
+    <!-- Editierbar -->
+    <form class="js-role-form space-y-5 px-6 py-5">
+        <input type="hidden" name="action" value="update">
+        <input type="hidden" name="role_id" value="{{ role.id }}">
+
+        <div class="grid gap-4 sm:grid-cols-2">
+            <div>
+                <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">Name</label>
+                <input name="name" value="{{ role.name }}" placeholder="Rollenname"
+                    class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
+            </div>
+            <div>
+                <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">Beschreibung</label>
+                <input name="description" value="{{ role.description }}" placeholder="Kurze Beschreibung"
+                    class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
+            </div>
+        </div>
+
+        <div>
+            <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Berechtigungen</p>
+            <div class="flex flex-wrap gap-2">
+                {% for code, label in permission_choices %}
+                <label class="cursor-pointer">
+                    <input type="checkbox" name="permissions" value="{{ code }}" class="peer sr-only" {% if code in role.permissions %}checked{% endif %}>
+                    <span class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600 transition hover:border-blue-300 hover:bg-blue-50 peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 peer-checked:[&>.chk-off]:hidden peer-checked:[&>.chk-on]:inline-block">
+                        <i class="chk-off bi bi-x-circle text-slate-400 transition"></i><i class="chk-on hidden bi bi-check-circle-fill text-blue-500 transition"></i>{{ label }}
+                    </span>
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4">
+            <button type="button" class="js-role-delete inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-600 transition hover:bg-rose-100">
+                <i class="bi bi-trash"></i> Löschen
+            </button>
+            <button type="submit" class="js-role-save inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-60">
+                <i class="bi bi-check2"></i> Speichern
+            </button>
+        </div>
+    </form>
+    {% endif %}
+</div>

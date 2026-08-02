@@ -1,0 +1,203 @@
+{% extends "cmsbase.html" %}
+{% load compress static %}
+{% block title %} {{ block.super }} | CMS - Kontakt {% endblock %}
+
+{% block content %}
+
+<div class="mx-auto mt-4 max-w-6xl px-4 sm:mt-8 sm:px-6">
+
+  <!-- ── Header ── -->
+  <div class="sticky top-[4.25rem] z-30 mb-6 rounded-2xl border border-gray-200 bg-white/95 px-5 py-4 shadow-sm backdrop-blur flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <h1 class="text-2xl">
+      <a href="{% url 'cms:sites' %}" class="text-blue-500">Seiten</a>
+      / <span>Kontakt (/kontakt)</span>
+    </h1>
+    <div>
+      {% csrf_token %}
+      <a class="block w-full rounded bg-green-500 px-4 py-3 text-center font-bold text-white hover:cursor-pointer hover:bg-green-700 sm:w-auto sm:py-2"
+         id="saveTextData" name="main_kontakt">
+        Speichern
+      </a>
+    </div>
+  </div>
+
+  <p class="mt-4 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800 ring-1 ring-amber-200">
+    <i class="bi bi-info-circle mr-1"></i>Adresse, E-Mail und Telefonnummer selbst werden zentral unter
+    <strong>Einstellungen → Website</strong> gepflegt. Hier änderst du nur die Texte/Beschriftungen der Kontaktseite.
+  </p>
+
+  <div class="mt-8 space-y-8 pb-20">
+
+    <!-- ══════════════════════════════════════════
+         HERO
+    ══════════════════════════════════════════ -->
+    <section class="rounded-2xl bg-blue-50 p-6">
+      <p class="mb-4 text-xs font-semibold uppercase tracking-wider text-blue-700">Hero (Seitenkopf)</p>
+      <div class="text-content flex flex-col gap-3" key="main_kontakt_hero">
+        <input inputType="title" type="text"
+               class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-2xl font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+               placeholder="Überschrift (H1)"
+               value="{{ textContent_hero.title|default:'Nehmen Sie Kontakt auf' }}">
+        <textarea inputType="description" rows="2"
+                  class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-base leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_hero.description|default:"Wir freuen uns auf Ihre Anfrage – egal ob Projekt, Frage oder einfach Hallo." }}</textarea>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         INFO-PANEL (links, blau)
+    ══════════════════════════════════════════ -->
+    <section class="rounded-2xl bg-blue-50 p-6">
+      <p class="mb-4 text-xs font-semibold uppercase tracking-wider text-blue-700">Info-Panel (linke, blaue Spalte)</p>
+
+      <div class="text-content flex flex-col gap-3" key="main_kontakt_panel">
+        <input inputType="title" type="text"
+               class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-xl font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+               placeholder="Überschrift (H2)"
+               value="{{ textContent_panel.title|default:'Wir sind für Sie da.' }}">
+        <textarea inputType="description" rows="3"
+                  class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-base leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_panel.description|default:"Lassen Sie uns gemeinsam Ihr nächstes digitales Projekt umsetzen. Schreiben Sie uns – wir antworten schnell." }}</textarea>
+      </div>
+
+      <p class="mt-4 mb-2 text-xs font-semibold uppercase tracking-wider text-blue-700">Beschriftungen der Kontaktdaten (die Werte kommen aus den Einstellungen)</p>
+      <div class="text-content grid grid-cols-1 gap-3 md:grid-cols-3" key="main_kontakt_panel_labels">
+        <div class="flex flex-col gap-2">
+          <span class="text-xs font-semibold uppercase tracking-wider text-gray-500">Label Adresse</span>
+          <input inputType="header" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_panel_labels.header|default:'Adresse' }}">
+        </div>
+        <div class="flex flex-col gap-2">
+          <span class="text-xs font-semibold uppercase tracking-wider text-gray-500">Label E-Mail</span>
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_panel_labels.title|default:'E-Mail' }}">
+        </div>
+        <div class="flex flex-col gap-2">
+          <span class="text-xs font-semibold uppercase tracking-wider text-gray-500">Label Telefon</span>
+          <input inputType="description" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_panel_labels.description|default:'Telefon' }}">
+        </div>
+      </div>
+
+      <p class="mt-4 mb-2 text-xs font-semibold uppercase tracking-wider text-blue-700">Öffnungszeiten-Intro</p>
+      <div class="text-content flex flex-col gap-3" key="main_kontakt_opening_hours">
+        <input inputType="header" type="text"
+               class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-sm font-semibold uppercase tracking-widest text-blue-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+               value="{{ textContent_opening_hours.header|default:'Erreichbarkeit' }}">
+        <input inputType="title" type="text"
+               class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-lg font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+               value="{{ textContent_opening_hours.title|default:'Öffnungszeiten' }}">
+        <textarea inputType="description" rows="2"
+                  class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-base leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_opening_hours.description|default:"Unsere regulären Zeiten für Anfragen, Rückrufe und persönliche Abstimmungen." }}</textarea>
+      </div>
+
+      <p class="mt-4 mb-2 text-xs font-semibold uppercase tracking-wider text-blue-700">Antwortzeit-Badge</p>
+      <div class="text-content grid grid-cols-1 gap-3 md:grid-cols-2" key="main_kontakt_response">
+        <div class="flex flex-col gap-2">
+          <span class="text-xs font-semibold uppercase tracking-wider text-gray-500">Text</span>
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_response.title|default:'Antwort meist innerhalb von' }}">
+        </div>
+        <div class="flex flex-col gap-2">
+          <span class="text-xs font-semibold uppercase tracking-wider text-gray-500">Hervorgehoben (fett)</span>
+          <input inputType="buttonText" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_response.buttonText|default:'24 Stunden' }}">
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         FORMULAR (rechts)
+    ══════════════════════════════════════════ -->
+    <section class="rounded-2xl bg-blue-50 p-6">
+      <p class="mb-4 text-xs font-semibold uppercase tracking-wider text-blue-700">Formular (rechte Spalte)</p>
+
+      <div class="text-content flex flex-col gap-3" key="main_kontakt_form">
+        <input inputType="title" type="text"
+               class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-lg font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+               placeholder="Formular-Überschrift"
+               value="{{ textContent_form.title|default:'Nachricht senden' }}">
+        <input inputType="description" type="text"
+               class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-sm focus:border-blue-500 focus:bg-white focus:outline-none"
+               placeholder="Hinweis unter der Überschrift"
+               value="{{ textContent_form.description|default:'Alle mit * markierten Felder sind Pflichtfelder.' }}">
+        <div class="flex flex-col gap-1">
+          <span class="text-xs font-semibold uppercase tracking-wider text-gray-500">Absenden-Button</span>
+          <input inputType="buttonText" type="text"
+                 class="self-start rounded-md bg-blue-900 px-6 py-3 text-sm font-bold text-white"
+                 value="{{ textContent_form.buttonText|default:'Nachricht absenden' }}">
+        </div>
+      </div>
+
+      <p class="mt-4 mb-2 text-xs font-semibold uppercase tracking-wider text-blue-700">Feld-Beschriftungen (das „*" der Pflichtfelder bleibt automatisch)</p>
+      <div class="text-content grid grid-cols-1 gap-3 md:grid-cols-2" key="main_kontakt_fields">
+        <div class="flex flex-col gap-2">
+          <span class="text-xs font-semibold uppercase tracking-wider text-gray-500">Label „Name"</span>
+          <input inputType="header" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_fields.header|default:'Name' }}">
+        </div>
+        <div class="flex flex-col gap-2">
+          <span class="text-xs font-semibold uppercase tracking-wider text-gray-500">Label „E-Mail Adresse"</span>
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_fields.title|default:'E-Mail Adresse' }}">
+        </div>
+        <div class="flex flex-col gap-2">
+          <span class="text-xs font-semibold uppercase tracking-wider text-gray-500">Label „Anliegen"</span>
+          <input inputType="description" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_fields.description|default:'Anliegen' }}">
+        </div>
+        <div class="flex flex-col gap-2">
+          <span class="text-xs font-semibold uppercase tracking-wider text-gray-500">Label „Nachricht"</span>
+          <input inputType="buttonText" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_fields.buttonText|default:'Nachricht' }}">
+        </div>
+      </div>
+
+      <div class="text-content mt-3 flex flex-col gap-2" key="main_kontakt_message_placeholder">
+        <span class="text-xs font-semibold uppercase tracking-wider text-gray-500">Platzhalter im Nachrichtenfeld</span>
+        <input inputType="title" type="text"
+               class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none"
+               value="{{ textContent_message_placeholder.title|default:'Beschreiben Sie Ihr Anliegen...' }}">
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         ERFOLGSMELDUNG (nach dem Absenden)
+    ══════════════════════════════════════════ -->
+    <section class="rounded-2xl bg-blue-50 p-6">
+      <p class="mb-4 text-xs font-semibold uppercase tracking-wider text-blue-700">Erfolgsmeldung (wird nach dem Absenden angezeigt)</p>
+      <div class="text-content flex flex-col gap-3" key="main_kontakt_success">
+        <input inputType="title" type="text"
+               class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-xl font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+               placeholder="Überschrift"
+               value="{{ textContent_success.title|default:'Nachricht gesendet!' }}">
+        <textarea inputType="description" rows="2"
+                  class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-base leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_success.description|default:"Vielen Dank für Ihre Nachricht. Wir melden uns in der Regel innerhalb von 24 Stunden bei Ihnen." }}</textarea>
+        <div class="flex flex-col gap-1">
+          <span class="text-xs font-semibold uppercase tracking-wider text-gray-500">Button</span>
+          <input inputType="buttonText" type="text"
+                 class="self-start rounded-md bg-blue-900 px-6 py-3 text-sm font-bold text-white"
+                 value="{{ textContent_success.buttonText|default:'Zurück zur Startseite' }}">
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block javascriptend %}
+{% compress js %}
+<script defer src="{% static 'js/cms.js' %}"></script>
+<script defer src="{% static 'js/cms/content/siteManager.js' %}"></script>
+<script src="{% static 'js/cms/content/save-text.js' %}"></script>
+<script defer src="{% static 'js/cms/unsaved-guard.js' %}"></script>
+{% endcompress js %}
+{% endblock %}

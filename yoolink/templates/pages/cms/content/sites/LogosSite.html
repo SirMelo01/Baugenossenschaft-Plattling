@@ -1,0 +1,578 @@
+{% extends "cmsbase.html" %}
+{% load compress static %}
+{% block title %} {{ block.super }} | CMS - Logos {% endblock %}
+
+{% block content %}
+{% include "pages/cms/components/ImageSelectModal.html" %}
+
+<div class="mx-auto mt-4 max-w-6xl px-4 sm:mt-8 sm:px-6">
+
+  <!-- ── Header ── -->
+  <div class="sticky top-[4.25rem] z-30 mb-6 rounded-2xl border border-gray-200 bg-white/95 px-5 py-4 shadow-sm backdrop-blur flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <h1 class="text-2xl">
+      <a href="{% url 'cms:sites' %}" class="text-blue-500">Seiten</a>
+      / <a href="{% url 'cms:site_leistungen' %}" class="text-blue-500">Leistungen (/leistungen)</a>
+      / <span>Logos (/leistungen/logos)</span>
+    </h1>
+    <div>
+      {% csrf_token %}
+      <a class="block w-full rounded bg-green-500 px-4 py-3 text-center font-bold text-white hover:cursor-pointer hover:bg-green-700 sm:w-auto sm:py-2"
+         id="saveTextData" name="main_logos">
+        Speichern
+      </a>
+    </div>
+  </div>
+
+  <div class="mt-8 space-y-8 pb-20">
+
+    <!-- ══════════════════════════════════════════
+         HERO
+    ══════════════════════════════════════════ -->
+    <section class="rounded-2xl bg-blue-50 p-6">
+      <p class="mb-4 text-xs font-semibold uppercase tracking-wider text-blue-700">Hero</p>
+      <div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
+        <!-- Text -->
+        <div class="flex flex-col gap-3">
+          <div class="text-content flex flex-col gap-3" key="main_logos_hero">
+            <input inputType="header" type="text"
+                   class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-sm font-semibold uppercase tracking-widest text-blue-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+                   placeholder="Über-Tagline (z. B. 'Logo Design Agentur')"
+                   value="{{ textContent_hero.header|default:'Logo Design Agentur' }}">
+            <input inputType="title" type="text"
+                   class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-2xl font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                   placeholder="Überschrift (H1)"
+                   value="{{ textContent_hero.title|default:'Firmenlogo erstellen lassen - mit Strategie, Design und Wirkung' }}">
+            <textarea inputType="description" rows="5"
+                      class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-base leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_hero.description|default:"Ein starkes Logo ist mehr als ein Bild - es ist das visuelle Versprechen deiner Marke. Wir entwickeln professionelles Logo Design, das deine Werte transportiert, Vertrauen aufbaut und über Jahre hinweg funktioniert." }}</textarea>
+            <input inputType="buttonText" type="text"
+                   class="self-start rounded-md bg-blue-900 px-6 py-3 text-sm font-bold text-white"
+                   value="{{ textContent_hero.buttonText|default:'Logo jetzt anfragen' }}">
+          </div>
+          <div class="text-content flex flex-col gap-2 border-t border-blue-200 pt-3" key="main_logos_hero_secondary">
+            <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Sekundärer Button</p>
+            <input inputType="title" type="text"
+                   class="self-start rounded-md border-2 border-blue-300 bg-white px-6 py-3 text-sm font-bold text-blue-900"
+                   value="{{ textContent_hero_secondary.title|default:'Designprozess ansehen' }}">
+          </div>
+        </div>
+
+        <!-- Rechts: 5 Logo-Bilder im Orbit -->
+        <div>
+          <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-orange-600">
+            <i class="bi bi-image mr-1"></i>Referenz-Logos im Orbit (5 Stück)
+          </p>
+          <div class="grid grid-cols-3 gap-3">
+            <div class="relative overflow-hidden rounded-xl bg-gray-200 ring-1 ring-slate-200">
+              <span class="edit-img absolute left-2 top-2 z-40 inline-block rounded-full bg-orange-500 px-2 py-1 text-sm font-semibold text-white hover:cursor-pointer"><i class="bi bi-pencil-square"></i></span>
+              {% if image_hero_logo_1 %}
+              <img src="{{ image_hero_logo_1.file.url }}" imgId="{{ image_hero_logo_1.id }}" key="main_logos_hero_logo_1" alt="Logo 1" class="content-image h-28 w-full object-contain rounded-xl bg-white p-3" />
+              {% else %}
+              <img src="" imgId="-1" key="main_logos_hero_logo_1" alt="Logo 1" class="content-image h-28 w-full object-contain rounded-xl bg-gray-300" />
+              {% endif %}
+            </div>
+            <div class="relative overflow-hidden rounded-xl bg-gray-200 ring-1 ring-slate-200">
+              <span class="edit-img absolute left-2 top-2 z-40 inline-block rounded-full bg-orange-500 px-2 py-1 text-sm font-semibold text-white hover:cursor-pointer"><i class="bi bi-pencil-square"></i></span>
+              {% if image_hero_logo_2 %}
+              <img src="{{ image_hero_logo_2.file.url }}" imgId="{{ image_hero_logo_2.id }}" key="main_logos_hero_logo_2" alt="Logo 2" class="content-image h-28 w-full object-contain rounded-xl bg-white p-3" />
+              {% else %}
+              <img src="" imgId="-1" key="main_logos_hero_logo_2" alt="Logo 2" class="content-image h-28 w-full object-contain rounded-xl bg-gray-300" />
+              {% endif %}
+            </div>
+            <div class="relative overflow-hidden rounded-xl bg-gray-200 ring-1 ring-slate-200">
+              <span class="edit-img absolute left-2 top-2 z-40 inline-block rounded-full bg-orange-500 px-2 py-1 text-sm font-semibold text-white hover:cursor-pointer"><i class="bi bi-pencil-square"></i></span>
+              {% if image_hero_logo_3 %}
+              <img src="{{ image_hero_logo_3.file.url }}" imgId="{{ image_hero_logo_3.id }}" key="main_logos_hero_logo_3" alt="Logo 3" class="content-image h-28 w-full object-contain rounded-xl bg-white p-3" />
+              {% else %}
+              <img src="" imgId="-1" key="main_logos_hero_logo_3" alt="Logo 3" class="content-image h-28 w-full object-contain rounded-xl bg-gray-300" />
+              {% endif %}
+            </div>
+            <div class="relative overflow-hidden rounded-xl bg-gray-200 ring-1 ring-slate-200">
+              <span class="edit-img absolute left-2 top-2 z-40 inline-block rounded-full bg-orange-500 px-2 py-1 text-sm font-semibold text-white hover:cursor-pointer"><i class="bi bi-pencil-square"></i></span>
+              {% if image_hero_logo_4 %}
+              <img src="{{ image_hero_logo_4.file.url }}" imgId="{{ image_hero_logo_4.id }}" key="main_logos_hero_logo_4" alt="Logo 4" class="content-image h-28 w-full object-contain rounded-xl bg-white p-3" />
+              {% else %}
+              <img src="" imgId="-1" key="main_logos_hero_logo_4" alt="Logo 4" class="content-image h-28 w-full object-contain rounded-xl bg-gray-300" />
+              {% endif %}
+            </div>
+            <div class="relative overflow-hidden rounded-xl bg-gray-200 ring-1 ring-slate-200">
+              <span class="edit-img absolute left-2 top-2 z-40 inline-block rounded-full bg-orange-500 px-2 py-1 text-sm font-semibold text-white hover:cursor-pointer"><i class="bi bi-pencil-square"></i></span>
+              {% if image_hero_logo_5 %}
+              <img src="{{ image_hero_logo_5.file.url }}" imgId="{{ image_hero_logo_5.id }}" key="main_logos_hero_logo_5" alt="Logo 5" class="content-image h-28 w-full object-contain rounded-xl bg-white p-3" />
+              {% else %}
+              <img src="" imgId="-1" key="main_logos_hero_logo_5" alt="Logo 5" class="content-image h-28 w-full object-contain rounded-xl bg-gray-300" />
+              {% endif %}
+            </div>
+            <div class="flex h-28 items-center justify-center rounded-xl bg-blue-100 text-center text-xs text-blue-900 ring-1 ring-blue-200">
+              <span class="px-2">"Dein Logo"<br><span class="text-[10px] text-blue-700">(Platzhalter, statisch)</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         WARUM EIN PROFESSIONELLES LOGO
+    ══════════════════════════════════════════ -->
+    <section class="rounded-2xl bg-blue-50 p-6">
+      <p class="mb-4 text-xs font-semibold uppercase tracking-wider text-blue-700">Warum ein professionelles Logo</p>
+
+      <div class="text-content flex flex-col gap-3" key="main_logos_warum">
+        <input inputType="title" type="text"
+               class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-xl font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+               placeholder="Überschrift (H2)"
+               value="{{ textContent_warum.title|default:'Warum ein professionelles Logo so wichtig ist' }}">
+        <textarea inputType="description" rows="3"
+                  class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-base leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_warum.description|default:"Dein Logo ist der erste Berührungspunkt zwischen deinem Unternehmen und deinen Kunden. Es entscheidet in Sekunden darüber, ob deine Marke als professionell, vertrauenswürdig und relevant wahrgenommen wird. Ein durchdachtes Firmenlogo Design ist die Grundlage für jede erfolgreiche Markenidentität." }}</textarea>
+      </div>
+
+      <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm" key="main_logos_warum_card1">
+          <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Karte 1 (Icon: Bullseye, statisch)</p>
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-lg font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_warum_card1.title|default:'Markenaufbau' }}">
+          <textarea inputType="description" rows="3"
+                    class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_warum_card1.description|default:"Ein gutes Logo bildet das visuelle Fundament deiner Marke und vereint Werte, Persönlichkeit und Positionierung in einem einzigen Symbol." }}</textarea>
+        </div>
+        <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm" key="main_logos_warum_card2">
+          <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Karte 2 (Icon: Eye, statisch)</p>
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-lg font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_warum_card2.title|default:'Wiedererkennung' }}">
+          <textarea inputType="description" rows="3"
+                    class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_warum_card2.description|default:"Ein einzigartiges Logo Design hebt dich vom Wettbewerb ab und bleibt im Gedächtnis - über alle Kanäle, Formate und Berührungspunkte hinweg." }}</textarea>
+        </div>
+        <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm" key="main_logos_warum_card3">
+          <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Karte 3 (Icon: Shield, statisch)</p>
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-lg font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_warum_card3.title|default:'Vertrauen' }}">
+          <textarea inputType="description" rows="3"
+                    class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_warum_card3.description|default:"Hochwertiges Design signalisiert Professionalität. Wer in ein gutes Logo investiert, vermittelt Sorgfalt - und damit Vertrauen." }}</textarea>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         LEISTUNGSBEREICHE
+    ══════════════════════════════════════════ -->
+    <section class="rounded-2xl bg-blue-50 p-6">
+      <p class="mb-4 text-xs font-semibold uppercase tracking-wider text-blue-700">Leistungsbereiche</p>
+
+      <div class="text-content flex flex-col gap-3" key="main_logos_leistungen">
+        <input inputType="title" type="text"
+               class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-xl font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+               placeholder="Überschrift (H2)"
+               value="{{ textContent_leistungen.title|default:'Unsere Leistungen rund um Logo Design' }}">
+        <textarea inputType="description" rows="3"
+                  class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-base leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_leistungen.description|default:"Ob du dein erstes Firmenlogo erstellen lassen möchtest, ein bestehendes Logo modernisieren willst oder eine vollständige Markenidentität brauchst - wir bieten dir das passende Leistungspaket." }}</textarea>
+      </div>
+
+      <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+        <!-- Karte 1: Logo nach Kundenwunsch -->
+        <div class="rounded-xl bg-white p-4 shadow-sm">
+          <div class="text-content flex flex-col gap-2" key="main_logos_leistungen_card1">
+            <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Karte 1 (Icon: Vector-Pen)</p>
+            <input inputType="title" type="text"
+                   class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-lg font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                   value="{{ textContent_leistungen_card1.title|default:'Logo nach Kundenwunsch' }}">
+            <textarea inputType="description" rows="3"
+                      class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_leistungen_card1.description|default:"Du hast bereits eine klare Vorstellung? Wir setzen deine Idee in ein sauberes, professionelles Logo um - schnell, unkompliziert und zu einem fairen Preis." }}</textarea>
+          </div>
+          <p class="mt-3 text-xs font-semibold uppercase tracking-wider text-gray-500">Bullet-Punkte</p>
+          <div class="mt-1 flex flex-col gap-1.5">
+            <div class="text-content flex items-center gap-2" key="main_logos_leistungen_card1_bullet1">
+              <span class="text-gray-400">•</span>
+              <input inputType="title" type="text"
+                     class="flex-1 rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1 text-sm focus:border-blue-500 focus:bg-white focus:outline-none"
+                     value="{{ textContent_leistungen_card1_bullet1.title|default:'Konkrete Vorgaben werden präzise umgesetzt' }}">
+            </div>
+            <div class="text-content flex items-center gap-2" key="main_logos_leistungen_card1_bullet2">
+              <span class="text-gray-400">•</span>
+              <input inputType="title" type="text"
+                     class="flex-1 rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1 text-sm focus:border-blue-500 focus:bg-white focus:outline-none"
+                     value="{{ textContent_leistungen_card1_bullet2.title|default:'Sauberes, vektorbasiertes Endergebnis' }}">
+            </div>
+            <div class="text-content flex items-center gap-2" key="main_logos_leistungen_card1_bullet3">
+              <span class="text-gray-400">•</span>
+              <input inputType="title" type="text"
+                     class="flex-1 rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1 text-sm focus:border-blue-500 focus:bg-white focus:outline-none"
+                     value="{{ textContent_leistungen_card1_bullet3.title|default:'Mehrere Korrekturschleifen inklusive' }}">
+            </div>
+          </div>
+        </div>
+
+        <!-- Karte 2: Logo Redesign -->
+        <div class="rounded-xl bg-white p-4 shadow-sm">
+          <div class="text-content flex flex-col gap-2" key="main_logos_leistungen_card2">
+            <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Karte 2 (Icon: Arrow-Repeat)</p>
+            <input inputType="title" type="text"
+                   class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-lg font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                   value="{{ textContent_leistungen_card2.title|default:'Logo Redesign' }}">
+            <textarea inputType="description" rows="3"
+                      class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_leistungen_card2.description|default:"Dein bestehendes Logo wirkt veraltet, technisch unsauber oder passt nicht mehr zu deiner Marke? Wir überarbeiten dein Logo behutsam und holen das Beste aus deiner Markenhistorie heraus." }}</textarea>
+          </div>
+          <p class="mt-3 text-xs font-semibold uppercase tracking-wider text-gray-500">Bullet-Punkte</p>
+          <div class="mt-1 flex flex-col gap-1.5">
+            <div class="text-content flex items-center gap-2" key="main_logos_leistungen_card2_bullet1">
+              <span class="text-gray-400">•</span>
+              <input inputType="title" type="text"
+                     class="flex-1 rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1 text-sm focus:border-blue-500 focus:bg-white focus:outline-none"
+                     value="{{ textContent_leistungen_card2_bullet1.title|default:'Modernisierung ohne Verlust der Wiedererkennung' }}">
+            </div>
+            <div class="text-content flex items-center gap-2" key="main_logos_leistungen_card2_bullet2">
+              <span class="text-gray-400">•</span>
+              <input inputType="title" type="text"
+                     class="flex-1 rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1 text-sm focus:border-blue-500 focus:bg-white focus:outline-none"
+                     value="{{ textContent_leistungen_card2_bullet2.title|default:'Technische Bereinigung und Vektorisierung' }}">
+            </div>
+            <div class="text-content flex items-center gap-2" key="main_logos_leistungen_card2_bullet3">
+              <span class="text-gray-400">•</span>
+              <input inputType="title" type="text"
+                     class="flex-1 rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1 text-sm focus:border-blue-500 focus:bg-white focus:outline-none"
+                     value="{{ textContent_leistungen_card2_bullet3.title|default:'Optimiert für digitale und gedruckte Medien' }}">
+            </div>
+          </div>
+        </div>
+
+        <!-- Karte 3: Strategisches Logo Design -->
+        <div class="rounded-xl bg-white p-4 shadow-sm">
+          <div class="text-content flex flex-col gap-2" key="main_logos_leistungen_card3">
+            <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Karte 3 (Icon: Diagram)</p>
+            <input inputType="title" type="text"
+                   class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-lg font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                   value="{{ textContent_leistungen_card3.title|default:'Strategisches Logo Design' }}">
+            <textarea inputType="description" rows="3"
+                      class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_leistungen_card3.description|default:"Wir entwickeln dein Firmenlogo Design auf Basis fundierter Zielgruppen- und Markenanalysen. So entsteht ein Logo, das nicht nur gut aussieht, sondern messbar funktioniert." }}</textarea>
+          </div>
+          <p class="mt-3 text-xs font-semibold uppercase tracking-wider text-gray-500">Bullet-Punkte</p>
+          <div class="mt-1 flex flex-col gap-1.5">
+            <div class="text-content flex items-center gap-2" key="main_logos_leistungen_card3_bullet1">
+              <span class="text-gray-400">•</span>
+              <input inputType="title" type="text"
+                     class="flex-1 rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1 text-sm focus:border-blue-500 focus:bg-white focus:outline-none"
+                     value="{{ textContent_leistungen_card3_bullet1.title|default:'Wettbewerbs- und Marktanalyse' }}">
+            </div>
+            <div class="text-content flex items-center gap-2" key="main_logos_leistungen_card3_bullet2">
+              <span class="text-gray-400">•</span>
+              <input inputType="title" type="text"
+                     class="flex-1 rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1 text-sm focus:border-blue-500 focus:bg-white focus:outline-none"
+                     value="{{ textContent_leistungen_card3_bullet2.title|default:'Zielgruppen- und Markenpositionierung' }}">
+            </div>
+            <div class="text-content flex items-center gap-2" key="main_logos_leistungen_card3_bullet3">
+              <span class="text-gray-400">•</span>
+              <input inputType="title" type="text"
+                     class="flex-1 rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1 text-sm focus:border-blue-500 focus:bg-white focus:outline-none"
+                     value="{{ textContent_leistungen_card3_bullet3.title|default:'Designentscheidungen mit klarer Begründung' }}">
+            </div>
+          </div>
+        </div>
+
+        <!-- Karte 4: Premium -->
+        <div class="rounded-xl bg-blue-900 p-4 text-white shadow-sm">
+          <div class="text-content flex flex-col gap-2" key="main_logos_leistungen_premium">
+            <p class="text-xs font-semibold uppercase tracking-wider text-blue-200">Premium-Karte</p>
+            <input inputType="header" type="text"
+                   class="w-full rounded-lg border-2 border-blue-700 bg-blue-800 px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-white placeholder-blue-300 focus:border-blue-300 focus:bg-blue-700 focus:outline-none"
+                   placeholder="Badge-Text"
+                   value="{{ textContent_leistungen_premium.header|default:'Premium' }}">
+            <input inputType="title" type="text"
+                   class="w-full rounded-lg border-2 border-blue-700 bg-blue-800 px-3 py-1.5 text-lg font-bold text-white placeholder-blue-300 focus:border-blue-300 focus:bg-blue-700 focus:outline-none"
+                   value="{{ textContent_leistungen_premium.title|default:'Logo Design auf Basis von Goldenem Schnitt & Geometrie' }}">
+            <textarea inputType="description" rows="4"
+                      class="w-full rounded-lg border-2 border-blue-700 bg-blue-800 px-3 py-1.5 text-sm text-white placeholder-blue-300 focus:border-blue-300 focus:bg-blue-700 focus:outline-none">{{ textContent_leistungen_premium.description|default:"Im Premium-Bereich entwickeln wir Logos auf Basis fortgeschrittener Designprinzipien. Goldener Schnitt, geometrische Konstruktionen, Farbpsychologie und gezielte Typografie sorgen für Logos, die mathematisch ausbalanciert und visuell überzeugend sind." }}</textarea>
+          </div>
+          <p class="mt-3 text-xs font-semibold uppercase tracking-wider text-blue-200">Bullet-Punkte</p>
+          <div class="mt-1 flex flex-col gap-1.5">
+            <div class="text-content flex items-center gap-2" key="main_logos_leistungen_premium_bullet1">
+              <span class="text-blue-300">✓</span>
+              <input inputType="title" type="text"
+                     class="flex-1 rounded-lg border-2 border-blue-700 bg-blue-800 px-3 py-1 text-sm text-white placeholder-blue-300 focus:border-blue-300 focus:bg-blue-700 focus:outline-none"
+                     value="{{ textContent_leistungen_premium_bullet1.title|default:'Konstruktion nach Goldenem Schnitt und Fibonacci' }}">
+            </div>
+            <div class="text-content flex items-center gap-2" key="main_logos_leistungen_premium_bullet2">
+              <span class="text-blue-300">✓</span>
+              <input inputType="title" type="text"
+                     class="flex-1 rounded-lg border-2 border-blue-700 bg-blue-800 px-3 py-1 text-sm text-white placeholder-blue-300 focus:border-blue-300 focus:bg-blue-700 focus:outline-none"
+                     value="{{ textContent_leistungen_premium_bullet2.title|default:'Geometrische Reinheit und harmonische Proportionen' }}">
+            </div>
+            <div class="text-content flex items-center gap-2" key="main_logos_leistungen_premium_bullet3">
+              <span class="text-blue-300">✓</span>
+              <input inputType="title" type="text"
+                     class="flex-1 rounded-lg border-2 border-blue-700 bg-blue-800 px-3 py-1 text-sm text-white placeholder-blue-300 focus:border-blue-300 focus:bg-blue-700 focus:outline-none"
+                     value="{{ textContent_leistungen_premium_bullet3.title|default:'Farbpsychologie passend zur Markenwirkung' }}">
+            </div>
+            <div class="text-content flex items-center gap-2" key="main_logos_leistungen_premium_bullet4">
+              <span class="text-blue-300">✓</span>
+              <input inputType="title" type="text"
+                     class="flex-1 rounded-lg border-2 border-blue-700 bg-blue-800 px-3 py-1 text-sm text-white placeholder-blue-300 focus:border-blue-300 focus:bg-blue-700 focus:outline-none"
+                     value="{{ textContent_leistungen_premium_bullet4.title|default:'Individuell abgestimmte Typografie' }}">
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         PREMIUM SHOWCASE: GOLDENER SCHNITT
+    ══════════════════════════════════════════ -->
+    <section class="rounded-2xl bg-blue-50 p-6">
+      <p class="mb-4 text-xs font-semibold uppercase tracking-wider text-blue-700">Premium Showcase – Goldener Schnitt</p>
+      <div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
+        <div class="flex flex-col gap-3">
+          <div class="text-content flex flex-col gap-3" key="main_logos_premium">
+            <input inputType="header" type="text"
+                   class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-sm font-semibold uppercase tracking-widest text-blue-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+                   placeholder="Über-Tagline"
+                   value="{{ textContent_premium.header|default:'Premium · Goldener Schnitt' }}">
+            <input inputType="title" type="text"
+                   class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-xl font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                   value="{{ textContent_premium.title|default:'Wenn Mathematik auf Markendesign trifft' }}">
+            <textarea inputType="description" rows="5"
+                      class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-base leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_premium.description|default:"Im Premium-Bereich konstruieren wir Logos auf Basis fortgeschrittener Designprinzipien. Goldener Schnitt, Fibonacci-Spirale und geometrische Reinheit sorgen für Proportionen, die das menschliche Auge intuitiv als harmonisch wahrnimmt - und Logos, die sich nicht 'designed', sondern 'richtig' anfühlen." }}</textarea>
+            <input inputType="buttonText" type="text"
+                   class="self-start rounded-md bg-blue-900 px-6 py-3 text-sm font-bold text-white"
+                   value="{{ textContent_premium.buttonText|default:'Premium-Logo anfragen' }}">
+          </div>
+          <div class="border-t border-blue-200 pt-3">
+            <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Bullet-Punkte</p>
+            <div class="mt-2 flex flex-col gap-2">
+              <div class="text-content flex items-center gap-2" key="main_logos_premium_bullet1">
+                <span class="text-blue-900">✓</span>
+                <input inputType="title" type="text"
+                       class="flex-1 rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none"
+                       value="{{ textContent_premium_bullet1.title|default:'Konstruktion nach Goldenem Schnitt (φ = 1 : 1.618)' }}">
+              </div>
+              <div class="text-content flex items-center gap-2" key="main_logos_premium_bullet2">
+                <span class="text-blue-900">✓</span>
+                <input inputType="title" type="text"
+                       class="flex-1 rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none"
+                       value="{{ textContent_premium_bullet2.title|default:'Fibonacci-Spirale als visuelles Ordnungsprinzip' }}">
+              </div>
+              <div class="text-content flex items-center gap-2" key="main_logos_premium_bullet3">
+                <span class="text-blue-900">✓</span>
+                <input inputType="title" type="text"
+                       class="flex-1 rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none"
+                       value="{{ textContent_premium_bullet3.title|default:'Harmonische Proportionen, die Vertrauen erzeugen' }}">
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center justify-center rounded-xl bg-gray-100 p-6">
+          <p class="text-center text-sm text-gray-500">
+            Goldener-Schnitt-Konstruktion<br>
+            <span class="text-xs">(animiert / SVG, statisch)</span>
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         DESIGNPROZESS
+    ══════════════════════════════════════════ -->
+    <section class="rounded-2xl bg-blue-50 p-6">
+      <p class="mb-4 text-xs font-semibold uppercase tracking-wider text-blue-700">Designprozess</p>
+
+      <div class="text-content flex flex-col gap-3" key="main_logos_prozess">
+        <input inputType="header" type="text"
+               class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-sm font-semibold uppercase tracking-widest text-blue-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+               placeholder="Über-Tagline"
+               value="{{ textContent_prozess.header|default:'In 5 Schritten zum Logo' }}">
+        <input inputType="title" type="text"
+               class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-xl font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+               value="{{ textContent_prozess.title|default:'Unser Designprozess' }}">
+        <textarea inputType="description" rows="3"
+                  class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-base leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_prozess.description|default:"Ein gutes Logo entsteht nicht zufällig. Wir arbeiten nach einem klar strukturierten Prozess, der Strategie, Kreativität und Handwerk verbindet." }}</textarea>
+      </div>
+
+      <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5">
+        <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm" key="main_logos_prozess_step1">
+          <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Schritt 1</p>
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-base font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_prozess_step1.title|default:'Briefing & Zieldefinition' }}">
+          <textarea inputType="description" rows="3"
+                    class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_prozess_step1.description|default:"Wir lernen dein Unternehmen, deine Werte und deine Ziele kennen und definieren gemeinsam den Rahmen für dein Logo." }}</textarea>
+        </div>
+        <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm" key="main_logos_prozess_step2">
+          <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Schritt 2</p>
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-base font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_prozess_step2.title|default:'Recherche & Analyse' }}">
+          <textarea inputType="description" rows="3"
+                    class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_prozess_step2.description|default:"Wir analysieren Markt, Wettbewerb und Zielgruppe, um eine fundierte Designgrundlage zu schaffen." }}</textarea>
+        </div>
+        <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm" key="main_logos_prozess_step3">
+          <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Schritt 3</p>
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-base font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_prozess_step3.title|default:'Erste Entwürfe' }}">
+          <textarea inputType="description" rows="3"
+                    class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_prozess_step3.description|default:"Auf Basis der Analyse entwickeln wir mehrere Logo-Entwürfe mit unterschiedlichen Stilrichtungen." }}</textarea>
+        </div>
+        <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm" key="main_logos_prozess_step4">
+          <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Schritt 4</p>
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-base font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_prozess_step4.title|default:'Feedback & Iteration' }}">
+          <textarea inputType="description" rows="3"
+                    class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_prozess_step4.description|default:"In strukturierten Feedbackschleifen verfeinern wir den gewählten Entwurf bis ins Detail." }}</textarea>
+        </div>
+        <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm" key="main_logos_prozess_step5">
+          <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Schritt 5</p>
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-base font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_prozess_step5.title|default:'Finale Ausarbeitung' }}">
+          <textarea inputType="description" rows="3"
+                    class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_prozess_step5.description|default:"Wir optimieren technisch, erstellen alle Varianten und liefern dir das fertige Logo-Paket aus." }}</textarea>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         LIEFERUMFANG
+    ══════════════════════════════════════════ -->
+    <section class="rounded-2xl bg-blue-50 p-6">
+      <p class="mb-4 text-xs font-semibold uppercase tracking-wider text-blue-700">Lieferumfang</p>
+
+      <div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
+        <div class="flex flex-col gap-3">
+          <div class="text-content flex flex-col gap-3" key="main_logos_lieferumfang">
+            <input inputType="header" type="text"
+                   class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-sm font-semibold uppercase tracking-widest text-blue-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+                   placeholder="Über-Tagline"
+                   value="{{ textContent_lieferumfang.header|default:'Lieferumfang' }}">
+            <input inputType="title" type="text"
+                   class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-xl font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                   value="{{ textContent_lieferumfang.title|default:'Alle Formate, alle Varianten - bereit für jeden Einsatz' }}">
+            <textarea inputType="description" rows="4"
+                      class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-base leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_lieferumfang.description|default:"Damit dein Logo überall funktioniert, liefern wir es in allen relevanten Datei-Formaten und in mehreren Varianten - optimiert für Web, Social Media und Print." }}</textarea>
+          </div>
+
+          <div class="border-t border-blue-200 pt-3">
+            <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Bullet-Punkte</p>
+            <div class="mt-2 flex flex-col gap-2">
+              <div class="text-content flex items-center gap-2" key="main_logos_lieferumfang_bullet1">
+                <span class="text-blue-900">✓</span>
+                <input inputType="title" type="text"
+                       class="flex-1 rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none"
+                       value="{{ textContent_lieferumfang_bullet1.title|default:'Vektordateien für unbegrenzte Skalierbarkeit (SVG, AI, EPS auf Wunsch)' }}">
+              </div>
+              <div class="text-content flex items-center gap-2" key="main_logos_lieferumfang_bullet2">
+                <span class="text-blue-900">✓</span>
+                <input inputType="title" type="text"
+                       class="flex-1 rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none"
+                       value="{{ textContent_lieferumfang_bullet2.title|default:'Pixelbasierte Formate für Web und Social Media (PNG, JPG)' }}">
+              </div>
+              <div class="text-content flex items-center gap-2" key="main_logos_lieferumfang_bullet3">
+                <span class="text-blue-900">✓</span>
+                <input inputType="title" type="text"
+                       class="flex-1 rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none"
+                       value="{{ textContent_lieferumfang_bullet3.title|default:'Druckfertige Dateien für Printprodukte (PDF, EPS)' }}">
+              </div>
+              <div class="text-content flex items-center gap-2" key="main_logos_lieferumfang_bullet4">
+                <span class="text-blue-900">✓</span>
+                <input inputType="title" type="text"
+                       class="flex-1 rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none"
+                       value="{{ textContent_lieferumfang_bullet4.title|default:'Farbversion, Schwarz-Weiss-Version sowie Varianten für helle und dunkle Hintergründe' }}">
+              </div>
+              <div class="text-content flex items-center gap-2" key="main_logos_lieferumfang_bullet5">
+                <span class="text-blue-900">✓</span>
+                <input inputType="title" type="text"
+                       class="flex-1 rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none"
+                       value="{{ textContent_lieferumfang_bullet5.title|default:'Optimierte Versionen für Websites, Social Media und Druck' }}">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-center rounded-xl bg-gray-100 p-6">
+          <p class="text-center text-sm text-gray-500">
+            Format-Kacheln (SVG, PNG, JPG, PDF, AI, EPS)<br>
+            <span class="text-xs">(statisch, da technische Bezeichnungen)</span>
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         USP / WAS UNS UNTERSCHEIDET
+    ══════════════════════════════════════════ -->
+    <section class="rounded-2xl bg-blue-50 p-6">
+      <p class="mb-4 text-xs font-semibold uppercase tracking-wider text-blue-700">USP – Was uns unterscheidet</p>
+
+      <div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
+        <div class="text-content flex flex-col gap-3" key="main_logos_usp">
+          <input inputType="title" type="text"
+                 class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-xl font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                 value="{{ textContent_usp.title|default:'Was uns als Logo Design Agentur unterscheidet' }}">
+          <textarea inputType="description" rows="4"
+                    class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-base leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_usp.description|default:"Wir verstehen Logo Design nicht als rein visuelle Aufgabe, sondern als strategische Markenarbeit. Jedes Logo, das unser Studio verlässt, ist individuell, durchdacht und auf Wirkung optimiert." }}</textarea>
+          <input inputType="buttonText" type="text"
+                 class="self-start rounded-md bg-blue-900 px-6 py-3 text-sm font-bold text-white"
+                 value="{{ textContent_usp.buttonText|default:'Unverbindlich anfragen' }}">
+        </div>
+
+        <div class="flex flex-col gap-3">
+          <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm" key="main_logos_usp_card1">
+            <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Karte 1 (Icon: Fingerprint)</p>
+            <input inputType="title" type="text"
+                   class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-base font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                   value="{{ textContent_usp_card1.title|default:'Individuelles Design ohne Templates' }}">
+            <textarea inputType="description" rows="2"
+                      class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_usp_card1.description|default:"Jedes Logo entsteht handwerklich neu - keine vorgefertigten Vorlagen, keine generischen Symbole." }}</textarea>
+          </div>
+          <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm" key="main_logos_usp_card2">
+            <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Karte 2 (Icon: Compass)</p>
+            <input inputType="title" type="text"
+                   class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-base font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                   value="{{ textContent_usp_card2.title|default:'Strategischer Ansatz statt reiner Optik' }}">
+            <textarea inputType="description" rows="2"
+                      class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_usp_card2.description|default:"Wir entwickeln Logos auf Basis klarer Marken-, Markt- und Zielgruppenanalysen." }}</textarea>
+          </div>
+          <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm" key="main_logos_usp_card3">
+            <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Karte 3 (Icon: Arrows-Fullscreen)</p>
+            <input inputType="title" type="text"
+                   class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-base font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
+                   value="{{ textContent_usp_card3.title|default:'Langlebig, skalierbar und wirkungsvoll' }}">
+            <textarea inputType="description" rows="2"
+                      class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_usp_card3.description|default:"Unsere Logos funktionieren über Jahre, in jeder Größe und auf jedem Medium." }}</textarea>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         BOTTOM CTA – dunkel, zentriert
+    ══════════════════════════════════════════ -->
+    <section class="rounded-2xl bg-gray-700 p-8">
+      <p class="mb-4 text-xs font-semibold uppercase tracking-wider text-gray-300">Bottom CTA</p>
+      <div class="text-content mx-auto flex max-w-xl flex-col items-center gap-3 text-center" key="main_logos_bottomcta">
+        <input inputType="title" type="text"
+               class="w-full rounded-lg border-2 border-gray-500 bg-gray-600 px-4 py-2 text-xl font-bold text-white placeholder-gray-400 focus:border-blue-400 focus:bg-gray-500 focus:outline-none"
+               value="{{ textContent_bottomcta.title|default:'Bereit, dein Logo erstellen zu lassen?' }}">
+        <textarea inputType="description" rows="3"
+                  class="w-full rounded-lg border-2 border-gray-500 bg-gray-600 px-4 py-2 text-base text-white placeholder-gray-400 focus:border-blue-400 focus:bg-gray-500 focus:outline-none">{{ textContent_bottomcta.description|default:"Erzähl uns von deinem Projekt - wir melden uns zeitnah mit einer ehrlichen Einschätzung und einem unverbindlichen Angebot." }}</textarea>
+        <input inputType="buttonText" type="text"
+               value="{{ textContent_bottomcta.buttonText|default:'Jetzt Logo anfragen' }}"
+               class="rounded-md bg-blue-900 px-8 py-3 text-sm font-bold text-white">
+      </div>
+    </section>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block javascriptend %}
+{% compress js %}
+<script defer src="{% static 'js/cms.js' %}"></script>
+<script defer src="{% static 'js/cms/content/siteManager.js' %}"></script>
+<script src="{% static 'js/cms/content/save-text.js' %}"></script>
+<script defer src="{% static 'js/cms/unsaved-guard.js' %}"></script>
+<script defer>
+  $(document).ready(function () {
+    loadImages(false);
+  });
+</script>
+{% endcompress js %}
+{% endblock %}

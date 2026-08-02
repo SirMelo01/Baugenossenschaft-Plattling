@@ -1,0 +1,63 @@
+article a, #previewModal a {
+    color: rgb(59, 130, 246);
+}
+
+article a:hover, #previewModal a:hover {
+    cursor: pointer;
+    color: rgb(37, 99, 235);
+}
+
+
+article li, #previewModal li {
+    margin-bottom: 0.75rem !important;
+}
+article ul, #previewModal ul {
+    display: block !important;
+    list-style-type: disc !important;
+    margin-block-start: 1em !important;
+    margin-block-end: 1em !important;
+    padding-inline-start: 40px !important;
+}
+
+article ol, #previewModal ol {
+    display: block !important;
+    list-style-type: decimal !important;
+    margin-block-start: 1em !important;
+    margin-block-end: 1em !important;
+    padding-inline-start: 40px !important;
+}
+
+article > img,
+article p img,
+article .carousel img,
+#previewModal img {
+    max-width: 100%;
+    object-fit: contain !important;
+}
+
+article {
+    padding: 0.5rem;
+}
+
+/* Sehr lange Wörter / URLs umbrechen, statt aus dem Container zu laufen. */
+article,
+article p,
+article li,
+article h1,
+article h2,
+article h3,
+article h4,
+article blockquote,
+#previewModal,
+#previewModal p,
+#previewModal li {
+    overflow-wrap: break-word;
+    word-break: break-word;
+}
+
+/* Code-Blöcke nicht umbrechen, sondern horizontal scrollen lassen. */
+article pre,
+#previewModal pre {
+    overflow-x: auto;
+    max-width: 100%;
+}

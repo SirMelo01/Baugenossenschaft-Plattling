@@ -1,0 +1,148 @@
+{% extends "cmsbase.html" %}
+{% load compress static %}
+{% block title %} {{block.super}} | CMS - Seiteninhalt {% endblock %}
+
+<!-- Needed for Galery (Slick) -->
+{% block javascript %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/cms/slick/slick-carousel.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/cms/slick/slick-theme.css' %}" />
+{% endblock %}
+
+{% block content %}
+
+{% include "pages/cms/components/GalerySelectModal.html" %}
+
+<div class="container mx-auto mt-8">
+    <div class="sticky top-[4.25rem] z-30 mb-6 rounded-2xl border border-gray-200 bg-white/95 px-5 py-4 shadow-sm backdrop-blur flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h1 class="text-2xl">
+            <a href="{% url 'cms:sites' %}" class="text-blue-500">Seiten</a> /
+            <a href="{% url 'cms:site_hauptseite' %}" class="text-blue-500">Hauptseite</a> /
+            <span>Responsive</span>
+        </h1>
+        <div>
+            {% csrf_token %}
+            <a class="block w-full rounded bg-green-500 px-4 py-3 text-center font-bold text-white hover:cursor-pointer hover:bg-green-700 sm:w-auto sm:py-2"
+                id="saveTextData" name="main_responsive">
+                Speichern
+            </a>
+        </div>
+    </div>
+
+    <div class="mt-8 grid gap-8">
+        <!-- Texte -->
+        <div class="rounded-xl bg-white p-6 shadow-sm border border-gray-200">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">Texte</h2>
+
+            <div class="mb-5">
+                <label for="header" class="block text-sm font-medium text-gray-600 mb-1">Header / Badge</label>
+                <input
+                    class="bg-gray-50 appearance-none border-2 border-gray-200 rounded-lg w-full py-2 px-4 text-xs font-semibold tracking-wider text-gray-900 uppercase leading-tight focus:outline-none focus:bg-white focus:border-blue-500"
+                    id="header" type="text"
+                    value="{% if textContent and textContent.header %}{{textContent.header}}{% else %}Optimiert für alle Geräte{% endif %}">
+            </div>
+
+            <div class="mb-5">
+                <label for="title" class="block text-sm font-medium text-gray-600 mb-1">Überschrift</label>
+                <input
+                    class="bg-gray-50 appearance-none border-2 border-gray-200 rounded-lg w-full py-2 px-4 text-lg font-bold tracking-tight text-gray-900 leading-tight focus:outline-none focus:bg-white focus:border-blue-500"
+                    id="title" type="text"
+                    value="{% if textContent and textContent.title %}{{textContent.title}}{% else %}Responsive Webdesign{% endif %}">
+            </div>
+
+            <div>
+                <label for="description" class="block text-sm font-medium text-gray-600 mb-1">Beschreibung</label>
+                <textarea rows="7"
+                    class="bg-gray-50 rounded-lg appearance-none border-2 border-gray-200 w-full py-2 px-4 text-base text-gray-800 leading-relaxed focus:outline-none focus:bg-white focus:border-blue-500"
+                    id="description">{% if textContent and textContent.description %}{{textContent.description}}{% else %}Mehr als die Hälfte aller Aufrufe kommen heute vom Smartphone. Unsere Websites passen sich automatisch an jedes Display an – vom Desktop über das Tablet bis zum Handy. So überzeugen Sie Kunden auf jedem Gerät.{% endif %}</textarea>
+            </div>
+        </div>
+
+        <!-- Bildergalerien -->
+        <div class="grid gap-8 lg:grid-cols-2">
+            <!-- Desktop -->
+            <div class="rounded-xl bg-white p-6 shadow-sm border border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-800 mb-1">Desktop-Modus</h2>
+                <p class="text-sm text-gray-500 mb-4">Bilder, die im MacBook-Bezel angezeigt werden.</p>
+
+                <div class="galery-container relative w-full" galery-id="-1" key="main_responsive_desktop">
+                    <span class="absolute top-2 left-2 inline-block px-2 py-1 text-sm font-semibold text-white bg-orange-500 rounded-full z-40 hover:cursor-pointer edit-galery"
+                        title="Bilder bearbeiten">
+                        <i class="bi bi-pencil-square"></i>
+                    </span>
+                    <div class="carousel rounded-lg">
+                        {% if responsiveDesktopImages %}
+                            {% for img in responsiveDesktopImages %}
+                            <div>
+                                <img src="{{img.upload.url}}" alt="{{img.title}}" class="w-full rounded-xl h-96 object-cover" />
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div>
+                                <img src="{% static 'images/MacBook-RSAutoglas1.png' %}" alt="Desktop-Vorschau" class="w-full rounded-xl h-96 object-cover" />
+                            </div>
+                            <div>
+                                <img src="{% static 'images/MacBook-RSAutoglas2.png' %}" alt="Desktop-Vorschau" class="w-full rounded-xl h-96 object-cover" />
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Handy -->
+            <div class="rounded-xl bg-white p-6 shadow-sm border border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-800 mb-1">Handy-Modus</h2>
+                <p class="text-sm text-gray-500 mb-4">Bilder, die im iPhone-Bezel angezeigt werden.</p>
+
+                <div class="galery-container relative w-full" galery-id="-1" key="main_responsive_handy">
+                    <span class="absolute top-2 left-2 inline-block px-2 py-1 text-sm font-semibold text-white bg-orange-500 rounded-full z-40 hover:cursor-pointer edit-galery"
+                        title="Bilder bearbeiten">
+                        <i class="bi bi-pencil-square"></i>
+                    </span>
+                    <div class="carousel rounded-lg">
+                        {% if responsiveHandyImages %}
+                            {% for img in responsiveHandyImages %}
+                            <div>
+                                <img src="{{img.upload.url}}" alt="{{img.title}}" class="w-full rounded-xl h-96 object-cover" />
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div>
+                                <img src="{% static 'images/iPhone-RSAutoglas.png' %}" alt="Handy-Vorschau" class="w-full rounded-xl h-96 object-cover" />
+                            </div>
+                            <div>
+                                <img src="{% static 'images/iPhone-RSAutoglas.png' %}" alt="Handy-Vorschau" class="w-full rounded-xl h-96 object-cover" />
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% block javascriptend %}
+    {% compress js %}
+    <script defer src="{% static 'js/cms.js' %}"></script>
+    <script src="{% static 'js/cms/content/save-text.js' %}"></script>
+<script defer src="{% static 'js/cms/unsaved-guard.js' %}"></script>
+    <script defer src="{% static 'js/cms/content/siteManager.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/cms/slick/slick.min.js' %}"></script>
+    <script>
+        $('.carousel').slick({
+            dots: true,
+            arrows: true,
+            infinite: true,
+            slidesToShow: 1,
+            slidesToScroll: 1,
+            autoplay: true,
+            autoplaySpeed: 3000,
+        });
+    </script>
+    <script defer>
+        $(document).ready(function () {
+            loadGalerien(false);
+        })
+    </script>
+    {% endcompress js %}
+    {% endblock javascriptend %}
+
+{% endblock content %}

@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% load compress static i18n %}
+
+{% block title %}{{ block.super }} | Cookie-Einstellungen{% endblock title %}
+
+{% block content %}
+<main class="mx-auto max-w-5xl px-4 py-12 md:py-20">
+  <header class="mb-10">
+    <p class="mb-4 text-sm font-semibold uppercase tracking-widest text-blue-900">{{ textContent_hero.header|default:"Datenschutz" }}</p>
+    <h1 class="mb-6 text-3xl font-bold leading-none tracking-tight text-gray-900 sm:text-5xl xl:text-6xl">{{ textContent_hero.title|default:"Cookie-Einstellungen" }}</h1>
+    <p class="text-base leading-7 text-gray-600 md:text-lg xl:text-xl">
+      {{ textContent_hero.description|default:"Hier können Sie Ihre Einwilligung für optionale Dienste verwalten. Notwendige Cookies bleiben aktiv, weil sie für Sicherheit, Sprache, Warenkorb, Login und den Betrieb der Website erforderlich sind. Alle optionalen Dienste werden erst nach Ihrer aktiven Zustimmung geladen." }}
+    </p>
+  </header>
+
+  <div
+    data-cookie-settings-status
+    class="hidden mb-6 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm font-semibold text-green-800"
+    role="status"
+  ></div>
+
+  <form data-cookie-settings-form class="space-y-4">
+    <section class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+      <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+        <div>
+          <h2 class="text-xl font-bold text-gray-900">{{ textContent_necessary.title|default:"Notwendig" }}</h2>
+          <p class="mt-2 text-sm leading-6 text-gray-600">
+            {{ textContent_necessary.description|default:"Session-, CSRF-, Sprach-, Warenkorb- und Consent-Cookies. Diese Cookies sind technisch erforderlich und können über dieses Formular nicht deaktiviert werden." }}
+          </p>
+          <p class="mt-2 text-xs text-gray-500">{% trans "cookies_examples_label" %} <code>csrftoken</code>, <code>sessionid</code>, <code>django_language</code>, <code>yoolink_cookie_consent</code>.</p>
+        </div>
+        <span class="inline-flex items-center gap-2 whitespace-nowrap rounded-full bg-blue-100 px-4 py-1 text-sm font-bold text-blue-800">{% trans "cookies_always_active" %}</span>
+      </div>
+    </section>
+
+    <label for="settings-analytics" class="block rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+      <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+        <div>
+          <h2 class="text-xl font-bold text-gray-900">{{ textContent_analytics.title|default:"Statistik" }}</h2>
+          <p class="mt-2 text-sm leading-6 text-gray-600">
+            {{ textContent_analytics.description|default:"Aktiviert Google Analytics, um Reichweite und Nutzung der Website zu messen. Ohne Einwilligung wird Google Analytics nicht geladen." }}
+          </p>
+        </div>
+        <div class="flex items-center gap-3">
+          <input id="settings-analytics" type="checkbox" class="sr-only peer" data-consent-toggle="analytics">
+          <div class="relative h-6 w-11 rounded-full bg-gray-200 transition peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 peer-checked:bg-blue-600 after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow after:transition peer-checked:after:translate-x-5"></div>
+        </div>
+      </div>
+    </label>
+
+    <label for="settings-external" class="block rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+      <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+        <div>
+          <h2 class="text-xl font-bold text-gray-900">{{ textContent_external.title|default:"Externe Medien und Sicherheitsdienste" }}</h2>
+          <p class="mt-2 text-sm leading-6 text-gray-600">
+            {{ textContent_external.description|default:"Erlaubt das Laden externer Karten, Videos und reCAPTCHA. Ohne Einwilligung erscheinen Platzhalter oder Funktionen bleiben deaktiviert." }}
+          </p>
+        </div>
+        <div class="flex items-center gap-3">
+          <input id="settings-external" type="checkbox" class="sr-only peer" data-consent-toggle="external">
+          <div class="relative h-6 w-11 rounded-full bg-gray-200 transition peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 peer-checked:bg-blue-600 after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow after:transition peer-checked:after:translate-x-5"></div>
+        </div>
+      </div>
+    </label>
+
+    <div class="flex flex-col gap-3 pt-4 sm:flex-row">
+      <button type="submit" class="rounded-lg bg-blue-700 px-5 py-3 font-bold text-white transition hover:bg-blue-800">
+        {{ textContent_actions.title|default:"Auswahl speichern" }}
+      </button>
+      <button type="button" class="rounded-lg border border-gray-300 px-5 py-3 font-bold text-gray-800 transition hover:bg-gray-50" data-cookie-settings-action="reject-all">
+        {{ textContent_actions.description|default:"Alle ablehnen" }}
+      </button>
+      <button type="button" class="rounded-lg border border-gray-300 px-5 py-3 font-bold text-gray-800 transition hover:bg-gray-50" data-cookie-settings-action="accept-all">
+        {{ textContent_actions.buttonText|default:"Alle akzeptieren" }}
+      </button>
+    </div>
+  </form>
+
+  <section class="mt-10 rounded-xl bg-gray-50 p-5 text-sm leading-6 text-gray-600">
+    <h2 class="text-lg font-bold text-gray-900">{{ textContent_hinweis.title|default:"Hinweis" }}</h2>
+    <p class="mt-2">
+      {{ textContent_hinweis.description|default:"Ihre Auswahl wird für 180 Tage gespeichert. Sie können Ihre Einwilligung jederzeit über diese Seite oder über den Link zu den Cookie-Einstellungen im Footer widerrufen oder ändern." }}
+    </p>
+    <p class="mt-2">
+      {% url 'datenschutz' as datenschutz_url %}
+      {% blocktrans %}Weitere Details finden Sie in der <a class="font-semibold text-blue-700 underline" href="{{ datenschutz_url }}">Datenschutzerklärung</a>.{% endblocktrans %}
+    </p>
+  </section>
+</main>
+{% endblock content %}
+
+{% block javascriptend %}
+  {{ block.super }}
+  {% compress js %}
+    <script defer src="{% static 'js/cookies.js' %}"></script>
+  {% endcompress js %}
+{% endblock javascriptend %}

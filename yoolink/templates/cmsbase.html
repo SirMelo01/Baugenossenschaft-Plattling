@@ -1,0 +1,305 @@
+{% load static i18n compress%}
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title>{% block title %}YooLink - CMS{% endblock title %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Diese Webseite wurde erstellt von YooLink.de, Schanzenweg 53, 94469 Deggendorf">
+    <meta name="description"
+        content="YooLink ist die Webdesign Agentur im Raum Deggendorf. Unser Standard ist das Maximum aus Deinem Internetauftritt herauszuholen. Dich erwartet Transparenz, Sichtbarkeit und &amp ein junges dynamisches Team">
+    <link rel="canonical" href="https://yoolink.de{{ request.path }}">
+    <!--<meta name="keywords" content="Yoolink, Webdesign, Homepageerstellung, Agentur, Deggendorf, Internetauftritt">-->
+    <meta property="og:type" content="website">
+    <link rel="icon" type="image/png" href="{% static 'favicon/favicon-32x32.png' %}" sizes="32x32" />
+    <link rel="icon" type="image/png" href="{% static 'favicon/favicon-16x16.png' %}" sizes="16x16" />
+
+    <meta name="twitter:description"
+        content="YooLink ist die Webdesign Agentur im Raum Deggendorf. Unser Standard ist das Maximum aus Deinem Internetauftritt herauszuholen. Dich erwartet Transparenz, Sichtbarkeit und &amp ein junges dynamisches Team">
+    <meta name="twitter:site" content="@YooLinkDE">
+    <meta name="twitter:creator" content="@YooLinkDE">
+    <meta name="twitter:label1" content="Verfasst von">
+    <meta name="twitter:data1" content="YooLink">
+    <meta name="twitter:label2" content="Zeit zum Lesen">
+    <meta name="twitter:data2" content="1 Minute">
+
+    {% compress css %}
+    <link href="{% static 'css/output.css' %}" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/cms/cms.css' %}">
+    <link rel="stylesheet" href="{% static 'css/libs/sweetalert2.min.css' %}">
+    <link href="{% static 'css/utils.css' %}" rel="stylesheet">
+    <link href="{% static 'css/notifications.css' %}" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/bootstrap-icons.css' %}" type="text/css">
+    <!-- Flag Icons -->
+    <link rel="stylesheet" href="{% static 'css/icons/flag-icons.min.css' %}" />
+    {% endcompress css %}
+
+    <style>
+        .edit-img,
+        .edit-video,
+        .edit-galery,
+        .edit-youtube,
+        .edit-slider,
+        .edit-cmsvideo,
+        .del-elem,
+        .not-sortable.handle {
+            z-index: 5 !important;
+        }
+    </style>
+
+    <script src="{% static 'js/libs/jquery-3.7.0.min.js' %}"></script>
+
+    {% compress js %}
+    <script defer src="{% static 'js/loadinit.js' %}"></script>
+    <script src="{% static 'js/notifications.js' %}"></script>
+    <script src="{% static 'js/cms.js' %}"></script>
+    <!-- jQuery Bibliothek (https://jquery.com/)
+           Copyright jQuery Foundation and other contributors
+           Released under the MIT license
+           https://jquery.org/license/ -->
+    {% endcompress js %}
+
+    {% block css %}
+    {% endblock css %}
+
+    {% block javascript %}
+    {% endblock javascript %}
+
+</head>
+
+<body class="bg-slate-50">
+    {% csrf_token %}
+
+    {# ───────────────────────── Mobile Off-Canvas Drawer ───────────────────────── #}
+    <div id="mobile-menu" class="fixed inset-0 z-[100] hidden lg:hidden">
+        <div class="absolute inset-0 bg-gray-950/60 backdrop-blur-sm" data-drawer-backdrop></div>
+        <aside class="absolute inset-y-0 left-0 flex w-72 max-w-[82%] flex-col bg-gray-900 shadow-2xl">
+            <div class="flex h-16 flex-shrink-0 items-center justify-between border-b border-white/10 px-4">
+                <a href="{% url 'cms:cms' %}" class="flex items-center gap-2">
+                    <svg viewBox="0 0 2000 2000" class="h-8 w-8" xmlns="http://www.w3.org/2000/svg">
+                        <path fill="#fff" d="M1803,1153.2c7.9-39.3,12-79.8,12-121.3C1815,688.4,1536.5,410,1193,410c-191.1,0-362.1,86.3-476.2,222.1c-90.9,108.1-145.5,247.7-145.5,399.9c0,110.7,28.9,214.5,79.6,304.6c95.7-30.8,197.8-47.3,303.7-47.3c19.8,0,39.6,0.5,59.1,1.9c122.1,7,238.3,36.2,344.5,83.5c82.2,36.4,158.3,83.7,227,139.9c64.7,53.1,122.5,114.1,172,181.8c-180.5,184.3-432.3,298.8-710.8,298.8c-329.5,0-621.6-160.2-802.7-407.1C122.9,1423.3,51.5,1219.8,51.5,1000c0-549.5,445.5-995,995-995c294,0,558.4,127.6,740.5,330.4c3.4,3.8,6.7,7.5,9.9,11.3c3.2,3.8,6.5,7.5,9.7,11.4c88.7,107.4,141.9,245.3,141.9,395.6C1948.5,905.9,1893.9,1045.3,1803,1153.2z"/>
+                        <path fill="#fff" d="M1735.2,995.9c-38.6,24.8-84.6,39.1-133.8,39.1c-58.4,0-112.1-20.2-154.6-54c-37.9,89-126.2,151.5-229.1,151.5c-99.6,0-185.7-58.6-225.3-143.3c-40.1,27.8-88.8,44.1-141.3,44.1c-81,0-152.9-38.8-198.5-98.7c27.3-166.9,130.2-308.2,272.5-387.8c0,0.2,0.2,0,0.2,0c78.4-43.9,168.9-68.8,265.3-68.8c109.2,0,211,32.1,296.2,87.5C1629.6,658,1726.3,815.3,1735.2,995.9z"/>
+                    </svg>
+                    <span class="text-lg font-bold tracking-wide text-white">YooLink<span class="ml-1 text-xs font-semibold text-blue-400">CMS</span></span>
+                </a>
+                <button type="button" data-drawer-close class="rounded-md p-2 text-gray-400 hover:bg-white/10 hover:text-white">
+                    <i class="bi bi-x-lg text-lg"></i>
+                </button>
+            </div>
+            <div class="flex-1 overflow-y-auto">
+                {% include "pages/cms/components/_sidebar_nav.html" %}
+            </div>
+            <div class="flex-shrink-0 border-t border-white/10 p-3">
+                <a href="/" class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-blue-300 hover:bg-white/10 hover:text-white">
+                    <i class="bi bi-box-arrow-up-right text-lg"></i> Zur Website
+                </a>
+            </div>
+        </aside>
+    </div>
+
+    {# ───────────────────────── Desktop Sidebar ───────────────────────── #}
+    <aside class="fixed inset-y-0 left-0 z-[70] hidden w-64 flex-col border-r border-white/5 bg-gray-900 lg:flex">
+        <div class="flex h-16 flex-shrink-0 items-center gap-2 border-b border-white/10 px-5">
+            <a href="{% url 'cms:cms' %}" class="flex items-center gap-2">
+                <svg viewBox="0 0 2000 2000" class="h-9 w-9" xmlns="http://www.w3.org/2000/svg">
+                    <path fill="#fff" d="M1803,1153.2c7.9-39.3,12-79.8,12-121.3C1815,688.4,1536.5,410,1193,410c-191.1,0-362.1,86.3-476.2,222.1c-90.9,108.1-145.5,247.7-145.5,399.9c0,110.7,28.9,214.5,79.6,304.6c95.7-30.8,197.8-47.3,303.7-47.3c19.8,0,39.6,0.5,59.1,1.9c122.1,7,238.3,36.2,344.5,83.5c82.2,36.4,158.3,83.7,227,139.9c64.7,53.1,122.5,114.1,172,181.8c-180.5,184.3-432.3,298.8-710.8,298.8c-329.5,0-621.6-160.2-802.7-407.1C122.9,1423.3,51.5,1219.8,51.5,1000c0-549.5,445.5-995,995-995c294,0,558.4,127.6,740.5,330.4c3.4,3.8,6.7,7.5,9.9,11.3c3.2,3.8,6.5,7.5,9.7,11.4c88.7,107.4,141.9,245.3,141.9,395.6C1948.5,905.9,1893.9,1045.3,1803,1153.2z"/>
+                    <path fill="#fff" d="M1735.2,995.9c-38.6,24.8-84.6,39.1-133.8,39.1c-58.4,0-112.1-20.2-154.6-54c-37.9,89-126.2,151.5-229.1,151.5c-99.6,0-185.7-58.6-225.3-143.3c-40.1,27.8-88.8,44.1-141.3,44.1c-81,0-152.9-38.8-198.5-98.7c27.3-166.9,130.2-308.2,272.5-387.8c0,0.2,0.2,0,0.2,0c78.4-43.9,168.9-68.8,265.3-68.8c109.2,0,211,32.1,296.2,87.5C1629.6,658,1726.3,815.3,1735.2,995.9z"/>
+                </svg>
+                <span class="text-xl font-bold tracking-wide text-white">YooLink<span class="ml-1 align-top text-xs font-semibold text-blue-400">CMS</span></span>
+            </a>
+        </div>
+        <div class="no-scrollbar flex-1 overflow-y-auto">
+            {% include "pages/cms/components/_sidebar_nav.html" %}
+        </div>
+        <div class="flex-shrink-0 border-t border-white/10 p-3">
+            <a href="/" target="_blank" rel="noopener" class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-blue-300 transition-colors hover:bg-white/10 hover:text-white">
+                <i class="bi bi-box-arrow-up-right text-lg"></i> Zur Website
+            </a>
+            <a href="https://yoolink.de/kontakt" target="_blank" rel="noopener" class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-400 transition-colors hover:bg-white/10 hover:text-white">
+                <i class="bi bi-life-preserver text-lg"></i> Hilfe &amp; Support
+            </a>
+        </div>
+    </aside>
+
+    {# ───────────────────────── Content Column ───────────────────────── #}
+    <div class="flex min-h-screen flex-col lg:pl-64">
+
+        {# Topbar #}
+        <header class="sticky top-0 z-[70] flex h-16 items-center gap-3 border-b border-gray-200 bg-white/90 px-4 backdrop-blur sm:px-6">
+            <!-- Mobile: hamburger + brand -->
+            <button type="button" id="mobile-menu-button"
+                class="inline-flex items-center justify-center rounded-md p-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 lg:hidden"
+                aria-controls="mobile-menu" aria-expanded="false">
+                <span class="sr-only">Menü öffnen</span>
+                <i id="mobile-menu-open-icon" class="bi bi-list block text-2xl leading-none"></i>
+                <i id="mobile-menu-close-icon" class="bi bi-x-lg hidden text-xl leading-none"></i>
+            </button>
+            <a href="{% url 'cms:cms' %}" class="flex items-center gap-2 lg:hidden">
+                <span class="text-lg font-bold tracking-tight text-gray-900">YooLink<span class="ml-1 text-xs font-semibold text-blue-600">CMS</span></span>
+            </a>
+
+            <div class="ml-auto flex items-center gap-2 sm:gap-3">
+
+                <!-- Language switcher -->
+                <div class="relative inline-block text-left">
+                    <button id="languageDropdownButtonDesktop"
+                        class="inline-flex items-center justify-center rounded-lg border border-gray-200 bg-white px-2 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:px-3">
+                        <span id="selectedLangFlagDesktop" class="fi fi-{% if cms_language == 'de' %}de{% else %}gb{% endif %} sm:mr-2"></span>
+                        <span id="selectedLangTextDesktop" class="hidden sm:inline">{% if cms_language == 'de' %}Deutsch{% else %}English{% endif %}</span>
+                        <svg class="-mr-1 ml-1 hidden h-4 w-4 sm:block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                    <div id="languageDropdownMenuDesktop" class="absolute right-0 z-[45] mt-2 hidden w-44 rounded-lg bg-white shadow-lg ring-1 ring-black/5">
+                        <div class="py-1">
+                            <button data-lang="de" data-flag="de" data-text="{% if cms_language == 'de' %}Deutsch{% else %}German{% endif %}"
+                                class="language-option flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <span class="fi fi-de mr-2"></span>{% if cms_language and cms_language == 'de' %}Deutsch{% else %}German{% endif %}
+                            </button>
+                            <button data-lang="en" data-flag="gb" data-text="{% if cms_language == 'de' %}Englisch{% else %}English{% endif %}"
+                                class="language-option flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <span class="fi fi-gb mr-2"></span>{% if cms_language and cms_language == 'de' %}Englisch{% else %}English{% endif %}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notifications -->
+                <div class="relative" id="notif-wrapper">
+                    <button id="notif-button" type="button"
+                        class="relative inline-flex items-center justify-center rounded-lg border border-gray-200 bg-white p-2 text-gray-600 shadow-sm transition hover:bg-gray-50 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        aria-haspopup="true" aria-expanded="false" aria-controls="notif-menu"
+                        aria-label="Benachrichtigungen{% if nav_unread_notifications_count %}, {{ nav_unread_notifications_count }} ungelesen{% endif %}">
+                        <span class="sr-only">Benachrichtigungen anzeigen</span>
+                        <i class="bi bi-bell text-lg leading-none"></i>
+                        {% if nav_unread_notifications_count %}
+                        <span class="js-nav-badge absolute -right-1 -top-1 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-blue-500 px-1" title="{{ nav_unread_notifications_count }} ungelesen">
+                            <span class="js-nav-badge-text text-[10px] font-semibold leading-none text-white">{% if nav_unread_notifications_count > 99 %}99+{% else %}{{nav_unread_notifications_count }}{% endif %}</span>
+                        </span>
+                        {% endif %}
+                    </button>
+
+                    <div id="notif-menu" class="absolute right-0 z-[45] mt-2 hidden w-80 origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-black/5 focus:outline-none" role="menu" aria-labelledby="notif-button" tabindex="-1">
+                        <div class="border-b border-gray-100 px-4 py-3">
+                            <p class="text-sm font-semibold text-gray-900">Benachrichtigungen</p>
+                        </div>
+                        <div class="max-h-96 overflow-auto py-1">
+                        {% if nav_latest_unread_notifications %}
+                            {% for n in nav_latest_unread_notifications %}
+                            <a href="{{ n.get_absolute_url }}" class="flex items-start px-4 py-2 text-sm hover:bg-gray-50" role="menuitem">
+                                <div class="mr-2 mt-0.5 text-blue-600">
+                                {% if n.order %}<i class="bi bi-bag"></i>{% elif n.priority == 'high' %}<i class="bi bi-exclamation-triangle-fill"></i>{% elif n.priority == 'low' %}<i class="bi bi-info-circle"></i>{% else %}<i class="bi bi-bell"></i>{% endif %}
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex items-center">
+                                        <span class="truncate font-medium">{% if n.order %}Bestellung #{{ n.order.pk }}{% else %}{{ n.title }}{% endif %}</span>
+                                        <span class="ml-2 inline-flex items-center rounded bg-blue-100 px-1.5 py-0.5 text-xs text-blue-800">Neu</span>
+                                    </div>
+                                    <div class="line-clamp-2 text-xs text-gray-600">{% if n.order %}{{ n.description|default:"Neue Bestellung eingegangen." }}{% else %}{{ n.description }}{% endif %}</div>
+                                    <div class="mt-0.5 text-[11px] text-gray-400">{{ n.created_at|date:"d.m.Y H:i" }}</div>
+                                </div>
+                            </a>
+                            {% endfor %}
+                            {% if nav_unread_overflow > 0 %}
+                            <div class="px-4 py-1 text-[11px] text-gray-500">… und {{ nav_unread_overflow }} weitere</div>
+                            {% endif %}
+                        {% else %}
+                            <div class="px-4 py-6 text-center">
+                                <i class="bi bi-bell-slash text-2xl text-gray-300"></i>
+                                <p class="mt-2 text-sm text-gray-500">Keine neuen Benachrichtigungen</p>
+                            </div>
+                        {% endif %}
+                        </div>
+                        <div class="border-t border-gray-100">
+                            <a href="{% url 'cms:notifications-list' %}" class="flex items-center justify-between px-4 py-2 text-sm text-blue-600 hover:bg-gray-50" role="menuitem">
+                                <span>Alle Benachrichtigungen ansehen
+                                    {% if nav_unread_notifications_count %}<span class="js-footer-count">({% if nav_unread_notifications_count > 99 %}99+{% else %}{{nav_unread_notifications_count }}{% endif %})</span>{% endif %}
+                                </span>
+                                <i class="bi bi-chevron-right ml-2"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Profile dropdown -->
+                <div class="relative">
+                    <button type="button" id="user-menu-button"
+                        class="flex items-center gap-2 rounded-lg border border-gray-200 bg-white py-1 pl-1 pr-1 shadow-sm transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:pr-2"
+                        aria-expanded="false" aria-haspopup="true">
+                        <span class="sr-only">Benutzermenü öffnen</span>
+                        <img class="h-8 w-8 rounded-full {% if owner_data.logo %}cms-logo-surface object-contain p-0.5{% else %}object-cover{% endif %}"
+                            {% if owner_data.logo %}data-logo-contrast{% endif %}
+                            src="{% if owner_data.logo %}{{ owner_data.logo.url }}{% else %}{% static 'images/designImg/profil.webp' %}{% endif %}" alt="">
+                        <span class="hidden max-w-[8rem] truncate text-sm font-medium text-gray-700 sm:inline">{{ request.user.email }}</span>
+                        <i class="bi bi-chevron-down hidden text-xs text-gray-400 sm:inline"></i>
+                    </button>
+
+                    <div id="userDropDown" class="absolute right-0 z-[45] mt-2 hidden w-56 origin-top-right rounded-lg bg-white py-1 shadow-lg ring-1 ring-black/5 focus:outline-none" role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button" tabindex="-1">
+                        <div class="border-b border-gray-100 px-4 py-3">
+                            <p class="text-xs text-gray-500">Angemeldet als</p>
+                            <p class="truncate text-sm font-semibold text-gray-900">{{ request.user.email }}</p>
+                        </div>
+                        {% if 'website_settings.edit' in cms_permissions %}
+                        <a href="{% url 'cms:settings-view' %}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-blue-500 hover:text-white" role="menuitem"><i class="bi bi-person"></i> Website-Daten</a>
+                        {% else %}
+                        <a href="{% url 'cms:security-settings' %}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-blue-500 hover:text-white" role="menuitem"><i class="bi bi-person"></i> Dein Profil</a>
+                        {% endif %}
+                        {% if 'website_settings.edit' in cms_permissions %}
+                        <a href="{% url 'cms:logo-settings' %}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-blue-500 hover:text-white" role="menuitem"><i class="bi bi-image"></i> Logo verwalten</a>
+                        {% endif %}
+                        <a href="{% url 'cms:password_change' %}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-blue-500 hover:text-white" role="menuitem"><i class="bi bi-key"></i> Passwort ändern</a>
+                        {% if 'developer.manage' in cms_permissions %}
+                        <a href="{% url 'cms:developer-settings' %}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-blue-500 hover:text-white" role="menuitem"><i class="bi bi-code-slash"></i> Developer Settings</a>
+                        {% endif %}
+                        <div class="my-1 border-t border-gray-100"></div>
+                        <a href="{% url 'cms:logout' %}" class="flex items-center gap-2 px-4 py-2 text-sm text-red-500 hover:bg-red-500 hover:text-white" role="menuitem"><i class="bi bi-box-arrow-right"></i> Abmelden</a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="min-w-0 flex-1">
+            <div class="cms-content-shell mx-auto max-w-7xl px-3 py-4 sm:px-6 sm:py-6 lg:px-8">
+                {% block content %}
+                {% endblock %}
+            </div>
+        </main>
+
+        {# ───────────────────────── CMS Footer ───────────────────────── #}
+        <footer class="mt-8 border-t border-gray-200 bg-white">
+            <div class="mx-auto flex max-w-7xl flex-col items-center gap-3 px-3 py-5 text-xs text-slate-400 sm:flex-row sm:justify-between sm:px-6 lg:px-8">
+                <p class="text-center sm:text-left">
+                    &copy; {% now "Y" %} <span class="font-semibold text-slate-600">YooLink</span><span class="text-blue-500"> CMS</span> &middot; Alle Rechte vorbehalten.
+                </p>
+                <div class="flex items-center gap-4">
+                    <a href="/" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 transition hover:text-slate-600">
+                        <i class="bi bi-box-arrow-up-right"></i> Zur Website
+                    </a>
+                    <span class="text-slate-200">|</span>
+                    <a href="https://yoolink.de/kontakt" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 transition hover:text-slate-600">
+                        <i class="bi bi-life-preserver"></i> Hilfe &amp; Support
+                    </a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    {% block cookies %}
+    {% include "components/cookie_consent.html" %}
+    {% endblock cookies %}
+
+    {% compress js %}
+    <script defer src="{% static 'js/base.js' %}"></script>
+    <script defer src="{% static 'js/translation/cms-translation.js' %}"></script>
+    <script defer src="{% static 'js/cms/cms-shell.js' %}"></script>
+    <script defer src="{% static 'js/cms/logo-contrast.js' %}"></script>
+    <script src="{% static 'js/libs/sweetalert.min.js' %}"></script>
+    {% endcompress js %}
+    {% block javascriptend %}
+    {% endblock javascriptend %}
+
+</body>
+
+</html>

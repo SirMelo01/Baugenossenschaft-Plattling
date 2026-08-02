@@ -1,0 +1,108 @@
+{% extends 'cmsbase.html' %}
+{% load static %}
+
+{% block title %}{{ block.super }} | CMS | Neue Preiskarte{% endblock %}
+
+{% block javascript %}
+<script src="{% static 'js/cms/sortable/sortable.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-3xl">
+
+  <!-- Sticky header -->
+  <div class="sticky top-[4.25rem] z-30 mb-6 rounded-2xl border border-gray-200 bg-white/95 px-5 py-4 shadow-sm backdrop-blur">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <h1 class="text-xl font-semibold text-gray-900 sm:text-2xl">
+        <a href="{% url 'cms:pricingcard-list' %}" class="text-blue-600 hover:text-blue-800">Preisübersicht</a>
+        <span class="mx-1 text-gray-400">/</span>
+        <span id="live-title">Neue Karte</span>
+      </h1>
+      <button type="submit" form="create-pricing-card-form"
+        class="inline-flex items-center justify-center gap-2 rounded-xl bg-green-600 px-5 py-2.5 font-semibold text-white transition hover:bg-green-700">
+        <i class="bi bi-plus-circle"></i> Erstellen
+      </button>
+    </div>
+  </div>
+
+  <form id="create-pricing-card-form" class="space-y-6">
+    {% csrf_token %}
+    {% include "pages/cms/pricing/_pricing_form_fields.html" %}
+  </form>
+</div>
+{% endblock %}
+
+{% block javascriptend %}
+<script>
+  $("#title").on("input", function () {
+    $("#live-title").text($(this).val() || "Neue Karte");
+  });
+
+  Sortable.create(document.getElementById('feature-list'), { animation: 150, handle: '.drag-handle' });
+
+  function featureRow(value) {
+    return `
+      <li class="feature-item flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 p-2" data-id="">
+        <span class="drag-handle cursor-move px-1 text-slate-400 hover:text-slate-600">&#x2630;</span>
+        <input type="text" class="feature-text min-w-0 flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100" placeholder="Neues Feature" value="${value || ''}">
+        <button type="button" class="delete-feature grid h-8 w-8 flex-shrink-0 place-items-center rounded-lg text-rose-500 transition hover:bg-rose-50"><i class="bi bi-x-lg"></i></button>
+      </li>`;
+  }
+
+  $("#add-feature").click(function () {
+    $("#feature-list").append(featureRow(''));
+  });
+
+  $(document).on("click", ".delete-feature", function () {
+    $(this).closest(".feature-item").remove();
+  });
+
+  $("#create-pricing-card-form").submit(function (e) {
+    e.preventDefault();
+    const payload = {
+      title: $("#title").val(),
+      monthly_price: $("#monthly_price").val(),
+      one_time_price: $("#one_time_price").val(),
+      description: $("#description").val(),
+      animation: $("#animation").val(),
+      animation_delay: parseInt($("#animation_delay").val()),
+      button_id: $("#button_id").val() || null,
+      order: 0,
+      active: $("#active").is(":checked")
+    };
+
+    $.ajax({
+      url: "{% url 'cms:pricingcard-create' %}",
+      method: "POST",
+      headers: { "X-CSRFToken": $("input[name=csrfmiddlewaretoken]").val() },
+      contentType: "application/json",
+      data: JSON.stringify(payload),
+      success: function (response) {
+        sendNotif("Neue Preiskarte wurde erstellt", "success");
+        saveFeatures(response.id);
+      },
+      error: function (err) {
+        sendNotif("Fehler beim Erstellen: " + err.responseText, "error");
+      }
+    });
+  });
+
+  function saveFeatures(cardId) {
+    const features = [];
+    $("#feature-list .feature-item").each(function () {
+      const text = $(this).find(".feature-text").val().trim();
+      if (text) features.push({ id: null, text });
+    });
+
+    $.ajax({
+      url: `/cms/pricing/${cardId}/features/`,
+      method: "POST",
+      headers: { "X-CSRFToken": $("input[name=csrfmiddlewaretoken]").val() },
+      contentType: "application/json",
+      data: JSON.stringify({ features }),
+      success: function () { window.location.href = `/cms/pricing/${cardId}/edit/`; },
+      error: function () { sendNotif("Fehler beim Speichern der Features.", "error"); }
+    });
+  }
+</script>
+{% endblock %}

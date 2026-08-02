@@ -1,0 +1,409 @@
+{% extends "pages/demos/_bgp_base.html" %}
+{% load static %}
+
+{% block title %}Kontakt | Baugenossenschaft Plattling eG{% endblock title %}
+{% block meta_description %}Kontakt zur Baugenossenschaft Plattling eG: Schillerstr. 6b, 94447 Plattling. Schreiben Sie uns über das Kontaktformular oder rufen Sie uns an - Mo, Mi und Fr von 8:00 bis 12:00 Uhr.{% endblock %}
+
+{% block demo_css %}
+<style>
+  .bgp-field {
+    width: 100%;
+    border-radius: .75rem;
+    border: 1px solid #D8E3E8;
+    background-color: #ffffff;
+    padding: .75rem 1rem;
+    font-size: .9375rem;
+    color: #111827;
+    transition: border-color .2s ease, box-shadow .2s ease;
+  }
+  .bgp-field::placeholder { color: #9CA3AF; }
+  .bgp-field:focus {
+    outline: none;
+    border-color: #4B6671;
+    box-shadow: 0 0 0 3px rgba(75,102,113,.15);
+  }
+  .bgp-field[aria-invalid="true"] {
+    border-color: #DC2626;
+    box-shadow: 0 0 0 3px rgba(220,38,38,.12);
+  }
+  .bgp-label {
+    margin-bottom: .375rem;
+    display: block;
+    font-size: .8125rem;
+    font-weight: 700;
+    color: #2E434C;
+  }
+  .bgp-error {
+    margin-top: .375rem;
+    display: none;
+    font-size: .75rem;
+    font-weight: 600;
+    color: #DC2626;
+  }
+  .bgp-error.is-visible { display: block; }
+
+  /* Karten-Platzhalter im Markenlook (in der Demo bewusst ohne externe Kartendienste) */
+  .bgp-map {
+    position: relative;
+    overflow: hidden;
+    background-color: #E3F0F4;
+    background-image:
+      linear-gradient(rgba(75,102,113,.12) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(75,102,113,.12) 1px, transparent 1px);
+    background-size: 34px 34px;
+  }
+  .bgp-map::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(140deg, rgba(46,67,76,.05) 0%, rgba(46,67,76,.18) 100%);
+  }
+  .bgp-map-pin {
+    position: relative;
+    z-index: 1;
+    animation: bgp-pin-bounce 2.4s ease-in-out infinite;
+  }
+  @keyframes bgp-pin-bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .bgp-map-pin { animation: none; }
+  }
+</style>
+{% endblock demo_css %}
+
+{% block content %}
+{% url 'ycms:demo-detail' slug='baugenossenschaft-plattling' as bgp_home_url %}
+
+<!-- SEITENKOPF -->
+<section class="bgp-hero relative overflow-hidden px-4 py-16 text-white lg:py-20">
+  <div class="bgp-hero-pattern" aria-hidden="true"></div>
+  <div class="relative mx-auto max-w-6xl">
+    <nav class="mb-6 flex items-center gap-2 text-sm text-white/60" aria-label="Brotkrumen-Navigation">
+      <a href="{{ bgp_home_url }}" class="bgp-focus rounded transition hover:text-white">Startseite</a>
+      <i class="bi bi-chevron-right text-[10px]"></i>
+      <span class="font-semibold text-white">Kontakt</span>
+    </nav>
+    <div class="max-w-2xl">
+      <p class="bgp-text-yellow mb-4 text-sm font-semibold uppercase tracking-widest">Kontakt</p>
+      <h1 class="mb-5 text-4xl font-bold leading-tight tracking-tight sm:text-5xl">Wir sind für Sie da</h1>
+      <p class="text-base leading-7 text-white/80 md:text-lg">
+        Ob Frage zur Mitgliedschaft, Interesse an einer Wohnung oder ein Anliegen rund um Ihre Mietwohnung:
+        Schreiben Sie uns über das Formular oder rufen Sie einfach an. Wir melden uns in der Regel innerhalb
+        von zwei Werktagen zurück.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- KONTAKT-KACHELN -->
+<section class="bg-white px-4">
+  <div class="mx-auto -mt-10 max-w-6xl">
+    <div class="bgp-ring-ice relative z-10 grid grid-cols-1 gap-2 rounded-2xl bg-white p-4 shadow-2xl ring-1 sm:grid-cols-3 sm:p-6" data-aos="fade-up">
+      <a href="tel:0993189007300" class="bgp-focus flex items-center gap-4 rounded-xl px-3 py-3 transition hover:bg-gray-50">
+        <span class="bgp-bg-ice-deep bgp-text-navy inline-flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl">
+          <i class="bi bi-telephone text-xl"></i>
+        </span>
+        <div class="min-w-0">
+          <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">Telefon</p>
+          <p class="bgp-text-navy-dark truncate font-bold">09931 890073-0</p>
+        </div>
+      </a>
+      <a href="mailto:info@baugenossenschaft-plattling.de" class="bgp-focus flex items-center gap-4 rounded-xl px-3 py-3 transition hover:bg-gray-50">
+        <span class="bgp-bg-ice-deep bgp-text-navy inline-flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl">
+          <i class="bi bi-envelope text-xl"></i>
+        </span>
+        <div class="min-w-0">
+          <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">E-Mail</p>
+          <p class="bgp-text-navy-dark truncate font-bold">info@baugenossenschaft-plattling.de</p>
+        </div>
+      </a>
+      <div class="flex items-center gap-4 px-3 py-3">
+        <span class="bgp-bg-ice-deep bgp-text-navy inline-flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl">
+          <i class="bi bi-clock text-xl"></i>
+        </span>
+        <div class="min-w-0">
+          <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">Bürozeiten</p>
+          <p class="bgp-text-navy-dark font-bold">Mo / Mi / Fr · 8-12 Uhr</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FORMULAR + INFOS -->
+<section class="bg-white px-4 py-20 lg:py-24">
+  <div class="mx-auto grid max-w-6xl gap-12 lg:grid-cols-5">
+
+    <!-- Formular -->
+    <div class="lg:col-span-3" data-aos="fade-right">
+      <h2 class="bgp-text-navy-dark mb-3 text-3xl font-bold tracking-tight">Schreiben Sie uns</h2>
+      <p class="mb-8 text-base leading-7 text-gray-600">
+        Felder mit <span class="text-red-600">*</span> sind Pflichtfelder. Wir verwenden Ihre Angaben
+        ausschließlich zur Bearbeitung Ihrer Anfrage.
+      </p>
+
+      <form id="bgpContactForm" novalidate class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
+        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+          <div class="sm:col-span-2">
+            <label class="bgp-label" for="bgpAnrede">Anrede</label>
+            <select id="bgpAnrede" name="anrede" class="bgp-field">
+              <option value="">Bitte wählen</option>
+              <option>Frau</option>
+              <option>Herr</option>
+              <option>Divers</option>
+              <option>Keine Angabe</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="bgp-label" for="bgpName">Name <span class="text-red-600">*</span></label>
+            <input id="bgpName" name="name" type="text" class="bgp-field" placeholder="Vor- und Nachname" required
+                   aria-describedby="bgpNameError" />
+            <p id="bgpNameError" class="bgp-error">Bitte geben Sie Ihren Namen an.</p>
+          </div>
+
+          <div>
+            <label class="bgp-label" for="bgpEmail">E-Mail <span class="text-red-600">*</span></label>
+            <input id="bgpEmail" name="email" type="email" class="bgp-field" placeholder="name@beispiel.de" required
+                   aria-describedby="bgpEmailError" />
+            <p id="bgpEmailError" class="bgp-error">Bitte geben Sie eine gültige E-Mail-Adresse an.</p>
+          </div>
+
+          <div>
+            <label class="bgp-label" for="bgpPhone">Telefon</label>
+            <input id="bgpPhone" name="telefon" type="tel" class="bgp-field" placeholder="Optional - für Rückfragen" />
+          </div>
+
+          <div>
+            <label class="bgp-label" for="bgpBetreff">Ihr Anliegen <span class="text-red-600">*</span></label>
+            <select id="bgpBetreff" name="betreff" class="bgp-field" required aria-describedby="bgpBetreffError">
+              <option value="">Bitte wählen</option>
+              <option>Wohnungsanfrage / Interessentenliste</option>
+              <option>Mitgliedschaft &amp; Geschäftsanteile</option>
+              <option>Anliegen als Mieter</option>
+              <option>Schaden oder Reparatur melden</option>
+              <option>Sonstiges</option>
+            </select>
+            <p id="bgpBetreffError" class="bgp-error">Bitte wählen Sie ein Anliegen aus.</p>
+          </div>
+
+          <div class="sm:col-span-2">
+            <label class="bgp-label" for="bgpNachricht">Nachricht <span class="text-red-600">*</span></label>
+            <textarea id="bgpNachricht" name="nachricht" rows="6" class="bgp-field" required
+                      placeholder="Wie können wir Ihnen helfen?" aria-describedby="bgpNachrichtError"></textarea>
+            <p id="bgpNachrichtError" class="bgp-error">Bitte schreiben Sie uns ein paar Zeilen.</p>
+          </div>
+
+          <div class="sm:col-span-2">
+            <label class="flex cursor-pointer items-start gap-3">
+              <input id="bgpDatenschutz" name="datenschutz" type="checkbox" required
+                     class="bgp-focus mt-1 h-4 w-4 flex-shrink-0 rounded border-gray-300"
+                     aria-describedby="bgpDatenschutzError" />
+              <span class="text-sm leading-6 text-gray-600">
+                Ich habe die <button type="button" data-demo-hint="Datenschutzerklärung" class="bgp-text-navy font-semibold underline">Datenschutzerklärung</button>
+                gelesen und bin mit der Verarbeitung meiner Daten zur Bearbeitung der Anfrage einverstanden.
+                <span class="text-red-600">*</span>
+              </span>
+            </label>
+            <p id="bgpDatenschutzError" class="bgp-error">Bitte bestätigen Sie die Datenschutzerklärung.</p>
+          </div>
+        </div>
+
+        <div class="mt-7 flex justify-end">
+          <button type="submit" id="bgpSubmit"
+                  class="bgp-btn-yellow bgp-focus inline-flex w-full flex-shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-xl px-12 py-4 text-base font-bold shadow-lg transition-transform duration-300 hover:-translate-y-0.5 sm:w-auto">
+            <span id="bgpSubmitLabel">Nachricht senden</span>
+            <i id="bgpSubmitIcon" class="bi bi-send"></i>
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Infos -->
+    <div class="flex flex-col gap-6 lg:col-span-2" data-aos="fade-left">
+      <div class="bgp-bg-ice rounded-2xl p-7">
+        <span class="bgp-bg-navy inline-flex h-12 w-12 items-center justify-center rounded-xl text-white">
+          <i class="bi bi-geo-alt text-xl"></i>
+        </span>
+        <h3 class="bgp-text-navy-dark mb-3 mt-4 text-lg font-bold">Anschrift</h3>
+        <p class="text-sm leading-7 text-gray-600">
+          Baugenossenschaft Plattling eG<br />
+          Schillerstr. 6b<br />
+          94447 Plattling
+        </p>
+        <p class="mt-4 text-sm leading-7 text-gray-600">
+          Tel: <a href="tel:0993189007300" class="bgp-text-navy font-semibold hover:underline">09931 890073-0</a><br />
+          Fax: 09931 890073-9
+        </p>
+      </div>
+
+      <div class="overflow-hidden rounded-2xl border border-gray-200 shadow-sm">
+        <div class="bgp-map flex h-52 items-center justify-center">
+          <span class="bgp-map-pin bgp-bg-yellow inline-flex h-14 w-14 items-center justify-center rounded-full shadow-xl">
+            <i class="bi bi-geo-alt-fill bgp-text-navy-dark text-2xl"></i>
+          </span>
+        </div>
+        <div class="flex items-center justify-between gap-4 bg-white px-5 py-4">
+          <div>
+            <p class="bgp-text-navy-dark text-sm font-bold">Schillerstr. 6b, Plattling</p>
+            <p class="text-xs text-gray-500">Parkplätze direkt am Haus</p>
+          </div>
+          <button type="button" data-demo-hint="Die interaktive Karte" class="bgp-btn-navy bgp-focus inline-flex flex-shrink-0 items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold transition">
+            <i class="bi bi-signpost-split"></i> Route
+          </button>
+        </div>
+      </div>
+
+      <div class="bgp-bg-navy-deep rounded-2xl p-7 text-white">
+        <span class="bgp-bg-yellow inline-flex h-12 w-12 items-center justify-center rounded-xl">
+          <i class="bi bi-clock bgp-text-navy-dark text-xl"></i>
+        </span>
+        <h3 class="mb-3 mt-4 text-lg font-bold">Öffnungszeiten</h3>
+        <dl class="flex flex-col gap-2 text-sm">
+          <div class="flex items-center justify-between border-b border-white/10 pb-2">
+            <dt class="bgp-text-ice">Montag</dt>
+            <dd class="font-semibold">08:00 - 12:00</dd>
+          </div>
+          <div class="flex items-center justify-between border-b border-white/10 pb-2">
+            <dt class="bgp-text-ice">Mittwoch</dt>
+            <dd class="font-semibold">08:00 - 12:00</dd>
+          </div>
+          <div class="flex items-center justify-between border-b border-white/10 pb-2">
+            <dt class="bgp-text-ice">Freitag</dt>
+            <dd class="font-semibold">08:00 - 12:00</dd>
+          </div>
+          <div class="flex items-center justify-between">
+            <dt class="text-white/40">Di / Do / Sa / So</dt>
+            <dd class="font-semibold text-white/40">geschlossen</dd>
+          </div>
+        </dl>
+        <p class="mt-4 text-xs text-white/50">An Brückentagen ist unser Büro geschlossen. Termine außerhalb der Bürozeiten vereinbaren wir gerne telefonisch.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- NOTFALL-HINWEIS -->
+<section class="bgp-bg-ice px-4 py-16">
+  <div class="mx-auto max-w-6xl">
+    <div class="flex flex-col items-start gap-6 rounded-2xl bg-white p-7 shadow-sm sm:flex-row sm:items-center sm:p-9" data-aos="fade-up">
+      <span class="bgp-bg-yellow inline-flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl">
+        <i class="bi bi-exclamation-triangle bgp-text-navy-dark text-2xl"></i>
+      </span>
+      <div class="flex-1">
+        <h2 class="bgp-text-navy-dark mb-1 text-lg font-bold">Notfall außerhalb der Bürozeiten?</h2>
+        <p class="text-sm leading-6 text-gray-600">
+          Bei akuten Schäden - etwa Wasserrohrbruch oder Heizungsausfall - erreichen Sie unseren
+          Bereitschaftsdienst rund um die Uhr unter der bekannten Rufnummer.
+        </p>
+      </div>
+      <a href="tel:0993189007300" class="bgp-btn-navy bgp-focus inline-flex flex-shrink-0 items-center gap-2 rounded-xl px-6 py-3.5 text-sm font-bold shadow-lg transition-transform duration-300 hover:-translate-y-0.5">
+        <i class="bi bi-telephone-fill"></i> Jetzt anrufen
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- MODAL: Bestaetigung -->
+<div id="bgpSuccessModal" class="bgp-modal" role="dialog" aria-modal="true" aria-labelledby="bgpSuccessTitle">
+  <div class="bgp-modal-panel max-w-lg">
+    <div class="px-7 pb-7 pt-9 text-center sm:px-9">
+      <span class="bgp-bg-yellow mx-auto mb-5 inline-flex h-16 w-16 items-center justify-center rounded-full">
+        <i class="bi bi-check-lg bgp-text-navy-dark text-3xl"></i>
+      </span>
+      <h2 id="bgpSuccessTitle" class="bgp-text-navy-dark mb-3 text-2xl font-bold">Vielen Dank für Ihre Nachricht!</h2>
+      <p class="text-base leading-7 text-gray-600">
+        Wir haben Ihre Anfrage erhalten und melden uns in der Regel innerhalb von zwei Werktagen bei Ihnen zurück.
+        Eine Bestätigung geht an <strong id="bgpSuccessEmail" class="text-gray-900"></strong>.
+      </p>
+      <p class="mt-5 rounded-xl bg-gray-50 px-4 py-3 text-xs leading-5 text-gray-500">
+        <i class="bi bi-info-circle"></i> Dies ist eine Demo-Ansicht: Es wurde keine E-Mail verschickt und
+        nichts gespeichert. Im echten CMS landet die Anfrage im Postfach und im Anfragen-Bereich.
+      </p>
+    </div>
+    <div class="flex items-center justify-center border-t border-gray-100 bg-gray-50 px-6 py-5">
+      <button type="button" data-modal-close class="bgp-btn-navy bgp-focus inline-flex items-center justify-center gap-2 rounded-lg px-6 py-2.5 text-sm font-bold transition">
+        Schließen
+      </button>
+    </div>
+  </div>
+</div>
+
+{% endblock content %}
+
+{% block demo_js %}
+<script>
+  /* Simuliertes Kontaktformular: clientseitige Validierung, Sende-Animation, Bestaetigung */
+  (function () {
+    var form = document.getElementById('bgpContactForm');
+    var successModal = document.getElementById('bgpSuccessModal');
+    var successEmail = document.getElementById('bgpSuccessEmail');
+    var submit = document.getElementById('bgpSubmit');
+    var submitLabel = document.getElementById('bgpSubmitLabel');
+    var submitIcon = document.getElementById('bgpSubmitIcon');
+
+    var fields = [
+      { input: document.getElementById('bgpName'), error: document.getElementById('bgpNameError'), valid: function (el) { return el.value.trim().length > 1; } },
+      { input: document.getElementById('bgpEmail'), error: document.getElementById('bgpEmailError'), valid: function (el) { return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(el.value.trim()); } },
+      { input: document.getElementById('bgpBetreff'), error: document.getElementById('bgpBetreffError'), valid: function (el) { return el.value !== ''; } },
+      { input: document.getElementById('bgpNachricht'), error: document.getElementById('bgpNachrichtError'), valid: function (el) { return el.value.trim().length > 9; } },
+      { input: document.getElementById('bgpDatenschutz'), error: document.getElementById('bgpDatenschutzError'), valid: function (el) { return el.checked; } }
+    ];
+
+    function check(field, showError) {
+      var ok = field.valid(field.input);
+      field.input.setAttribute('aria-invalid', String(!ok));
+      field.error.classList.toggle('is-visible', !ok && showError);
+      return ok;
+    }
+
+    fields.forEach(function (field) {
+      field.input.addEventListener('blur', function () { check(field, true); });
+      field.input.addEventListener('input', function () {
+        if (field.error.classList.contains('is-visible')) { check(field, true); }
+      });
+      field.input.addEventListener('change', function () {
+        if (field.error.classList.contains('is-visible')) { check(field, true); }
+      });
+    });
+
+    form.addEventListener('submit', function (event) {
+      event.preventDefault();
+
+      var firstInvalid = null;
+      fields.forEach(function (field) {
+        if (!check(field, true) && !firstInvalid) { firstInvalid = field.input; }
+      });
+
+      if (firstInvalid) {
+        firstInvalid.focus();
+        firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+
+      submit.disabled = true;
+      submit.classList.add('cursor-wait', 'opacity-80');
+      submitLabel.textContent = 'Wird gesendet ...';
+      submitIcon.className = 'bi bi-arrow-repeat animate-spin';
+
+      window.setTimeout(function () {
+        successEmail.textContent = document.getElementById('bgpEmail').value.trim();
+        bgpOpenModal(successModal);
+
+        form.reset();
+        fields.forEach(function (field) {
+          field.input.removeAttribute('aria-invalid');
+          field.error.classList.remove('is-visible');
+        });
+
+        submit.disabled = false;
+        submit.classList.remove('cursor-wait', 'opacity-80');
+        submitLabel.textContent = 'Nachricht senden';
+        submitIcon.className = 'bi bi-send';
+      }, 1100);
+    });
+  })();
+</script>
+{% endblock demo_js %}

@@ -1,0 +1,378 @@
+{% extends "base.html" %}
+{% load compress static i18n custom_filters %}
+
+{% block title %}{{ customer.name }} – Webdesign-Referenz | {{ block.super }}{% endblock title %}
+{% block meta_description %}{% trans "case_meta_reference" %}: {{ customer.name }} – {{ customer.short_description|default:customer.subtitle|default:customer.name }}{% endblock %}
+
+{% block og_title %}{{ customer.name }} - {% trans "case_og_reference_by" %}{% endblock %}
+{% block og_description %}{% if customer.short_description %}{{ customer.short_description }}{% elif customer.subtitle %}{{ customer.subtitle }}{% else %}{% trans "case_og_default_description" %}{% endif %}{% endblock %}
+{% block og_image %}{% if customer.banner_image and customer.banner_image.file %}https://yoolink.de{{ customer.banner_image.file.url }}{% elif customer.title_image and customer.title_image.file %}https://yoolink.de{{ customer.title_image.file.url }}{% else %}{{ block.super }}{% endif %}{% endblock %}
+
+{% block css %}
+{% compress css %}
+<link rel="stylesheet" href="{% static 'css/aos.css' %}" />
+<style>
+    .case-hero {
+        position: relative;
+        isolation: isolate;
+    }
+    .case-hero::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(180deg, rgba(30,58,138,0.55) 0%, rgba(30,58,138,0.92) 100%);
+        z-index: -1;
+    }
+    .case-hero.has-banner::before {
+        background: linear-gradient(180deg, rgba(15,23,42,0.55) 0%, rgba(30,58,138,0.95) 100%);
+    }
+    .case-hero-bg-image {
+        position: absolute;
+        inset: 0;
+        z-index: -2;
+        filter: blur(2px) saturate(1.05);
+        transform: scale(1.05);
+        overflow: hidden;
+    }
+    .case-hero-bg-image img {
+        height: 100%;
+        width: 100%;
+        object-fit: cover;
+        object-position: center;
+    }
+
+    /* Soft pattern */
+    .case-hero-pattern {
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        opacity: 0.18;
+        background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.3) 1px, transparent 0);
+        background-size: 24px 24px;
+    }
+
+    .case-prose p { margin-bottom: 1rem; }
+    .case-prose p:last-child { margin-bottom: 0; }
+
+    .case-gallery-item { transition: transform .35s, box-shadow .35s; }
+    .case-gallery-item:hover { transform: translateY(-4px); box-shadow: 0 18px 30px -16px rgba(15,23,42,0.4); }
+</style>
+{% endcompress css %}
+{% endblock css %}
+
+{% block javascript %}
+{% compress js %}
+<script src="{% static 'js/aos.js' %}"></script>
+{% endcompress %}
+{% endblock javascript %}
+
+{% block content %}
+<!-- HERO -->
+<section class="case-hero {% if customer.banner_image %}has-banner{% endif %} px-4 pt-16 pb-20 text-white sm:pt-20 sm:pb-24">
+    {% if customer.banner_image and customer.banner_image.file %}
+        <div class="case-hero-bg-image" aria-hidden="true">
+            <img src="{{ customer.banner_image.file.url }}"
+                {% responsive_image_attrs customer.banner_image "100vw" %}
+                alt="" />
+        </div>
+    {% endif %}
+    <div class="case-hero-pattern" aria-hidden="true"></div>
+
+    <div class="container mx-auto max-w-6xl">
+        <nav class="mb-8 flex items-center gap-2 text-xs text-blue-100" aria-label="{% trans 'case_breadcrumb_aria' %}">
+            <a href="{% url 'home' %}" class="hover:text-white">{% trans "case_breadcrumb_home" %}</a>
+            <i class="bi bi-chevron-right text-[10px] opacity-60"></i>
+            <a href="{% url 'kunden' %}" class="hover:text-white">{% trans "case_breadcrumb_references" %}</a>
+            <i class="bi bi-chevron-right text-[10px] opacity-60"></i>
+            <span class="text-white/70">{{ customer.name }}</span>
+        </nav>
+
+        <div class="grid grid-cols-1 gap-10 {% if customer.logo and customer.logo.file and customer.logo_style != 'wide' %}md:grid-cols-[1fr_auto] md:items-end{% endif %}" data-aos="fade-up">
+            <div>
+                {% if customer.logo_style == 'wide' and customer.logo and customer.logo.file %}
+                    <div class="mb-6 flex max-w-md items-center">
+                        <img src="{{ customer.logo.file.url }}" alt="{{ customer.name }} Logo"
+                            {% responsive_image_attrs customer.logo "(min-width: 640px) 28rem, 80vw" %}
+                            class="h-14 w-auto max-w-full object-contain object-left sm:h-16" />
+                    </div>
+                {% endif %}
+
+                {% if customer.subtitle %}
+                    <p class="mb-4 inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-blue-100 backdrop-blur">
+                        <span class="h-1.5 w-1.5 rounded-full bg-white"></span>
+                        {{ customer.subtitle }}
+                    </p>
+                {% endif %}
+                <h1 class="mb-6 text-3xl font-bold leading-none tracking-tight sm:text-5xl xl:text-6xl">{{ customer.name }}</h1>
+                {% if customer.short_description %}
+                    <p class="mt-5 max-w-2xl text-base leading-7 text-blue-100 md:text-lg xl:text-xl">{{ customer.short_description }}</p>
+                {% endif %}
+
+                <div class="mt-8 flex flex-wrap gap-3">
+                    {% if customer.website_url %}
+                        <a href="{{ customer.website_url }}" target="_blank" rel="noopener noreferrer"
+                            class="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-6 py-3 text-sm font-bold text-blue-900 shadow-xl transition hover:-translate-y-0.5 hover:bg-blue-50">
+                            <i class="bi bi-globe2 text-base"></i>
+                            <span>{% if customer.website_display %}{{ customer.website_display }}{% else %}{% trans "case_visit_website" %}{% endif %}</span>
+                            <i class="bi bi-arrow-up-right text-xs"></i>
+                        </a>
+                    {% endif %}
+                    <a href="{% url 'kontakt' %}"
+                        class="inline-flex items-center justify-center gap-2 rounded-xl border border-white/40 px-6 py-3 text-sm font-bold text-white transition hover:bg-white/10">
+                        {% trans "case_request_own_project" %}
+                        <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            {% if customer.logo and customer.logo.file and customer.logo_style != 'wide' %}
+                <div class="hidden md:flex">
+                    {% if customer.logo_style == 'square' %}
+                        <div class="flex h-32 w-32 items-center justify-center rounded-3xl bg-white p-5 shadow-2xl ring-1 ring-white/40 lg:h-40 lg:w-40 lg:p-6">
+                            <img src="{{ customer.logo.file.url }}" alt="{{ customer.name }} Logo" {% responsive_image_attrs customer.logo "10rem" %} class="h-full w-full object-contain" />
+                        </div>
+                    {% else %}
+                        <div class="flex h-32 w-32 items-center justify-center rounded-full bg-white p-3 shadow-2xl ring-1 ring-white/40 lg:h-40 lg:w-40 lg:p-4">
+                            <img src="{{ customer.logo.file.url }}" alt="{{ customer.name }} Logo" {% responsive_image_attrs customer.logo "10rem" %} class="h-full w-full rounded-full object-cover" />
+                        </div>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<!-- KEY FACTS STRIP -->
+<section class="bg-white">
+    <div class="container mx-auto max-w-6xl px-4 -mt-10 sm:-mt-12">
+        <div class="grid grid-cols-1 gap-3 rounded-2xl bg-white p-4 shadow-2xl ring-1 ring-gray-100 sm:grid-cols-3 sm:p-6" data-aos="fade-up">
+            <div class="flex items-center gap-4 px-4 py-2">
+                <span class="inline-flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-700">
+                    <i class="bi bi-person-vcard text-xl"></i>
+                </span>
+                <div class="min-w-0">
+                    <p class="text-[11px] font-semibold uppercase tracking-wider text-gray-400">{% trans "case_fact_client" %}</p>
+                    <p class="truncate text-sm font-bold text-gray-900">{{ customer.name }}</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-4 border-gray-100 px-4 py-2 sm:border-l">
+                <span class="inline-flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-purple-100 text-purple-700">
+                    <i class="bi bi-tags text-xl"></i>
+                </span>
+                <div class="min-w-0">
+                    <p class="text-[11px] font-semibold uppercase tracking-wider text-gray-400">{% trans "case_fact_industry" %}</p>
+                    <p class="truncate text-sm font-bold text-gray-900">{% if customer.subtitle %}{{ customer.subtitle }}{% else %}{% trans "case_industry_general" %}{% endif %}</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-4 border-gray-100 px-4 py-2 sm:border-l">
+                <span class="inline-flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-green-100 text-green-700">
+                    <i class="bi bi-calendar-check text-xl"></i>
+                </span>
+                <div class="min-w-0">
+                    <p class="text-[11px] font-semibold uppercase tracking-wider text-gray-400">{% trans "case_fact_live_since" %}</p>
+                    <p class="truncate text-sm font-bold text-gray-900">
+                        {% if customer.published_date %}{{ customer.published_date|date:"d.m.Y" }}{% else %}—{% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- MAIN CONTENT -->
+<section class="bg-white px-4 pt-16 pb-20">
+    <div class="container mx-auto max-w-6xl">
+        <div class="grid grid-cols-1 gap-10 lg:grid-cols-3">
+            <!-- LEFT: Main -->
+            <div class="space-y-10 lg:col-span-2">
+
+                {% if customer.title_image and customer.title_image.file %}
+                <figure class="overflow-hidden rounded-2xl shadow-xl" data-aos="fade-up">
+                    <img src="{{ customer.title_image.file.url }}" {% responsive_image_attrs customer.title_image "(min-width: 1024px) 66vw, 100vw" %} alt="{{ customer.name }}" class="w-full" />
+                </figure>
+                {% endif %}
+
+                {% if customer.description %}
+                <article data-aos="fade-up">
+                    <div class="mb-5 flex items-center gap-3">
+                        <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100 text-blue-700">
+                            <i class="bi bi-bookmark-heart text-xl"></i>
+                        </span>
+                        <h2 class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl sm:leading-none">{% trans "case_section_project" %}</h2>
+                    </div>
+                    <div class="case-prose rounded-2xl bg-blue-50/60 p-6 text-base leading-relaxed text-gray-700 ring-1 ring-blue-100 md:p-8 md:text-lg">
+                        <div class="whitespace-pre-line">{{ customer.description }}</div>
+                    </div>
+                </article>
+                {% endif %}
+
+                {% if customer.testimonial %}
+                <blockquote class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-900 to-blue-700 p-8 text-white shadow-xl md:p-10" data-aos="fade-up">
+                    <i class="bi bi-quote pointer-events-none absolute -right-2 -top-2 text-9xl text-white/10"></i>
+                    <p class="relative text-xl italic leading-relaxed md:text-2xl">&ldquo;{{ customer.testimonial }}&rdquo;</p>
+                    {% if customer.testimonial_author %}
+                        <footer class="relative mt-6 flex items-center gap-3 text-sm font-semibold uppercase tracking-wider text-blue-200">
+                            <span class="h-px w-10 bg-blue-300"></span>
+                            {{ customer.testimonial_author }}
+                        </footer>
+                    {% endif %}
+                </blockquote>
+                {% endif %}
+
+                {% if gallery_images %}
+                <section data-aos="fade-up">
+                    <div class="mb-5 flex items-center gap-3">
+                        <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-pink-100 text-pink-700">
+                            <i class="bi bi-images text-xl"></i>
+                        </span>
+                        <div>
+                            <h2 class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl sm:leading-none">{% trans "case_section_impressions" %}</h2>
+                            <p class="text-sm text-gray-500">{% blocktrans count counter=gallery_images|length %}{{ counter }} image from the gallery{% plural %}{{ counter }} images from the gallery{% endblocktrans %}</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3">
+                        {% for img in gallery_images %}
+                            <a href="{{ img.upload.url }}" target="_blank" rel="noopener noreferrer"
+                                class="case-gallery-item group relative block overflow-hidden rounded-xl bg-blue-50 ring-1 ring-gray-200">
+                                <img src="{{ img.upload.url }}" alt="{{ img.title|default:customer.name }}"
+                                    class="h-44 w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" />
+                                <span class="absolute right-2 top-2 inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-blue-900 opacity-0 ring-1 ring-blue-100 transition group-hover:opacity-100">
+                                    <i class="bi bi-arrows-fullscreen"></i>
+                                </span>
+                            </a>
+                        {% endfor %}
+                    </div>
+                </section>
+                {% endif %}
+            </div>
+
+            <!-- RIGHT: Sidebar -->
+            <aside class="space-y-6 lg:sticky lg:top-24 lg:self-start">
+
+                {% if services %}
+                <div class="rounded-2xl bg-white p-6 shadow-md ring-1 ring-gray-200" data-aos="fade-left">
+                    <div class="mb-4 flex items-center gap-3">
+                        <span class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-blue-100 text-blue-700">
+                            <i class="bi bi-tools text-lg"></i>
+                        </span>
+                        <h3 class="text-base font-bold text-gray-900">{% trans "case_services_provided" %}</h3>
+                    </div>
+                    <ul class="space-y-2.5 text-sm">
+                        {% for service in services %}
+                            <li class="flex items-start gap-3 rounded-lg bg-blue-50/60 px-3 py-2 ring-1 ring-blue-100">
+                                <i class="bi bi-check-circle-fill mt-0.5 flex-shrink-0 text-blue-600"></i>
+                                <span class="text-gray-700">{{ service }}</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                <div class="rounded-2xl bg-white p-6 shadow-md ring-1 ring-gray-200" data-aos="fade-left">
+                    <div class="mb-4 flex items-center gap-3">
+                        <span class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-amber-100 text-amber-700">
+                            <i class="bi bi-info-circle text-lg"></i>
+                        </span>
+                        <h3 class="text-base font-bold text-gray-900">{% trans "case_quick_info" %}</h3>
+                    </div>
+                    <dl class="divide-y divide-gray-100 text-sm">
+                        <div class="flex justify-between gap-3 py-2.5">
+                            <dt class="text-gray-500">{% trans "case_fact_client" %}</dt>
+                            <dd class="text-right font-semibold text-gray-900">{{ customer.name }}</dd>
+                        </div>
+                        {% if customer.subtitle %}
+                        <div class="flex justify-between gap-3 py-2.5">
+                            <dt class="text-gray-500">{% trans "case_fact_industry" %}</dt>
+                            <dd class="text-right font-semibold text-gray-900">{{ customer.subtitle }}</dd>
+                        </div>
+                        {% endif %}
+                        {% if customer.website_url %}
+                        <div class="flex justify-between gap-3 py-2.5">
+                            <dt class="text-gray-500">{% trans "case_website" %}</dt>
+                            <dd class="text-right">
+                                <a href="{{ customer.website_url }}" target="_blank" rel="noopener noreferrer" class="font-semibold text-blue-700 hover:underline">
+                                    {% if customer.website_display %}{{ customer.website_display }}{% else %}{% trans "case_open" %}{% endif %}
+                                </a>
+                            </dd>
+                        </div>
+                        {% endif %}
+                        {% if customer.published_date %}
+                        <div class="flex justify-between gap-3 py-2.5">
+                            <dt class="text-gray-500">{% trans "case_fact_live_since" %}</dt>
+                            <dd class="text-right font-semibold text-gray-900">{{ customer.published_date|date:"d.m.Y" }}</dd>
+                        </div>
+                        {% endif %}
+                    </dl>
+                </div>
+
+                <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-900 via-blue-800 to-blue-700 p-6 text-white shadow-xl" data-aos="fade-left">
+                    <div class="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.18),transparent_55%)]" aria-hidden="true"></div>
+                    <div class="relative">
+                        <span class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-white/20 backdrop-blur">
+                            <i class="bi bi-lightning-charge-fill"></i>
+                        </span>
+                        <h3 class="mt-3 text-lg font-bold">{% trans "case_cta_title" %}</h3>
+                        <p class="mt-2 text-sm text-blue-100">
+                            {% trans "case_cta_text" %}
+                        </p>
+                        <a href="{% url 'kontakt' %}"
+                            class="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-blue-900 shadow transition hover:-translate-y-0.5 hover:bg-blue-50">
+                            <i class="bi bi-chat-dots"></i>
+                            {% trans "case_cta_button" %}
+                        </a>
+                    </div>
+                </div>
+
+            </aside>
+        </div>
+    </div>
+</section>
+
+<!-- WEITERE REFERENZEN -->
+{% if related_customers %}
+<section class="bg-blue-50 px-4 py-20">
+    <div class="container mx-auto max-w-7xl">
+        <div class="mx-auto mb-10 max-w-2xl text-center" data-aos="fade-up">
+            <p class="mb-3 inline-flex items-center gap-2 rounded-full bg-white px-4 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-blue-900 ring-1 ring-blue-100">
+                <i class="bi bi-collection"></i> {% trans "case_more_projects" %}
+            </p>
+            <h2 class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl sm:leading-none">{% trans "case_related_heading" %}</h2>
+        </div>
+
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {% for related in related_customers %}
+                {% include "pages/components/customer_card.html" with customer=related aos_delay=forloop.counter0|add:"100" %}
+            {% endfor %}
+        </div>
+
+        <div class="mt-10 text-center">
+            <a href="{% url 'kunden' %}" class="inline-flex items-center gap-2 text-sm font-semibold text-blue-900 hover:underline">
+                {% trans "case_view_all_references" %}
+                <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+{% endblock content %}
+
+{% block javascriptend %}
+<script>
+  function initKundeAOS() {
+    if (typeof AOS === 'undefined') return false;
+    AOS.init({
+      duration: 800,
+      once: true,
+      easing: 'ease-out',
+      disable: 'phone',
+    });
+    return true;
+  }
+
+  if (!initKundeAOS()) {
+    document.addEventListener('DOMContentLoaded', initKundeAOS);
+    window.addEventListener('load', initKundeAOS);
+  }
+</script>
+{% endblock javascriptend %}

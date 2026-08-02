@@ -1,0 +1,73 @@
+{% extends 'cmsbase.html' %}
+{% block title %}{{ block.super }} | CMS | YooLink Connect{% endblock %}
+
+{% block content %}
+<div class="mx-auto mt-6 max-w-4xl px-2 pb-8">
+    <div class="mb-6">
+        <p class="text-sm font-semibold uppercase tracking-[0.18em] text-blue-700">YooLink Connect</p>
+        <h1 class="mt-2 text-3xl font-semibold tracking-tight text-slate-900">Externe Anwendung verbinden</h1>
+        <p class="mt-2 max-w-3xl text-slate-600">Prüfe die Anfrage und entscheide, ob diese Anwendung einen Developer API Key für dieses CMS erhalten darf.</p>
+    </div>
+
+    <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+        <div class="border-b border-slate-200 px-6 py-5">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                    <p class="text-sm font-medium text-slate-500">Anwendung</p>
+                    <h2 class="mt-1 text-xl font-semibold text-slate-900">{{ connect_params.client_name }}</h2>
+                </div>
+                <span class="w-fit rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">Login als {{ request.user }}</span>
+            </div>
+        </div>
+
+        {% if errors %}
+            <div class="space-y-2 border-b border-rose-100 bg-rose-50 px-6 py-5">
+                {% for error in errors %}
+                    <p class="text-sm font-medium text-rose-700">{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="grid gap-4 p-6 md:grid-cols-2">
+            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Berechtigung</p>
+                <p class="mt-2 text-sm font-semibold text-slate-900">{{ access_level_label }}</p>
+            </div>
+            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">App Scopes</p>
+                <p class="mt-2 text-sm font-semibold text-slate-900">{{ app_labels|join:", " }}</p>
+            </div>
+            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4 md:col-span-2">
+                <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Rückleitung</p>
+                <p class="mt-2 break-all font-mono text-sm text-slate-900">{{ connect_params.redirect_uri }}</p>
+            </div>
+        </div>
+
+        <div class="border-t border-slate-200 bg-slate-50 px-6 py-5">
+            <form method="post" class="flex flex-col gap-3 sm:flex-row sm:justify-end">
+                {% csrf_token %}
+                <input type="hidden" name="client_name" value="{{ connect_params.client_name }}">
+                <input type="hidden" name="redirect_uri" value="{{ connect_params.redirect_uri }}">
+                <input type="hidden" name="state" value="{{ connect_params.state }}">
+                <input type="hidden" name="code_challenge" value="{{ connect_params.code_challenge }}">
+                <input type="hidden" name="code_challenge_method" value="{{ connect_params.code_challenge_method }}">
+                <input type="hidden" name="access_level" value="{{ connect_params.access_level }}">
+                <input type="hidden" name="scope" value="{{ connect_params.scope }}">
+
+                {% if connect_params.redirect_uri %}
+                    <button type="submit" name="action" value="deny"
+                            class="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100">
+                        <i class="bi bi-x-circle"></i>
+                        Ablehnen
+                    </button>
+                {% endif %}
+                <button type="submit" name="action" value="authorize" {% if errors %}disabled{% endif %}
+                        class="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-300">
+                    <i class="bi bi-shield-check"></i>
+                    Verbindung erlauben
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

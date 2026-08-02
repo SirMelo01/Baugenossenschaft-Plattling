@@ -1,0 +1,150 @@
+{% extends 'cmsbase.html' %}
+{% load compress static %}
+{% block title %}{{ block.super }} | CMS | Branding{% endblock %}
+
+{% block content %}
+<div class="mx-auto mt-6 max-w-7xl px-2 pb-8">
+    <div class="mb-6">
+        <h1 class="text-3xl font-semibold tracking-tight text-slate-900">Branding</h1>
+        <p class="mt-2 text-slate-600">Verwalte dein Logo und dein Favicon.</p>
+    </div>
+
+    <div class="grid gap-6 lg:grid-cols-[260px,minmax(0,1fr)]">
+        {% include 'pages/cms/settings/partials/settings_sidebar.html' with active_page='branding' %}
+
+        <section>
+            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+
+            <div class="grid gap-6 md:grid-cols-2">
+
+                <!-- ── Logo ── -->
+                <div class="flex flex-col rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                    <div class="mb-5 flex items-start gap-3">
+                        <span class="grid h-10 w-10 flex-shrink-0 place-items-center rounded-xl bg-blue-100 text-blue-600"><i class="bi bi-image text-xl"></i></span>
+                        <div>
+                            <h2 class="text-lg font-semibold text-slate-900">Logo</h2>
+                            <p class="mt-0.5 text-sm text-slate-500">Wird im CMS und im Frontend als Unternehmenslogo genutzt.</p>
+                        </div>
+                    </div>
+
+                    <!-- Vorschau -->
+                    <div data-logo-surface class="mb-4 flex h-32 items-center justify-center rounded-2xl border border-slate-200 p-4 {% if settings.logo %}cms-logo-surface{% else %}bg-slate-50{% endif %}">
+                        {% if settings.logo %}
+                            <img src="{{ settings.logo.url }}" alt="Logo" data-logo-contrast data-logo-target="surface" class="max-h-24 max-w-full object-contain">
+                        {% else %}
+                            <span class="text-sm text-slate-400"><i class="bi bi-image mr-1"></i> Noch kein Logo</span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Dropzone -->
+                    <div class="upload-zone group relative cursor-pointer rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 p-5 text-center transition hover:border-blue-400 hover:bg-blue-50">
+                        <input type="file" id="logo" accept="image/*" class="sr-only">
+                        <label for="logo" class="flex cursor-pointer flex-col items-center gap-1.5">
+                            <span class="grid h-11 w-11 place-items-center rounded-full bg-blue-100 text-blue-600 transition group-hover:bg-blue-200"><i class="bi bi-cloud-arrow-up text-2xl"></i></span>
+                            <span class="text-sm font-semibold text-slate-700">Bild auswählen <span class="font-normal text-slate-400">oder hierher ziehen</span></span>
+                            <span class="text-xs text-slate-400">PNG, JPG, SVG oder WEBP</span>
+                        </label>
+                        <p class="upload-filename mt-3 hidden truncate rounded-lg bg-white px-3 py-1.5 text-sm font-medium text-blue-700 ring-1 ring-blue-100"></p>
+                    </div>
+
+                    <div class="mt-4 flex flex-wrap gap-2">
+                        <button id="uploadLogo"
+                                class="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700"
+                                data-url="{% url 'cms:logo-update' %}">
+                            <i class="bi bi-upload"></i> Hochladen
+                        </button>
+                        <button id="deleteLogo"
+                                class="inline-flex items-center justify-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm font-semibold text-rose-600 transition hover:bg-rose-100"
+                                data-url="{% url 'cms:logo-delete' %}">
+                            <i class="bi bi-trash-fill"></i> Löschen
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ── Favicon ── -->
+                <div class="flex flex-col rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                    <div class="mb-5 flex items-start gap-3">
+                        <span class="grid h-10 w-10 flex-shrink-0 place-items-center rounded-xl bg-indigo-100 text-indigo-600"><i class="bi bi-stars text-xl"></i></span>
+                        <div>
+                            <h2 class="text-lg font-semibold text-slate-900">Favicon</h2>
+                            <p class="mt-0.5 text-sm text-slate-500">Wird im Browser-Tab und in Lesezeichen angezeigt.</p>
+                        </div>
+                    </div>
+
+                    <!-- Vorschau -->
+                    <div class="mb-4 flex h-32 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                        {% if settings.favicon %}
+                            <img src="{{ settings.favicon.url }}" alt="Favicon" class="max-h-20 max-w-full object-contain">
+                        {% else %}
+                            <span class="text-sm text-slate-400"><i class="bi bi-stars mr-1"></i> Noch kein Favicon</span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Dropzone -->
+                    <div class="upload-zone group relative cursor-pointer rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 p-5 text-center transition hover:border-indigo-400 hover:bg-indigo-50">
+                        <input type="file" id="favicon" accept="image/*,.ico" class="sr-only">
+                        <label for="favicon" class="flex cursor-pointer flex-col items-center gap-1.5">
+                            <span class="grid h-11 w-11 place-items-center rounded-full bg-indigo-100 text-indigo-600 transition group-hover:bg-indigo-200"><i class="bi bi-cloud-arrow-up text-2xl"></i></span>
+                            <span class="text-sm font-semibold text-slate-700">Bild auswählen <span class="font-normal text-slate-400">oder hierher ziehen</span></span>
+                            <span class="text-xs text-slate-400">ICO, PNG oder SVG (quadratisch)</span>
+                        </label>
+                        <p class="upload-filename mt-3 hidden truncate rounded-lg bg-white px-3 py-1.5 text-sm font-medium text-indigo-700 ring-1 ring-indigo-100"></p>
+                    </div>
+
+                    <div class="mt-4 flex flex-wrap gap-2">
+                        <button id="uploadFavicon"
+                                class="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700"
+                                data-url="{% url 'cms:logo-update' %}">
+                            <i class="bi bi-upload"></i> Hochladen
+                        </button>
+                        <button id="deleteFavicon"
+                                class="inline-flex items-center justify-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm font-semibold text-rose-600 transition hover:bg-rose-100"
+                                data-url="{% url 'cms:logo-delete' %}">
+                            <i class="bi bi-trash-fill"></i> Löschen
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascriptend %}
+{% compress js %}
+<script src="{% static 'js/cms/settings/logo.js' %}"></script>
+{% endcompress js %}
+<script>
+    // Dropzone: Dateiname anzeigen + Drag & Drop
+    document.querySelectorAll('.upload-zone').forEach(function (zone) {
+        var input = zone.querySelector('input[type="file"]');
+        var nameEl = zone.querySelector('.upload-filename');
+        if (!input) return;
+
+        function showName() {
+            if (input.files && input.files[0]) {
+                nameEl.textContent = input.files[0].name;
+                nameEl.classList.remove('hidden');
+            } else {
+                nameEl.classList.add('hidden');
+            }
+        }
+        input.addEventListener('change', showName);
+
+        ['dragover', 'dragenter'].forEach(function (ev) {
+            zone.addEventListener(ev, function (e) { e.preventDefault(); zone.classList.add('ring-2', 'ring-blue-300'); });
+        });
+        ['dragleave', 'dragend', 'drop'].forEach(function (ev) {
+            zone.addEventListener(ev, function (e) { e.preventDefault(); zone.classList.remove('ring-2', 'ring-blue-300'); });
+        });
+        zone.addEventListener('drop', function (e) {
+            e.preventDefault();
+            if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
+                input.files = e.dataTransfer.files;
+                showName();
+            }
+        });
+    });
+</script>
+{% endblock %}
