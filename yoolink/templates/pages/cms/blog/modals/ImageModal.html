@@ -1,6 +1,6 @@
 <div class="fixed inset-0 z-[80] hidden items-center justify-center bg-slate-950/70 p-2 backdrop-blur-sm sm:p-4 modal"
-    id="imageModal">
-    <div class="modal-container image-modal-container flex h-[calc(100dvh-1rem)] w-full max-w-6xl flex-col overflow-hidden rounded-lg bg-white shadow-2xl ring-1 ring-slate-200 sm:h-auto sm:max-h-[90vh]">
+    id="imageModal" role="dialog" aria-modal="true" aria-labelledby="infoTitle">
+    <div class="modal-container image-modal-container media-picker-container flex h-[calc(100dvh-1rem)] w-full max-w-6xl flex-col overflow-hidden rounded-lg bg-white shadow-2xl ring-1 ring-slate-200 sm:h-auto sm:max-h-[90vh]">
         <div class="flex flex-shrink-0 items-start justify-between border-b border-slate-200 px-4 py-4 sm:px-6 sm:py-5">
             <div>
                 <p class="text-xs font-semibold uppercase tracking-wide text-blue-700">Blog Builder</p>
@@ -14,26 +14,29 @@
             </button>
         </div>
 
-        <div class="grid min-h-0 flex-1 grid-cols-1 overflow-y-auto lg:grid-cols-[18rem_minmax(0,1fr)]">
-            <aside class="border-b border-slate-200 bg-slate-50 p-3 sm:p-4 lg:border-b-0 lg:border-r">
-                <div class="grid grid-cols-2 gap-2 lg:grid-cols-1">
-                    <button type="button" id="blogImageLibraryTab"
-                        class="blog-image-tab rounded-md bg-blue-900 px-4 py-3 text-left text-sm font-semibold text-white shadow-sm"
+        <div class="image-modal-body media-picker-body grid min-h-0 flex-1 grid-cols-1 overflow-y-auto lg:grid-cols-[20rem_minmax(0,1fr)] lg:overflow-hidden">
+            <aside class="image-modal-sidebar media-picker-sidebar border-b border-slate-200 bg-slate-50 p-3 sm:p-4 lg:overflow-y-auto lg:border-b-0 lg:border-r">
+                <div class="grid grid-cols-2 gap-2 lg:grid-cols-1" role="tablist" aria-label="Bildquelle">
+                    <button type="button" id="blogImageLibraryTab" role="tab" aria-selected="true"
+                        aria-controls="blogImageLibraryPanel"
+                        class="blog-image-tab media-picker-tab is-active rounded-md px-4 py-3 text-left text-sm font-semibold"
                         data-target="blogImageLibraryPanel">
                         <span class="block">Mediathek</span>
-                        <span class="mt-1 block text-xs font-normal text-blue-100">Vorhandenes Bild</span>
+                        <span class="mt-1 block text-xs font-normal opacity-80">Vorhandenes Bild</span>
                     </button>
-                    <button type="button" id="blogImageUploadTab"
-                        class="blog-image-tab rounded-md px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:bg-white hover:text-slate-950"
+                    <button type="button" id="blogImageUploadTab" role="tab" aria-selected="false"
+                        aria-controls="blogImageUploadPanel"
+                        class="blog-image-tab media-picker-tab rounded-md px-4 py-3 text-left text-sm font-semibold"
                         data-target="blogImageUploadPanel">
                         <span class="block">Upload</span>
-                        <span class="mt-1 block text-xs font-normal text-slate-500">Neue Datei</span>
+                        <span class="mt-1 block text-xs font-normal opacity-80">Neue Datei</span>
                     </button>
-                    <button type="button" id="blogImageExternalTab"
-                        class="blog-image-tab rounded-md px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:bg-white hover:text-slate-950"
+                    <button type="button" id="blogImageExternalTab" role="tab" aria-selected="false"
+                        aria-controls="blogImageExternalPanel"
+                        class="blog-image-tab media-picker-tab rounded-md px-4 py-3 text-left text-sm font-semibold"
                         data-target="blogImageExternalPanel">
                         <span class="block">Externe URL</span>
-                        <span class="mt-1 block text-xs font-normal text-slate-500">Direkt verlinken</span>
+                        <span class="mt-1 block text-xs font-normal opacity-80">Direkt verlinken</span>
                     </button>
                 </div>
 
@@ -48,30 +51,92 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="mt-4 space-y-3 rounded-lg border border-slate-200 bg-white p-4">
+                    <h4 class="text-sm font-semibold text-slate-900">Eigenschaften</h4>
+                    <label class="block text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        Alt-Text
+                        <input id="imgAlt" type="text"
+                            class="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm normal-case tracking-normal text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                            placeholder="Beschreibender Bildtext">
+                    </label>
+                    <label class="block text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        Titel
+                        <input id="imgText" type="text"
+                            class="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm normal-case tracking-normal text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                            placeholder="Optionaler Bildtitel">
+                    </label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="block text-xs font-semibold uppercase tracking-wide text-slate-500">
+                            Breite
+                            <input id="imgWidth" type="text"
+                                class="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm normal-case tracking-normal text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                placeholder="100%">
+                        </label>
+                        <label class="block text-xs font-semibold uppercase tracking-wide text-slate-500">
+                            Höhe
+                            <input id="imgHeight" type="text"
+                                class="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm normal-case tracking-normal text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                placeholder="auto">
+                        </label>
+                    </div>
+                    <div class="grid grid-cols-1 gap-2">
+                        <label class="flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700">
+                            <input id="imgLazy" type="checkbox" class="rounded border-slate-300" checked>
+                            Lazy Loading
+                        </label>
+                        <label class="flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700">
+                            <input id="imgAsync" type="checkbox" class="rounded border-slate-300" checked>
+                            Async Decoding
+                        </label>
+                    </div>
+                </div>
             </aside>
 
-            <div class="min-h-0 p-4 sm:p-6">
-                <section id="blogImageLibraryPanel" class="blog-image-panel flex min-h-0 flex-col gap-4 lg:h-full">
+            <div class="media-picker-main flex min-h-0 flex-col p-4 sm:p-6">
+                <section id="blogImageLibraryPanel" role="tabpanel" aria-labelledby="blogImageLibraryTab"
+                    class="blog-image-panel media-picker-panel flex min-h-0 flex-1 flex-col gap-4">
                     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                        <h4 class="text-lg font-semibold text-slate-950">Mediathek</h4>
+                        <div>
+                            <h4 class="text-lg font-semibold text-slate-950">Mediathek</h4>
+                            <p class="text-sm text-slate-500">Klicke ein Bild an – Doppelklick übernimmt es sofort.</p>
+                        </div>
                         <div class="flex gap-2">
-                            <input id="imageSearchInput" type="search" placeholder="Bilder suchen"
+                            <label class="sr-only" for="imageSearchInput">Bilder suchen</label>
+                            <input id="imageSearchInput" type="search" placeholder="Bilder suchen" autocomplete="off"
                                 class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:w-56">
-                            <button id="reloadImages" type="button"
-                                class="rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700">
-                                Laden
+                            <button id="reloadImages" type="button" title="Mediathek neu laden"
+                                class="flex-shrink-0 rounded-md bg-slate-900 px-3 py-2 text-sm font-semibold text-white transition hover:bg-slate-700">
+                                <i class="bi bi-arrow-clockwise" aria-hidden="true"></i>
+                                <span class="sr-only">Neu laden</span>
                             </button>
                         </div>
                     </div>
-                    <div class="min-h-[18rem] flex-1 overflow-auto rounded-lg border border-slate-200 bg-slate-50 p-3">
-                        <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4" id="possibleImages"></div>
+                    <div class="media-grid-wrap relative min-h-0 flex-1 overflow-auto rounded-lg border border-slate-200 bg-slate-50 p-3"
+                        data-media-grid-wrap>
+                        <div class="media-grid" id="possibleImages" role="listbox" aria-label="Bilder der Mediathek"></div>
                         <div id="imageEmptyState" class="hidden py-16 text-center">
                             <p class="text-base font-semibold text-slate-700">Keine Bilder gefunden</p>
+                        </div>
+                        <div class="media-grid-spinner" aria-hidden="true"><span class="media-spinner"></span></div>
+                    </div>
+                    <div class="flex flex-col gap-2 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+                        <span id="imagePaginationInfo">Seite 1</span>
+                        <div class="flex gap-2">
+                            <button id="imagePrevPage" type="button"
+                                class="media-page-button rounded-md border border-slate-300 px-3 py-2 font-semibold text-slate-700 transition hover:bg-white disabled:cursor-not-allowed disabled:text-slate-300">
+                                <i class="bi bi-chevron-left" aria-hidden="true"></i> Zurück
+                            </button>
+                            <button id="imageNextPage" type="button"
+                                class="media-page-button rounded-md border border-slate-300 px-3 py-2 font-semibold text-slate-700 transition hover:bg-white disabled:cursor-not-allowed disabled:text-slate-300">
+                                Weiter <i class="bi bi-chevron-right" aria-hidden="true"></i>
+                            </button>
                         </div>
                     </div>
                 </section>
 
-                <section id="blogImageUploadPanel" class="blog-image-panel hidden min-h-0 flex-col gap-4 lg:h-full">
+                <section id="blogImageUploadPanel" role="tabpanel" aria-labelledby="blogImageUploadTab"
+                    class="blog-image-panel media-picker-panel hidden min-h-0 flex-1 flex-col gap-4">
                     <h4 class="text-lg font-semibold text-slate-950">Bild hochladen</h4>
                     <div id="blogImageUploadDropzone"
                         class="flex min-h-[18rem] flex-1 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-blue-200 bg-blue-50/60 px-6 py-10 text-center transition hover:border-blue-400 hover:bg-blue-50">
@@ -80,12 +145,20 @@
                         </div>
                         <p class="mt-5 text-lg font-semibold text-slate-950">Bilddatei auswählen</p>
                         <p id="blogImageUploadFileName" class="mt-2 text-sm text-slate-500">JPG, PNG, GIF oder WebP</p>
-                        <input id="blogImageUploadInput" class="hidden" type="file" accept="image/jpg,image/png,image/jpeg,image/gif,image/webp,image/*">
+                        <input id="blogImageUploadInput" class="hidden" type="file" accept="image/jpg,image/png,image/jpeg,image/gif,image/webp,image/*" multiple>
                     </div>
-                    <div id="blogImageUploadQueue" class="hidden rounded-lg border border-slate-200 bg-white p-3 text-sm text-slate-600"></div>
+                    <label class="inline-flex items-center gap-2 text-xs text-slate-500">
+                        <input id="blogImageSkipOptimization" type="checkbox" class="h-3.5 w-3.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500">
+                        Ohne Komprimierung hochladen
+                    </label>
+                    <div id="blogImageUploadQueue" class="hidden max-h-56 overflow-auto rounded-lg border border-slate-200 bg-white p-3">
+                        <p class="mb-2 text-sm font-semibold text-slate-900">Upload-Verlauf</p>
+                        <div id="blogImageUploadItems" class="space-y-2"></div>
+                    </div>
                 </section>
 
-                <section id="blogImageExternalPanel" class="blog-image-panel hidden min-h-0 flex-col gap-4 lg:h-full">
+                <section id="blogImageExternalPanel" role="tabpanel" aria-labelledby="blogImageExternalTab"
+                    class="blog-image-panel media-picker-panel hidden min-h-0 flex-1 flex-col gap-4">
                     <h4 class="text-lg font-semibold text-slate-950">Externes Bild</h4>
                     <label class="block text-sm font-semibold text-slate-900">
                         Bild-URL
@@ -99,45 +172,6 @@
                     </button>
                 </section>
 
-                <section class="mt-5 rounded-lg border border-slate-200 bg-white p-4">
-                    <div class="mb-4 flex items-center justify-between gap-3">
-                        <h4 class="text-lg font-semibold text-slate-950">Eigenschaften</h4>
-                    </div>
-                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                        <label class="block text-sm font-semibold text-slate-900 sm:col-span-2">
-                            Alt-Text
-                            <input id="imgAlt" type="text"
-                                class="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                                placeholder="Beschreibender Bildtext">
-                        </label>
-                        <label class="block text-sm font-semibold text-slate-900 sm:col-span-2">
-                            Titel
-                            <input id="imgText" type="text"
-                                class="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                                placeholder="Optionaler Bildtitel">
-                        </label>
-                        <label class="block text-sm font-semibold text-slate-900">
-                            Breite
-                            <input id="imgWidth" type="text"
-                                class="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                                placeholder="100%">
-                        </label>
-                        <label class="block text-sm font-semibold text-slate-900">
-                            Höhe
-                            <input id="imgHeight" type="text"
-                                class="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                                placeholder="auto">
-                        </label>
-                        <label class="flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700">
-                            <input id="imgLazy" type="checkbox" class="rounded border-slate-300" checked>
-                            Lazy Loading
-                        </label>
-                        <label class="flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700">
-                            <input id="imgAsync" type="checkbox" class="rounded border-slate-300" checked>
-                            Async Decoding
-                        </label>
-                    </div>
-                </section>
             </div>
         </div>
 
@@ -147,6 +181,10 @@
                 <i class="bi bi-box-arrow-up-right mr-2"></i>
                 Upload-Seite öffnen
             </a>
+            <p class="text-sm text-slate-500">
+                <kbd class="rounded border border-slate-300 px-1.5 py-0.5 text-xs">Esc</kbd> schließt,
+                <kbd class="rounded border border-slate-300 px-1.5 py-0.5 text-xs">Enter</kbd> übernimmt das markierte Bild.
+            </p>
             <button id="selectImg" type="button"
                 class="inline-flex items-center justify-center rounded-md bg-blue-700 px-5 py-2 text-sm font-semibold text-white transition hover:bg-blue-800">
                 Übernehmen

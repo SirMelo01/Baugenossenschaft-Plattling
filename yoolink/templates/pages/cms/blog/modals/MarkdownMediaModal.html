@@ -1,10 +1,10 @@
 <div class="fixed inset-0 z-[80] hidden items-center justify-center bg-slate-950/70 p-2 backdrop-blur-sm sm:p-4"
-    id="markdownMediaModal">
-    <div class="modal-container markdown-media-modal-container flex h-[calc(100dvh-1rem)] w-full max-w-6xl flex-col overflow-hidden rounded-lg bg-white shadow-2xl ring-1 ring-slate-200 sm:h-auto sm:max-h-[90vh]">
+    id="markdownMediaModal" role="dialog" aria-modal="true" aria-labelledby="markdownMediaTitle">
+    <div class="modal-container markdown-media-modal-container media-picker-container flex h-[calc(100dvh-1rem)] w-full max-w-6xl flex-col overflow-hidden rounded-lg bg-white shadow-2xl ring-1 ring-slate-200 sm:h-auto sm:max-h-[90vh]">
         <div class="flex flex-shrink-0 items-start justify-between border-b border-slate-200 px-4 py-4 sm:px-6 sm:py-5">
             <div>
                 <p class="text-xs font-semibold uppercase tracking-wide text-blue-700">Markdown</p>
-                <h3 class="mt-1 text-2xl font-semibold text-slate-950">Element einfügen</h3>
+                <h3 class="mt-1 text-2xl font-semibold text-slate-950" id="markdownMediaTitle">Element einfügen</h3>
             </div>
             <button type="button" id="closeMarkdownMediaModal"
                 class="rounded-md p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-900">
@@ -13,29 +13,40 @@
             </button>
         </div>
 
-        <div class="grid min-h-0 flex-1 grid-cols-1 overflow-y-auto lg:grid-cols-[17rem_minmax(0,1fr)]">
-            <aside class="border-b border-slate-200 bg-slate-50 p-3 sm:p-4 lg:border-b-0 lg:border-r">
-                <div class="grid grid-cols-2 gap-2 lg:grid-cols-1">
-                    <button type="button" class="markdown-media-tab rounded-md bg-blue-900 px-4 py-3 text-left text-sm font-semibold text-white shadow-sm" data-target="markdownYoutubePanel">
+        <div class="media-picker-body grid min-h-0 flex-1 grid-cols-1 overflow-y-auto lg:grid-cols-[17rem_minmax(0,1fr)] lg:overflow-hidden">
+            <aside class="media-picker-sidebar border-b border-slate-200 bg-slate-50 p-3 sm:p-4 lg:overflow-y-auto lg:border-b-0 lg:border-r">
+                <div class="grid grid-cols-2 gap-2 lg:grid-cols-1" role="tablist" aria-label="Elementtyp">
+                    <button type="button" id="markdownYoutubeTab" role="tab" aria-selected="true" aria-controls="markdownYoutubePanel"
+                        class="markdown-media-tab media-picker-tab is-active rounded-md px-4 py-3 text-left text-sm font-semibold"
+                        data-target="markdownYoutubePanel">
                         <span class="block">YouTube</span>
                     </button>
-                    <button type="button" class="markdown-media-tab rounded-md px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:bg-white hover:text-slate-950" data-target="markdownVideoPanel">
+                    <button type="button" id="markdownVideoTab" role="tab" aria-selected="false" aria-controls="markdownVideoPanel"
+                        class="markdown-media-tab media-picker-tab rounded-md px-4 py-3 text-left text-sm font-semibold"
+                        data-target="markdownVideoPanel">
                         <span class="block">CMS Video</span>
                     </button>
-                    <button type="button" class="markdown-media-tab rounded-md px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:bg-white hover:text-slate-950" data-target="markdownGalleryPanel">
+                    <button type="button" id="markdownGalleryTab" role="tab" aria-selected="false" aria-controls="markdownGalleryPanel"
+                        class="markdown-media-tab media-picker-tab rounded-md px-4 py-3 text-left text-sm font-semibold"
+                        data-target="markdownGalleryPanel">
                         <span class="block">Galerie</span>
                     </button>
-                    <button type="button" class="markdown-media-tab rounded-md px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:bg-white hover:text-slate-950" data-target="markdownFilePanel">
+                    <button type="button" id="markdownFileTab" role="tab" aria-selected="false" aria-controls="markdownFilePanel"
+                        class="markdown-media-tab media-picker-tab rounded-md px-4 py-3 text-left text-sm font-semibold"
+                        data-target="markdownFilePanel">
                         <span class="block">Datei</span>
                     </button>
-                    <button type="button" class="markdown-media-tab rounded-md px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:bg-white hover:text-slate-950" data-target="markdownCodePanel">
+                    <button type="button" id="markdownCodeTab" role="tab" aria-selected="false" aria-controls="markdownCodePanel"
+                        class="markdown-media-tab media-picker-tab rounded-md px-4 py-3 text-left text-sm font-semibold"
+                        data-target="markdownCodePanel">
                         <span class="block">Code</span>
                     </button>
                 </div>
             </aside>
 
-            <div class="min-h-0 p-4 sm:p-6">
-                <section id="markdownYoutubePanel" class="markdown-media-panel flex min-h-0 flex-col gap-4 lg:h-full">
+            <div class="media-picker-main flex min-h-0 flex-col p-4 sm:p-6">
+                <section id="markdownYoutubePanel" role="tabpanel" aria-labelledby="markdownYoutubeTab"
+                    class="markdown-media-panel media-picker-panel flex min-h-0 flex-1 flex-col gap-4">
                     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <label class="block text-sm font-semibold text-slate-900 sm:col-span-2">
                             URL
@@ -56,7 +67,8 @@
                     </div>
                 </section>
 
-                <section id="markdownVideoPanel" class="markdown-media-panel hidden min-h-0 flex-col gap-4 lg:h-full">
+                <section id="markdownVideoPanel" role="tabpanel" aria-labelledby="markdownVideoTab"
+                    class="markdown-media-panel media-picker-panel hidden min-h-0 flex-1 flex-col gap-4">
                     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <h4 class="text-lg font-semibold text-slate-950">CMS Videos</h4>
                         <button id="reloadMarkdownVideos" type="button" class="rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700">Laden</button>
@@ -75,7 +87,8 @@
                     </div>
                 </section>
 
-                <section id="markdownGalleryPanel" class="markdown-media-panel hidden min-h-0 flex-col gap-4 lg:h-full">
+                <section id="markdownGalleryPanel" role="tabpanel" aria-labelledby="markdownGalleryTab"
+                    class="markdown-media-panel media-picker-panel hidden min-h-0 flex-1 flex-col gap-4">
                     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <h4 class="text-lg font-semibold text-slate-950">Galerien</h4>
                         <button id="reloadMarkdownGalleries" type="button" class="rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700">Laden</button>
@@ -94,7 +107,8 @@
                     </div>
                 </section>
 
-                <section id="markdownFilePanel" class="markdown-media-panel hidden min-h-0 flex-col gap-4 lg:h-full">
+                <section id="markdownFilePanel" role="tabpanel" aria-labelledby="markdownFileTab"
+                    class="markdown-media-panel media-picker-panel hidden min-h-0 flex-1 flex-col gap-4">
                     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <h4 class="text-lg font-semibold text-slate-950">Dateien</h4>
                         <button id="reloadMarkdownFiles" type="button" class="rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700">Laden</button>
@@ -104,7 +118,8 @@
                     <p id="markdownFileEmpty" class="hidden text-sm text-slate-500">Keine Dateien gefunden.</p>
                 </section>
 
-                <section id="markdownCodePanel" class="markdown-media-panel hidden min-h-0 flex-col gap-4 lg:h-full">
+                <section id="markdownCodePanel" role="tabpanel" aria-labelledby="markdownCodeTab"
+                    class="markdown-media-panel media-picker-panel hidden min-h-0 flex-1 flex-col gap-4">
                     <label class="block text-sm font-semibold text-slate-900">
                         Sprache
                         <input id="markdownCodeLanguage" type="text" class="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100" placeholder="html">
@@ -122,6 +137,10 @@
                 class="inline-flex items-center justify-center rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 hover:text-slate-950">
                 Abbrechen
             </button>
+            <p class="text-sm text-slate-500">
+                <kbd class="rounded border border-slate-300 px-1.5 py-0.5 text-xs">Esc</kbd> schließt,
+                <kbd class="rounded border border-slate-300 px-1.5 py-0.5 text-xs">Enter</kbd> fügt das Element ein.
+            </p>
             <button type="button" id="insertMarkdownMedia"
                 class="inline-flex items-center justify-center rounded-md bg-blue-700 px-5 py-2 text-sm font-semibold text-white transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50">
                 Einfügen

@@ -40,14 +40,16 @@ from yoolink.ycms.models import (
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, get_user_model, login, logout
 from django.contrib import messages
-from django.db.models import Sum, F, DecimalField
+from django.db.models import Sum, F, DecimalField, Q
+from django.core.cache import cache
 from django.urls import reverse
 from django.http import FileResponse, Http404, HttpResponseBadRequest, HttpResponseRedirect, JsonResponse
 from django.http import HttpResponse
 from .forms import fileform, Blogform
 from django.conf import settings
-from PIL import Image
+from PIL import Image, ImageFile as PILImageFile
 from io import BytesIO
+from hashlib import md5
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.db import DataError, DatabaseError, IntegrityError, models, transaction
 from rest_framework import status
@@ -639,19 +641,17 @@ def file_upload_view(request):
         except ValidationError as error:
             return upload_validation_error_response(error)
 
-        desktop_image = optimize_image_for_upload(
+        skip_optimization = skip_image_optimization_requested(request)
+        desktop_image, mobile_image = prepare_cms_upload_images(
             my_file,
-            max_dimensions=DESKTOP_IMAGE_MAX_DIMENSIONS,
-            max_size_kb=DESKTOP_IMAGE_TARGET_KB,
-            variant_suffix="desktop",
+            skip_optimization=skip_optimization,
         )
-        mobile_image = optimize_image_for_upload(
+        optimization = image_optimization_metadata(
             my_file,
-            max_dimensions=MOBILE_IMAGE_MAX_DIMENSIONS,
-            max_size_kb=MOBILE_IMAGE_TARGET_KB,
-            variant_suffix="mobile",
+            desktop_image,
+            mobile_image,
+            skipped=skip_optimization,
         )
-        optimization = image_optimization_metadata(my_file, desktop_image, mobile_image)
 
         image = fileentry.objects.create(
             file=desktop_image,
@@ -864,6 +864,17 @@ def original_uploaded_image(image, variant_suffix):
     return uploaded_image(buffer, image, variant_suffix, extension, content_type)
 
 
+def upload_flag_enabled(value):
+    return str(value or "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def skip_image_optimization_requested(request):
+    return any(
+        upload_flag_enabled(request.POST.get(field))
+        for field in ("skip_optimization", "skip_compression", "no_compression")
+    )
+
+
 def filesize_kb(size):
     return int(round((size or 0) / 1024))
 
@@ -987,6 +998,31 @@ def optimize_image_for_upload(
     return optimized
 
 
+def prepare_cms_upload_images(image, skip_optimization=False):
+    if skip_optimization:
+        return original_uploaded_image(image, "original"), None
+
+    desktop_image = optimize_image_for_upload(
+        image,
+        max_dimensions=DESKTOP_IMAGE_MAX_DIMENSIONS,
+        max_size_kb=DESKTOP_IMAGE_TARGET_KB,
+        variant_suffix="desktop",
+    )
+    mobile_image = optimize_image_for_upload(
+        image,
+        max_dimensions=MOBILE_IMAGE_MAX_DIMENSIONS,
+        max_size_kb=MOBILE_IMAGE_TARGET_KB,
+        variant_suffix="mobile",
+    )
+    return desktop_image, mobile_image
+
+
+def prepare_galery_upload_image(image, skip_optimization=False):
+    if skip_optimization:
+        return original_uploaded_image(image, "original")
+    return optimize_image_for_upload(image)
+
+
 def resize_image(image):
     return optimize_image_for_upload(image, variant_suffix="desktop")
 
@@ -1008,7 +1044,15 @@ def image_entry_needs_webp(entry):
 
 
 def non_webp_image_count():
-    return sum(1 for entry in fileentry.objects.all().only("file", "mobile_file") if image_entry_needs_webp(entry))
+    """Zaehlt Bilder ohne WebP-Variante direkt in der DB.
+
+    Frueher wurden dafuer alle Zeilen geladen und in Python geprueft - bei jedem
+    Aufruf des Bild-Endpunkts.
+    """
+    needs_conversion = ~Q(file__iendswith=".webp") | (
+        ~Q(mobile_file="") & Q(mobile_file__isnull=False) & ~Q(mobile_file__iendswith=".webp")
+    )
+    return fileentry.objects.filter(needs_conversion).count()
 
 
 def convert_field_file_to_webp(field_file, max_dimensions, max_size_kb, variant_suffix):
@@ -1075,30 +1119,33 @@ def convert_image_entry_to_webp(entry):
     return converted_count, skipped_count
 
 
-def image_optimization_metadata(original, desktop_image, mobile_image):
+def image_optimization_metadata(original, desktop_image, mobile_image=None, skipped=False):
     original_size = getattr(original, "size", 0)
     desktop_saved_bytes = original_size - desktop_image.size
-    mobile_saved_bytes = original_size - mobile_image.size
+    mobile_saved_bytes = original_size - mobile_image.size if mobile_image else 0
     desktop_saved_percent = round((desktop_saved_bytes / original_size) * 100) if original_size else 0
-    mobile_saved_percent = round((mobile_saved_bytes / original_size) * 100) if original_size else 0
+    mobile_saved_percent = round((mobile_saved_bytes / original_size) * 100) if original_size and mobile_image else 0
 
     original_format = os.path.splitext(getattr(original, "name", ""))[1].lstrip(".").upper()
     desktop_format = os.path.splitext(desktop_image.name)[1].lstrip(".").upper()
 
     note = "Bild wurde als WebP für Web und Mobil optimiert."
-    if original_format == "GIF" and desktop_format == "GIF":
+    if skipped:
+        note = "Bild wurde ohne Komprimierung im Originalformat gespeichert."
+    elif original_format == "GIF" and desktop_format == "GIF":
         note = "Animierte GIFs bleiben im Originalformat, damit die Animation erhalten bleibt."
 
     return {
         "original_size": original_size,
         "original_size_kb": filesize_kb(original_size),
         "desktop": image_variant_metadata(desktop_image),
-        "mobile": image_variant_metadata(mobile_image),
+        "mobile": image_variant_metadata(mobile_image) if mobile_image else {},
         "desktop_saved_bytes": desktop_saved_bytes,
         "desktop_saved_percent": desktop_saved_percent,
         "mobile_saved_bytes": mobile_saved_bytes,
         "mobile_saved_percent": mobile_saved_percent,
         "note": note,
+        "skipped": skipped,
     }
 
 from django.utils.translation import get_language_from_request, activate
@@ -1602,14 +1649,14 @@ def get_galery_images(request):
     if galery.images:
         images_list = []
         for image in galery.images.all():
-            metadata = stored_image_metadata(image.upload)
+            # Bewusst ohne Storage-Metadaten: die werden hier nirgends angezeigt,
+            # kosten bei S3 aber einen Roundtrip pro Bild.
             image_dict = {
                 'upload_url': image.upload.url,
                 'url': image.upload.url,
                 'id': image.id,
                 'title': image.title,
                 'alt': image.title,
-                'metadata': metadata,
                 'uploaddate': image.uploaddate,
             }
             images_list.append(image_dict)
@@ -1732,7 +1779,10 @@ def upload_galery_img(request, id):
         except ValidationError as error:
             return upload_validation_error_response(error)
 
-        optimized_image = optimize_image_for_upload(my_file)
+        optimized_image = prepare_galery_upload_image(
+            my_file,
+            skip_optimization=skip_image_optimization_requested(request),
+        )
         doc = GaleryImage.objects.create(upload=optimized_image)
         galery = Galerie.objects.get(id=id)
         galery.images.add(doc)
@@ -1763,12 +1813,57 @@ def delete_galery(request, id):
 
 
 # --------------- [Image Helper] ---------------
-def stored_image_metadata(field_file):
+# Dateigröße und Abmessungen liegen nicht in der DB, sondern nur im Storage.
+# In Produktion ist das S3/Spaces - jeder Zugriff darauf ist ein Netzwerk-Roundtrip.
+# Deshalb: Ergebnis cachen (Dateinamen sind durch den Timestamp eindeutig und
+# Inhalte unveraenderlich) und in Listen-Endpunkten gar nicht erst anfordern.
+IMAGE_METADATA_CACHE_TIMEOUT = 60 * 60 * 24 * 30  # 30 Tage
+IMAGE_HEADER_CHUNK_SIZE = 64 * 1024
+
+
+def image_metadata_cache_key(name):
+    return "cms:image-meta:" + md5(str(name).encode("utf-8")).hexdigest()
+
+
+def read_image_dimensions(field_file):
+    """Liest die Abmessungen aus dem Datei-Header.
+
+    Statt die komplette Datei zu laden (``Image.open`` zieht bei S3 den ganzen
+    Body) wird inkrementell geparst und abgebrochen, sobald der Header steht.
+    """
+    parser = PILImageFile.Parser()
+    try:
+        field_file.open("rb")
+        while True:
+            chunk = field_file.read(IMAGE_HEADER_CHUNK_SIZE)
+            if not chunk:
+                break
+            parser.feed(chunk)
+            if parser.image is not None:
+                return parser.image.size
+    except Exception:
+        pass
+    finally:
+        try:
+            field_file.close()
+        except Exception:
+            pass
+    return None, None
+
+
+def stored_image_metadata(field_file, use_cache=True):
     if not field_file:
         return {}
 
+    name = getattr(field_file, "name", "") or ""
+    cache_key = image_metadata_cache_key(name) if (use_cache and name) else None
+    if cache_key:
+        cached = cache.get(cache_key)
+        if cached is not None:
+            return cached
+
     metadata = {
-        "name": os.path.basename(getattr(field_file, "name", "")),
+        "name": os.path.basename(name),
         "size": None,
         "size_kb": None,
         "width": None,
@@ -1782,32 +1877,30 @@ def stored_image_metadata(field_file):
     except Exception:
         pass
 
-    try:
-        field_file.open("rb")
-        with Image.open(field_file) as img:
-            width, height = img.size
-            metadata["width"] = width
-            metadata["height"] = height
-            metadata["dimensions"] = f"{width} x {height}px"
-    except Exception:
-        pass
-    finally:
-        try:
-            field_file.close()
-        except Exception:
-            pass
+    width, height = read_image_dimensions(field_file)
+    if width and height:
+        metadata["width"] = width
+        metadata["height"] = height
+        metadata["dimensions"] = f"{width} x {height}px"
+
+    if cache_key:
+        cache.set(cache_key, metadata, IMAGE_METADATA_CACHE_TIMEOUT)
 
     return metadata
 
 
-def serialize_image_entry(entry, optimization=None):
+def serialize_image_entry(entry, optimization=None, with_metadata=True):
+    """Serialisiert ein Bild fuer das CMS.
+
+    ``with_metadata=False`` liefert nur DB-Felder (kein Storage-Zugriff) und
+    wird fuer Listen/Grids benutzt - dort zaehlt jede Millisekunde. Die Details
+    holt das Frontend bei Bedarf einzeln ueber ``image_info``.
+    """
     try:
         image_url = entry.file.url
     except ValueError:
         image_url = ""
 
-    desktop_meta = stored_image_metadata(entry.file)
-    mobile_meta = stored_image_metadata(entry.mobile_file) if entry.mobile_file else {}
     upload_date = entry.uploaddate.strftime("%d.%m.%Y %H:%M") if entry.uploaddate else ""
 
     data = {
@@ -1820,8 +1913,15 @@ def serialize_image_entry(entry, optimization=None):
         "format": entry.file_extension,
         "has_mobile": bool(entry.mobile_file),
         "is_webp": field_file_is_webp(entry.file),
-        "metadata": {
-            "filename": desktop_meta.get("name") or os.path.basename(entry.file.name),
+        "filename": os.path.basename(entry.file.name or ""),
+        "uploaded_at": upload_date,
+    }
+
+    if with_metadata:
+        desktop_meta = stored_image_metadata(entry.file)
+        mobile_meta = stored_image_metadata(entry.mobile_file) if entry.mobile_file else {}
+        data["metadata"] = {
+            "filename": desktop_meta.get("name") or os.path.basename(entry.file.name or ""),
             "size": desktop_meta.get("size"),
             "size_kb": desktop_meta.get("size_kb"),
             "width": desktop_meta.get("width"),
@@ -1830,8 +1930,7 @@ def serialize_image_entry(entry, optimization=None):
             "uploaded_at": upload_date,
             "mobile_size_kb": mobile_meta.get("size_kb"),
             "mobile_dimensions": mobile_meta.get("dimensions"),
-        },
-    }
+        }
 
     if optimization:
         data["optimization"] = optimization
@@ -1874,59 +1973,45 @@ def convert_images_to_webp(request):
 @login_required(login_url='login')
 @cms_permission_required("media.edit")
 def all_images(request):
-    if request.method == 'GET':
-        try:
-            per_page = max(1, min(24, int(request.GET.get('per_page', 12))))
-        except ValueError:
-            per_page = 12
+    """Bild-Mediathek fuer die Auswahl-Modals (paginiert + Suche).
 
-        search = request.GET.get('q', '').strip()
-        images = fileentry.objects.all().order_by('-uploaddate')
-        if search:
-            images = images.filter(title__icontains=search)
+    Liefert bewusst *keine* Datei-Metadaten (Groesse/Abmessungen): die muessten
+    pro Bild aus dem Storage gelesen werden und haben den Endpunkt bei S3 auf
+    mehrere Sekunden pro Seite gebremst. Details holt das Frontend fuer das
+    einzelne angeklickte Bild ueber ``image_info``.
+    """
+    if request.method != 'GET':
+        return JsonResponse({'error': 'Falsche Anfrage (Erlaubt: GET)'}, status=405)
 
-        paginator = Paginator(images, per_page)
-        page_obj = paginator.get_page(request.GET.get('page', 1))
-        image_urls = [serialize_image_entry(entry) for entry in page_obj.object_list]
-        non_webp_total = non_webp_image_count()
+    try:
+        per_page = max(1, min(48, int(request.GET.get('per_page', 12))))
+    except (TypeError, ValueError):
+        per_page = 12
 
-        return JsonResponse({
-            'image_urls': image_urls,
-            'pagination': {
-                'page': page_obj.number,
-                'per_page': per_page,
-                'total': paginator.count,
-                'total_pages': paginator.num_pages,
-                'has_previous': page_obj.has_previous(),
-                'has_next': page_obj.has_next(),
-            },
-            'has_non_webp': non_webp_total > 0,
-            'non_webp_count': non_webp_total,
-        })
+    search = request.GET.get('q', '').strip()
+    images = fileentry.objects.all().order_by('-uploaddate', '-id')
+    if search:
+        # Auch der Dateiname wird durchsucht - Titel sind oft nur "Bildtitel".
+        images = images.filter(Q(title__icontains=search) | Q(file__icontains=search))
 
-        images = fileentry.objects.all().order_by('-uploaddate')
-        # Liste zur Speicherung der Bild-URLs erstellen
-        image_urls = [] 
+    paginator = Paginator(images, per_page)
+    page_obj = paginator.get_page(request.GET.get('page', 1))
+    image_urls = [serialize_image_entry(entry, with_metadata=False) for entry in page_obj.object_list]
+    non_webp_total = non_webp_image_count()
 
-        # URLs für jedes fileentry-Objekt erstellen
-        for entry in images:
-            # URL für das Bild erstellen
-            image_url = entry.file.url
-            data = {
-                "url": image_url,
-                "mobile_url": entry.mobile_file_url,
-                "srcset": entry.responsive_srcset,
-                "id": entry.id,
-                "title": entry.title,
-                "format": entry.file_extension,
-                "has_mobile": bool(entry.mobile_file),
-            }
-            # URL zur Liste hinzufügen
-            image_urls.append(data)
-
-        # JSON-Antwort mit den Bild-URLs senden
-        return JsonResponse({'image_urls': image_urls})
-    return JsonResponse({'error': 'Falsche Anfrage (Erlaubt: GET)'})
+    return JsonResponse({
+        'image_urls': image_urls,
+        'pagination': {
+            'page': page_obj.number,
+            'per_page': per_page,
+            'total': paginator.count,
+            'total_pages': paginator.num_pages,
+            'has_previous': page_obj.has_previous(),
+            'has_next': page_obj.has_next(),
+        },
+        'has_non_webp': non_webp_total > 0,
+        'non_webp_count': non_webp_total,
+    })
 
 # --------------- [Galery Helper] ---------------
 # get all galerys
@@ -1941,13 +2026,13 @@ def all_galerien(request):
             image_list = []
             
             for image in galerie.images.all():
-                metadata = stored_image_metadata(image.upload)
+                # Ohne Storage-Metadaten (siehe get_galery_images) - die
+                # Galerie-Auswahl zeigt nur Titel/Beschreibung an.
                 image_list.append({
                     'url': image.upload.url,
                     'id': image.id,
                     'title': image.title,
                     'alt': image.title,
-                    'metadata': metadata,
                 })
             
             galerien_list.append({

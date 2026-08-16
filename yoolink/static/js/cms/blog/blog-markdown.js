@@ -3,8 +3,7 @@
         activePanel: 'markdownImageLibraryPanel',
         imageLibraryItems: [],
         imageLibraryLoaded: false,
-        imageLibraryPage: 1,
-        imageLibraryPagination: null,
+        imageGrid: null,
         objectUrl: '',
         selectedFile: null,
         selectedImage: null,
@@ -40,6 +39,45 @@
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#039;');
+    }
+
+    function markdownUploadItemId() {
+        return 'markdown-image-upload-' + Date.now() + '-' + Math.random().toString(16).slice(2);
+    }
+
+    function addMarkdownUploadItem(id, name) {
+        $('#markdownImageUploadQueue').removeClass('hidden');
+        $('#markdownImageUploadItems').prepend(
+            '<div id="' + id + '" class="rounded-md bg-slate-50 px-3 py-2 text-sm">' +
+                '<div class="flex items-center justify-between gap-3">' +
+                    '<span class="truncate text-slate-700">' + escapeHtml(name) + '</span>' +
+                    '<span class="upload-status flex-shrink-0 text-slate-500">0 %</span>' +
+                '</div>' +
+                '<div class="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-200">' +
+                    '<div class="upload-bar h-full w-0 rounded-full bg-blue-600 transition-all duration-200"></div>' +
+                '</div>' +
+                '<p class="upload-detail mt-1 hidden text-xs leading-snug text-slate-500"></p>' +
+            '</div>'
+        );
+    }
+
+    function setMarkdownUploadProgress(id, percent) {
+        const $item = $('#' + id);
+        $item.find('.upload-bar').css('width', percent + '%');
+        $item.find('.upload-status').text(percent + ' %');
+    }
+
+    function setMarkdownUploadStatus(id, text, className, detail) {
+        const $item = $('#' + id);
+        $item.find('.upload-status')
+            .removeClass('text-slate-500 text-green-700 text-red-700')
+            .addClass(className)
+            .text(text);
+        $item.find('.upload-bar')
+            .toggleClass('bg-blue-600', className !== 'text-red-700')
+            .toggleClass('bg-red-500', className === 'text-red-700')
+            .css('width', '100%');
+        if (detail) $item.find('.upload-detail').text(detail).removeClass('hidden');
     }
 
     function markdownAlt(value) {
@@ -297,12 +335,12 @@
         $('#' + panelId).removeClass('hidden').addClass('flex');
 
         $('.markdown-media-tab')
-            .removeClass('bg-blue-900 text-white shadow-sm')
-            .addClass('text-slate-700 hover:bg-white hover:text-slate-950');
+            .removeClass('is-active')
+            .attr('aria-selected', 'false');
 
         $('.markdown-media-tab[data-target="' + panelId + '"]')
-            .addClass('bg-blue-900 text-white shadow-sm')
-            .removeClass('text-slate-700 hover:bg-white hover:text-slate-950');
+            .addClass('is-active')
+            .attr('aria-selected', 'true');
 
         if (panelId === 'markdownVideoPanel') loadMarkdownVideos(false);
         if (panelId === 'markdownGalleryPanel') loadMarkdownGalleries(false);
@@ -324,10 +362,12 @@
         resetMediaModalState();
         setMediaPanel('markdownYoutubePanel');
         $('#markdownMediaModal').removeClass('hidden').addClass('flex');
+        $('body').addClass('media-picker-open');
     }
 
     function closeMediaModal() {
         $('#markdownMediaModal').addClass('hidden').removeClass('flex');
+        $('body').removeClass('media-picker-open');
     }
 
     function mediaCard(title, meta, selected) {
@@ -536,12 +576,12 @@
         $('#' + panelId).removeClass('hidden').addClass('flex');
 
         $('.markdown-image-tab')
-            .removeClass('bg-blue-900 text-white shadow-sm')
-            .addClass('text-slate-700 hover:bg-white hover:text-slate-950');
+            .removeClass('is-active')
+            .attr('aria-selected', 'false');
 
         $('.markdown-image-tab[data-target="' + panelId + '"]')
-            .addClass('bg-blue-900 text-white shadow-sm')
-            .removeClass('text-slate-700 hover:bg-white hover:text-slate-950');
+            .addClass('is-active')
+            .attr('aria-selected', 'true');
 
         updateInsertState();
     }
@@ -550,18 +590,18 @@
         state.selectedImage = null;
         state.selectedFile = null;
         state.imageLibraryLoaded = false;
-        state.imageLibraryPage = 1;
-        state.imageLibraryPagination = null;
         if (state.objectUrl) {
             URL.revokeObjectURL(state.objectUrl);
             state.objectUrl = '';
         }
-        $('#markdownImageAlt, #markdownImageWidth, #markdownImageHeight, #markdownImageSearchInput').val('');
+        $('#markdownImageAlt, #markdownImageWidth, #markdownImageHeight').val('');
         $('#markdownImageFile').val('');
         $('#markdownImageSelectedFileName').text('JPG, PNG, GIF oder WebP');
         refreshSelectedPreview('');
-        renderImageLibrary(state.imageLibraryItems);
-        renderImagePagination();
+        if (state.imageGrid) {
+            state.imageGrid.resetQuery();
+            state.imageGrid.setSelected(null);
+        }
         updateInsertState();
     }
 
@@ -569,11 +609,13 @@
         resetImageModalState();
         setImagePanel('markdownImageLibraryPanel');
         $('#markdownImageModal').removeClass('hidden').addClass('flex');
+        $('body').addClass('media-picker-open');
         loadImageLibrary(false);
     }
 
     function closeImageModal() {
         $('#markdownImageModal').addClass('hidden').removeClass('flex');
+        $('body').removeClass('media-picker-open');
     }
 
     function refreshSelectedPreview(src) {
@@ -601,7 +643,7 @@
             $('#markdownImageAlt').val(image.title || 'Bild');
         }
         refreshSelectedPreview(image.preview_url || image.url);
-        renderImageLibrary(state.imageLibraryItems);
+        if (state.imageGrid) state.imageGrid.setSelected(image.id);
         updateInsertState();
     }
 
@@ -620,82 +662,54 @@
             $('#markdownImageAlt').val(file.name.replace(/\.[^.]+$/, ''));
         }
         refreshSelectedPreview(state.objectUrl);
-        renderImageLibrary(state.imageLibraryItems);
+        if (state.imageGrid) state.imageGrid.setSelected(null);
         updateInsertState();
     }
 
-    function renderImageLibrary(items) {
-        const $grid = $('#markdownImageLibrary');
-        $grid.empty();
+    /**
+     * Bild-Grid des Markdown-Dialogs - dieselbe zentrale Mediathek wie überall
+     * sonst (js/cms/media-library.js): serverseitige Suche, Paginierung,
+     * Skeletons und Vorabladen der nächsten Seite inklusive.
+     */
+    function imageGrid() {
+        if (state.imageGrid || !window.CmsMedia) return state.imageGrid;
 
-        if (!items || !items.length) {
-            $('#markdownImageEmpty').removeClass('hidden');
-            renderImagePagination();
-            return;
-        }
-
-        $('#markdownImageEmpty').addClass('hidden');
-        items.forEach(function (image) {
-            const title = image.title || 'Bild';
-            const selected = state.selectedImage && state.selectedImage.url === image.url;
-            const $button = $('<button type="button" class="group relative overflow-hidden rounded-lg bg-white text-left shadow-sm ring-1 transition hover:-translate-y-0.5 hover:shadow-lg"></button>');
-            $button.toggleClass('ring-blue-500', selected);
-            $button.toggleClass('ring-slate-200 hover:ring-blue-300', !selected);
-            const $img = $('<img class="h-36 w-full object-cover" loading="lazy">');
-            $img.attr('src', image.preview_url || image.url);
-            $img.attr('alt', title);
-            const $caption = $('<span class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/80 to-transparent px-3 pb-3 pt-8 text-xs font-semibold text-white opacity-0 transition group-hover:opacity-100"></span>');
-            $caption.html(escapeHtml(title));
-            $button.append($img).append($caption);
-            $button.on('click', function () {
+        state.imageGrid = window.CmsMedia.createGrid({
+            grid: '#markdownImageLibrary',
+            empty: '#markdownImageEmpty',
+            search: '#markdownImageSearchInput',
+            reload: '#reloadMarkdownImages',
+            prev: '#markdownImagePrevPage',
+            next: '#markdownImageNextPage',
+            info: '#markdownImagePageInfo',
+            perPage: 24,
+            allowDelete: true,
+            onSelect: selectLibraryImage,
+            onActivate: function (image) {
                 selectLibraryImage(image);
-            });
-            $grid.append($button);
+                insertSelectedImage();
+            },
+            onLoaded: function (items) {
+                state.imageLibraryItems = items;
+                state.imageLibraryLoaded = true;
+            },
+            onDeleted: function (image) {
+                if (state.selectedImage && String(state.selectedImage.id) === String(image.id)) {
+                    state.selectedImage = null;
+                    refreshSelectedPreview('');
+                    updateInsertState();
+                }
+            }
         });
-        renderImagePagination();
-    }
 
-    function renderImagePagination() {
-        const pagination = state.imageLibraryPagination || {};
-        const page = pagination.page || state.imageLibraryPage || 1;
-        const totalPages = pagination.total_pages || 1;
-        $('#markdownImagePageInfo').text('Seite ' + page + ' / ' + totalPages);
-        $('#markdownImagePrevPage').prop('disabled', !pagination.has_previous);
-        $('#markdownImageNextPage').prop('disabled', !pagination.has_next);
+        return state.imageGrid;
     }
 
     function loadImageLibrary(force, page) {
-        const nextPage = page || state.imageLibraryPage || 1;
-        if (state.imageLibraryLoaded && !force) {
-            renderImageLibrary(state.imageLibraryItems);
-            return;
-        }
-
-        $('#markdownImageLibrary').empty();
-        $('#markdownImageEmpty').addClass('hidden');
-        $.ajax({
-            url: '/cms/images/all/',
-            type: 'GET',
-            data: {
-                page: nextPage,
-                per_page: 24,
-                q: ($('#markdownImageSearchInput').val() || '').trim(),
-            },
-            dataType: 'json',
-            success: function (response) {
-                state.imageLibraryItems = response.image_urls || [];
-                state.imageLibraryPagination = response.pagination || null;
-                state.imageLibraryPage = state.imageLibraryPagination ? state.imageLibraryPagination.page : nextPage;
-                state.imageLibraryLoaded = true;
-                renderImageLibrary(state.imageLibraryItems);
-                if (force) {
-                    notify(state.imageLibraryItems.length ? 'Alle Bilder wurden geladen' : 'Keine Bilder gefunden', state.imageLibraryItems.length ? 'success' : 'error');
-                }
-            },
-            error: function () {
-                notify('Bilder konnten nicht geladen werden', 'error');
-            }
-        });
+        const grid = imageGrid();
+        if (!grid) return;
+        if (force) grid.reload({ notify: true });
+        else grid.load({ page: page || 1 });
     }
 
     function uploadSelectedImage() {
@@ -705,39 +719,47 @@
             return;
         }
 
+        if (!window.CmsMedia || !window.CmsMedia.api) {
+            notify('Die Mediathek ist noch nicht bereit', 'error');
+            return;
+        }
+
         const $button = $('#insertMarkdownImage');
         const originalText = $button.text();
-        const formData = new FormData();
-        formData.append('file', file);
+        const uploadId = markdownUploadItemId();
+        addMarkdownUploadItem(uploadId, file.name);
 
         $button.prop('disabled', true).text('Lädt...');
-        $.ajax({
-            url: '/cms/upload/post',
-            type: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            beforeSend: function (xhr) {
-                xhr.setRequestHeader('X-CSRFToken', csrfToken());
-            },
-            success: function (response) {
+        window.CmsMedia.api.upload(file, {
+            skipOptimization: $('#markdownImageSkipOptimization').is(':checked'),
+            onProgress: function (percent) {
+                setMarkdownUploadProgress(uploadId, percent);
+            }
+        })
+            .done(function (response) {
                 if (!response.image || !response.image.url) {
+                    setMarkdownUploadStatus(uploadId, 'Fehlgeschlagen', 'text-red-700');
                     notify('Bild konnte nicht verarbeitet werden', 'error');
                     return;
                 }
+
+                const detail = window.CmsMedia.optimizationText ? window.CmsMedia.optimizationText(response.image) : '';
+                setMarkdownUploadStatus(uploadId, 'Fertig', 'text-green-700', detail);
                 const altText = $('#markdownImageAlt').val() || response.image.title || file.name;
                 if (insertImageMarkdown(response.image.url, altText, response.image)) {
                     state.imageLibraryLoaded = false;
+                    // Der frische Upload soll beim nächsten Öffnen oben stehen.
+                    if (state.imageGrid) state.imageGrid.invalidate();
                 }
-            },
-            error: function () {
+            })
+            .fail(function () {
+                setMarkdownUploadStatus(uploadId, 'Fehlgeschlagen', 'text-red-700');
                 notify('Bild konnte nicht hochgeladen werden', 'error');
-            },
-            complete: function () {
+            })
+            .always(function () {
                 $button.prop('disabled', false).text(originalText);
                 updateInsertState();
-            }
-        });
+            });
     }
 
     function insertSelectedImage() {
@@ -810,25 +832,8 @@
         $('.markdown-image-tab').on('click', function () {
             setImagePanel($(this).attr('data-target'));
         });
-        $('#reloadMarkdownImages').on('click', function () {
-            state.imageLibraryLoaded = false;
-            loadImageLibrary(true, state.imageLibraryPage);
-        });
-        $('#markdownImageSearchInput').on('input', function () {
-            state.imageLibraryLoaded = false;
-            state.imageLibraryPage = 1;
-            loadImageLibrary(false, 1);
-        });
-        $('#markdownImagePrevPage').on('click', function () {
-            if (!state.imageLibraryPagination || !state.imageLibraryPagination.has_previous) return;
-            state.imageLibraryLoaded = false;
-            loadImageLibrary(false, Math.max(1, state.imageLibraryPage - 1));
-        });
-        $('#markdownImageNextPage').on('click', function () {
-            if (!state.imageLibraryPagination || !state.imageLibraryPagination.has_next) return;
-            state.imageLibraryLoaded = false;
-            loadImageLibrary(false, state.imageLibraryPage + 1);
-        });
+        // Suche, Neu-laden und Paginierung hängen am zentralen Mediathek-Modul
+        // (siehe imageGrid()) - hier nichts mehr zu binden.
         $('#insertMarkdownImage').on('click', insertSelectedImage);
 
         $('#markdownImageUploadDropzone').on('click', function (event) {
@@ -853,9 +858,27 @@
             selectUploadFile(event.originalEvent.dataTransfer.files && event.originalEvent.dataTransfer.files[0]);
         });
 
+        $(document).on('keydown.markdownImageModal', function (event) {
+            const $modal = $('#markdownImageModal');
+            if (!$modal.length || $modal.hasClass('hidden')) return;
+            if ($(event.target).closest('.swal2-container').length > 0) return;
+
+            if (event.key === 'Escape') {
+                event.preventDefault();
+                closeImageModal();
+                return;
+            }
+
+            if (event.key === 'Enter' && !$(event.target).is('input, textarea, select, button, a')) {
+                event.preventDefault();
+                insertSelectedImage();
+            }
+        });
+
         $(document).on('mouseup', function (event) {
             const $modal = $('#markdownImageModal');
             if ($modal.hasClass('hidden')) return;
+            if ($(event.target).closest('.swal2-container').length > 0) return;
             if ($(event.target).closest('.markdown-image-modal-container, #openMarkdownImageModal').length === 0) {
                 closeImageModal();
             }
@@ -882,9 +905,27 @@
         });
         $('#insertMarkdownMedia').on('click', insertMarkdownMedia);
 
+        $(document).on('keydown.markdownMediaModal', function (event) {
+            const $modal = $('#markdownMediaModal');
+            if (!$modal.length || $modal.hasClass('hidden')) return;
+            if ($(event.target).closest('.swal2-container').length > 0) return;
+
+            if (event.key === 'Escape') {
+                event.preventDefault();
+                closeMediaModal();
+                return;
+            }
+
+            if (event.key === 'Enter' && !$(event.target).is('input, textarea, select, button, a')) {
+                event.preventDefault();
+                insertMarkdownMedia();
+            }
+        });
+
         $(document).on('mouseup', function (event) {
             const $modal = $('#markdownMediaModal');
             if ($modal.hasClass('hidden')) return;
+            if ($(event.target).closest('.swal2-container').length > 0) return;
             if ($(event.target).closest('.markdown-media-modal-container, #openMarkdownMediaModal').length === 0) {
                 closeMediaModal();
             }

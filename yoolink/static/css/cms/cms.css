@@ -317,7 +317,10 @@
         min-height: 4.5rem;
     }
 
-    .cms-content-shell #imageModal #possibleImages img {
+    /* Auf schmalen Screens etwas höhere Kacheln - die Höhe sitzt am Rahmen,
+       das <img> füllt ihn (siehe .media-tile-frame). */
+    .cms-content-shell .media-grid .media-tile-frame,
+    .cms-content-shell .media-grid .media-tile-skeleton {
         height: 7.5rem;
     }
 
@@ -371,3 +374,288 @@
 }
 
 
+
+/* ==========================================================================
+   Zentrale Bild-Mediathek (media-library.js / media-picker.js)
+   --------------------------------------------------------------------------
+   Die Kachel-Optik lebt hier statt in Utility-Klassen im JS-Template: so
+   rendern alle Dialoge (Seiten, Team, Kunden, Blog, Markdown) identisch und
+   ein Re-Render muss nur Klassen umschalten, nicht Markup neu bauen.
+   ========================================================================== */
+
+/*
+ * Der graue Kasten wächst mit seinen Kacheln, statt die ganze Spaltenhöhe zu
+ * füllen. Vorher hing er an `flex-1`: sobald die Sidebar höher wurde (beim
+ * Auswählen klappen dort die Bild-Details auf), zog sich der Kasten mit und die
+ * Blätter-Zeile rutschte weit unter die Kacheln.
+ * `flex: 0 1 auto` + `min-height: 0` heißt: Inhaltshöhe, aber schrumpfbar - bei
+ * vielen Kacheln oder kleinem Fenster scrollt der Kasten wieder in sich.
+ */
+.media-grid-wrap {
+    flex: 0 1 auto;
+    min-height: 0;
+}
+
+.media-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+    /* Kacheln oben halten, nicht über die Kastenhöhe verteilen. */
+    align-content: start;
+}
+
+@media (min-width: 640px) {
+    .media-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.75rem;
+    }
+}
+
+@media (min-width: 1280px) {
+    .media-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+.media-tile {
+    position: relative;
+    display: block;
+    width: 100%;
+    overflow: hidden;
+    border-radius: 0.5rem;
+    background: #fff;
+    text-align: left;
+    box-shadow: 0 1px 2px rgb(15 23 42 / 0.06);
+    outline: none;
+    /* Rendering pro Kachel isolieren -> beim Scrollen deutlich weniger Arbeit. */
+    contain: layout paint style;
+    transition: box-shadow .15s ease, outline-color .15s ease;
+    outline: 2px solid transparent;
+    outline-offset: -2px;
+    box-shadow: 0 0 0 1px rgb(226 232 240), 0 1px 2px rgb(15 23 42 / 0.06);
+}
+
+.media-tile:hover {
+    box-shadow: 0 0 0 1px rgb(147 197 253), 0 6px 16px rgb(15 23 42 / 0.12);
+}
+
+.media-tile:focus-visible {
+    outline-color: rgb(37 99 235);
+}
+
+.media-tile.is-selected {
+    box-shadow: 0 0 0 2px rgb(37 99 235), 0 6px 16px rgb(37 99 235 / 0.18);
+}
+
+.media-tile.is-busy {
+    opacity: .45;
+    pointer-events: none;
+}
+
+.media-tile-frame {
+    display: block;
+    width: 100%;
+    height: 6rem;
+    background: rgb(241 245 249);
+}
+
+@media (min-width: 640px) {
+    .media-tile-frame {
+        height: 7rem;
+    }
+}
+
+.media-tile-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.media-tile-badge {
+    position: absolute;
+    left: 0.375rem;
+    top: 0.375rem;
+    border-radius: 0.375rem;
+    background: rgb(255 255 255 / 0.92);
+    padding: 0.125rem 0.375rem;
+    font-size: 0.625rem;
+    font-weight: 600;
+    letter-spacing: .02em;
+    color: rgb(51 65 85);
+    box-shadow: 0 0 0 1px rgb(226 232 240);
+}
+
+.media-tile-delete {
+    position: absolute;
+    right: 0.375rem;
+    top: 0.375rem;
+    display: inline-flex;
+    height: 1.75rem;
+    width: 1.75rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: rgb(255 255 255 / 0.95);
+    font-size: 0.75rem;
+    color: rgb(185 28 28);
+    box-shadow: 0 0 0 1px rgb(254 226 226);
+    opacity: 0;
+    transition: opacity .15s ease, background-color .15s ease;
+}
+
+.media-tile:hover .media-tile-delete,
+.media-tile:focus-within .media-tile-delete {
+    opacity: 1;
+}
+
+.media-tile-delete:hover {
+    background: rgb(254 242 242);
+}
+
+/* Touch-Geräte haben kein Hover - Löschen muss trotzdem erreichbar sein. */
+@media (hover: none) {
+    .media-tile-delete {
+        opacity: 1;
+    }
+}
+
+.media-tile-caption {
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    background: linear-gradient(to top, rgb(2 6 23 / 0.82), transparent);
+    padding: 1.75rem 0.625rem 0.5rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: #fff;
+    opacity: 0;
+    transition: opacity .15s ease;
+}
+
+.media-tile:hover .media-tile-caption,
+.media-tile:focus-visible .media-tile-caption,
+.media-tile.is-selected .media-tile-caption {
+    opacity: 1;
+}
+
+.media-tile-check {
+    position: absolute;
+    right: 0.375rem;
+    bottom: 0.375rem;
+    display: none;
+    height: 1.5rem;
+    width: 1.5rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: rgb(37 99 235);
+    font-size: 0.75rem;
+    color: #fff;
+    box-shadow: 0 1px 3px rgb(15 23 42 / 0.3);
+}
+
+.media-tile.is-selected .media-tile-check {
+    display: inline-flex;
+}
+
+/* Skeletons statt leerem Kasten: die Grid-Höhe bleibt stabil, der Wechsel
+   zwischen Seiten wirkt dadurch ruhig statt springend. */
+.media-tile-skeleton {
+    height: 6rem;
+    border-radius: 0.5rem;
+    background: linear-gradient(90deg, rgb(226 232 240) 25%, rgb(241 245 249) 37%, rgb(226 232 240) 63%);
+    background-size: 400% 100%;
+    animation: media-skeleton 1.2s ease-in-out infinite;
+}
+
+@media (min-width: 640px) {
+    .media-tile-skeleton {
+        height: 7rem;
+    }
+}
+
+@keyframes media-skeleton {
+    0% { background-position: 100% 50%; }
+    100% { background-position: 0 50%; }
+}
+
+.media-grid-spinner {
+    position: absolute;
+    right: 0.75rem;
+    top: 0.75rem;
+    display: none;
+}
+
+[data-media-grid-wrap].is-loading .media-grid-spinner {
+    display: block;
+}
+
+.media-spinner {
+    display: block;
+    height: 1.25rem;
+    width: 1.25rem;
+    border-radius: 999px;
+    border: 2px solid rgb(191 219 254);
+    border-top-color: rgb(37 99 235);
+    animation: media-spin .6s linear infinite;
+}
+
+@keyframes media-spin {
+    to { transform: rotate(360deg); }
+}
+
+.media-page-button.is-hidden {
+    display: none;
+}
+
+.media-picker-tab {
+    color: rgb(51 65 85);
+    transition: background-color .15s ease, color .15s ease;
+}
+
+.media-picker-tab:hover {
+    background: #fff;
+    color: rgb(2 6 23);
+}
+
+.media-picker-tab.is-active {
+    background: rgb(30 58 138);
+    color: #fff;
+    box-shadow: 0 1px 2px rgb(15 23 42 / 0.12);
+}
+
+/* Nur der Grid-Bereich scrollt - vorher scrollte zusätzlich der ganze
+   Modal-Body, was auf Laptops zu doppeltem/hakeligem Scrollen führte. */
+.media-picker-body {
+    overscroll-behavior: contain;
+}
+
+.media-picker-main {
+    min-height: 0;
+}
+
+.media-grid-wrap {
+    overscroll-behavior: contain;
+}
+
+body.media-picker-open {
+    overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .media-tile,
+    .media-tile-caption,
+    .media-tile-delete {
+        transition: none;
+    }
+
+    .media-tile-skeleton,
+    .media-spinner {
+        animation: none;
+    }
+}

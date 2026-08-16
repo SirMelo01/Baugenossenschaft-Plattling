@@ -1,16 +1,22 @@
-// Customer create/edit form -- handles image select modal, gallery select modal, save
+// Kunden-Formular: Bild-Slots, Galerie-Auswahl, Speichern.
+//
+// Die Bildauswahl nutzt den zentralen Picker (js/cms/media-picker.js) - vorher lag hier
+// eine eigene Variante ohne Paginierung, die immer nur die erste Seite der
+// Mediathek zeigte und beim ersten Klick sofort übernommen hat.
 
-let customerImageLibraryItems = [];
 let customerGalerieLibraryItems = [];
 let activeImageTarget = null;
-let customerImageSearchTimeout = null;
 
 const IMAGE_TARGETS = ["titleImage", "bannerImage", "logoImage"];
 
+const IMAGE_TARGET_LABELS = {
+    titleImage: 'Titelbild auswählen',
+    bannerImage: 'Bannerbild auswählen',
+    logoImage: 'Logo auswählen'
+};
+
 $(document).ready(function () {
-    const $imageModal = $('#imageModal');
     const $galeryModal = $('#galeryModal');
-    const csrfToken = $('input[name="csrfmiddlewaretoken"]').val();
 
     $('#name').on('input', function () {
         const value = $(this).val() || 'Neuer Kunde';
@@ -24,49 +30,15 @@ $(document).ready(function () {
 
     updateLivePreview();
 
-    // ---------- IMAGE MODAL HOOKS ----------
+    // ---------- IMAGE PICKER ----------
     $('.customer-image-select').click(function () {
         activeImageTarget = $(this).data('target');
-        openCustomerImageModal();
+        openCustomerImagePicker();
     });
 
     $('.customer-image-clear').click(function () {
         const target = $(this).data('target');
         clearCustomerImage(target);
-    });
-
-    $('#closeImageModal').click(closeCustomerImageModal);
-    $('#reloadImages').click(function () { loadCustomerImages(true); });
-    $('#imageSearchInput').on('input', function () {
-        window.clearTimeout(customerImageSearchTimeout);
-        customerImageSearchTimeout = window.setTimeout(function () {
-            loadCustomerImages(false);
-        }, 250);
-    });
-
-    $('.image-modal-tab').click(function () {
-        setCustomerImageModalTab($(this).attr('data-target'));
-    });
-
-    $('#imageUploadDropzone').click(function (event) {
-        if (event.target.id === 'imageUploadInput') return;
-        $('#imageUploadInput')[0].click();
-    });
-    $('#imageUploadInput').click(function (event) { event.stopPropagation(); });
-    $('#imageUploadInput').on('change', function () {
-        uploadCustomerImageFiles(this.files, csrfToken);
-        this.value = '';
-    });
-    $('#imageUploadDropzone').on('dragover', function (event) {
-        event.preventDefault();
-        $(this).addClass('border-blue-500 bg-blue-100');
-    });
-    $('#imageUploadDropzone').on('dragleave drop', function () {
-        $(this).removeClass('border-blue-500 bg-blue-100');
-    });
-    $('#imageUploadDropzone').on('drop', function (event) {
-        event.preventDefault();
-        uploadCustomerImageFiles(event.originalEvent.dataTransfer.files, csrfToken);
     });
 
     // ---------- GALERY MODAL HOOKS ----------
@@ -88,22 +60,13 @@ $(document).ready(function () {
         renderCustomerGaleryLibrary(customerGalerieLibraryItems);
     });
 
-    // Click outside-to-close
-    const $modals = [$imageModal, $galeryModal];
-    const $modalContainers = $modals.map(function ($m) { return $m.find('.modal-container'); });
+    // Click outside-to-close (nur Galerie - der Bild-Picker regelt das selbst)
+    const $galeryContainer = $galeryModal.find('.modal-container');
     $(document).mouseup(function (e) {
         if ($(e.target).closest('.swal2-container').length > 0) return;
-        let clickedOutsideAll = true;
-        for (const $container of $modalContainers) {
-            if ($container.is(e.target) || $container.has(e.target).length > 0) {
-                clickedOutsideAll = false;
-                break;
-            }
-        }
-        if (clickedOutsideAll) {
-            closeCustomerImageModal();
-            $galeryModal.addClass('hidden').removeClass('flex');
-        }
+        if (window.CmsMediaPicker && window.CmsMediaPicker.isOpen()) return;
+        if ($galeryContainer.is(e.target) || $galeryContainer.has(e.target).length > 0) return;
+        $galeryModal.addClass('hidden').removeClass('flex');
     });
 
     // ---------- SAVE ----------
@@ -111,61 +74,38 @@ $(document).ready(function () {
         event.preventDefault();
         submitCustomerForm();
     });
-
-    loadCustomerImages(false);
 });
 
-function openCustomerImageModal() {
-    refreshCustomerSelectedImagePreview();
-    setCustomerImageModalTab('imageLibraryPanel');
-    $('#imageModal').removeClass('hidden').addClass('flex');
-}
+function openCustomerImagePicker() {
+    if (!activeImageTarget || !window.CmsMediaPicker) return;
 
-function closeCustomerImageModal() {
-    $('#imageModal').addClass('hidden').removeClass('flex');
-}
-
-function setCustomerImageModalTab(panelId) {
-    $('.image-modal-panel').addClass('hidden').removeClass('flex');
-    $('#' + panelId).removeClass('hidden').addClass('flex');
-
-    $('.image-modal-tab')
-        .removeClass('bg-blue-900 text-white shadow-sm')
-        .addClass('text-slate-700 hover:bg-white hover:text-slate-950');
-
-    $('.image-modal-tab[data-target="' + panelId + '"]')
-        .addClass('bg-blue-900 text-white shadow-sm')
-        .removeClass('text-slate-700 hover:bg-white hover:text-slate-950');
-}
-
-function refreshCustomerSelectedImagePreview() {
-    if (!activeImageTarget) {
-        $('#selectedImagePreview').attr('src', '').addClass('hidden');
-        $('#selectedImagePlaceholder').removeClass('hidden');
-        return;
-    }
     const $preview = $('#' + activeImageTarget + 'Preview');
-    const src = $preview.attr('src');
-    if (src) {
-        $('#selectedImagePreview').attr('src', src).removeClass('hidden');
-        $('#selectedImagePlaceholder').addClass('hidden');
-    } else {
-        $('#selectedImagePreview').attr('src', '').addClass('hidden');
-        $('#selectedImagePlaceholder').removeClass('hidden');
-    }
+    const currentId = $preview.attr('data-image-id');
+
+    window.CmsMediaPicker.open({
+        title: IMAGE_TARGET_LABELS[activeImageTarget] || 'Bild auswählen',
+        subtitle: 'Bild anklicken, links prüfen und mit „Bild übernehmen“ einsetzen.',
+        currentImageId: currentId && currentId !== '-1' ? currentId : null,
+        currentImageSrc: $preview.attr('src') || '',
+        onApply: function (image) {
+            selectCustomerImage(image);
+        },
+        onRemove: function () {
+            clearCustomerImage(activeImageTarget);
+        }
+    });
 }
 
-function selectCustomerImage($image) {
-    if (!activeImageTarget) return;
+function selectCustomerImage(image) {
+    if (!activeImageTarget || !image) return;
     const $preview = $('#' + activeImageTarget + 'Preview');
     const $placeholder = $('#' + activeImageTarget + 'Placeholder');
 
-    $preview.attr('src', $image.attr('data-full-url') || $image.attr('src'));
-    $preview.attr('data-image-id', $image.attr('imgId'));
+    $preview.attr('src', image.url);
+    $preview.attr('data-image-id', image.id);
     $preview.removeClass('hidden');
     $placeholder.addClass('hidden');
 
-    closeCustomerImageModal();
     sendNotif('Neues Bild ausgewählt', 'success');
     updateLivePreview();
 }
@@ -230,198 +170,6 @@ function updateLivePreview() {
         $('#previewName').text(name);
         $('#previewSubline').text(subline);
     }
-}
-
-function renderCustomerImageLibrary(images) {
-    const $container = $('#possibleImages');
-    $container.empty();
-
-    images.forEach(function (image) {
-        const title = customerEscapeHtml(image.title || 'Bild');
-        const previewUrl = customerEscapeHtml(image.preview_url || image.mobile_url || image.url || '');
-        const $button = $(`
-            <button type="button" class="group relative overflow-hidden rounded-lg bg-white text-left shadow-sm ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:shadow-lg hover:ring-blue-300">
-                <img src="${previewUrl}" imgId="${image.id}" data-full-url="${customerEscapeHtml(image.url || '')}" alt="${title}" loading="lazy" decoding="async" class="h-24 w-full object-cover sm:h-28">
-                <span class="image-delete-button absolute right-2 top-2 inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-xs font-semibold text-red-700 opacity-0 shadow-sm ring-1 ring-red-100 transition hover:bg-red-50 group-hover:opacity-100" data-image-id="${image.id}">
-                    <i class="bi bi-trash"></i>
-                </span>
-                <span class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/80 to-transparent px-3 pb-3 pt-8 text-xs font-semibold text-white opacity-0 transition group-hover:opacity-100">${title}</span>
-            </button>
-        `);
-        $button.click(function () {
-            selectCustomerImage($(this).find('img'));
-        });
-        $button.find('.image-delete-button').click(function (event) {
-            event.preventDefault();
-            event.stopPropagation();
-            confirmDeleteCustomerImage(image.id, title);
-        });
-        $container.append($button);
-    });
-
-    $('#imageEmptyState').toggleClass('hidden', images.length > 0);
-}
-
-function confirmDeleteCustomerImage(imageId, title) {
-    const confirmText = 'Dieses Bild wird dauerhaft gelöscht.';
-    const confirmAction = function () { deleteCustomerImage(imageId); };
-
-    if (typeof Swal !== 'undefined') {
-        Swal.fire({
-            title: 'Bild löschen?',
-            text: confirmText,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#dc2626',
-            cancelButtonColor: '#64748b',
-            confirmButtonText: 'Ja, löschen',
-            cancelButtonText: 'Abbrechen',
-            reverseButtons: true,
-        }).then(function (result) { if (result.isConfirmed) confirmAction(); });
-        return;
-    }
-
-    if (window.confirm(title + ' löschen?\n\n' + confirmText)) confirmAction();
-}
-
-function deleteCustomerImage(imageId) {
-    $.ajax({
-        url: '/cms/images/delete/' + imageId + '/',
-        type: 'POST',
-        beforeSend: function (xhr) {
-            xhr.setRequestHeader('X-CSRFToken', $('input[name="csrfmiddlewaretoken"]').val());
-        },
-        success: function (response) {
-            customerImageLibraryItems = customerImageLibraryItems.filter(function (image) {
-                return String(image.id) !== String(imageId);
-            });
-            renderCustomerImageLibrary(customerImageLibraryItems);
-
-            IMAGE_TARGETS.forEach(function (target) {
-                const $preview = $('#' + target + 'Preview');
-                if (String($preview.attr('data-image-id')) === String(imageId)) {
-                    clearCustomerImage(target);
-                }
-            });
-
-            sendNotif(response.success || 'Bild wurde gelöscht', 'success');
-        },
-        error: function () { sendNotif('Bild konnte nicht gelöscht werden', 'error'); }
-    });
-}
-
-function uploadCustomerImageFiles(fileList, csrfToken) {
-    const files = Array.from(fileList || []).filter(function (file) {
-        return file.type && file.type.startsWith('image/');
-    });
-
-    if (!files.length) {
-        sendNotif('Bitte wähle eine Bilddatei aus', 'error');
-        return;
-    }
-
-    $('#imageUploadQueue').removeClass('hidden');
-
-    files.forEach(function (file) {
-        const itemId = 'upload-' + Date.now() + '-' + Math.random().toString(16).slice(2);
-        addCustomerUploadItem(itemId, file.name);
-
-        const formData = new FormData();
-        formData.append('file', file);
-
-        $.ajax({
-            url: '/cms/upload/post',
-            type: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            beforeSend: function (xhr) { xhr.setRequestHeader('X-CSRFToken', csrfToken); },
-            success: function (response) {
-                setCustomerUploadItemStatus(itemId, 'Fertig', 'text-green-700', customerUploadOptimizationText(response.image));
-                if (response.image) {
-                    customerImageLibraryItems.unshift(response.image);
-                    renderCustomerImageLibrary(customerImageLibraryItems);
-                    setCustomerImageModalTab('imageLibraryPanel');
-                } else {
-                    loadCustomerImages(false);
-                }
-                sendNotif('Bild wurde hochgeladen', 'success');
-            },
-            error: function () {
-                setCustomerUploadItemStatus(itemId, 'Fehlgeschlagen', 'text-red-700');
-                sendNotif('Bild konnte nicht hochgeladen werden', 'error');
-            }
-        });
-    });
-}
-
-function addCustomerUploadItem(id, name) {
-    $('#imageUploadItems').prepend(`
-        <div id="${id}" class="rounded-md bg-slate-50 px-3 py-2 text-sm">
-            <div class="flex items-center justify-between gap-3">
-                <span class="truncate text-slate-700">${customerEscapeHtml(name)}</span>
-                <span class="upload-status shrink-0 text-slate-500">Lädt...</span>
-            </div>
-            <p class="upload-detail mt-1 hidden text-xs leading-snug text-slate-500"></p>
-        </div>
-    `);
-    $('#' + id).children('.upload-status').remove();
-}
-
-function setCustomerUploadItemStatus(id, text, className, detail) {
-    const $item = $('#' + id);
-    $item.children('.upload-status').remove();
-    $item.find('.upload-status')
-        .removeClass('text-slate-500 text-green-700 text-red-700')
-        .addClass(className)
-        .text(text);
-
-    if (detail) {
-        $item.find('.upload-detail').text(detail).removeClass('hidden');
-    }
-}
-
-function customerUploadOptimizationText(image) {
-    if (!image || !image.optimization) return '';
-    const optimization = image.optimization;
-    const desktop = optimization.desktop || {};
-    const mobile = optimization.mobile || {};
-    const desktopSaved = optimization.desktop_saved_percent > 0 ? ` / -${optimization.desktop_saved_percent}%` : '';
-    const mobileSaved = optimization.mobile_saved_percent > 0 ? ` / -${optimization.mobile_saved_percent}%` : '';
-    return `Original ${optimization.original_size_kb || 0} KB | Desktop ${desktop.size_kb || 0} KB${desktopSaved} | Mobil ${mobile.size_kb || 0} KB${mobileSaved}`;
-}
-
-function customerEscapeHtml(value) {
-    return String(value)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-}
-
-function loadCustomerImages(sendLoadMsg) {
-    $.ajax({
-        url: '/cms/images/all/',
-        type: 'GET',
-        data: {
-            page: 1,
-            per_page: 12,
-            q: $('#imageSearchInput').val() || '',
-        },
-        dataType: 'json',
-        success: function (response) {
-            customerImageLibraryItems = response.image_urls || [];
-            renderCustomerImageLibrary(customerImageLibraryItems);
-            if (sendLoadMsg) {
-                const message = customerImageLibraryItems.length ? 'Alle Bilder wurden geladen' : 'Keine Bilder wurden gefunden';
-                sendNotif(message, customerImageLibraryItems.length ? 'success' : 'error');
-            }
-        },
-        error: function () {
-            if (sendLoadMsg) sendNotif('Es kam zu einem unerwarteten Fehler, versuche es später nochmal', 'error');
-        }
-    });
 }
 
 // ---------- GALLERY ----------

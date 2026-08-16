@@ -11,6 +11,8 @@ var selectedVideoData = null;
 let selectedVideoElement = null;
 let selectedAnyfile = null; // {id,url,title,ext}
 let blogImageLibraryItems = [];
+let blogImageGridInstance = null;
+let blogImageSelection = { image: null, url: '', id: null };
 let blogVideoLibraryItems = [];
 let selectedGalleryId = null;
 let selectedGalleryTitle = '';
@@ -40,11 +42,11 @@ function setBlogImagePanel(panelId) {
     $('.blog-image-panel').addClass('hidden').removeClass('flex');
     $('#' + panelId).removeClass('hidden').addClass('flex');
     $('.blog-image-tab')
-        .removeClass('bg-blue-900 text-white shadow-sm')
-        .addClass('text-slate-700 hover:bg-white hover:text-slate-950');
+        .removeClass('is-active')
+        .attr('aria-selected', 'false');
     $('.blog-image-tab[data-target="' + panelId + '"]')
-        .addClass('bg-blue-900 text-white shadow-sm')
-        .removeClass('text-slate-700 hover:bg-white hover:text-slate-950');
+        .addClass('is-active')
+        .attr('aria-selected', 'true');
 }
 
 function openBlogPreviewModal() {
@@ -58,8 +60,20 @@ function closeBlogPreviewModal() {
 window.openBlogPreviewModal = openBlogPreviewModal;
 window.closeBlogPreviewModal = closeBlogPreviewModal;
 
-function refreshBlogImagePreview() {
-    const src = (blogEditorImageTarget && blogEditorImageTarget.src)
+function resetBlogImageSelection(url, id) {
+    blogImageSelection = {
+        image: null,
+        url: url || '',
+        id: id || null
+    };
+}
+
+function refreshBlogImagePreview(srcOverride) {
+    const src = typeof srcOverride === 'string'
+        ? srcOverride
+        : (blogImageSelection && blogImageSelection.url)
+        ? blogImageSelection.url
+        : (blogEditorImageTarget && blogEditorImageTarget.src)
         ? blogEditorImageTarget.src
         : ($editImg ? $editImg.attr('src') : '');
     if (src) {
@@ -80,6 +94,7 @@ function currentCssSize($element, key, fallback) {
 function openBlogImageModal($image) {
     blogEditorImageTarget = null;   // Block-Bild bearbeiten, kein Editor-Einfügen
     $editImg = $image;
+    resetBlogImageSelection($editImg.attr('src') || '', $editImg.attr('imgId') || $editImg.attr('data-img-id') || null);
     const height = currentCssSize($editImg, 'height', $editImg.height() ? $editImg.height() + 'px' : 'auto');
     let width = currentCssSize($editImg, 'width', $editImg.width() ? $editImg.width() + 'px' : '100%');
     if (width === '0px' || width === '0') width = '100%';
@@ -94,11 +109,18 @@ function openBlogImageModal($image) {
     refreshBlogImagePreview();
     setBlogImagePanel('blogImageLibraryPanel');
     $('#imageModal').removeClass('hidden').addClass('flex');
-    loadBlogImageLibrary(false);
+    $('body').addClass('media-picker-open');
+    const grid = blogImageGrid();
+    if (grid) {
+        grid.resetQuery();
+        grid.setSelected(blogImageSelection.id);
+        grid.load({ page: 1 });
+    }
 }
 
 function closeBlogImageModal() {
     $('#imageModal').addClass('hidden').removeClass('flex');
+    $('body').removeClass('media-picker-open');
     blogEditorImageTarget = null;
 }
 
@@ -110,6 +132,7 @@ function closeBlogImageModal() {
 function openBlogEditorImagePicker(quill) {
     if (!quill) return;
     $editImg = null;
+    resetBlogImageSelection('', null);
     blogEditorImageTarget = {
         quill: quill,
         range: quill.getSelection(true) || { index: quill.getLength() },
@@ -125,119 +148,191 @@ function openBlogEditorImagePicker(quill) {
     $('#imgAsync').prop('checked', true);
     refreshBlogImagePreview();
     $('#imageModal').removeClass('hidden').addClass('flex');
+    $('body').addClass('media-picker-open');
     setBlogImagePanel('blogImageLibraryPanel');
-    loadBlogImageLibrary(false);
+    const grid = blogImageGrid();
+    if (grid) {
+        grid.resetQuery();
+        grid.setSelected(null);
+        grid.load({ page: 1 });
+    }
 }
 window.openBlogEditorImagePicker = openBlogEditorImagePicker;
 
-function selectBlogImage(image) {
-    // Einfüge-Modus (Editor): Bild nur auswählen – Titel/Alt/Größe lassen sich danach
-    // setzen, eingefügt wird per "Übernehmen" (wie beim Block-Bild).
-    if (blogEditorImageTarget && blogEditorImageTarget.quill && image && image.url) {
+function selectBlogImage(image, options) {
+    options = options || {};
+    if (!image || !image.url) return;
+
+    blogImageSelection = {
+        image: image,
+        url: image.url,
+        id: image.id || null
+    };
+    $('#imgURL').val(image.url);
+
+    if (blogEditorImageTarget && blogEditorImageTarget.quill) {
         blogEditorImageTarget.src = image.url;
         if (image.id) blogEditorImageTarget.imgId = image.id;
         if (!$('#imgAlt').val()) $('#imgAlt').val(image.title || 'Bild');
         if (!$('#imgText').val()) $('#imgText').val(image.title || '');
-        refreshBlogImagePreview();
-        sendNotif('Bild gewählt – mit „Übernehmen" einfügen', 'notice');
+        refreshBlogImagePreview(image.preview_url || image.url);
+        if (options.notify !== false) sendNotif('Bild gewählt - mit "Übernehmen" einfügen', 'notice');
         return;
     }
-    if (!$editImg || !image || !image.url) return;
-    $editImg.attr('src', image.url);
-    if (image.id) $editImg.attr('imgId', image.id);
+
     if (!$('#imgAlt').val()) $('#imgAlt').val(image.title || 'Bild');
     if (!$('#imgText').val()) $('#imgText').val(image.title || '');
-    refreshBlogImagePreview();
-    sendNotif('Neues Bild ausgewählt', 'success');
+    refreshBlogImagePreview(image.preview_url || image.url);
+    if (options.notify !== false) sendNotif('Neues Bild gewählt - mit "Übernehmen" anwenden', 'notice');
 }
 
-function renderBlogImageLibrary(images) {
-    const search = ($('#imageSearchInput').val() || '').toLowerCase().trim();
-    const filteredImages = (images || []).filter(function (image) {
-        return !search || String(image.title || '').toLowerCase().includes(search);
-    });
-    const $container = $('#possibleImages');
-    $container.empty();
+/**
+ * Bild-Grid des Blog-Dialogs. Läuft über die zentrale Mediathek
+ * (js/cms/media-library.js) - inklusive serverseitiger Suche,
+ * Paginierung, Ladezustand und Vorabladen der nächsten Seite. Vorher wurde hier
+ * die komplette erste Seite geholt, clientseitig gefiltert und bei jedem Klick
+ * das ganze Grid neu gebaut (was jedes Bild neu dekodieren ließ).
+ */
+function blogImageGrid() {
+    if (blogImageGridInstance || !window.CmsMedia) return blogImageGridInstance;
 
-    filteredImages.forEach(function (image) {
-        const title = escapeHtml(image.title || 'Bild');
-        const selected = $editImg && $editImg.attr('src') === image.url;
-        const $button = $(`
-            <button type="button" class="group relative overflow-hidden rounded-lg bg-white text-left shadow-sm ring-1 transition hover:-translate-y-0.5 hover:shadow-lg">
-                <img src="${image.url}" imgId="${image.id || ''}" alt="${title}" class="h-36 w-full object-cover">
-                <span class="absolute left-2 top-2 rounded-md bg-white/90 px-2 py-1 text-[11px] font-semibold text-slate-700 shadow-sm ring-1 ring-slate-200">
-                    ${escapeHtml(image.format || 'IMG')}${image.has_mobile ? ' + Mobil' : ''}
-                </span>
-                <span class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/80 to-transparent px-3 pb-3 pt-8 text-xs font-semibold text-white opacity-0 transition group-hover:opacity-100">${title}</span>
-            </button>
-        `);
-        $button.toggleClass('ring-blue-500', !!selected);
-        $button.toggleClass('ring-slate-200 hover:ring-blue-300', !selected);
-        $button.on('click', function () {
+    blogImageGridInstance = window.CmsMedia.createGrid({
+        grid: '#possibleImages',
+        empty: '#imageEmptyState',
+        search: '#imageSearchInput',
+        reload: '#reloadImages',
+        prev: '#imagePrevPage',
+        next: '#imageNextPage',
+        info: '#imagePaginationInfo',
+        perPage: 12,
+        allowDelete: true,
+        onSelect: function (image) {
             selectBlogImage(image);
-            renderBlogImageLibrary(blogImageLibraryItems);
-        });
-        $container.append($button);
+        },
+        onActivate: function (image) {
+            selectBlogImage(image);
+            $('#selectImg').trigger('click');
+        },
+        onLoaded: function (items) {
+            blogImageLibraryItems = items;
+        },
+        onDeleted: function (image) {
+            if (blogImageSelection && String(blogImageSelection.id) === String(image.id)) {
+                resetBlogImageSelection($editImg ? $editImg.attr('src') : '', null);
+                refreshBlogImagePreview();
+            }
+        }
     });
 
-    $('#imageEmptyState').toggleClass('hidden', filteredImages.length > 0);
+    return blogImageGridInstance;
 }
 
 function loadBlogImageLibrary(sendLoadMsg) {
-    $.ajax({
-        url: '/cms/images/all/',
-        type: 'GET',
-        dataType: 'json',
-        success: function (response) {
-            blogImageLibraryItems = response.image_urls || [];
-            renderBlogImageLibrary(blogImageLibraryItems);
-            if (sendLoadMsg) {
-                sendNotif(blogImageLibraryItems.length ? 'Alle Bilder wurden geladen' : 'Keine Bilder wurden gefunden', blogImageLibraryItems.length ? 'success' : 'error');
-            }
-        },
-        error: function () {
-            if (sendLoadMsg) sendNotif('Bilder konnten nicht geladen werden', 'error');
-        }
-    });
+    const grid = blogImageGrid();
+    if (!grid) return;
+    if (sendLoadMsg) grid.reload({ notify: true });
+    else grid.load({ page: 1 });
 }
 
-function uploadBlogImage(file) {
-    if (!file || !file.type || !file.type.startsWith('image/')) {
+function blogUploadItemId() {
+    return 'blog-image-upload-' + Date.now() + '-' + Math.random().toString(16).slice(2);
+}
+
+function addBlogUploadItem(id, name) {
+    $('#blogImageUploadQueue').removeClass('hidden');
+    const $items = $('#blogImageUploadItems');
+    if (!$items.length) {
+        $('#blogImageUploadQueue').text(name + ' - 0 %');
+        return;
+    }
+
+    $items.prepend(
+        '<div id="' + id + '" class="rounded-md bg-slate-50 px-3 py-2 text-sm">' +
+            '<div class="flex items-center justify-between gap-3">' +
+                '<span class="truncate text-slate-700">' + escapeHtml(name) + '</span>' +
+                '<span class="upload-status flex-shrink-0 text-slate-500">0 %</span>' +
+            '</div>' +
+            '<div class="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-200">' +
+                '<div class="upload-bar h-full w-0 rounded-full bg-blue-600 transition-all duration-200"></div>' +
+            '</div>' +
+            '<p class="upload-detail mt-1 hidden text-xs leading-snug text-slate-500"></p>' +
+        '</div>'
+    );
+}
+
+function setBlogUploadProgress(id, percent) {
+    const $item = $('#' + id);
+    if (!$item.length) return;
+    $item.find('.upload-bar').css('width', percent + '%');
+    $item.find('.upload-status').text(percent + ' %');
+}
+
+function setBlogUploadStatus(id, text, className, detail) {
+    const $item = $('#' + id);
+    if (!$item.length) return;
+    $item.find('.upload-status')
+        .removeClass('text-slate-500 text-green-700 text-red-700')
+        .addClass(className)
+        .text(text);
+    $item.find('.upload-bar')
+        .toggleClass('bg-blue-600', className !== 'text-red-700')
+        .toggleClass('bg-red-500', className === 'text-red-700')
+        .css('width', '100%');
+    if (detail) $item.find('.upload-detail').text(detail).removeClass('hidden');
+}
+
+function uploadBlogImages(fileList) {
+    const files = fileList && fileList.type
+        ? [fileList]
+        : Array.prototype.slice.call(fileList || []).filter(function (file) {
+            return file.type && file.type.startsWith('image/');
+        });
+
+    if (!files.length) {
         sendNotif('Bitte wähle eine Bilddatei aus', 'error');
         return;
     }
 
-    const formData = new FormData();
-    formData.append('file', file);
-    $('#blogImageUploadFileName').text(file.name);
-    $('#blogImageUploadQueue').removeClass('hidden').text('Upload läuft...');
+    if (!window.CmsMedia || !window.CmsMedia.api) {
+        sendNotif('Die Mediathek ist noch nicht bereit', 'error');
+        return;
+    }
 
-    $.ajax({
-        url: '/cms/upload/post',
-        type: 'POST',
-        data: formData,
-        processData: false,
-        contentType: false,
-        beforeSend: function (xhr) {
-            xhr.setRequestHeader('X-CSRFToken', blogCsrfToken());
-        },
-        success: function (response) {
-            if (response.image) {
-                blogImageLibraryItems.unshift(response.image);
-                selectBlogImage(response.image);
-                renderBlogImageLibrary(blogImageLibraryItems);
-                setBlogImagePanel('blogImageLibraryPanel');
-                $('#blogImageUploadQueue').text(response.image.note || 'Bild wurde hochgeladen.');
-                sendNotif('Bild wurde hochgeladen', 'success');
-            } else {
-                loadBlogImageLibrary(false);
+    const skipOptimization = $('#blogImageSkipOptimization').is(':checked');
+
+    files.forEach(function (file) {
+        const itemId = blogUploadItemId();
+        addBlogUploadItem(itemId, file.name);
+
+        window.CmsMedia.api.upload(file, {
+            skipOptimization: skipOptimization,
+            onProgress: function (percent) {
+                setBlogUploadProgress(itemId, percent);
             }
-        },
-        error: function () {
-            $('#blogImageUploadQueue').text('Upload fehlgeschlagen.');
-            sendNotif('Bild konnte nicht hochgeladen werden', 'error');
-        }
+        })
+            .done(function (response) {
+                const detail = window.CmsMedia.optimizationText ? window.CmsMedia.optimizationText(response.image) : '';
+                setBlogUploadStatus(itemId, 'Fertig', 'text-green-700', detail);
+                const grid = blogImageGrid();
+                if (grid) {
+                    grid.resetQuery();
+                    grid.reload({ page: 1 });
+                }
+                if (response.image) {
+                    selectBlogImage(response.image, { notify: false });
+                    setBlogImagePanel('blogImageLibraryPanel');
+                }
+                sendNotif('Bild wurde hochgeladen', 'success');
+            })
+            .fail(function () {
+                setBlogUploadStatus(itemId, 'Fehlgeschlagen', 'text-red-700');
+                sendNotif('Bild konnte nicht hochgeladen werden', 'error');
+            });
     });
+}
+
+function uploadBlogImage(file) {
+    uploadBlogImages(file);
 }
 
 function openBlogGalleryModal($carousel) {
@@ -883,7 +978,7 @@ $(document).ready(function () {
         });
         // Append Container to Blog Builder
         $("#blogContent").append($container);
-        sendNotif("Titel 1 wurde hinzugefügt", "success")
+        sendNotif("Titel 1 wurde hinzugefuegt", "success")
         scrollToBottom()
     });
 
@@ -906,7 +1001,7 @@ $(document).ready(function () {
         });
         // Append Container to Blog Builder
         $("#blogContent").append($container);
-        sendNotif("Titel 2 wurde hinzugefügt", "success")
+        sendNotif("Titel 2 wurde hinzugefuegt", "success")
         scrollToBottom()
     });
 
@@ -1560,16 +1655,29 @@ $(document).ready(function () {
 
     })
 
-    // Reload Images
-    $('#reloadImages').click(function () {
-        loadBlogImageLibrary(true);
-    })
-    $('#imageSearchInput').on('input', function () {
-        renderBlogImageLibrary(blogImageLibraryItems);
-    });
+    // Suche, Neu-laden und Paginierung des Bild-Grids hängen am zentralen
+    // Mediathek-Modul (siehe blogImageGrid()) - hier nichts mehr zu binden.
     $('.blog-image-tab').on('click', function () {
         setBlogImagePanel($(this).attr('data-target'));
     });
+
+    $(document).on('keydown.blogImageModal', function (event) {
+        const $modal = $('#imageModal');
+        if (!$modal.length || $modal.hasClass('hidden')) return;
+        if ($(event.target).closest('.swal2-container').length > 0) return;
+
+        if (event.key === 'Escape') {
+            event.preventDefault();
+            closeBlogImageModal();
+            return;
+        }
+
+        if (event.key === 'Enter' && !$(event.target).is('input, textarea, select, button, a')) {
+            event.preventDefault();
+            $('#selectImg').trigger('click');
+        }
+    });
+
     $('#blogImageUploadDropzone').on('click', function (event) {
         if (event.target.id === 'blogImageUploadInput') return;
         $('#blogImageUploadInput')[0].click();
@@ -1578,7 +1686,7 @@ $(document).ready(function () {
         event.stopPropagation();
     });
     $('#blogImageUploadInput').on('change', function () {
-        uploadBlogImage(this.files && this.files[0]);
+        uploadBlogImages(this.files);
         this.value = '';
     });
     $('#blogImageUploadDropzone').on('dragover', function (event) {
@@ -1590,7 +1698,7 @@ $(document).ready(function () {
     });
     $('#blogImageUploadDropzone').on('drop', function (event) {
         event.preventDefault();
-        uploadBlogImage(event.originalEvent.dataTransfer.files && event.originalEvent.dataTransfer.files[0]);
+        uploadBlogImages(event.originalEvent.dataTransfer.files);
     });
 
     // Reload Galerien
@@ -1607,18 +1715,6 @@ $(document).ready(function () {
         const sibling = $(this).siblings(".textArea")[0]
         if (sibling && window.BlogRichText) BlogRichText.mount(sibling)
     })
-
-    /*---- IMAGES SECTION -----*/
-
-    // Select new image
-    $('#possibleImages img').click(function () {
-        if ($editImg) {
-            $editImg.attr('src', $(this).attr('src'));
-            //$editImg.attr('imgId', )
-            //$('#imageModal').toggleClass("hidden");
-            sendNotif('Neues Bild ausgewählt', 'success')
-        }
-    });
 
     // Modal schließen
     $('#closeVideoModal').click(function () {
@@ -1725,16 +1821,18 @@ $(document).ready(function () {
     $('#useExternImageURL').click(function () {
         const url = $('#imgURL').val();
         if (!url) return;
+        resetBlogImageSelection(url, null);
+        const grid = blogImageGrid();
+        if (grid) grid.setSelected(null);
         if (blogEditorImageTarget && blogEditorImageTarget.quill) {
             blogEditorImageTarget.src = url;
-            refreshBlogImagePreview();
+            refreshBlogImagePreview(url);
             sendNotif('Externes Bild gewählt – mit „Übernehmen" einfügen', 'notice');
             return;
         }
         if ($editImg) {
-            $editImg.attr('src', url);
-            refreshBlogImagePreview();
-            sendNotif('Externes Bild ausgewählt', 'success')
+            refreshBlogImagePreview(url);
+            sendNotif('Externes Bild gewählt - mit "Übernehmen" anwenden', 'notice')
         }
     })
 
@@ -1742,7 +1840,7 @@ $(document).ready(function () {
     $('#selectImg').click(function () {
         // Editor-Einfügemodus: Bild mit Titel/Alt/Größe in den Quill-Editor einfügen.
         if (blogEditorImageTarget && blogEditorImageTarget.quill) {
-            const src = blogEditorImageTarget.src || $('#imgURL').val();
+            const src = (blogImageSelection && blogImageSelection.url) || blogEditorImageTarget.src || $('#imgURL').val();
             if (!src) { sendNotif('Bitte zuerst ein Bild auswählen', 'error'); return; }
             const altText = $('#imgAlt').val() || $('#imgText').val() || '';
             const titleText = $('#imgText').val() || '';
@@ -1767,6 +1865,12 @@ $(document).ready(function () {
         var imgHeight = $('#imgHeight').val();
         var imgWidth = $('#imgWidth').val();
         const $imgDiv = $editImg.closest('.relative')
+        const selectedSrc = blogImageSelection && blogImageSelection.url;
+        if (selectedSrc) {
+            $editImg.attr('src', selectedSrc);
+            if (blogImageSelection.id) $editImg.attr('imgId', blogImageSelection.id);
+            else $editImg.removeAttr('imgId');
+        }
         // Set height of edited image and parent container
         $editImg.css("height", imgHeight)
         $imgDiv.css("height", imgHeight)
@@ -1820,7 +1924,12 @@ $(document).ready(function () {
 
         // Close the modal when clicking outside of it (by targeting the parent modal)
         $(document).mouseup(function (e) {
+            if ($(e.target).closest('.swal2-container').length > 0) return;
             if (!modalContainer.is(e.target) && modalContainer.has(e.target).length === 0) {
+                if (modal.attr('id') === 'imageModal') {
+                    closeBlogImageModal();
+                    return;
+                }
                 modal.addClass('hidden').removeClass('flex');
             }
         });

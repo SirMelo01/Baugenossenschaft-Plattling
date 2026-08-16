@@ -72,7 +72,7 @@
 <body class="bg-slate-50">
     {% csrf_token %}
 
-    {# ───────────────────────── Mobile Off-Canvas Drawer ───────────────────────── #}
+    <!-- Mobile Off-Canvas Drawer -->
     <div id="mobile-menu" class="fixed inset-0 z-[100] hidden lg:hidden">
         <div class="absolute inset-0 bg-gray-950/60 backdrop-blur-sm" data-drawer-backdrop></div>
         <aside class="absolute inset-y-0 left-0 flex w-72 max-w-[82%] flex-col bg-gray-900 shadow-2xl">
@@ -99,7 +99,7 @@
         </aside>
     </div>
 
-    {# ───────────────────────── Desktop Sidebar ───────────────────────── #}
+    <!-- Desktop Sidebar -->
     <aside class="fixed inset-y-0 left-0 z-[70] hidden w-64 flex-col border-r border-white/5 bg-gray-900 lg:flex">
         <div class="flex h-16 flex-shrink-0 items-center gap-2 border-b border-white/10 px-5">
             <a href="{% url 'cms:cms' %}" class="flex items-center gap-2">
@@ -123,10 +123,10 @@
         </div>
     </aside>
 
-    {# ───────────────────────── Content Column ───────────────────────── #}
+    <!-- Content Column -->
     <div class="flex min-h-screen flex-col lg:pl-64">
 
-        {# Topbar #}
+        <!-- Topbar -->
         <header class="sticky top-0 z-[70] flex h-16 items-center gap-3 border-b border-gray-200 bg-white/90 px-4 backdrop-blur sm:px-6">
             <!-- Mobile: hamburger + brand -->
             <button type="button" id="mobile-menu-button"
@@ -270,7 +270,7 @@
             </div>
         </main>
 
-        {# ───────────────────────── CMS Footer ───────────────────────── #}
+        <!-- CMS Footer -->
         <footer class="mt-8 border-t border-gray-200 bg-white">
             <div class="mx-auto flex max-w-7xl flex-col items-center gap-3 px-3 py-5 text-xs text-slate-400 sm:flex-row sm:justify-between sm:px-6 lg:px-8">
                 <p class="text-center sm:text-left">
@@ -299,6 +299,9 @@
     <script defer src="{% static 'js/cms/cms-shell.js' %}"></script>
     <script defer src="{% static 'js/cms/logo-contrast.js' %}"></script>
     <script src="{% static 'js/libs/sweetalert.min.js' %}"></script>
+    <!-- Zentrale Mediathek: muss vor den Seiten-Skripten laufen, die CmsMediaPicker nutzen. -->
+    <script defer src="{% static 'js/cms/media-library.js' %}"></script>
+    <script defer src="{% static 'js/cms/media-picker.js' %}"></script>
     {% endcompress js %}
     {% block javascriptend %}
     {% endblock javascriptend %}
