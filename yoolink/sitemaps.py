@@ -10,12 +10,15 @@ from django.utils.translation import get_language
 class StaticViewSitemap(Sitemap):
     changefreq = "daily"
     def items(self):
+        # Aktuelles ist die Meldungsuebersicht des Kunden; die YooLink-Blogliste
+        # unter /blog/ zeigt dieselben Beitraege in fremdem Design und gehoert
+        # deshalb nicht in die Sitemap.
         return [
             'home',
-            'impressum', 'datenschutz', 'cookies', 
+            'impressum', 'datenschutz', 'cookies',
             'kunden', 'kontakt', 'leistungen', 'leistungen_cms', 'leistungen_logos', 'leistungen_visitenkarte', 'leistungen_medien', 'leistungen_webdesign',
             'webdesign_deggendorf',
-            'blog:blog'
+            'aktuelles',
             ]
     
     def lastmod(self, item):

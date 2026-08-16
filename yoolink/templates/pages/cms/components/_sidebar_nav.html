@@ -4,14 +4,14 @@ Pure <a> links + group labels, no IDs, so it can be included twice safely.
 {% endcomment %}
 <nav class="flex flex-col gap-6 px-3 py-4">
 
-    {% if 'pages.edit' in cms_permissions or 'blog.edit' in cms_permissions or 'media.edit' in cms_permissions or 'buttons.edit' in cms_permissions %}
+    {% if 'pages.edit' in cms_permissions or 'blog.edit' in cms_permissions or 'media.edit' in cms_permissions %}
     <div class="flex flex-col gap-1">
         <p class="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-gray-500">Übersicht</p>
         {% include "pages/cms/components/_nav_item.html" with url="/cms/" exact=True icon="bi-grid-1x2" label="Dashboard" %}
     </div>
     {% endif %}
 
-    {% if 'shop.view' in cms_permissions or 'products.edit' in cms_permissions or 'orders.edit' in cms_permissions %}
+    {% if 'pages.edit' in cms_permissions or 'blog.edit' in cms_permissions or 'media.edit' in cms_permissions %}
     <div class="flex flex-col gap-1">
         <p class="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-gray-500">Inhalte</p>
         {% if 'pages.edit' in cms_permissions %}
@@ -24,24 +24,14 @@ Pure <a> links + group labels, no IDs, so it can be included twice safely.
         {% include "pages/cms/components/_nav_item.html" with url="/cms/galerien/" match="/cms/galer" icon="bi-images" label="Galerien" %}
         {% include "pages/cms/components/_nav_item.html" with url="/cms/files/" match="/cms/files" match2="/cms/images" match3="/cms/anyfiles" match4="/cms/videos" icon="bi-folder2-open" label="Dateien" %}
         {% endif %}
-        {% if 'buttons.edit' in cms_permissions %}
-        {% include "pages/cms/components/_nav_item.html" with url="/cms/buttons/" match="/cms/buttons" icon="bi-hand-index" label="Buttons" %}
-        {% endif %}
+        {% comment %}Buttons sind für diesen Kunden ausgeblendet.{% endcomment %}
     </div>
     {% endif %}
 
-    {% if 'team.edit' in cms_permissions or 'pricing.edit' in cms_permissions or 'faq.edit' in cms_permissions or 'opening_hours.edit' in cms_permissions %}
+    {% if 'products.edit' in cms_permissions %}
     <div class="flex flex-col gap-1">
-        <p class="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-gray-500">Shop</p>
-        {% if 'shop.view' in cms_permissions %}
-        {% include "pages/cms/components/_nav_item.html" with url="/cms/shop/" exact=True icon="bi-shop" label="Shop" %}
-        {% endif %}
-        {% if 'products.edit' in cms_permissions %}
-        {% include "pages/cms/components/_nav_item.html" with url="/cms/shop/products/" match="/cms/shop/products" icon="bi-box-seam" label="Produkte" %}
-        {% endif %}
-        {% if 'orders.edit' in cms_permissions %}
-        {% include "pages/cms/components/_nav_item.html" with url="/cms/shop/orders/" match="/cms/shop/orders" icon="bi-bag-check" label="Bestellungen" %}
-        {% endif %}
+        <p class="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-gray-500">Immobilien</p>
+        {% include "pages/cms/components/_nav_item.html" with url="/cms/shop/products/" match="/cms/shop/products" icon="bi-buildings" label="Immobilien" %}
     </div>
     {% endif %}
 
@@ -50,9 +40,7 @@ Pure <a> links + group labels, no IDs, so it can be included twice safely.
         {% if 'team.edit' in cms_permissions %}
         {% include "pages/cms/components/_nav_item.html" with url="/cms/team/" match="/cms/team" icon="bi-people" label="Team" %}
         {% endif %}
-        {% if 'pricing.edit' in cms_permissions %}
-        {% include "pages/cms/components/_nav_item.html" with url="/cms/pricing/" match="/cms/pricing" icon="bi-cash-coin" label="Preise" %}
-        {% endif %}
+        {% comment %}Preise sind für diesen Kunden ausgeblendet.{% endcomment %}
         {% if 'faq.edit' in cms_permissions %}
         {% include "pages/cms/components/_nav_item.html" with url="/cms/faq/" match="/cms/faq" icon="bi-question-circle" label="FAQ" %}
         {% endif %}
@@ -61,10 +49,7 @@ Pure <a> links + group labels, no IDs, so it can be included twice safely.
         {% endif %}
     </div>
 
-    <div class="flex flex-col gap-1">
-        <p class="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-gray-500">Demos</p>
-        {% include "pages/cms/components/_nav_item.html" with url="/cms/demos/" match="/cms/demos" icon="bi-easel" label="Kunden-Demos" %}
-    </div>
+    {% comment %}Kunden-Demos sind für diesen Kunden ausgeblendet.{% endcomment %}
 
     <div class="flex flex-col gap-1">
         <p class="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-gray-500">System</p>

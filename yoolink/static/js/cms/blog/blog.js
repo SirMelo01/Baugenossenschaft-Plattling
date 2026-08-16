@@ -883,7 +883,7 @@ $(document).ready(function () {
         });
         // Append Container to Blog Builder
         $("#blogContent").append($container);
-        sendNotif("Titel 1 wurde hinzugefuegt", "success")
+        sendNotif("Titel 1 wurde hinzugefügt", "success")
         scrollToBottom()
     });
 
@@ -906,7 +906,7 @@ $(document).ready(function () {
         });
         // Append Container to Blog Builder
         $("#blogContent").append($container);
-        sendNotif("Titel 2 wurde hinzugefuegt", "success")
+        sendNotif("Titel 2 wurde hinzugefügt", "success")
         scrollToBottom()
     });
 

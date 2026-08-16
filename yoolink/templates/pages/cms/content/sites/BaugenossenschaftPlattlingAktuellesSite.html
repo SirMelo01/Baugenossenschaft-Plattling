@@ -1,0 +1,205 @@
+{% extends "cmsbase.html" %}
+{% load compress static %}
+{% block title %} {{ block.super }} | CMS - Aktuelles {% endblock %}
+
+{% block content %}
+{% comment %}
+Editor der Aktuelles-Seite. Die Meldungen selbst kommen aus dem Blog-Modul und
+werden dort gepflegt - hier stehen nur Kopfbereich, Beschriftungen, Leertexte und
+die Abschlussbox. Die Abschnitte folgen der Reihenfolge der oeffentlichen Seite
+(pages/demos/baugenossenschaft-plattling-aktuelles.html).
+{% endcomment %}
+
+<div class="mx-auto mt-4 max-w-6xl px-4 sm:mt-8 sm:px-6">
+  <div class="sticky top-[4.25rem] z-30 mb-6 flex flex-col gap-3 rounded-2xl border border-gray-200 bg-white/95 px-5 py-4 shadow-sm backdrop-blur sm:flex-row sm:items-center sm:justify-between">
+    <h1 class="text-2xl">
+      <a href="{% url 'cms:sites' %}" class="text-blue-500">Seiten</a>
+      / <span>Aktuelles (/aktuelles)</span>
+    </h1>
+    <div class="flex items-center gap-3">
+      {% csrf_token %}
+      <a href="/aktuelles" target="_blank" rel="noopener"
+         class="hidden rounded border border-gray-200 px-4 py-2 text-center text-sm font-semibold text-gray-700 hover:bg-gray-50 sm:block">
+        <i class="bi bi-box-arrow-up-right"></i> Seite ansehen
+      </a>
+      <a class="block w-full rounded bg-green-500 px-4 py-3 text-center font-bold text-white hover:cursor-pointer hover:bg-green-700 sm:w-auto sm:py-2"
+         id="saveTextData" name="main_bgp_news">
+        Speichern
+      </a>
+    </div>
+  </div>
+
+  <p class="rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-600 ring-1 ring-slate-200">
+    Die Abschnitte stehen in derselben Reihenfolge wie auf der Aktuelles-Seite. Leer gelassene
+    Felder fallen automatisch auf den hinterlegten Standardtext zurück.
+  </p>
+
+  <div class="mt-8 space-y-8 pb-20">
+
+    {# ─────────────── KOPFBEREICH ─────────────── #}
+    <section class="overflow-hidden rounded-2xl ring-1 ring-slate-200">
+      <div class="bgp-cms-navy px-6 py-3">
+        <p class="text-xs font-semibold uppercase tracking-wider text-white/80">1 &middot; Kopfbereich</p>
+      </div>
+      <div class="text-content flex flex-col gap-3 bg-slate-800 p-6" key="main_bgp_news_hero">
+        <div>
+          <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-yellow-300">Kleine Überschrift darüber</span>
+          <input inputType="header" type="text" class="w-full rounded-lg border-2 border-slate-600 bg-slate-700 px-4 py-2 text-sm font-semibold uppercase tracking-widest text-yellow-300 focus:border-yellow-300 focus:outline-none" value="{{ bgp_news_hero.header }}">
+        </div>
+        <div>
+          <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-white/60">Überschrift</span>
+          <input inputType="title" type="text" class="w-full rounded-lg border-2 border-slate-600 bg-slate-700 px-4 py-2 text-2xl font-bold text-white focus:border-yellow-300 focus:outline-none" value="{{ bgp_news_hero.title }}">
+        </div>
+        <div>
+          <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-white/60">Einleitungstext</span>
+          <textarea inputType="description" rows="3" class="w-full rounded-lg border-2 border-slate-600 bg-slate-700 px-4 py-2 text-base leading-relaxed text-white focus:border-yellow-300 focus:outline-none">{{ bgp_news_hero.description }}</textarea>
+        </div>
+      </div>
+    </section>
+
+    {# ─────────────── MELDUNGEN ─────────────── #}
+    <section class="overflow-hidden rounded-2xl ring-1 ring-slate-200">
+      <div class="bg-slate-100 px-6 py-3">
+        <p class="text-xs font-semibold uppercase tracking-wider text-slate-600">2 &middot; Die Meldungen</p>
+      </div>
+      <div class="bg-white p-6">
+        <div class="rounded-xl bg-blue-50 px-4 py-3 text-sm leading-6 text-blue-900 ring-1 ring-blue-200">
+          <i class="bi bi-info-circle mr-1"></i>
+          Die Meldungen sind die
+          <a href="{% url 'cms:blog-view' %}" class="font-semibold underline hover:no-underline">Blogbeiträge</a>.
+          Der neueste steht als Top-Meldung oben, die übrigen darunter als Kacheln – neun pro Seite.
+          Neue Meldung anlegen, Text oder Bild ändern: alles unter „Blog" in der Seitenleiste.
+          Nur veröffentlichte Beiträge erscheinen auf der Seite.
+        </div>
+
+        <p class="mb-2 mt-6 text-xs font-semibold uppercase tracking-wider text-gray-500">Die neuesten Meldungen</p>
+        {% if bgp_home_news_posts %}
+        <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
+          {% for post in bgp_home_news_posts %}
+          <div class="overflow-hidden rounded-xl ring-1 ring-slate-200">
+            <div class="flex items-center justify-between bg-slate-800 px-4 py-2">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-white/70">
+                {% if forloop.first %}{{ bgp_news_card.title }}{% else %}{{ bgp_news_card.header }}{% endif %}
+              </span>
+              <span class="text-[10px] font-bold text-yellow-300">{{ post.date|date:"d.m.Y" }}</span>
+            </div>
+            <div class="bg-white p-4">
+              <p class="mb-2 font-bold text-gray-800">{{ post.title }}</p>
+              <p class="text-sm leading-6 text-gray-600">{{ post.description|truncatechars:140 }}</p>
+              <a href="{% url 'cms:blog-details' post.id %}" class="mt-3 inline-block text-sm font-semibold text-blue-600 hover:underline">
+                <i class="bi bi-pencil"></i> Beitrag bearbeiten
+              </a>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p class="rounded-xl bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-800 ring-1 ring-amber-200">
+          <i class="bi bi-exclamation-triangle mr-1"></i>
+          Es ist noch kein Beitrag veröffentlicht. Auf der Seite steht solange der Hinweistext
+          aus Abschnitt 3.
+        </p>
+        {% endif %}
+
+        <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div class="text-content rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200" key="main_bgp_news_card">
+            <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Beschriftung oben links auf jeder Karte</span>
+            <input inputType="header" type="text" class="mb-3 w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 text-sm font-bold uppercase tracking-wider" value="{{ bgp_news_card.header }}">
+            <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Kennzeichnung der obersten Meldung</span>
+            <input inputType="title" type="text" class="mb-3 w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 text-sm font-bold uppercase tracking-wider" value="{{ bgp_news_card.title }}">
+            <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Link-Text unten auf jeder Karte</span>
+            <input inputType="buttonText" type="text" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 text-sm font-bold" value="{{ bgp_news_card.buttonText }}">
+          </div>
+          <div class="text-content rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200" key="main_bgp_news_overview">
+            <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Überschrift über den Kacheln</span>
+            <input inputType="title" type="text" class="mb-3 w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 text-lg font-bold" value="{{ bgp_news_overview.title }}">
+            <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Hinweis, wenn es nur die Top-Meldung gibt</span>
+            <input inputType="description" type="text" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 text-sm" value="{{ bgp_news_overview.description }}">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {# ─────────────── OHNE MELDUNGEN ─────────────── #}
+    <section class="overflow-hidden rounded-2xl ring-1 ring-slate-200">
+      <div class="bg-slate-100 px-6 py-3">
+        <p class="text-xs font-semibold uppercase tracking-wider text-slate-600">3 &middot; Text, wenn es noch keine Meldung gibt</p>
+      </div>
+      <div class="text-content flex flex-col gap-3 bg-white p-6" key="main_bgp_news_empty">
+        <div>
+          <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Überschrift</span>
+          <input inputType="title" type="text" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 font-bold" value="{{ bgp_news_empty.title }}">
+        </div>
+        <div>
+          <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Text darunter</span>
+          <textarea inputType="description" rows="2" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-sm">{{ bgp_news_empty.description }}</textarea>
+        </div>
+      </div>
+    </section>
+
+    {# ─────────────── DETAILSEITE EINER MELDUNG ─────────────── #}
+    <section class="overflow-hidden rounded-2xl ring-1 ring-slate-200">
+      <div class="bg-slate-100 px-6 py-3">
+        <p class="text-xs font-semibold uppercase tracking-wider text-slate-600">4 &middot; Detailseite einer Meldung</p>
+      </div>
+      <div class="bg-white p-6">
+        <p class="mb-4 rounded-xl bg-blue-50 px-4 py-3 text-sm leading-6 text-blue-900 ring-1 ring-blue-200">
+          <i class="bi bi-info-circle mr-1"></i>
+          Titel, Bild und Text der Detailseite stehen im jeweiligen Blogbeitrag. Hier lassen sich
+          nur die Beschriftungen ändern, die auf jeder Meldung gleich sind.
+        </p>
+        <div class="text-content grid grid-cols-1 gap-4 sm:grid-cols-3" key="main_bgp_news_detail">
+          <div>
+            <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Kennzeichnung über dem Titel</span>
+            <input inputType="header" type="text" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 text-sm font-bold uppercase tracking-wider" value="{{ bgp_news_detail.header }}">
+          </div>
+          <div>
+            <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Zurück-Button unter dem Text</span>
+            <input inputType="buttonText" type="text" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 text-sm font-bold" value="{{ bgp_news_detail.buttonText }}">
+          </div>
+          <div>
+            <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Überschrift über den weiteren Meldungen</span>
+            <input inputType="title" type="text" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 font-bold" value="{{ bgp_news_detail.title }}">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {# ─────────────── ABSCHLUSS ─────────────── #}
+    <section class="overflow-hidden rounded-2xl ring-1 ring-slate-200">
+      <div class="bg-slate-100 px-6 py-3">
+        <p class="text-xs font-semibold uppercase tracking-wider text-slate-600">5 &middot; Abschlussbox</p>
+      </div>
+      <div class="text-content flex flex-col gap-3 bg-white p-6" key="main_bgp_news_cta">
+        <div>
+          <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Überschrift</span>
+          <input inputType="title" type="text" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 font-bold" value="{{ bgp_news_cta.title }}">
+        </div>
+        <div>
+          <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Text</span>
+          <textarea inputType="description" rows="3" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-sm">{{ bgp_news_cta.description }}</textarea>
+        </div>
+        <div>
+          <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Button (steht auch auf der Detailseite)</span>
+          <input inputType="buttonText" type="text" class="w-full rounded-lg bg-slate-800 px-6 py-3 text-sm font-bold text-white" value="{{ bgp_news_cta.buttonText }}">
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block css %}
+<style>
+  .bgp-cms-navy { background-color: #12284c; }
+</style>
+{% endblock css %}
+
+{% block javascriptend %}
+{% compress js %}
+<script defer src="{% static 'js/cms.js' %}"></script>
+<script src="{% static 'js/cms/content/save-text.js' %}"></script>
+<script defer src="{% static 'js/cms/unsaved-guard.js' %}"></script>
+{% endcompress js %}
+{% endblock %}

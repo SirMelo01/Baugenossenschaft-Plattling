@@ -87,21 +87,21 @@ function buildPublicProductCard(product) {
 
   const topBadges = []
   if (product.is_reduced && product.discount_price && showPriceCard) {
-    topBadges.push('<span class="rounded-full bg-red-500 px-3 py-1 text-xs font-semibold text-white">Angebot</span>')
+    topBadges.push('<span class="rounded-full bg-[#FFDC16] px-3 py-1 text-xs font-semibold text-[#2E434C]">Sonderhinweis</span>')
   }
   if (product.featured) {
-    topBadges.push('<span class="rounded-full bg-blue-600 px-3 py-1 text-xs font-semibold text-white">Empfehlung</span>')
+    topBadges.push('<span class="rounded-full bg-[#4B6671] px-3 py-1 text-xs font-semibold text-white">Hervorgehoben</span>')
   }
 
   const badges = []
   if (product.is_in_stock) {
-    badges.push('<span class="rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700">Verfügbar</span>')
+    badges.push('<span class="rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700">Verf&uuml;gbar</span>')
   } else {
-    badges.push('<span class="rounded-full bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700">Aktuell nicht verfügbar</span>')
+    badges.push('<span class="rounded-full bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700">Aktuell nicht verf&uuml;gbar</span>')
   }
 
   if (product.online_sell) {
-    badges.push('<span class="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">Lieferung möglich</span>')
+    badges.push('<span class="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">Anfrage m&ouml;glich</span>')
   }
 
   let priceHtml = ""
@@ -110,12 +110,12 @@ function buildPublicProductCard(product) {
   } else if (product.is_reduced && product.discount_price) {
     priceHtml = `
       <div class="flex flex-wrap items-end gap-2">
-        <span class="text-xl font-bold text-blue-600">${escapeHtml(product.discount_price)} €</span>
-        <span class="pb-0.5 text-sm text-gray-400 line-through">${escapeHtml(product.price)} €</span>
+        <span class="text-xl font-bold text-[#4B6671]">${escapeHtml(product.discount_price)} &euro;</span>
+        <span class="pb-0.5 text-sm text-gray-400 line-through">${escapeHtml(product.price)} &euro;</span>
       </div>
     `
   } else {
-    priceHtml = `<span class="text-xl font-bold text-gray-900">${escapeHtml(product.price)} €</span>`
+    priceHtml = `<span class="text-xl font-bold text-gray-900">${escapeHtml(product.price)} &euro;</span>`
   }
 
   if (showPriceCard && priceNote) {
@@ -142,7 +142,7 @@ function buildPublicProductCard(product) {
         <div class="flex flex-1 flex-col p-5">
           <div class="min-w-0">
             ${brand ? `<p class="text-xs font-semibold uppercase tracking-wide text-gray-400">${brand}</p>` : ""}
-            <h3 class="mt-1 text-lg font-bold leading-snug text-gray-900 group-hover:text-blue-700">${title}</h3>
+            <h3 class="mt-1 text-lg font-bold leading-snug text-gray-900 group-hover:text-[#4B6671]">${title}</h3>
           </div>
 
           <p class="mt-3 line-clamp-3 text-sm leading-6 text-slate-600">${description}</p>
@@ -154,7 +154,7 @@ function buildPublicProductCard(product) {
           <div class="mt-auto flex items-end justify-between gap-3 pt-5">
             <div class="min-w-0">${priceHtml}</div>
 
-            <span class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white transition group-hover:bg-blue-700">
+            <span class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#4B6671] text-white transition group-hover:bg-[#3A505A]">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                 <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708" />
               </svg>
@@ -205,7 +205,7 @@ function updateShopProductGrid(products) {
   if (!products || products.length === 0) {
     $grid.html(`
       <div class="col-span-full rounded-3xl border border-dashed border-gray-300 bg-white p-10 text-center text-gray-500 shadow-sm">
-        Keine Produkte für diese Filter gefunden
+        Keine Immobilien f&uuml;r diese Filter gefunden
       </div>
     `)
     return
@@ -282,7 +282,7 @@ function updateShopPagination(pagination) {
 }
 
 function updateShopResultsInfo(pagination) {
-  $("#shopResultsInfo").text(`${pagination.total_count} Produkte gefunden`)
+  $("#shopResultsInfo").text(`${pagination.total_count} Immobilien gefunden`)
 }
 
 function updateShopUrl(params) {
@@ -317,7 +317,7 @@ function loadShopProducts(page = 1) {
     },
     error: function () {
       if (typeof sendNotif === "function") {
-        sendNotif("Die Produktsuche konnte nicht geladen werden.", "error")
+        sendNotif("Die Immobiliensuche konnte nicht geladen werden.", "error")
       }
     }
   })

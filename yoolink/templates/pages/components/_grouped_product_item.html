@@ -1,0 +1,18 @@
+{% load l10n shop_extras %}
+{% comment %}
+Eine Karte der gruppierten Immobilien-Uebersicht samt der Daten, auf denen Suche
+und Filter im Browser arbeiten (shop_grouped.html).
+
+data-price bleibt leer, wenn die Karte gar keinen Preis zeigt - so ein Objekt kann
+einen gesetzten Preisbereich nicht erfuellen und wird dann ausgeblendet.
+unlocalize ist noetig, damit dort "500.00" und nicht "500,00" steht.
+{% endcomment %}
+<div
+  class="product-item"
+  data-product-id="{{ product.id }}"
+  data-search="{{ product.title }} {{ product.brand.name }} {{ product.sku }} {{ product.description|plain_description|truncatechars:600 }}"
+  data-categories="{% for category in product.categories.all %}{{ category.slug }} {% endfor %}"
+  data-price="{% if product.should_show_price_card %}{{ product.effective_price|unlocalize }}{% endif %}"
+>
+  {% include "pages/components/product_card.html" with product=product %}
+</div>

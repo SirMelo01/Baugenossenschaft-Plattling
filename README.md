@@ -21,6 +21,59 @@ https://www.youtube.com/watch?v=DLxcyndCvO4
         $ docker-compose -f local.yml run --rm django python manage.py makemigrations
         $ docker-compose -f local.yml run --rm django python manage.py migrate 
 
+### Domain (Production)
+
+**Aktuell live unter der Übergangs-Subdomain `bgsplattling.yoolink.de`.**
+Die Kundendomain `baugenossenschaft-plattling.de` kommt später (siehe Umzug unten).
+
+-   Einziger Schalter in Django ist `SITE_DOMAIN` in `config/settings/base.py`
+    (per `DJANGO_SITE_DOMAIN` in der Env überschreibbar). Daraus leiten sich ab:
+    `SITE_BASE_URL`, `ALLOWED_HOSTS`, `DASHBOARD_URL`, der www-Redirect
+    (`yoolink/middleware.py`), die canonical-/OG-URLs in den Templates
+    (`{{ site_base_url }}`) und das JSON-LD (`ycms/seo_schema.py`).
+-   Separat gepflegt, weil außerhalb von Django: `compose/production/traefik/traefik.yml`
+    (Host-Rules) und `compose/production/nginx/default.conf` (server_name).
+-   Voraussetzung fürs Deployment: DNS-A-Record für `bgsplattling.yoolink.de` muss auf
+    den Server zeigen, sonst schlägt die Let's-Encrypt-Challenge fehl.
+-   Kein `www`-Host in Traefik: Für eine Subdomain gibt es weder DNS-Eintrag noch
+    Zertifikat. Der www-Redirect in Django bleibt generisch und greift automatisch
+    wieder, sobald `SITE_DOMAIN` eine Apex-Domain ist.
+-   Die Domain des `django.contrib.sites`-Eintrags (Passwort-Reset-Mails, sitemap.xml)
+    und `WebsiteSettings.website` (canonical/OG) setzen die Migrationen
+    `sites.0005_set_site_domain_baugenossenschaft_plattling` und
+    `ycms.0080_seed_baugenossenschaft_plattling_settings` aus `settings.SITE_DOMAIN`.
+    Laufen mit dem normalen `migrate` mit.
+
+#### Umzug auf die Kundendomain
+
+Die beiden Migrationen oben sind Daten-Migrationen: Sie laufen **einmal**. Wenn
+`SITE_DOMAIN` später geändert wird, müssen die zwei DB-Werte nachgezogen werden.
+
+1.  `SITE_DOMAIN` in `config/settings/base.py` auf `baugenossenschaft-plattling.de`
+    setzen (oder `DJANGO_SITE_DOMAIN` in `.envs/.production/.django`).
+2.  Host-Regeln in `traefik.yml` (drei Router) und `nginx/default.conf` anpassen -
+    dort dann wieder mit `www.`-Host, damit der 301 greifen kann.
+3.  Neu bauen/starten und die zwei DB-Werte nachziehen:
+
+        $ docker-compose -f production.yml run --rm django python manage.py shell -c "from django.conf import settings; from django.contrib.sites.models import Site; from yoolink.ycms.models import WebsiteSettings; Site.objects.update_or_create(id=settings.SITE_ID, defaults={'domain': settings.SITE_DOMAIN, 'name': 'Baugenossenschaft Plattling eG'}); w=WebsiteSettings.objects.order_by('id').first(); w.website=settings.SITE_BASE_URL; w.save()"
+
+    `WebsiteSettings.website` lässt sich alternativ im CMS unter
+    *Einstellungen -> Website-Daten* pflegen. Wichtig: **ohne** `www`, sonst zeigt
+    canonical auf eine weiterleitende URL.
+
+### Sprachen (aktuell: nur Deutsch)
+-   Einziger Schalter ist `LANGUAGES` in `config/settings/base.py`. Dort steht aktuell
+    nur `('de', _('Deutsch'))`. Daraus folgt automatisch:
+    -   Sprachumschalter im CMS und auf der öffentlichen Seite werden ausgeblendet
+    -   `i18n_patterns` erzeugt keine `/en/`-URLs mehr; alte `/en/...`-Links werden per
+        301 auf die deutsche Seite umgeleitet (Regel am Ende von `config/urls.py`)
+    -   ein englischer Browser bekommt trotzdem die deutsche Seite (`LocaleMiddleware`
+        fällt auf `LANGUAGE_CODE = "de"` zurück)
+    -   `/cms/set-language/en/` antwortet mit 400
+-   Englisch wieder aktivieren: `('en', _('Englisch'))` in `LANGUAGES` ergänzen. Mehr ist
+    nicht nötig - Umschalter, hreflang-Tags und `/en/`-Routen kommen von selbst zurück,
+    die `/en/`-Redirect-Regel steht bewusst *nach* `i18n_patterns` und greift dann nicht mehr.
+
 ### App erstellen:
         $ docker-compose -f local.yml run --rm django python manage.py startapp namederapp
 

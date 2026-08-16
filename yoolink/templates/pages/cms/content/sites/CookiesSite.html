@@ -38,7 +38,7 @@
                placeholder="Überschrift (H1)"
                value="{{ textContent_hero.title|default:'Cookie-Einstellungen' }}">
         <textarea inputType="description" rows="4"
-                  class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-base leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_hero.description|default:"Hier können Sie Ihre Einwilligung für optionale Dienste verwalten. Notwendige Cookies bleiben aktiv, weil sie für Sicherheit, Sprache, Warenkorb, Login und den Betrieb der Website erforderlich sind. Alle optionalen Dienste werden erst nach Ihrer aktiven Zustimmung geladen." }}</textarea>
+                  class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-base leading-relaxed focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_hero.description|default:"Hier können Sie Ihre Einwilligung für optionale Dienste verwalten. Notwendige Cookies bleiben aktiv, weil sie für Sicherheit, Sprache, Login, Formulare und den Betrieb der Website erforderlich sind. Alle optionalen Dienste werden erst nach Ihrer aktiven Zustimmung geladen." }}</textarea>
       </div>
     </section>
 
@@ -55,7 +55,7 @@
                  class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-lg font-bold focus:border-blue-500 focus:bg-white focus:outline-none"
                  value="{{ textContent_necessary.title|default:'Notwendig' }}">
           <textarea inputType="description" rows="3"
-                    class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_necessary.description|default:"Session-, CSRF-, Sprach-, Warenkorb- und Consent-Cookies. Diese Cookies sind technisch erforderlich und können über dieses Formular nicht deaktiviert werden." }}</textarea>
+                    class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm focus:border-blue-500 focus:bg-white focus:outline-none">{{ textContent_necessary.description|default:"Session-, CSRF-, Sprach-, Formular- und Consent-Cookies. Diese Cookies sind technisch erforderlich und können über dieses Formular nicht deaktiviert werden." }}</textarea>
         </div>
 
         <div class="text-content flex flex-col gap-2 rounded-xl bg-white p-4 shadow-sm" key="main_cookies_analytics">

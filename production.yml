@@ -1,10 +1,10 @@
 version: '3'
 
 volumes:
-  production_postgres_data: {}
-  production_postgres_data_backups: {}
-  production_traefik: {}
-  production_django_media: {}
+  baugenossenschaft_plattling_production_postgres_data: {}
+  baugenossenschaft_plattling_production_postgres_data_backups: {}
+  baugenossenschaft_plattling_production_traefik: {}
+  baugenossenschaft_plattling_production_django_media: {}
 
 services:
   django: &django
@@ -12,9 +12,10 @@ services:
       context: .
       dockerfile: ./compose/production/django/Dockerfile
 
-    image: yoolink_production_django
+    image: baugenossenschaft_plattling_production_django
+    container_name: baugenossenschaft_plattling_production_django
     volumes:
-      - production_django_media:/app/yoolink/media
+      - baugenossenschaft_plattling_production_django_media:/app/yoolink/media
     depends_on:
       - postgres
       - redis
@@ -27,10 +28,11 @@ services:
     build:
       context: .
       dockerfile: ./compose/production/postgres/Dockerfile
-    image: yoolink_production_postgres
+    image: baugenossenschaft_plattling_production_postgres
+    container_name: baugenossenschaft_plattling_production_postgres
     volumes:
-      - production_postgres_data:/var/lib/postgresql/data
-      - production_postgres_data_backups:/backups
+      - baugenossenschaft_plattling_production_postgres_data:/var/lib/postgresql/data
+      - baugenossenschaft_plattling_production_postgres_data_backups:/backups
     env_file:
       - ./.envs/.production/.postgres
 
@@ -38,11 +40,12 @@ services:
     build:
       context: .
       dockerfile: ./compose/production/traefik/Dockerfile
-    image: yoolink_production_traefik
+    image: baugenossenschaft_plattling_production_traefik
+    container_name: baugenossenschaft_plattling_production_traefik
     depends_on:
       - django
     volumes:
-      - production_traefik:/etc/traefik/acme
+      - baugenossenschaft_plattling_production_traefik:/etc/traefik/acme
     ports:
       - "0.0.0.0:80:80"
       - "0.0.0.0:443:443"
@@ -50,27 +53,32 @@ services:
 
   redis:
     image: redis:6
+    container_name: baugenossenschaft_plattling_production_redis
 
   celeryworker:
     <<: *django
-    image: yoolink_production_celeryworker
+    image: baugenossenschaft_plattling_production_celeryworker
+    container_name: baugenossenschaft_plattling_production_celeryworker
     command: /start-celeryworker
 
   celerybeat:
     <<: *django
-    image: yoolink_production_celerybeat
+    image: baugenossenschaft_plattling_production_celerybeat
+    container_name: baugenossenschaft_plattling_production_celerybeat
     command: /start-celerybeat
 
   flower:
     <<: *django
-    image: yoolink_production_flower
+    image: baugenossenschaft_plattling_production_flower
+    container_name: baugenossenschaft_plattling_production_flower
     command: /start-flower
   nginx:
     build:
       context: .
       dockerfile: ./compose/production/nginx/Dockerfile
-    image: yoolink_local_nginx
+    image: baugenossenschaft_plattling_production_nginx
+    container_name: baugenossenschaft_plattling_production_nginx
     depends_on:
       - django
     volumes:
-      - production_django_media:/usr/share/nginx/media:ro
+      - baugenossenschaft_plattling_production_django_media:/usr/share/nginx/media:ro

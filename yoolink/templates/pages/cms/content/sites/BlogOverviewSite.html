@@ -1,6 +1,6 @@
 {% extends "cmsbase.html" %}
 {% load compress static %}
-{% block title %} {{ block.super }} | CMS - Blog Uebersicht {% endblock %}
+{% block title %} {{ block.super }} | CMS - Blog Übersicht {% endblock %}
 
 {% block content %}
 
@@ -9,7 +9,7 @@
   <div class="sticky top-[4.25rem] z-30 mb-6 rounded-2xl border border-gray-200 bg-white/95 px-5 py-4 shadow-sm backdrop-blur flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
     <h1 class="text-2xl">
       <a href="{% url 'cms:sites' %}" class="text-blue-500">Seiten</a>
-      / <span>Blog Uebersicht (/blog)</span>
+      / <span>Blog Übersicht (/blog)</span>
     </h1>
     <div>
       {% csrf_token %}
@@ -21,7 +21,7 @@
   </div>
 
   <p class="mt-4 rounded-xl bg-blue-50 px-4 py-3 text-sm text-blue-800 ring-1 ring-blue-100">
-    <i class="bi bi-info-circle mr-1"></i>Hier pflegst du den Kopfbereich der oeffentlichen Blog-Uebersicht.
+    <i class="bi bi-info-circle mr-1"></i>Hier pflegst du den Kopfbereich der öffentlichen Blog-Übersicht.
     Die Blogartikel selbst verwaltest du weiterhin im Bereich <strong>Blogs</strong>.
   </p>
 

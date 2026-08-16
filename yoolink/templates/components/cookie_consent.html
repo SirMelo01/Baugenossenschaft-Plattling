@@ -8,18 +8,18 @@
   aria-labelledby="cookie-consent-title"
   aria-describedby="cookie-consent-description"
 >
-  <div class="fixed inset-0 bg-slate-900/60" data-consent-action="close"></div>
-  <div class="relative max-h-[92vh] w-full max-w-3xl overflow-auto rounded-xl bg-white text-gray-900 shadow-2xl" role="document">
-    <div class="flex justify-between gap-4 border-b border-gray-200 px-5 pb-3 pt-5">
+  <div class="fixed inset-0 bg-[#2E434C]/70" data-consent-action="close"></div>
+  <div class="relative max-h-[92vh] w-full max-w-3xl overflow-auto rounded-xl bg-white text-gray-900 shadow-2xl ring-1 ring-[#C9DEE6]" role="document">
+    <div class="flex justify-between gap-4 border-b border-[#C9DEE6] bg-[#EEF5F8] px-5 pb-3 pt-5">
       <div>
-        <p class="mb-1 text-xs font-bold uppercase tracking-wide text-blue-600">Datenschutz</p>
-        <h2 id="cookie-consent-title" class="text-2xl font-bold leading-tight">Cookie-Einstellungen</h2>
+        <p class="mb-1 text-xs font-bold uppercase tracking-wide text-[#4B6671]">Datenschutz</p>
+        <h2 id="cookie-consent-title" class="text-2xl font-bold leading-tight text-[#2E434C]">Cookie-Einstellungen</h2>
       </div>
       <button
         type="button"
-        class="flex h-9 w-9 items-center justify-center rounded-full border border-gray-300 bg-white p-0 text-gray-900 transition hover:bg-gray-50"
+        class="flex h-9 w-9 items-center justify-center rounded-full border border-[#C9DEE6] bg-white p-0 text-[#2E434C] transition hover:bg-[#E3F0F4]"
         data-consent-action="close"
-        aria-label="Cookie-Einstellungen schließen"
+        aria-label="Cookie-Einstellungen schlie&szlig;en"
       >
         <svg aria-hidden="true" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <path d="M6 6l12 12M18 6L6 18" stroke-width="2" stroke-linecap="round" />
@@ -28,54 +28,54 @@
     </div>
 
     <p id="cookie-consent-description" class="m-0 px-5 py-4 text-sm leading-6 text-gray-600">
-      Wir nutzen notwendige Cookies für den Betrieb der Website. Optionale Dienste
+      Wir nutzen notwendige Cookies f&uuml;r den Betrieb der Website. Optionale Dienste
       wie Google Analytics, Karten, Videos oder reCAPTCHA laden wir
       erst nach Ihrer aktiven Einwilligung.
     </p>
 
     <div class="grid gap-3 px-5 pb-5 sm:grid-cols-3" data-consent-summary>
-      <button type="button" class="inline-flex min-h-11 items-center justify-center rounded-lg border border-transparent bg-blue-700 px-4 py-2.5 text-center font-bold text-white shadow-sm transition hover:bg-blue-800" data-consent-action="accept-all">
+      <button type="button" class="inline-flex min-h-11 items-center justify-center rounded-lg border border-transparent bg-[#FFDC16] px-4 py-2.5 text-center font-bold text-[#2E434C] shadow-sm transition hover:bg-[#F2CE00]" data-consent-action="accept-all">
         Alle akzeptieren
       </button>
-      <button type="button" class="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-center font-bold text-slate-900 transition hover:bg-slate-100" data-consent-action="reject-all">
+      <button type="button" class="inline-flex min-h-11 items-center justify-center rounded-lg border border-[#C9DEE6] bg-white px-4 py-2.5 text-center font-bold text-[#2E434C] transition hover:bg-[#EEF5F8]" data-consent-action="reject-all">
         Alle ablehnen
       </button>
-      <button type="button" class="inline-flex min-h-11 items-center justify-center rounded-lg border border-transparent bg-white px-4 py-2.5 text-center font-bold text-slate-600 transition hover:bg-slate-100 hover:text-slate-900" data-consent-action="customize">
+      <button type="button" class="inline-flex min-h-11 items-center justify-center rounded-lg border border-transparent bg-white px-4 py-2.5 text-center font-bold text-[#4B6671] transition hover:bg-[#EEF5F8] hover:text-[#2E434C]" data-consent-action="customize">
         Auswahl anpassen
       </button>
     </div>
 
     <div class="hidden px-5 pb-5" data-consent-details>
-      <div class="mb-3 flex cursor-default items-center justify-between gap-4 rounded-lg border border-slate-200 bg-slate-50 p-4">
+      <div class="mb-3 flex cursor-default items-center justify-between gap-4 rounded-lg border border-[#C9DEE6] bg-[#EEF5F8] p-4">
         <div>
-          <h3 class="mb-1 text-base font-bold">Notwendig</h3>
+          <h3 class="mb-1 text-base font-bold text-[#2E434C]">Notwendig</h3>
           <p class="mb-1 text-sm leading-6 text-gray-600">
-            Erforderlich für Sicherheit, Sprache, Warenkorb, Login, CSRF-Schutz
+            Erforderlich f&uuml;r Sicherheit, Sprache, Login, CSRF-Schutz, Formulare
             und das Speichern Ihrer Cookie-Entscheidung.
           </p>
           <small class="block text-xs leading-5 text-slate-500">Immer aktiv, keine Einwilligung erforderlich.</small>
         </div>
-        <span class="inline-flex items-center gap-2 whitespace-nowrap rounded-full bg-blue-100 px-4 py-1 text-sm font-bold text-blue-700">Aktiv</span>
+        <span class="inline-flex items-center gap-2 whitespace-nowrap rounded-full bg-[#FFDC16] px-4 py-1 text-sm font-bold text-[#2E434C]">Aktiv</span>
       </div>
 
-      <label class="mb-3 flex cursor-pointer items-center justify-between gap-4 rounded-lg border border-slate-200 bg-slate-50 p-4" for="cookie-analytics">
+      <label class="mb-3 flex cursor-pointer items-center justify-between gap-4 rounded-lg border border-[#C9DEE6] bg-[#EEF5F8] p-4" for="cookie-analytics">
         <div>
-          <h3 class="mb-1 text-base font-bold">Statistik</h3>
+          <h3 class="mb-1 text-base font-bold text-[#2E434C]">Statistik</h3>
           <p class="mb-1 text-sm leading-6 text-gray-600">
             Aktiviert Google Analytics, um Seitenaufrufe und Nutzung anonymisiert
             auszuwerten und die Website zu verbessern.
           </p>
-          <small class="block text-xs leading-5 text-slate-500">Anbieter: Google Ireland Limited. Speicherdauer abhängig von Google Analytics.</small>
+          <small class="block text-xs leading-5 text-slate-500">Anbieter: Google Ireland Limited. Speicherdauer abh&auml;ngig von Google Analytics.</small>
         </div>
         <div class="flex items-center gap-3">
           <input id="cookie-analytics" type="checkbox" class="sr-only peer" data-consent-toggle="analytics">
-          <div class="relative h-6 w-11 rounded-full bg-gray-200 transition peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 peer-checked:bg-blue-600 after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow after:transition peer-checked:after:translate-x-5"></div>
+          <div class="relative h-6 w-11 rounded-full bg-gray-200 transition peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#C9DEE6] peer-checked:bg-[#4B6671] after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow after:transition peer-checked:after:translate-x-5"></div>
         </div>
       </label>
 
-      <label class="mb-3 flex cursor-pointer items-center justify-between gap-4 rounded-lg border border-slate-200 bg-slate-50 p-4" for="cookie-external">
+      <label class="mb-3 flex cursor-pointer items-center justify-between gap-4 rounded-lg border border-[#C9DEE6] bg-[#EEF5F8] p-4" for="cookie-external">
         <div>
-          <h3 class="mb-1 text-base font-bold">Externe Medien und Sicherheitsdienste</h3>
+          <h3 class="mb-1 text-base font-bold text-[#2E434C]">Externe Medien und Sicherheitsdienste</h3>
           <p class="mb-1 text-sm leading-6 text-gray-600">
             Erlaubt das Laden eingebetteter Karten, Videos und reCAPTCHA. Ohne
             Einwilligung werden Platzhalter angezeigt.
@@ -84,23 +84,23 @@
         </div>
         <div class="flex items-center gap-3">
           <input id="cookie-external" type="checkbox" class="sr-only peer" data-consent-toggle="external">
-          <div class="relative h-6 w-11 rounded-full bg-gray-200 transition peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 peer-checked:bg-blue-600 after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow after:transition peer-checked:after:translate-x-5"></div>
+          <div class="relative h-6 w-11 rounded-full bg-gray-200 transition peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#C9DEE6] peer-checked:bg-[#4B6671] after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow after:transition peer-checked:after:translate-x-5"></div>
         </div>
       </label>
 
       <div class="mb-4 mt-1 flex flex-wrap gap-4 text-sm">
-        <a class="font-bold text-blue-700 underline" href="{% url 'datenschutz' %}">Datenschutzerklärung</a>
-        <a class="font-bold text-blue-700 underline" href="{% url 'cookies' %}">Cookie-Übersicht</a>
+        <a class="font-bold text-[#4B6671] underline hover:text-[#2E434C]" href="{% url 'datenschutz' %}">Datenschutzerkl&auml;rung</a>
+        <a class="font-bold text-[#4B6671] underline hover:text-[#2E434C]" href="{% url 'cookies' %}">Cookie-&Uuml;bersicht</a>
       </div>
 
       <div class="grid gap-3 sm:grid-cols-3">
-        <button type="button" class="inline-flex min-h-11 items-center justify-center rounded-lg border border-transparent bg-blue-700 px-4 py-2.5 text-center font-bold text-white transition hover:bg-blue-800" data-consent-action="save">
+        <button type="button" class="inline-flex min-h-11 items-center justify-center rounded-lg border border-transparent bg-[#FFDC16] px-4 py-2.5 text-center font-bold text-[#2E434C] transition hover:bg-[#F2CE00]" data-consent-action="save">
           Auswahl speichern
         </button>
-        <button type="button" class="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-center font-bold text-slate-900 transition hover:bg-slate-100" data-consent-action="reject-all">
+        <button type="button" class="inline-flex min-h-11 items-center justify-center rounded-lg border border-[#C9DEE6] bg-white px-4 py-2.5 text-center font-bold text-[#2E434C] transition hover:bg-[#EEF5F8]" data-consent-action="reject-all">
           Alle ablehnen
         </button>
-        <button type="button" class="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-center font-bold text-slate-900 transition hover:bg-slate-100" data-consent-action="accept-all">
+        <button type="button" class="inline-flex min-h-11 items-center justify-center rounded-lg border border-[#C9DEE6] bg-white px-4 py-2.5 text-center font-bold text-[#2E434C] transition hover:bg-[#EEF5F8]" data-consent-action="accept-all">
           Alle akzeptieren
         </button>
       </div>

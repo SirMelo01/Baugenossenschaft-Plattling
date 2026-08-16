@@ -343,7 +343,10 @@ class Blog(models.Model):
         super(Blog, self).save(*args, **kwargs)
 
     def get_absolute_url(self):
-        return reverse("blog:blog-detail", kwargs={"pk": self.pk, "slug_title": self.slug})
+        # Kanonische Adresse eines Beitrags ist die Aktuelles-Detailseite im
+        # Kundendesign. /blog/<pk>-<slug>/ bleibt erreichbar, leitet aber per 301
+        # hierher, damit es die Meldung nicht unter zwei URLs gibt.
+        return reverse("aktuelles-detail", kwargs={"pk": self.pk, "slug_title": self.slug})
 
 """
 Messages

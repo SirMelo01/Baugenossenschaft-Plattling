@@ -11,6 +11,8 @@ from rest_framework.test import APIClient
 
 from yoolink.users.tests.factories import UserFactory
 from yoolink.ycms.applications.shop.models import (
+    ProductGroup,
+    ShopSettings,
     Brand,
     Category,
     Order,
@@ -269,7 +271,10 @@ def test_cms_product_detail_creates_language_variant(logged_in_client):
     assert not translation.slug.endswith("-en")
 
 
+@override_settings(LANGUAGES=(("de", "Deutsch"), ("en", "Englisch")))
 def test_public_product_search_uses_active_language_variant(client):
+    """Sichert die Mehrsprachigkeit ab - greift erst, wenn Englisch in
+    settings.LANGUAGES wieder aktiviert wird (aktuell läuft die Seite nur auf Deutsch)."""
     product = _create_product(title="Deutsches Produkt", description="Deutsche Beschreibung")
     translation = Product.objects.create(
         title="English Product",
@@ -293,6 +298,30 @@ def test_public_product_search_uses_active_language_variant(client):
     assert payload["products"][0]["detail_url"].endswith(
         reverse("product-detail", args=[translation.id, translation.slug])
     )
+
+
+def test_public_product_search_stays_german_for_english_browser(client):
+    """Solange nur Deutsch in settings.LANGUAGES steht, bekommt auch ein englischer
+    Browser die deutsche Variante - es gibt keine englische Seite mehr."""
+    product = _create_product(title="Deutsches Produkt", description="Deutsche Beschreibung")
+    translation = Product.objects.create(
+        title="English Product",
+        description="English description",
+        price=product.price,
+        weight=product.weight,
+        brand=product.brand,
+        is_active=True,
+        is_in_stock=True,
+        online_sell=True,
+        language="en",
+        original=product,
+    )
+    translation.categories.set(product.categories.all())
+
+    response = client.get("/shop/products/search/", HTTP_ACCEPT_LANGUAGE="en-US,en;q=0.9")
+
+    assert response.status_code == 200
+    assert response.json()["products"][0]["title"] == "Deutsches Produkt"
 
 
 def test_public_product_search_filters_by_effective_price():
@@ -372,3 +401,83 @@ def test_cart_checkout_and_admin_status_mail_flow(client, logged_in_client, cms_
     assert order.status == Order.Status.PAID
     assert order.paid is True
     assert len(mail.outbox) >= 3
+
+
+def test_grouped_overview_ships_the_data_the_client_side_filter_needs(client):
+    """Die gruppierte Uebersicht filtert im Browser - dafuer muessen die Karten die
+    passenden data-Attribute mitbringen (siehe pages/shop_grouped.html)."""
+    settings_obj = ShopSettings.get_solo()
+    settings_obj.products_layout = ShopSettings.ProductsLayout.GROUPED
+    settings_obj.save(update_fields=["products_layout"])
+
+    group = ProductGroup.objects.create(name="Wohnungen", slug="wohnungen", sort_order=1)
+    balkon = Category.objects.create(name="Balkon", slug="balkon")
+
+    with_price = Product.objects.create(
+        title="Drei-Zimmer-Wohnung",
+        slug="drei-zimmer",
+        is_active=True,
+        price=Decimal("750.00"),
+        group=group,
+        description="Hell und ruhig.",
+    )
+    with_price.categories.add(balkon)
+
+    # Objekt ohne sichtbaren Preis: darf bei gesetztem Preisbereich nicht mitzaehlen.
+    Product.objects.create(
+        title="Garage",
+        slug="garage",
+        is_active=True,
+        price=Decimal("60.00"),
+        showcase_only=True,
+        show_price_when_showcase=False,
+        description="Einzelgarage.",
+    )
+
+    response = client.get(reverse("products"))
+    html = response.content.decode()
+
+    assert response.status_code == 200
+    assert [category.slug for category in response.context["filter_categories"]] == ["balkon"]
+
+    assert 'id="groupedSearchInput"' in html
+    assert 'data-filter-category="balkon"' in html
+    assert 'id="groupedMinPrice"' in html
+    assert 'id="groupedNoResults"' in html
+    # Zaehler, die das Skript live nachfuehrt
+    assert 'data-group-count="all"' in html
+    assert 'data-group-count="gruppe-wohnungen"' in html
+    assert 'data-group-count="gruppe-weitere"' in html
+    assert "data-section-count" in html
+    assert "data-product-link=" in html
+
+    # Preis unlokalisiert - mit "750,00" wuerde parseFloat im Browser NaN liefern.
+    assert 'data-price="750.00"' in html
+    assert 'data-price=""' in html
+    assert 'data-categories="balkon "' in html
+
+
+def test_grouped_overview_filter_bar_is_collapsible(client):
+    """Der Filterblock startet zugeklappt; aufgeklappt wird per Button (und vom
+    Skript, sobald der Screen breit genug ist oder ein Filter gesetzt ist)."""
+    settings_obj = ShopSettings.get_solo()
+    settings_obj.products_layout = ShopSettings.ProductsLayout.GROUPED
+    settings_obj.save(update_fields=["products_layout"])
+
+    Product.objects.create(
+        title="Drei-Zimmer-Wohnung",
+        slug="drei-zimmer-toggle",
+        is_active=True,
+        price=Decimal("750.00"),
+    )
+
+    html = client.get(reverse("products")).content.decode()
+
+    assert 'id="groupedToggleFilters"' in html
+    assert 'aria-controls="groupedFilterBody"' in html
+    assert 'aria-expanded="false"' in html
+    assert 'id="groupedActiveFilterCount"' in html
+    # Der Block traegt "hidden" statt "grid" - das Skript tauscht beim Aufklappen.
+    assert 'id="groupedFilterBody" class="mt-4 hidden grid-cols-1' in html
+    # Die Suche bleibt immer sichtbar, sie darf nicht im Klappblock stecken.
+    assert html.index('id="groupedSearchInput"') < html.index('id="groupedFilterBody"')

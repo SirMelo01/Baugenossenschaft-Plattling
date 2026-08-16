@@ -10,7 +10,7 @@
     <meta name="author" content="Diese Webseite wurde erstellt von YooLink.de, Schanzenweg 53, 94469 Deggendorf">
     <meta name="description"
         content="YooLink ist die Webdesign Agentur im Raum Deggendorf. Unser Standard ist das Maximum aus Deinem Internetauftritt herauszuholen. Dich erwartet Transparenz, Sichtbarkeit und &amp ein junges dynamisches Team">
-    <link rel="canonical" href="https://yoolink.de{{ request.path }}">
+    <link rel="canonical" href="{{ site_base_url }}{{ request.path }}">
     <!--<meta name="keywords" content="Yoolink, Webdesign, Homepageerstellung, Agentur, Deggendorf, Internetauftritt">-->
     <meta property="og:type" content="website">
     <link rel="icon" type="image/png" href="{% static 'favicon/favicon-32x32.png' %}" sizes="32x32" />
@@ -143,6 +143,10 @@
             <div class="ml-auto flex items-center gap-2 sm:gap-3">
 
                 <!-- Language switcher -->
+                {% comment %}Nur zeigen, wenn in settings.LANGUAGES mehr als eine Sprache steht.
+                   Sonst wird ausschließlich in settings.LANGUAGE_CODE gepflegt.{% endcomment %}
+                {% get_available_languages as SITE_LANGUAGES %}
+                {% if SITE_LANGUAGES|length > 1 %}
                 <div class="relative inline-block text-left">
                     <button id="languageDropdownButtonDesktop"
                         class="inline-flex items-center justify-center rounded-lg border border-gray-200 bg-white px-2 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:px-3">
@@ -165,6 +169,7 @@
                         </div>
                     </div>
                 </div>
+                {% endif %}
 
                 <!-- Notifications -->
                 <div class="relative" id="notif-wrapper">
@@ -250,9 +255,7 @@
                         <a href="{% url 'cms:logo-settings' %}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-blue-500 hover:text-white" role="menuitem"><i class="bi bi-image"></i> Logo verwalten</a>
                         {% endif %}
                         <a href="{% url 'cms:password_change' %}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-blue-500 hover:text-white" role="menuitem"><i class="bi bi-key"></i> Passwort ändern</a>
-                        {% if 'developer.manage' in cms_permissions %}
-                        <a href="{% url 'cms:developer-settings' %}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-blue-500 hover:text-white" role="menuitem"><i class="bi bi-code-slash"></i> Developer Settings</a>
-                        {% endif %}
+                        {% comment %}Developer Settings sind für diesen Kunden ausgeblendet.{% endcomment %}
                         <div class="my-1 border-t border-gray-100"></div>
                         <a href="{% url 'cms:logout' %}" class="flex items-center gap-2 px-4 py-2 text-sm text-red-500 hover:bg-red-500 hover:text-white" role="menuitem"><i class="bi bi-box-arrow-right"></i> Abmelden</a>
                     </div>

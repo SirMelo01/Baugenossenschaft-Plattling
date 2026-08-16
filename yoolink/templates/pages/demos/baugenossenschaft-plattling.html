@@ -6,7 +6,7 @@
 
 {% block demo_css %}
 <style>
-  /* Hero-Bild neigt sich zur Ecke, ueber der die Maus steht */
+  /* Hero-Bild neigt sich zur Ecke, über der die Maus steht */
   .bgp-tilt-scene { perspective: 1100px; }
   .bgp-tilt {
     transform-style: preserve-3d;
@@ -14,7 +14,7 @@
     will-change: transform;
   }
   .bgp-tilt.is-tilting { transition: transform .1s linear; }
-  /* Die Info-Kacheln schweben ueber dem Bild und bekommen dadurch Parallaxe */
+  /* Die Info-Kacheln schweben über dem Bild und bekommen dadurch Parallaxe */
   .bgp-tilt-badge { transform: translateZ(60px); }
   .bgp-tilt-figure { transform: translateZ(15px); }
   .bgp-tilt-glare {
@@ -96,7 +96,7 @@
     .bgp-feature-card:hover .bgp-feature-watermark { transform: none; }
   }
 
-  /* Meldungskarten: Klick loest bewusst nichts aus, wirken aber anklickbar */
+  /* Meldungskarten: Klick löst bewusst nichts aus, wirken aber anklickbar */
   .bgp-news-card { cursor: pointer; }
   .bgp-news-card:hover .bgp-news-cta i { transform: translateX(4px); }
   .bgp-news-cta i { transition: transform .25s ease; }
@@ -104,8 +104,15 @@
 {% endblock demo_css %}
 
 {% block content %}
-{% url 'ycms:demo-subpage' slug='baugenossenschaft-plattling' subpage='kontakt' as bgp_kontakt_url %}
-{% url 'ycms:demo-subpage' slug='baugenossenschaft-plattling' subpage='aktuelles' as bgp_aktuelles_url %}
+{% if bgp_is_public %}
+  {% url 'kontakt' as bgp_kontakt_url %}
+  {% url 'aktuelles' as bgp_aktuelles_url %}
+  {% url 'products' as bgp_immobilien_url %}
+{% else %}
+  {% url 'ycms:demo-subpage' slug='baugenossenschaft-plattling' subpage='kontakt' as bgp_kontakt_url %}
+  {% url 'ycms:demo-subpage' slug='baugenossenschaft-plattling' subpage='aktuelles' as bgp_aktuelles_url %}
+  {% url 'ycms:demo-detail' slug='baugenossenschaft-plattling' as bgp_home_url %}
+{% endif %}
 
 <!-- HERO -->
 <section class="bgp-hero relative overflow-hidden px-4 pb-24 pt-16 text-white sm:pt-20 lg:pb-32">
@@ -113,21 +120,19 @@
   <div class="relative mx-auto grid max-w-7xl items-center gap-12 px-0 sm:px-4 lg:grid-cols-2">
     <div data-aos="fade-right">
       <h1 class="mb-6 text-4xl font-bold leading-tight tracking-tight sm:text-5xl xl:text-6xl">
-        Gemeinsam bauen.<br />
-        Sicher wohnen.<br />
-        <span class="bgp-text-yellow">Seit 1921 in Plattling.</span>
+        {# title = weisse Zeilen, header = gelb hervorgehobene Schlusszeile (getrennt pflegbar) #}
+        {{ bgp_hero.title|linebreaksbr }}<br />
+        <span class="bgp-text-yellow">{{ bgp_hero.header }}</span>
       </h1>
       <p class="mb-8 max-w-xl text-base leading-7 text-white/80 md:text-lg">
-        Als Genossenschaft bieten wir unseren Mitgliedern bezahlbaren, sicheren Wohnraum in Plattling.
-        Werden Sie Teil einer starken Gemeinschaft - mit Mitspracherecht, fairen Mieten und einer
-        Dividende von aktuell 3&nbsp;% auf Ihre Geschäftsanteile.
+        {{ bgp_hero.description|linebreaksbr }}
       </p>
       <div class="flex flex-wrap gap-4">
-        <a href="#vermietung" class="bgp-btn-yellow bgp-focus inline-flex items-center gap-2 rounded-xl px-7 py-4 text-base font-bold shadow-xl transition-transform duration-300 hover:-translate-y-1">
-          <i class="bi bi-house-heart"></i> Wohnungsangebote
+        <a href="{% if bgp_is_public %}{{ bgp_immobilien_url }}{% else %}{{ bgp_home_url }}#vermietung{% endif %}" class="bgp-btn-yellow bgp-focus inline-flex items-center gap-2 rounded-xl px-7 py-4 text-base font-bold shadow-xl transition-transform duration-300 hover:-translate-y-1">
+          <i class="bi bi-house-heart"></i> {{ bgp_hero.buttonText }}
         </a>
         <a href="{{ bgp_kontakt_url }}" class="bgp-focus inline-flex items-center gap-2 rounded-xl border border-white/40 px-7 py-4 text-base font-bold text-white transition hover:-translate-y-1 hover:bg-white/10">
-          Kontakt aufnehmen <i class="bi bi-arrow-right"></i>
+          {{ bgp_hero_secondary.buttonText }} <i class="bi bi-arrow-right"></i>
         </a>
       </div>
     </div>
@@ -135,19 +140,21 @@
     <div class="bgp-tilt-scene relative" data-aos="fade-left">
       <div id="bgpHeroVisual" class="bgp-tilt relative">
         <figure class="bgp-tilt-figure relative overflow-hidden rounded-3xl shadow-2xl ring-1 ring-white/20">
-          <img src="{% static 'images/demos/bgp/gebaeude.jpg' %}" alt="Büro- und Geschäftsgebäude der Baugenossenschaft Plattling eG" class="h-full w-full object-cover" />
+          <img src="{% if bgp_hero_image %}{{ bgp_hero_image.file.url }}{% else %}{% static 'images/demos/bgp/gebaeude.jpg' %}{% endif %}"
+               alt="{{ bgp_hero_bild.title }}"
+               class="h-full w-full object-cover" />
           <figcaption class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-6 pb-5 pt-14 text-sm font-medium text-white/90">
-            Unser Büro- und Geschäftsgebäude in der Schillerstraße 6b
+            {{ bgp_hero_bild.description }}
           </figcaption>
           <span id="bgpHeroGlare" class="bgp-tilt-glare" aria-hidden="true"></span>
         </figure>
         <div class="bgp-tilt-badge absolute -left-4 -top-4 hidden rounded-2xl bg-white px-5 py-3 shadow-xl sm:block">
-          <p class="bgp-text-navy-dark text-2xl font-bold leading-none">100+</p>
-          <p class="mt-1 text-xs font-semibold uppercase tracking-wider text-gray-500">Jahre Erfahrung</p>
+          <p class="bgp-text-navy-dark text-2xl font-bold leading-none">{{ bgp_hero_badge_1.title }}</p>
+          <p class="mt-1 text-xs font-semibold uppercase tracking-wider text-gray-500">{{ bgp_hero_badge_1.description }}</p>
         </div>
         <div class="bgp-tilt-badge bgp-bg-yellow absolute -bottom-4 -right-2 hidden rounded-2xl px-5 py-3 shadow-xl sm:block">
-          <p class="bgp-text-navy-dark text-2xl font-bold leading-none">3&nbsp;%</p>
-          <p class="bgp-text-navy-dark mt-1 text-xs font-semibold uppercase tracking-wider">Dividende 2025</p>
+          <p class="bgp-text-navy-dark text-2xl font-bold leading-none">{{ bgp_hero_badge_2.title }}</p>
+          <p class="bgp-text-navy-dark mt-1 text-xs font-semibold uppercase tracking-wider">{{ bgp_hero_badge_2.description }}</p>
         </div>
       </div>
     </div>
@@ -163,8 +170,8 @@
           <i class="bi bi-calendar-check text-xl"></i>
         </span>
         <div>
-          <p class="bgp-text-navy-dark text-lg font-bold leading-tight">1921</p>
-          <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">gegründet</p>
+          <p class="bgp-text-navy-dark text-lg font-bold leading-tight">{{ bgp_fact_1.title }}</p>
+          <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">{{ bgp_fact_1.description }}</p>
         </div>
       </div>
       <div class="flex items-center gap-4 px-3 py-2">
@@ -172,8 +179,8 @@
           <i class="bi bi-graph-up-arrow text-xl"></i>
         </span>
         <div>
-          <p class="bgp-text-navy-dark text-lg font-bold leading-tight">3&nbsp;% Dividende</p>
-          <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">stabil seit Jahren</p>
+          <p class="bgp-text-navy-dark text-lg font-bold leading-tight">{{ bgp_fact_2.title }}</p>
+          <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">{{ bgp_fact_2.description }}</p>
         </div>
       </div>
       <div class="flex items-center gap-4 px-3 py-2">
@@ -181,8 +188,8 @@
           <i class="bi bi-people text-xl"></i>
         </span>
         <div>
-          <p class="bgp-text-navy-dark text-lg font-bold leading-tight">Mitglieder</p>
-          <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">statt nur Mieter</p>
+          <p class="bgp-text-navy-dark text-lg font-bold leading-tight">{{ bgp_fact_3.title }}</p>
+          <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">{{ bgp_fact_3.description }}</p>
         </div>
       </div>
       <div class="flex items-center gap-4 px-3 py-2">
@@ -190,8 +197,8 @@
           <i class="bi bi-clock text-xl"></i>
         </span>
         <div>
-          <p class="bgp-text-navy-dark text-lg font-bold leading-tight">Mo / Mi / Fr</p>
-          <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">8:00 - 12:00 Uhr</p>
+          <p class="bgp-text-navy-dark text-lg font-bold leading-tight">{{ bgp_fact_4.title }}</p>
+          <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">{{ bgp_fact_4.description }}</p>
         </div>
       </div>
     </div>
@@ -202,44 +209,40 @@
 <section id="genossenschaft" class="bg-white px-4 py-20 lg:py-28">
   <div class="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-2">
     <div data-aos="fade-right">
-      <p class="bgp-text-navy mb-4 text-sm font-semibold uppercase tracking-widest">Unsere Genossenschaft</p>
+      <p class="bgp-text-navy mb-4 text-sm font-semibold uppercase tracking-widest">{{ bgp_genossenschaft.header }}</p>
       <h2 class="bgp-text-navy-dark mb-6 text-3xl font-bold tracking-tight sm:text-4xl sm:leading-tight">
-        Mehr als nur ein Vermieter
+        {{ bgp_genossenschaft.title }}
       </h2>
       <p class="mb-4 text-base leading-7 text-gray-600 md:text-lg">
-        Die Baugenossenschaft Plattling eG steht seit über 100 Jahren für <strong class="text-gray-900">sicheres,
-        bezahlbares Wohnen</strong> in der Region. Anders als bei einem klassischen Vermieter sind unsere
-        Mieter zugleich Mitglieder und Miteigentümer der Genossenschaft.
+        {{ bgp_genossenschaft.description|linebreaksbr }}
       </p>
       <p class="mb-8 text-base leading-7 text-gray-600 md:text-lg">
-        Das bedeutet für Sie: faire Mieten, lebenslanges Wohnrecht und ein echtes Mitspracherecht.
-        Unsere Mitglieder wählen den Aufsichtsrat und gestalten die Zukunft der Genossenschaft aktiv mit -
-        gelebte Demokratie im Wohnungswesen, jedes Jahr aufs Neue bei unserer Mitgliederversammlung.
+        {{ bgp_genossenschaft_text2.description|linebreaksbr }}
       </p>
       <ul class="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <li class="flex items-center gap-3">
           <span class="bgp-bg-yellow inline-flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full">
             <i class="bi bi-check-lg bgp-text-navy-dark text-sm"></i>
           </span>
-          <span class="text-sm font-semibold text-gray-800">Faire, stabile Mieten</span>
+          <span class="text-sm font-semibold text-gray-800">{{ bgp_benefit_1.title }}</span>
         </li>
         <li class="flex items-center gap-3">
           <span class="bgp-bg-yellow inline-flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full">
             <i class="bi bi-check-lg bgp-text-navy-dark text-sm"></i>
           </span>
-          <span class="text-sm font-semibold text-gray-800">Lebenslanges Wohnrecht</span>
+          <span class="text-sm font-semibold text-gray-800">{{ bgp_benefit_2.title }}</span>
         </li>
         <li class="flex items-center gap-3">
           <span class="bgp-bg-yellow inline-flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full">
             <i class="bi bi-check-lg bgp-text-navy-dark text-sm"></i>
           </span>
-          <span class="text-sm font-semibold text-gray-800">Mitspracherecht als Mitglied</span>
+          <span class="text-sm font-semibold text-gray-800">{{ bgp_benefit_3.title }}</span>
         </li>
         <li class="flex items-center gap-3">
           <span class="bgp-bg-yellow inline-flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full">
             <i class="bi bi-check-lg bgp-text-navy-dark text-sm"></i>
           </span>
-          <span class="text-sm font-semibold text-gray-800">3&nbsp;% Dividende auf Anteile</span>
+          <span class="text-sm font-semibold text-gray-800">{{ bgp_benefit_4.title }}</span>
         </li>
       </ul>
     </div>
@@ -250,16 +253,16 @@
         <span class="bgp-feature-icon bgp-bg-navy relative inline-flex h-12 w-12 items-center justify-center rounded-xl text-white">
           <i class="bi bi-building text-xl"></i>
         </span>
-        <h3 class="bgp-text-navy-dark relative mb-2 mt-4 text-lg font-bold">Wir über uns</h3>
-        <p class="relative text-sm leading-6 text-gray-600">Gepflegte Wohngebäude an zentralen und ruhigen Lagen in Plattling - mit Weitblick verwaltet und regelmäßig modernisiert.</p>
+        <h3 class="bgp-text-navy-dark relative mb-2 mt-4 text-lg font-bold">{{ bgp_feature_about.title }}</h3>
+        <p class="relative text-sm leading-6 text-gray-600">{{ bgp_feature_about.description }}</p>
       </div>
       <div class="bgp-feature-card rounded-2xl p-7">
         <i class="bi bi-diagram-3 bgp-feature-watermark" aria-hidden="true"></i>
         <span class="bgp-feature-icon bgp-bg-navy relative inline-flex h-12 w-12 items-center justify-center rounded-xl text-white">
           <i class="bi bi-diagram-3 text-xl"></i>
         </span>
-        <h3 class="bgp-text-navy-dark relative mb-2 mt-4 text-lg font-bold">Organe</h3>
-        <p class="relative text-sm leading-6 text-gray-600">Vorstand und Aufsichtsrat arbeiten ehrenamtlich und transparent - gewählt von den Mitgliedern der Genossenschaft.</p>
+        <h3 class="bgp-text-navy-dark relative mb-2 mt-4 text-lg font-bold">{{ bgp_feature_organe.title }}</h3>
+        <p class="relative text-sm leading-6 text-gray-600">{{ bgp_feature_organe.description }}</p>
       </div>
       <div class="bgp-feature-card bgp-feature-card-dark rounded-2xl p-7 sm:col-span-2">
         <i class="bi bi-hourglass-split bgp-feature-watermark" aria-hidden="true"></i>
@@ -267,10 +270,10 @@
           <span class="bgp-feature-icon bgp-bg-yellow inline-flex h-12 w-12 items-center justify-center rounded-xl">
             <i class="bi bi-hourglass-split bgp-text-navy-dark text-xl"></i>
           </span>
-          <span class="bgp-text-yellow rounded-full border border-white/20 px-3 py-1 text-xs font-bold uppercase tracking-widest">seit 1921</span>
+          <span class="bgp-text-yellow rounded-full border border-white/20 px-3 py-1 text-xs font-bold uppercase tracking-widest">{{ bgp_feature_historie.header }}</span>
         </div>
-        <h3 class="relative mb-2 mt-4 text-lg font-bold text-white">Historie seit 1921</h3>
-        <p class="bgp-text-ice relative text-sm leading-6">Über ein Jahrhundert Genossenschaftsgeschichte in Plattling: vom Wiederaufbau bis zur laufenden Modernisierung unserer Objekte. Mitglieder wie das Bezirksklinikum Mainkofen halten uns seit über 70 Jahren die Treue.</p>
+        <h3 class="relative mb-2 mt-4 text-lg font-bold text-white">{{ bgp_feature_historie.title }}</h3>
+        <p class="bgp-text-ice relative text-sm leading-6">{{ bgp_feature_historie.description }}</p>
       </div>
     </div>
   </div>
@@ -280,12 +283,10 @@
 <section id="vermietung" class="bgp-bg-ice px-4 py-20 lg:py-28">
   <div class="mx-auto max-w-6xl">
     <div class="mx-auto mb-14 max-w-2xl text-center" data-aos="fade-up">
-      <p class="bgp-text-navy mb-4 text-sm font-semibold uppercase tracking-widest">Vermietung</p>
-      <h2 class="bgp-text-navy-dark mb-4 text-3xl font-bold tracking-tight sm:text-4xl">Ihr neues Zuhause in Plattling</h2>
+      <p class="bgp-text-navy mb-4 text-sm font-semibold uppercase tracking-widest">{{ bgp_vermietung.header }}</p>
+      <h2 class="bgp-text-navy-dark mb-4 text-3xl font-bold tracking-tight sm:text-4xl">{{ bgp_vermietung.title }}</h2>
       <p class="text-base leading-7 text-gray-600 md:text-lg">
-        Wir vermieten gepflegte Wohnungen an unsere Mitglieder - für Singles, Paare und Familien.
-        Voraussetzung ist die Mitgliedschaft in der Genossenschaft: Der Erwerb von Geschäftsanteilen
-        macht Sie zum Miteigentümer und sichert Ihr Wohnrecht langfristig.
+        {{ bgp_vermietung.description|linebreaksbr }}
       </p>
     </div>
 
@@ -294,35 +295,35 @@
         <span class="bgp-bg-ice-deep bgp-text-navy inline-flex h-12 w-12 items-center justify-center rounded-xl">
           <i class="bi bi-house-door text-xl"></i>
         </span>
-        <h3 class="bgp-text-navy-dark mb-2 mt-4 text-lg font-bold">Mietangebote</h3>
-        <p class="text-sm leading-6 text-gray-600">Aktuelle freie Wohnungen auf einen Blick - fragen Sie gerne auch telefonisch nach kommenden Angeboten.</p>
+        <h3 class="bgp-text-navy-dark mb-2 mt-4 text-lg font-bold">{{ bgp_rental_angebote.title }}</h3>
+        <p class="text-sm leading-6 text-gray-600">{{ bgp_rental_angebote.description }}</p>
       </div>
       <div class="bgp-card-hover rounded-2xl bg-white p-7 shadow-md" data-aos="fade-up" data-aos-delay="100">
         <span class="bgp-bg-ice-deep bgp-text-navy inline-flex h-12 w-12 items-center justify-center rounded-xl">
           <i class="bi bi-buildings text-xl"></i>
         </span>
-        <h3 class="bgp-text-navy-dark mb-2 mt-4 text-lg font-bold">Unsere Objekte</h3>
-        <p class="text-sm leading-6 text-gray-600">Unsere Wohnanlagen in Plattling - zentral gelegen, gepflegt und laufend modernisiert.</p>
+        <h3 class="bgp-text-navy-dark mb-2 mt-4 text-lg font-bold">{{ bgp_rental_objekte.title }}</h3>
+        <p class="text-sm leading-6 text-gray-600">{{ bgp_rental_objekte.description }}</p>
       </div>
       <div class="bgp-card-hover rounded-2xl bg-white p-7 shadow-md" data-aos="fade-up" data-aos-delay="200">
         <span class="bgp-bg-ice-deep bgp-text-navy inline-flex h-12 w-12 items-center justify-center rounded-xl">
           <i class="bi bi-file-earmark-text text-xl"></i>
         </span>
-        <h3 class="bgp-text-navy-dark mb-2 mt-4 text-lg font-bold">Bewerbungsformular</h3>
-        <p class="text-sm leading-6 text-gray-600">Interesse an einer Wohnung? Mit dem Bewerbungsformular nehmen wir Sie in unsere Interessentenliste auf.</p>
+        <h3 class="bgp-text-navy-dark mb-2 mt-4 text-lg font-bold">{{ bgp_rental_bewerbung.title }}</h3>
+        <p class="text-sm leading-6 text-gray-600">{{ bgp_rental_bewerbung.description }}</p>
       </div>
       <div class="bgp-card-hover rounded-2xl bg-white p-7 shadow-md" data-aos="fade-up" data-aos-delay="300">
         <span class="bgp-bg-ice-deep bgp-text-navy inline-flex h-12 w-12 items-center justify-center rounded-xl">
           <i class="bi bi-info-circle text-xl"></i>
         </span>
-        <h3 class="bgp-text-navy-dark mb-2 mt-4 text-lg font-bold">Wichtige Mieterinfos</h3>
-        <p class="text-sm leading-6 text-gray-600">Alles Wissenswerte für unsere Mieter - von Nebenkosten bis zu aktuellen Hinweisen rund um Ihre Wohnung.</p>
+        <h3 class="bgp-text-navy-dark mb-2 mt-4 text-lg font-bold">{{ bgp_rental_infos.title }}</h3>
+        <p class="text-sm leading-6 text-gray-600">{{ bgp_rental_infos.description }}</p>
       </div>
     </div>
 
     <div class="mt-10 text-center" data-aos="fade-up">
       <a href="{{ bgp_kontakt_url }}" class="bgp-btn-navy bgp-focus inline-flex items-center gap-2 rounded-xl px-7 py-4 text-base font-bold shadow-lg transition-transform duration-300 hover:-translate-y-1">
-        Verfügbare Objekte erfragen <i class="bi bi-arrow-right"></i>
+        {{ bgp_vermietung.buttonText }} <i class="bi bi-arrow-right"></i>
       </a>
     </div>
   </div>
@@ -333,62 +334,51 @@
   <div class="mx-auto max-w-6xl">
     <div class="mb-14 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between" data-aos="fade-up">
       <div>
-        <p class="bgp-text-navy mb-4 text-sm font-semibold uppercase tracking-widest">Aktuelles</p>
-        <h2 class="bgp-text-navy-dark text-3xl font-bold tracking-tight sm:text-4xl">Neuigkeiten aus der Genossenschaft</h2>
+        <p class="bgp-text-navy mb-4 text-sm font-semibold uppercase tracking-widest">{{ bgp_home_aktuelles.header }}</p>
+        <h2 class="bgp-text-navy-dark text-3xl font-bold tracking-tight sm:text-4xl">{{ bgp_home_aktuelles.title }}</h2>
       </div>
       <a href="{{ bgp_aktuelles_url }}"
          class="bgp-text-navy bgp-focus group inline-flex items-center gap-2 self-start rounded-xl border-2 border-gray-200 px-5 py-3 text-sm font-bold transition hover:border-gray-300 hover:bg-gray-50 sm:self-auto">
-        <i class="bi bi-newspaper"></i> Weitere Neuigkeiten
+        <i class="bi bi-newspaper"></i> {{ bgp_home_aktuelles.buttonText }}
         <i class="bi bi-arrow-right transition-transform duration-200 group-hover:translate-x-1"></i>
       </a>
     </div>
 
+    {% comment %}
+    Die Karten kommen direkt aus dem Blog-Modul (bgp_home_news_posts). Gepflegt wird
+    ausschliesslich unter "Blogs" im CMS - im Seiten-Editor stehen nur die
+    Beschriftungen, die auf jeder Karte gleich sind.
+    {% endcomment %}
+    {% if bgp_home_news_posts %}
     <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-      <article class="bgp-card-hover bgp-news-card flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm"
-               data-aos="fade-up" data-aos-delay="0">
+      {% for post in bgp_home_news_posts %}
+      <article class="bgp-card-hover bgp-news-card relative flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm{% if forloop.last and bgp_home_news_posts|length == 3 %} md:col-span-2 lg:col-span-1{% endif %}"
+               data-aos="fade-up" data-aos-delay="{{ forloop.counter0 }}00">
+        {# Deckt die ganze Karte ab - .bgp-news-card hat cursor:pointer, also soll sie auch komplett klickbar sein. #}
+        <a href="{{ post.get_absolute_url }}" class="bgp-focus absolute inset-0 z-10 rounded-2xl" aria-label="{{ post.title }}"></a>
         <div class="bgp-bg-navy flex items-center justify-between px-6 py-3">
-          <span class="text-xs font-bold uppercase tracking-wider text-white/80">Stellenangebot</span>
-          <span class="bgp-text-yellow text-xs font-bold">09.07.2026</span>
+          <span class="text-xs font-bold uppercase tracking-wider text-white/80">{{ bgp_home_news_card.header }}</span>
+          <span class="bgp-text-yellow text-xs font-bold">{{ post.date|date:"d.m.Y" }}</span>
         </div>
         <div class="flex flex-1 flex-col p-6">
-          <h3 class="bgp-text-navy-dark mb-3 text-lg font-bold leading-snug">Kaufmännischer Mitarbeiter (m/w/d) in Teilzeit gesucht</h3>
-          <p class="flex-1 text-sm leading-6 text-gray-600">Wir suchen Verstärkung für unsere Verwaltung. Alle Details finden Sie in der Stellenbeschreibung - bei Fragen stehen wir gerne zur Verfügung.</p>
+          <h3 class="bgp-text-navy-dark mb-3 text-lg font-bold leading-snug">{{ post.title }}</h3>
+          <p class="flex-1 text-sm leading-6 text-gray-600">{{ post.description|truncatechars:200 }}</p>
           <span class="bgp-news-cta bgp-text-navy mt-4 inline-flex items-center gap-2 text-sm font-bold">
-            <i class="bi bi-file-earmark-pdf"></i> Stellenanzeige ansehen
+            {{ bgp_home_news_card.buttonText }} <i class="bi bi-arrow-right"></i>
           </span>
         </div>
       </article>
-
-      <article class="bgp-card-hover bgp-news-card flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm"
-               data-aos="fade-up" data-aos-delay="100">
-        <div class="bgp-bg-navy flex items-center justify-between px-6 py-3">
-          <span class="text-xs font-bold uppercase tracking-wider text-white/80">Versammlung</span>
-          <span class="bgp-text-yellow text-xs font-bold">01.07.2026</span>
-        </div>
-        <div class="flex flex-1 flex-col p-6">
-          <h3 class="bgp-text-navy-dark mb-3 text-lg font-bold leading-snug">Mitgliederversammlung 2026</h3>
-          <p class="flex-1 text-sm leading-6 text-gray-600">Reges Interesse im "Hotel Zur Isar": Sebastian Lallinger (Vorstand) und Bürgermeister Hans Schmalhofer (Aufsichtsrat) wurden für weitere drei Jahre bestätigt. Die Dividende bleibt bei 3&nbsp;%.</p>
-          <span class="bgp-news-cta bgp-text-navy mt-4 inline-flex items-center gap-2 text-sm font-bold">
-            Mehr erfahren <i class="bi bi-arrow-right"></i>
-          </span>
-        </div>
-      </article>
-
-      <article class="bgp-card-hover bgp-news-card flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm md:col-span-2 lg:col-span-1"
-               data-aos="fade-up" data-aos-delay="200">
-        <div class="bgp-bg-navy flex items-center justify-between px-6 py-3">
-          <span class="text-xs font-bold uppercase tracking-wider text-white/80">Jubiläum</span>
-          <span class="bgp-text-yellow text-xs font-bold">01.07.2025</span>
-        </div>
-        <div class="flex flex-1 flex-col p-6">
-          <h3 class="bgp-text-navy-dark mb-3 text-lg font-bold leading-snug">25 Jahre im Dienst: Norbert Kirchberger</h3>
-          <p class="flex-1 text-sm leading-6 text-gray-600">Wir gratulieren unserem Hausmeister herzlich zum 25-jährigen Dienstjubiläum! Mit Kompetenz und seiner freundlichen Art ist er bei Mietern wie Kollegen gleichermaßen geschätzt.</p>
-          <span class="bgp-news-cta bgp-text-navy mt-4 inline-flex items-center gap-2 text-sm font-bold">
-            Mehr erfahren <i class="bi bi-arrow-right"></i>
-          </span>
-        </div>
-      </article>
+      {% endfor %}
     </div>
+    {% else %}
+    <div class="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-6 py-14 text-center" data-aos="fade-up">
+      <span class="bgp-bg-ice-deep bgp-text-navy mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl">
+        <i class="bi bi-newspaper text-xl"></i>
+      </span>
+      <p class="bgp-text-navy-dark text-lg font-bold">{{ bgp_home_news_empty.title }}</p>
+      <p class="mt-2 text-sm leading-6 text-gray-600">{{ bgp_home_news_empty.description }}</p>
+    </div>
+    {% endif %}
   </div>
 </section>
 
@@ -396,57 +386,92 @@
 <section id="kontakt" class="bgp-bg-navy-deep px-4 py-20 text-white lg:py-28">
   <div class="mx-auto max-w-6xl">
     <div class="mx-auto mb-14 max-w-2xl text-center" data-aos="fade-up">
-      <p class="bgp-text-yellow mb-4 text-sm font-semibold uppercase tracking-widest">Kontakt</p>
-      <h2 class="mb-4 text-3xl font-bold tracking-tight sm:text-4xl">So erreichen Sie uns</h2>
-      <p class="bgp-text-ice text-base leading-7 md:text-lg">Wir sind persönlich für Sie da - rufen Sie uns an oder besuchen Sie uns in der Schillerstraße.</p>
+      <p class="bgp-text-yellow mb-4 text-sm font-semibold uppercase tracking-widest">{{ bgp_kontakt_teaser.header }}</p>
+      <h2 class="mb-4 text-3xl font-bold tracking-tight sm:text-4xl">{{ bgp_kontakt_teaser.title }}</h2>
+      <p class="bgp-text-ice text-base leading-7 md:text-lg">{{ bgp_kontakt_teaser.description }}</p>
     </div>
 
+    {% comment %}
+    Anschrift, Telefon und E-Mail kommen aus dem Unternehmensprofil (CMS-Einstellungen),
+    die Zeiten aus dem Modul "Oeffnungszeiten". Im Seiten-Editor sind nur die
+    Kachel-Ueberschriften und der Hinweis unter den Zeiten pflegbar. Ist ein Feld im
+    Profil leer, faellt die Kachel auf ihren Text aus dem Seiten-Editor zurueck.
+    {% endcomment %}
     <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
       <div class="rounded-2xl bg-white/5 p-7 ring-1 ring-white/10" data-aos="fade-up" data-aos-delay="0">
         <span class="bgp-bg-yellow inline-flex h-12 w-12 items-center justify-center rounded-xl">
           <i class="bi bi-geo-alt bgp-text-navy-dark text-xl"></i>
         </span>
-        <h3 class="mb-2 mt-4 text-lg font-bold">Anschrift</h3>
-        <p class="bgp-text-ice text-sm leading-6">Baugenossenschaft Plattling eG<br />Schillerstr. 6b<br />94447 Plattling</p>
+        <h3 class="mb-2 mt-4 text-lg font-bold">{{ bgp_contact_card_1.title }}</h3>
+        <p class="bgp-text-ice text-sm leading-6">
+          {% if bgp_contact.company_name or bgp_contact.address_lines %}
+            {% if bgp_contact.company_name %}{{ bgp_contact.company_name }}<br />{% endif %}
+            {% for line in bgp_contact.address_lines %}{{ line }}{% if not forloop.last %}<br />{% endif %}{% endfor %}
+          {% else %}
+            {{ bgp_contact_card_1.description|linebreaksbr }}
+          {% endif %}
+        </p>
       </div>
       <div class="rounded-2xl bg-white/5 p-7 ring-1 ring-white/10" data-aos="fade-up" data-aos-delay="100">
         <span class="bgp-bg-yellow inline-flex h-12 w-12 items-center justify-center rounded-xl">
           <i class="bi bi-telephone bgp-text-navy-dark text-xl"></i>
         </span>
-        <h3 class="mb-2 mt-4 text-lg font-bold">Telefon &amp; Fax</h3>
+        <h3 class="mb-2 mt-4 text-lg font-bold">{{ bgp_contact_card_2.title }}</h3>
         <p class="bgp-text-ice text-sm leading-6">
-          Tel: <a href="tel:0993189007300" class="font-semibold text-white hover:underline">09931 890073-0</a><br />
-          Fax: 09931 890073-9
+          {% if bgp_contact.tel or bgp_contact.fax %}
+            {% if bgp_contact.tel %}Tel: <a href="{{ bgp_contact.tel_href }}" class="bgp-focus rounded underline-offset-2 hover:text-white hover:underline">{{ bgp_contact.tel }}</a>{% endif %}
+            {% if bgp_contact.tel and bgp_contact.fax %}<br />{% endif %}
+            {% if bgp_contact.fax %}Fax: {{ bgp_contact.fax }}{% endif %}
+          {% else %}
+            {{ bgp_contact_card_2.description|linebreaksbr }}
+          {% endif %}
         </p>
       </div>
       <div class="rounded-2xl bg-white/5 p-7 ring-1 ring-white/10" data-aos="fade-up" data-aos-delay="200">
         <span class="bgp-bg-yellow inline-flex h-12 w-12 items-center justify-center rounded-xl">
           <i class="bi bi-envelope bgp-text-navy-dark text-xl"></i>
         </span>
-        <h3 class="mb-2 mt-4 text-lg font-bold">E-Mail</h3>
+        <h3 class="mb-2 mt-4 text-lg font-bold">{{ bgp_contact_card_3.title }}</h3>
         <p class="bgp-text-ice break-words text-sm leading-6">
-          <a href="mailto:info@baugenossenschaft-plattling.de" class="font-semibold text-white hover:underline">info@baugenossenschaft-plattling.de</a>
+          {% if bgp_contact.email %}
+            <a href="mailto:{{ bgp_contact.email }}" class="bgp-focus rounded underline-offset-2 hover:text-white hover:underline">{{ bgp_contact.email }}</a>
+          {% else %}
+            {# urlize macht die gepflegte E-Mail-Adresse wieder klickbar #}
+            {{ bgp_contact_card_3.description|urlize|linebreaksbr }}
+          {% endif %}
         </p>
       </div>
       <div class="rounded-2xl bg-white/5 p-7 ring-1 ring-white/10" data-aos="fade-up" data-aos-delay="300">
         <span class="bgp-bg-yellow inline-flex h-12 w-12 items-center justify-center rounded-xl">
           <i class="bi bi-clock bgp-text-navy-dark text-xl"></i>
         </span>
-        <h3 class="mb-2 mt-4 text-lg font-bold">Öffnungszeiten</h3>
-        <p class="bgp-text-ice text-sm leading-6">Montag / Mittwoch / Freitag<br />jeweils 08:00 - 12:00 Uhr</p>
-        <p class="mt-2 text-xs text-white/50">An Brückentagen ist unser Büro geschlossen.</p>
+        <h3 class="mb-2 mt-4 text-lg font-bold">{{ bgp_contact_card_4.title }}</h3>
+        <p class="bgp-text-ice text-sm leading-6">
+          {% if bgp_opening_hours_groups %}
+            {% for group in bgp_opening_hours_groups %}
+              {{ group.days }}<br />{{ group.times }}{% if not forloop.last %}<br />{% endif %}
+            {% endfor %}
+          {% else %}
+            {{ bgp_contact_card_4.description|linebreaksbr }}
+          {% endif %}
+        </p>
+        {% if bgp_contact_card_4.buttonText %}
+        <p class="mt-2 text-xs text-white/50">{{ bgp_contact_card_4.buttonText }}</p>
+        {% endif %}
       </div>
     </div>
 
     <div class="mt-14 flex flex-col items-center gap-5 border-t border-white/10 pt-10 text-center" data-aos="fade-up">
-      <p class="bgp-text-ice text-sm">Sie haben Fragen oder möchten Mitglied werden?</p>
+      <p class="bgp-text-ice text-sm">{{ bgp_kontakt_cta.description }}</p>
       <div class="flex flex-wrap items-center justify-center gap-4">
         <a href="{{ bgp_kontakt_url }}" class="bgp-btn-yellow bgp-focus inline-flex items-center gap-2 rounded-xl px-8 py-4 text-base font-bold shadow-xl transition-transform duration-300 hover:-translate-y-1">
-          <i class="bi bi-envelope-paper"></i> Zum Kontaktformular
+          <i class="bi bi-envelope-paper"></i> {{ bgp_kontakt_cta.buttonText }}
         </a>
-        <a href="tel:0993189007300" class="bgp-focus inline-flex items-center gap-2 rounded-xl border border-white/40 px-8 py-4 text-base font-bold text-white transition hover:-translate-y-1 hover:bg-white/10">
-          <i class="bi bi-telephone-fill"></i> 09931 890073-0
+        {% if bgp_contact.tel %}
+        <a href="{{ bgp_contact.tel_href }}" class="bgp-focus inline-flex items-center gap-2 rounded-xl border border-white/40 px-8 py-4 text-base font-bold text-white transition hover:-translate-y-1 hover:bg-white/10">
+          <i class="bi bi-telephone-fill"></i> {{ bgp_contact.tel }}
         </a>
+        {% endif %}
       </div>
     </div>
   </div>
@@ -456,7 +481,7 @@
 
 {% block demo_js %}
 <script>
-  /* Hero: 3D-Neigung in Richtung der Ecke, ueber der die Maus steht */
+  /* Hero: 3D-Neigung in Richtung der Ecke, über der die Maus steht */
   (function () {
     var visual = document.getElementById('bgpHeroVisual');
     var glare = document.getElementById('bgpHeroGlare');

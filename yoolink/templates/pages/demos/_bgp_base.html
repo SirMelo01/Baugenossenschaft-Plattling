@@ -2,12 +2,20 @@
 {% load compress static %}
 
 {% comment %}
-Gemeinsame Huelle aller Demo-Seiten der Baugenossenschaft Plattling:
-Farben, Navigation, Footer und die geteilten Interaktionen (Menue, Demo-Hinweis, Modal).
-Unterseiten erben hiervon und fuellen nur noch die Bloecke content, demo_css und demo_js.
+Gemeinsame Hülle aller Demo-Seiten der Baugenossenschaft Plattling:
+Farben, Navigation, Footer und die geteilten Interaktionen (Menü, Demo-Hinweis, Modal).
+Unterseiten erben hiervon und füllen nur noch die Blöcke content, demo_css und demo_js.
 {% endcomment %}
 
-{% block robots %}noindex, nofollow{% endblock %}
+{% block robots %}{% if bgp_is_public %}index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1{% else %}noindex, nofollow{% endif %}{% endblock %}
+{% block canonical_url %}{% if bgp_is_public %}{{ site_base_url }}{{ request.path }}{% else %}{{ block.super }}{% endif %}{% endblock %}
+{% block og_title %}Baugenossenschaft Plattling eG{% endblock %}
+{% block og_description %}Sicherer und bezahlbarer Wohnraum in Plattling - genossenschaftlich, fair und seit 1921.{% endblock %}
+{% block og_image %}{{ site_base_url }}{% static 'images/demos/bgp/gebaeude.jpg' %}{% endblock %}
+{% block og_url %}{% if bgp_is_public %}{{ site_base_url }}{{ request.path }}{% else %}{{ block.super }}{% endif %}{% endblock %}
+{% block twitter_title %}Baugenossenschaft Plattling eG{% endblock %}
+{% block twitter_description %}Sicherer und bezahlbarer Wohnraum in Plattling - genossenschaftlich, fair und seit 1921.{% endblock %}
+{% block twitter_image %}{{ site_base_url }}{% static 'images/demos/bgp/gebaeude.jpg' %}{% endblock %}
 
 {% block css %}
 {% compress css %}
@@ -28,6 +36,16 @@ Unterseiten erben hiervon und fuellen nur noch die Bloecke content, demo_css und
   .bgp-border-navy { border-color: #4B6671; }
   .bgp-border-yellow { border-color: #FFDC16; }
   .bgp-ring-ice { --tw-ring-color: #C9DEE6; }
+
+  /* Lange deutsche Komposita am Zeilenende trennen statt komplett umbrechen.
+     Braucht das lang-Attribut am <html> (setzt base.html). Bewusst als CSS und
+     nicht als Tailwind-Utility: ohne Autoprefixer fehlt sonst -webkit-hyphens
+     und Safari trennt gar nicht. */
+  .hyphenate {
+    -webkit-hyphens: auto;
+    hyphens: auto;
+    overflow-wrap: break-word;
+  }
 
   .bgp-btn-yellow {
     background-color: #FFDC16;
@@ -53,7 +71,7 @@ Unterseiten erben hiervon und fuellen nur noch die Bloecke content, demo_css und
     pointer-events: none;
   }
 
-  /* Gelbe Akzentlinie - Zitat der gelben Menueleiste der alten Website */
+  /* Gelbe Akzentlinie - Zitat der gelben Menüleiste der alten Website */
   .bgp-accent-bar {
     height: 5px;
     background: linear-gradient(90deg, rgba(255,220,22,0.35) 0%, #FFDC16 50%, rgba(255,220,22,0.35) 100%);
@@ -66,13 +84,13 @@ Unterseiten erben hiervon und fuellen nur noch die Bloecke content, demo_css und
   .bgp-nav-link:hover { color: #FFDC16; }
   .bgp-nav-link-active { color: #FFDC16; }
 
-  /* Fokus-Ring in Markenfarbe fuer Tastaturbedienung */
+  /* Fokus-Ring in Markenfarbe für Tastaturbedienung */
   .bgp-focus:focus-visible {
     outline: 3px solid #FFDC16;
     outline-offset: 2px;
   }
 
-  /* Hinweis-Toast fuer Links, die in der Demo bewusst nicht hinterlegt sind */
+  /* Hinweis-Toast für Links, die in der Demo bewusst nicht hinterlegt sind */
   .bgp-toast {
     position: fixed;
     bottom: 1.5rem;
@@ -98,7 +116,7 @@ Unterseiten erben hiervon und fuellen nur noch die Bloecke content, demo_css und
     opacity: 1;
   }
 
-  /* Modal (Meldungs-Detail, Archiv, Formular-Bestaetigung) */
+  /* Modal (Meldungs-Detail, Archiv, Formular-Bestätigung) */
   .bgp-modal {
     position: fixed;
     inset: 0;
@@ -139,11 +157,18 @@ Unterseiten erben hiervon und fuellen nur noch die Bloecke content, demo_css und
 {% endcompress css %}
 {% endblock css %}
 
-{# Eigenstaendige Demo-Seiten: komplett eigene Navigation und Footer im Look der Baugenossenschaft. #}
+{# Eigenständige Demo-Seiten: komplett eigene Navigation und Footer im Look der Baugenossenschaft. #}
 {% block navbar %}
-{% url 'ycms:demo-detail' slug='baugenossenschaft-plattling' as bgp_home_url %}
-{% url 'ycms:demo-subpage' slug='baugenossenschaft-plattling' subpage='kontakt' as bgp_kontakt_url %}
-{% url 'ycms:demo-subpage' slug='baugenossenschaft-plattling' subpage='aktuelles' as bgp_aktuelles_url %}
+{% if bgp_is_public %}
+  {% url 'home' as bgp_home_url %}
+  {% url 'kontakt' as bgp_kontakt_url %}
+  {% url 'aktuelles' as bgp_aktuelles_url %}
+  {% url 'products' as bgp_immobilien_url %}
+{% else %}
+  {% url 'ycms:demo-detail' slug='baugenossenschaft-plattling' as bgp_home_url %}
+  {% url 'ycms:demo-subpage' slug='baugenossenschaft-plattling' subpage='kontakt' as bgp_kontakt_url %}
+  {% url 'ycms:demo-subpage' slug='baugenossenschaft-plattling' subpage='aktuelles' as bgp_aktuelles_url %}
+{% endif %}
 <header class="bgp-bg-navy-deep sticky top-0 z-50 shadow-lg">
   <div class="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
     <a href="{{ bgp_home_url }}" class="bgp-focus flex min-w-0 items-center gap-3 rounded-lg" aria-label="Baugenossenschaft Plattling eG - Startseite">
@@ -157,11 +182,14 @@ Unterseiten erben hiervon und fuellen nur noch die Bloecke content, demo_css und
     <nav class="hidden items-center gap-1 lg:flex" aria-label="Hauptnavigation">
       <a href="{{ bgp_home_url }}#genossenschaft" class="bgp-nav-link bgp-focus rounded-lg px-3 py-2 text-sm font-medium">Unsere Genossenschaft</a>
       <a href="{{ bgp_home_url }}#vermietung" class="bgp-nav-link bgp-focus rounded-lg px-3 py-2 text-sm font-medium">Vermietung</a>
+      <a href="{% if bgp_is_public %}{{ bgp_immobilien_url }}{% else %}{{ bgp_home_url }}#vermietung{% endif %}" class="bgp-nav-link bgp-focus rounded-lg px-3 py-2 text-sm font-medium{% if demo_page == 'immobilien' %} bgp-nav-link-active{% endif %}">Immobilien</a>
       <a href="{{ bgp_aktuelles_url }}" class="bgp-nav-link bgp-focus rounded-lg px-3 py-2 text-sm font-medium{% if demo_page == 'aktuelles' %} bgp-nav-link-active{% endif %}">Aktuelles</a>
       <a href="{{ bgp_kontakt_url }}" class="bgp-nav-link bgp-focus rounded-lg px-3 py-2 text-sm font-medium{% if demo_page == 'kontakt' %} bgp-nav-link-active{% endif %}">Kontakt</a>
-      <a href="tel:0993189007300" class="bgp-btn-yellow bgp-focus ml-3 inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold shadow-sm transition">
-        <i class="bi bi-telephone-fill"></i> 09931 890073-0
+      {% if bgp_contact.tel %}
+      <a href="{{ bgp_contact.tel_href }}" class="bgp-btn-yellow bgp-focus ml-3 inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold shadow-sm transition">
+        <i class="bi bi-telephone-fill"></i> {{ bgp_contact.tel }}
       </a>
+      {% endif %}
     </nav>
 
     <button id="bgpMenuToggle" class="bgp-focus rounded-lg p-2 text-white hover:bg-white/10 lg:hidden" aria-expanded="false" aria-controls="bgpMobileMenu" aria-label="Menü öffnen">
@@ -172,40 +200,67 @@ Unterseiten erben hiervon und fuellen nur noch die Bloecke content, demo_css und
   <div id="bgpMobileMenu" class="hidden border-t border-white/10 px-4 pb-4 pt-2 lg:hidden">
     <a href="{{ bgp_home_url }}#genossenschaft" class="bgp-nav-link block rounded-lg px-3 py-3 text-base font-medium">Unsere Genossenschaft</a>
     <a href="{{ bgp_home_url }}#vermietung" class="bgp-nav-link block rounded-lg px-3 py-3 text-base font-medium">Vermietung</a>
+    <a href="{% if bgp_is_public %}{{ bgp_immobilien_url }}{% else %}{{ bgp_home_url }}#vermietung{% endif %}" class="bgp-nav-link block rounded-lg px-3 py-3 text-base font-medium{% if demo_page == 'immobilien' %} bgp-nav-link-active{% endif %}">Immobilien</a>
     <a href="{{ bgp_aktuelles_url }}" class="bgp-nav-link block rounded-lg px-3 py-3 text-base font-medium{% if demo_page == 'aktuelles' %} bgp-nav-link-active{% endif %}">Aktuelles</a>
     <a href="{{ bgp_kontakt_url }}" class="bgp-nav-link block rounded-lg px-3 py-3 text-base font-medium{% if demo_page == 'kontakt' %} bgp-nav-link-active{% endif %}">Kontakt</a>
-    <a href="tel:0993189007300" class="bgp-btn-yellow mt-2 inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold">
-      <i class="bi bi-telephone-fill"></i> 09931 890073-0
+    {% if bgp_contact.tel %}
+    <a href="{{ bgp_contact.tel_href }}" class="bgp-btn-yellow mt-2 inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold">
+      <i class="bi bi-telephone-fill"></i> {{ bgp_contact.tel }}
     </a>
+    {% endif %}
   </div>
   <div class="bgp-accent-bar"></div>
 </header>
 {% endblock navbar %}
 
-{% block cookies %}{% endblock cookies %}
+{% block cookies %}
+{% if bgp_is_public %}
+  {% include "components/cookie_consent.html" %}
+{% endif %}
+{% endblock cookies %}
 
-{# YooLink-eigenes Urlaubsbanner gehoert nicht auf eine Kundendemo #}
+{# YooLink-eigenes Urlaubsbanner gehört nicht auf eine Kundendemo #}
 {% block site_banner %}{% endblock site_banner %}
 
 {% block footer %}
-{% url 'ycms:demo-detail' slug='baugenossenschaft-plattling' as bgp_home_url %}
-{% url 'ycms:demo-subpage' slug='baugenossenschaft-plattling' subpage='kontakt' as bgp_kontakt_url %}
-{% url 'ycms:demo-subpage' slug='baugenossenschaft-plattling' subpage='aktuelles' as bgp_aktuelles_url %}
+{% if bgp_is_public %}
+  {% url 'home' as bgp_home_url %}
+  {% url 'kontakt' as bgp_kontakt_url %}
+  {% url 'aktuelles' as bgp_aktuelles_url %}
+  {% url 'products' as bgp_immobilien_url %}
+  {% url 'impressum' as bgp_impressum_url %}
+  {% url 'datenschutz' as bgp_datenschutz_url %}
+{% else %}
+  {% url 'ycms:demo-detail' slug='baugenossenschaft-plattling' as bgp_home_url %}
+  {% url 'ycms:demo-subpage' slug='baugenossenschaft-plattling' subpage='kontakt' as bgp_kontakt_url %}
+  {% url 'ycms:demo-subpage' slug='baugenossenschaft-plattling' subpage='aktuelles' as bgp_aktuelles_url %}
+{% endif %}
 <footer class="bgp-bg-navy-deep border-t border-white/10 px-4 py-10 text-sm text-white/60">
   <div class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 sm:flex-row">
     <a href="{{ bgp_home_url }}" class="bgp-focus flex items-center gap-3 rounded-lg">
       <img src="{% static 'images/demos/bgp/logo-icon.png' %}" alt="" class="h-9 w-auto" />
       <div>
-        <p class="font-bold text-white">Baugenossenschaft Plattling eG</p>
-        <p class="text-xs">Schillerstr. 6b · 94447 Plattling · seit 1921</p>
+        {% if bgp_contact.company_name %}<p class="font-bold text-white">{{ bgp_contact.company_name }}</p>{% endif %}
+        <p class="text-xs">
+          {% for line in bgp_contact.address_lines %}{{ line }} &middot; {% endfor %}seit 1921
+        </p>
       </div>
     </a>
     <nav class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2" aria-label="Rechtliches">
       <a href="{{ bgp_aktuelles_url }}" class="bgp-focus rounded transition hover:text-white">Aktuelles</a>
+      <a href="{% if bgp_is_public %}{{ bgp_immobilien_url }}{% else %}{{ bgp_home_url }}#vermietung{% endif %}" class="bgp-focus rounded transition hover:text-white">Immobilien</a>
       <a href="{{ bgp_kontakt_url }}" class="bgp-focus rounded transition hover:text-white">Kontakt</a>
+      {% if bgp_is_public %}
+      <a href="{{ bgp_impressum_url }}" class="bgp-focus rounded transition hover:text-white">Impressum</a>
+      {% else %}
       <button type="button" data-demo-hint="Impressum" class="bgp-focus rounded transition hover:text-white">Impressum</button>
+      {% endif %}
       <button type="button" data-demo-hint="Satzung" class="bgp-focus rounded transition hover:text-white">Satzung</button>
+      {% if bgp_is_public %}
+      <a href="{{ bgp_datenschutz_url }}" class="bgp-focus rounded transition hover:text-white">Datenschutz</a>
+      {% else %}
       <button type="button" data-demo-hint="Datenschutz" class="bgp-focus rounded transition hover:text-white">Datenschutz</button>
+      {% endif %}
     </nav>
   </div>
 </footer>
@@ -236,7 +291,7 @@ Unterseiten erben hiervon und fuellen nur noch die Bloecke content, demo_css und
     });
   });
 
-  /* Toast: einheitlicher Hinweis fuer Inhalte, die in der Demo nicht hinterlegt sind */
+  /* Toast: einheitlicher Hinweis für Inhalte, die noch nicht hinterlegt sind */
   var bgpToast = document.getElementById('bgpToast');
   var bgpToastText = document.getElementById('bgpToastText');
   var bgpToastTimer = null;
@@ -256,7 +311,7 @@ Unterseiten erben hiervon und fuellen nur noch die Bloecke content, demo_css und
     });
   });
 
-  /* Modal-Grundgeruest: wird von den Unterseiten mit Inhalt befuellt */
+  /* Modal-Grundgerüst: wird von den Unterseiten mit Inhalt befüllt */
   var bgpLastFocus = null;
 
   function bgpOpenModal(modal) {

@@ -11,12 +11,18 @@
     <meta name="robots" content="{% block robots %}index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1{% endblock %}">
     <meta name="author" content="{% if owner_data and owner_data.site_meta_author %}{{ owner_data.site_meta_author }}{% else %}Diese Webseite wurde erstellt von {% if owner_data and owner_data.company_name %}{{ owner_data.company_name }}{% else %}YooLink{% endif %}{% if owner_data and owner_data.address %}, {{ owner_data.address }}{% else %}, Schanzenweg 53, 94469 Deggendorf{% endif %}{% endif %}">
     <meta name="description" content="{% block meta_description %}{% if owner_data and owner_data.site_meta_description %}{{ owner_data.site_meta_description }}{% else %}YooLink ist die Webdesign Agentur im Raum Deggendorf. Unser Standard ist das Maximum aus Ihrem Internetauftritt herauszuholen.{% endif %}{% endblock %}">
+    {% comment %}hreflang wird aus settings.LANGUAGES erzeugt: bei nur einer Sprache gibt es
+       keine alternate-Links auf nicht existierende Übersetzungen.{% endcomment %}
+    {% get_available_languages as SITE_LANGUAGES %}
     {% translate_url 'de' as de_url %}
-    {% translate_url 'en' as en_url %}
-    <link rel="canonical" href="{% block canonical_url %}https://yoolink.de{{ request.path }}{% endblock %}">
-    <link rel="alternate" hreflang="de" href="https://yoolink.de{{ de_url }}">
-    <link rel="alternate" hreflang="en" href="https://yoolink.de{{ en_url }}">
-    <link rel="alternate" hreflang="x-default" href="https://yoolink.de{{ de_url }}">
+    <link rel="canonical" href="{% block canonical_url %}{% if owner_data and owner_data.website %}{{ owner_data.website }}{{ request.path }}{% else %}{{ site_base_url }}{{ request.path }}{% endif %}{% endblock %}">
+    {% if SITE_LANGUAGES|length > 1 %}
+    {% for lang_code, lang_name in SITE_LANGUAGES %}
+    {% translate_url lang_code as alt_url %}
+    <link rel="alternate" hreflang="{{ lang_code }}" href="{% if owner_data and owner_data.website %}{{ owner_data.website }}{{ alt_url }}{% else %}{{ site_base_url }}{{ alt_url }}{% endif %}">
+    {% endfor %}
+    <link rel="alternate" hreflang="x-default" href="{% if owner_data and owner_data.website %}{{ owner_data.website }}{{ de_url }}{% else %}{{ site_base_url }}{{ de_url }}{% endif %}">
+    {% endif %}
 
     <link rel="apple-touch-icon-precomposed" sizes="152x152" href="{% static 'favicon/apple-touch-icon-152x152.png' %}" />
     <link rel="icon" type="image/png" href="{% static 'favicon/favicon-196x196.png' %}" sizes="196x196" />
@@ -30,8 +36,8 @@
     <!-- Open Graph -->
     <meta property="og:title" content="{% block og_title %}YooLink - Webdesign Agentur Deggendorf{% endblock %}">
     <meta property="og:description" content="{% block og_description %}YooLink ist die Webdesign Agentur im Raum Deggendorf. Transparenz, Sichtbarkeit und ein junges dynamisches Team.{% endblock %}">
-    <meta property="og:image" content="{% block og_image %}https://yoolink.de{% static 'images/og-visitenkarte.png' %}{% endblock %}">
-    <meta property="og:url" content="{% block og_url %}https://yoolink.de{{ request.path }}{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}{% if owner_data and owner_data.website %}{{ owner_data.website }}{% else %}{{ site_base_url }}{% endif %}{% static 'images/og-visitenkarte.png' %}{% endblock %}">
+    <meta property="og:url" content="{% block og_url %}{% if owner_data and owner_data.website %}{{ owner_data.website }}{{ request.path }}{% else %}{{ site_base_url }}{{ request.path }}{% endif %}{% endblock %}">
     <meta property="og:type" content="{% block og_type %}website{% endblock %}">
 
     <!-- Twitter / X -->
@@ -39,7 +45,7 @@
     <meta name="twitter:site" content="@YooLinkDE">
     <meta name="twitter:title" content="{% block twitter_title %}YooLink - Webdesign Agentur Deggendorf{% endblock %}">
     <meta name="twitter:description" content="{% block twitter_description %}YooLink ist die Webdesign Agentur im Raum Deggendorf. Transparenz, Sichtbarkeit und ein junges dynamisches Team.{% endblock %}">
-    <meta name="twitter:image" content="{% block twitter_image %}https://yoolink.de{% static 'images/og-visitenkarte.png' %}{% endblock %}">
+    <meta name="twitter:image" content="{% block twitter_image %}{% if owner_data and owner_data.website %}{{ owner_data.website }}{% else %}{{ site_base_url }}{% endif %}{% static 'images/og-visitenkarte.png' %}{% endblock %}">
 
     {% block extra_meta %}{% endblock %}
 
@@ -229,6 +235,8 @@
             </li>
           </ul>
           <div class="flex items-center space-x-4">
+            {# Sprachumschalter nur zeigen, wenn in settings.LANGUAGES mehr als eine Sprache steht. #}
+            {% if SITE_LANGUAGES|length > 1 %}
             <div class="relative hidden lg:block text-left">
               <button id="languageDropdownButtonDesktop" aria-haspopup="true"
                   class="inline-flex items-center w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-100 focus:outline-none">
@@ -262,6 +270,7 @@
                   </div>
               </div>
           </div>
+            {% endif %}
             <a href="{% url 'kontakt' %}" aria-label="{% trans "NAVBAR_CONTACT_BTN" %}" title="{% trans "NAVBAR_CONTACT_BTN" %}"
                 class="inline-flex items-center justify-center h-10 px-6 font-medium tracking-wide text-white transition duration-200 rounded-md shadow-md bg-blue-500 hover:bg-blue-700 focus:shadow-outline focus:outline-none">
                 {% trans "NAVBAR_CONTACT_BTN" %}
@@ -370,6 +379,7 @@
                         {% trans "NAVBAR_CONTACT_BTN" %}
                       </a>
                     </li>
+                    {% if SITE_LANGUAGES|length > 1 %}
                     <li class="w-full justify-end items-end">
                       <div class="relative inline-block text-left">
                         <button id="languageDropdownButtonMobile"
@@ -405,6 +415,7 @@
                       </div>
                     </div>
                     </li>
+                    {% endif %}
                   </ul>
                 </nav>
               </div>

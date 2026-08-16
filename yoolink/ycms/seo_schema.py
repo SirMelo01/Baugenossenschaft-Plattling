@@ -12,13 +12,16 @@ isolation: it only reads attributes off the passed-in ``owner`` object.
 import json
 import re
 
-SITE_BASE_URL = "https://yoolink.de"
+# Fallback, falls kein base_url übergeben wird. Im Betrieb reicht der Aufrufer
+# settings.SITE_BASE_URL durch (siehe ycms/context_processors.py), damit die Domain
+# nur in config/settings/base.py gepflegt werden muss.
+SITE_BASE_URL = "https://baugenossenschaft-plattling.de"
 
 # Static fallbacks (legally correct NAP per the Impressum) used when the CMS
 # field is empty. Postal code / city / region live here because the CMS only
 # stores a single free-text address field today.
 _FALLBACK_NAME = "YooLink"
-_FALLBACK_EMAIL = "info@yoolink.de"
+_FALLBACK_EMAIL = "info@baugenossenschaft-plattling.de"
 _FALLBACK_PHONE = "+49 170 5977862"
 _FALLBACK_STREET = "Schanzenweg 53"
 _POSTAL_CODE = "94469"
@@ -84,7 +87,7 @@ def _parse_address(raw, fb_street, fb_plz, fb_city):
     return (street or fb_street), plz, (city or fb_city)
 
 
-def _logo_url(owner):
+def _logo_url(owner, base_url=SITE_BASE_URL):
     """Absolute logo URL: CMS-uploaded logo if present, else the static OG image."""
     url = ""
     try:
@@ -93,9 +96,9 @@ def _logo_url(owner):
     except Exception:
         url = ""
     if not url:
-        return f"{SITE_BASE_URL}/static/images/og-preview.png"
+        return f"{base_url}/static/images/og-preview.png"
     if url.startswith("/"):
-        return f"{SITE_BASE_URL}{url}"
+        return f"{base_url}{url}"
     return url
 
 
@@ -134,7 +137,7 @@ def _geo(owner):
     }
 
 
-def build_site_schema_jsonld(owner):
+def build_site_schema_jsonld(owner, base_url=SITE_BASE_URL):
     """Build the site-wide JSON-LD string, safe to embed inside a <script> tag."""
     name = _field(owner, "company_name", _FALLBACK_NAME)
     email = _field(owner, "email", _FALLBACK_EMAIL)
@@ -150,8 +153,8 @@ def build_site_schema_jsonld(owner):
     region = _field(owner, "address_region", _REGION)
     country = _field(owner, "address_country", _COUNTRY)
     same_as = _same_as(owner)
-    logo_url = _logo_url(owner)
-    org_id = f"{SITE_BASE_URL}/#organization"
+    logo_url = _logo_url(owner, base_url)
+    org_id = f"{base_url}/#organization"
 
     graph = {
         "@context": "https://schema.org",
@@ -161,7 +164,7 @@ def build_site_schema_jsonld(owner):
                 "@id": org_id,
                 "name": name,
                 "legalName": legal_name,
-                "url": f"{SITE_BASE_URL}/",
+                "url": f"{base_url}/",
                 "email": email,
                 "telephone": telephone,
                 "founder": {"@type": "Person", "name": founder_name},
@@ -171,8 +174,8 @@ def build_site_schema_jsonld(owner):
             },
             {
                 "@type": "WebSite",
-                "@id": f"{SITE_BASE_URL}/#website",
-                "url": f"{SITE_BASE_URL}/",
+                "@id": f"{base_url}/#website",
+                "url": f"{base_url}/",
                 "name": name,
                 "description": description,
                 "publisher": {"@id": org_id},
@@ -180,9 +183,9 @@ def build_site_schema_jsonld(owner):
             },
             {
                 "@type": ["ProfessionalService", "LocalBusiness"],
-                "@id": f"{SITE_BASE_URL}/#localbusiness",
+                "@id": f"{base_url}/#localbusiness",
                 "name": name,
-                "url": f"{SITE_BASE_URL}/",
+                "url": f"{base_url}/",
                 "image": logo_url,
                 "email": email,
                 "telephone": telephone,

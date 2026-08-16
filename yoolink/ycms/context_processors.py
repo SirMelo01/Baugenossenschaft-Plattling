@@ -7,7 +7,10 @@ from .permissions import user_permissions
 from .seo_schema import build_site_schema_jsonld
 
 def user_settings_context(request):
-    context = {}
+    # Kanonische Basis-URL der Seite (aus settings.SITE_DOMAIN). Dient in den
+    # Templates als Fallback für canonical-/OG-URLs, wenn im CMS keine Website
+    # hinterlegt ist.
+    context = {'site_base_url': settings.SITE_BASE_URL}
     owner_data = WebsiteSettings.get_site_owner()
     if owner_data:
         context['owner_data'] = owner_data
@@ -15,7 +18,9 @@ def user_settings_context(request):
     # Site-wide Organization/WebSite/LocalBusiness JSON-LD, built from the CMS
     # owner record (with safe fallbacks). Rendered once in base.html.
     try:
-        context['site_schema_jsonld'] = build_site_schema_jsonld(owner_data)
+        context['site_schema_jsonld'] = build_site_schema_jsonld(
+            owner_data, base_url=settings.SITE_BASE_URL
+        )
     except Exception:
         context['site_schema_jsonld'] = ""
     return context

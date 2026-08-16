@@ -98,8 +98,8 @@ class ProductGroup(TimeStampedModel):
 
     class Meta:
         ordering = ["sort_order", "name"]
-        verbose_name = "Produktgruppe"
-        verbose_name_plural = "Produktgruppen"
+        verbose_name = "Immobilienrubrik"
+        verbose_name_plural = "Immobilienrubriken"
 
     def save(self, *args, **kwargs):
         self.slug = generate_unique_slug(ProductGroup, self.name, self.pk)
@@ -113,20 +113,20 @@ class ShopSettings(TimeStampedModel):
     """Site wide settings for the public product pages (singleton)."""
 
     class ProductsLayout(models.TextChoices):
-        FILTER = "filter", "Shop mit Filterleiste"
-        GROUPED = "grouped", "Gruppiert nach Kategorien"
+        FILTER = "filter", "Immobilien mit Filterleiste"
+        GROUPED = "grouped", "Gruppiert nach Rubriken"
 
     products_layout = models.CharField(
         max_length=20,
         choices=ProductsLayout.choices,
         default=ProductsLayout.FILTER,
     )
-    products_title = models.CharField(max_length=120, default="Produkte")
+    products_title = models.CharField(max_length=120, default="Immobilien")
     products_intro = models.TextField(blank=True)
 
     class Meta:
-        verbose_name = "Shop Einstellungen"
-        verbose_name_plural = "Shop Einstellungen"
+        verbose_name = "Immobilien Einstellungen"
+        verbose_name_plural = "Immobilien Einstellungen"
 
     @classmethod
     def get_solo(cls):
@@ -140,7 +140,7 @@ class ShopSettings(TimeStampedModel):
         return self.products_layout == self.ProductsLayout.GROUPED
 
     def __str__(self):
-        return f"Shop Einstellungen ({self.get_products_layout_display()})"
+        return f"Immobilien Einstellungen ({self.get_products_layout_display()})"
 
 
 class Product(TimeStampedModel):
@@ -149,13 +149,13 @@ class Product(TimeStampedModel):
     title = models.CharField(max_length=255)
     slug = models.SlugField(max_length=255, unique=True, blank=True)
     description = models.TextField(blank=True)
-    sku = models.CharField("Artikelnummer", max_length=64, blank=True, default="")
+    sku = models.CharField("Objektnummer", max_length=64, blank=True, default="")
     price_note = models.CharField(
         "Preishinweis",
         max_length=120,
         blank=True,
         default="",
-        help_text='Optionaler Zusatz zum Preis, z.B. "pro Stück" oder "zzgl. Versand".',
+        help_text='Optionaler Zusatz zum Preis, z.B. "Kaltmiete" oder "auf Anfrage".',
     )
     featured = models.BooleanField(default=False)
     language = models.CharField(
@@ -199,8 +199,7 @@ class Product(TimeStampedModel):
     is_reduced = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     is_in_stock = models.BooleanField(default=True)
-    # Repurposed: "Produkt kann an Kunden geliefert werden" (info flag, no
-    # online purchase implied while the shop runs showcase-only).
+    # Repurposed: "Anfrage zur Immobilie möglich" (info flag, no online purchase implied).
     online_sell = models.BooleanField(default=False)
 
     showcase_only = models.BooleanField(default=True)
@@ -244,16 +243,16 @@ class Product(TimeStampedModel):
 
     def clean(self):
         if self.original_id and self.original_id == self.pk:
-            raise ValidationError({"original": "Ein Produkt kann nicht seine eigene Übersetzung sein."})
+            raise ValidationError({"original": "Eine Immobilie kann nicht ihre eigene Übersetzung sein."})
 
         if self.is_reduced and self.discount_price is None:
             raise ValidationError(
-                {"discount_price": "Ein reduzierter Artikel braucht einen Rabattpreis."}
+                {"discount_price": "Eine alternative Preisangabe braucht einen gültigen Wert."}
             )
 
         if self.discount_price is not None and self.discount_price >= self.price:
             raise ValidationError(
-                {"discount_price": "Der Rabattpreis muss kleiner als der reguläre Preis sein."}
+                {"discount_price": "Die alternative Preisangabe muss kleiner als der reguläre Preis sein."}
             )
 
     def save(self, *args, **kwargs):

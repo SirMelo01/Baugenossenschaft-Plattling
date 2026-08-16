@@ -23,7 +23,7 @@ from django.db.models import Q
 from django.utils.html import strip_tags
 
 from yoolink.utils.sanitize_html import sanitize_html
-from yoolink.views import get_opening_hours
+from yoolink.views import get_bgp_context, get_opening_hours
 from yoolink.ycms.models import AnyFile, Galerie, UserSettings, fileentry
 from yoolink.ycms.upload_validation import validate_image_upload
 from yoolink.ycms.views import (
@@ -511,16 +511,16 @@ def apply_product_form_data(request, product):
         return None, JsonResponse({"error": "Der Titel darf nicht leer sein."}, status=400)
 
     if price <= 0:
-        return None, JsonResponse({"error": "Der Preis muss größer 0 sein."}, status=400)
+        return None, JsonResponse({"error": "Miete/Preis muss größer 0 sein."}, status=400)
 
     if is_reduced and reduced_price is None:
-        return None, JsonResponse({"error": "Ein reduzierter Artikel braucht einen Rabattpreis."}, status=400)
+        return None, JsonResponse({"error": "Eine alternative Preisangabe braucht einen gültigen Wert."}, status=400)
 
     if is_reduced and reduced_price <= 0:
-        return None, JsonResponse({"error": "Der reduzierte Preis muss größer 0 sein."}, status=400)
+        return None, JsonResponse({"error": "Die alternative Preisangabe muss größer 0 sein."}, status=400)
 
     if is_reduced and reduced_price >= price:
-        return None, JsonResponse({"error": "Der reduzierte Preis muss kleiner als der Normalpreis sein."}, status=400)
+        return None, JsonResponse({"error": "Die alternative Preisangabe muss kleiner als der reguläre Preis sein."}, status=400)
 
     if uploaded_image:
         try:
@@ -533,7 +533,7 @@ def apply_product_form_data(request, product):
         duplicate_qs = duplicate_qs.exclude(pk=product.pk)
 
     if duplicate_qs.exists():
-        return None, JsonResponse({"error": "Ein Produkt mit diesem Titel existiert bereits."}, status=400)
+        return None, JsonResponse({"error": "Eine Immobilie mit dieser Objektbezeichnung existiert bereits."}, status=400)
 
     gallery_instance = None
     if gallery_id:
@@ -791,11 +791,11 @@ def shop_settings_update(request):
     products_intro = (request.POST.get("products_intro") or "").strip()[:1000]
 
     shop_settings.products_layout = layout
-    shop_settings.products_title = products_title or "Produkte"
+    shop_settings.products_title = products_title or "Immobilien"
     shop_settings.products_intro = products_intro
     shop_settings.save()
 
-    return JsonResponse({"success": "Die Shop Einstellungen wurden gespeichert."})
+    return JsonResponse({"success": "Die Immobilien-Darstellung wurde gespeichert."})
 
 
 @login_required(login_url="login")
@@ -822,7 +822,7 @@ def product_description_image_upload(request):
 
     image = fileentry.objects.create(
         file=optimized_image,
-        title=getattr(uploaded_file, "name", "Produktbild"),
+        title=getattr(uploaded_file, "name", "Immobilienbild"),
     )
 
     return JsonResponse({"success": "Bild erfolgreich hochgeladen.", "url": image.file.url})
@@ -1062,7 +1062,7 @@ def build_grouped_products_context(request):
     """Build the sections for the grouped (showcase) products layout.
 
     Sections come from ProductGroup (ordered by sort_order); products without
-    a group land in "Weitere Produkte" at the end.
+    a group land in "Weitere Immobilien" at the end.
     """
     language = get_active_product_language(request)
 
@@ -1075,12 +1075,18 @@ def build_grouped_products_context(request):
 
     grouped = {}
     ungrouped = []
+    # Merkmale fuer die Filterleiste: aus den tatsaechlich gerenderten (lokalisierten)
+    # Objekten, damit die Slugs im Filter und an den Karten garantiert zusammenpassen.
+    filter_categories = {}
 
     for product in products:
         # Sections come from the root product's group; display data from the
         # localized variant.
         group = product.group
         localized = get_localized_product(product, language, require_active=True)
+
+        for category in localized.categories.all():
+            filter_categories[category.slug] = category
 
         if group is None:
             ungrouped.append(localized)
@@ -1098,6 +1104,7 @@ def build_grouped_products_context(request):
         "product_groups": sorted_groups,
         "ungrouped_products": ungrouped,
         "total_products": products.count(),
+        "filter_categories": sorted(filter_categories.values(), key=lambda c: c.name.lower()),
     }
 
 
@@ -1105,7 +1112,7 @@ def public_shop(request):
     shop_settings = ShopSettings.get_solo()
 
     if shop_settings.is_grouped_layout:
-        context = {"shop_settings": shop_settings}
+        context = get_bgp_context({"shop_settings": shop_settings, "demo_page": "immobilien"})
         context.update(build_grouped_products_context(request))
         context.update(get_opening_hours())
         return render(request, "pages/shop_grouped.html", context)
@@ -1122,7 +1129,7 @@ def public_shop(request):
     brands = Brand.objects.filter(products__is_active=True).distinct().order_by("name")
     categories = Category.objects.filter(products__is_active=True).distinct().order_by("name")
 
-    context = {
+    context = get_bgp_context({
         "shop_settings": shop_settings,
         "page_obj": page_obj,
         "brands": brands,
@@ -1139,7 +1146,8 @@ def public_shop(request):
             "online_only": parse_bool(request.GET.get("online_only")) if request.GET.get("online_only") not in [None, ""] else False,
             "is_reduced": parse_bool(request.GET.get("is_reduced")) if request.GET.get("is_reduced") not in [None, ""] else False,
         },
-    }
+        "demo_page": "immobilien",
+    })
     context.update(get_opening_hours())
     return render(request, "pages/shop.html", context)
 
@@ -1158,14 +1166,15 @@ def detail(request, product_id, slug):
     last_url = request.META.get('HTTP_REFERER')
     if not product.is_active:
         return render(request, "pages/errors/error.html", {
-            "error": "Dieses Produkt ist nicht mehr verfügbar",
+            "error": "Diese Immobilie ist nicht mehr verfügbar",
             "saveLink": last_url if last_url else '/'
         })
     localized_product = get_localized_product(product, get_active_product_language(request), require_active=True)
     if localized_product.pk != product.pk:
         return redirect(localized_product.get_absolute_url())
     product = localized_product
-    context={"product": product}
+    product.showcase_only = True
+    context=get_bgp_context({"product": product, "demo_page": "immobilien"})
     context.update(get_opening_hours())
     return render(request, 'pages/detail.html', context)
 

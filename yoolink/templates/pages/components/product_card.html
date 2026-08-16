@@ -12,10 +12,10 @@
 
       <div class="absolute left-3 top-3 flex flex-wrap gap-2">
         {% if product.is_reduced and product.discount_price and product.should_show_price_card %}
-          <span class="rounded-full bg-red-500 px-3 py-1 text-xs font-semibold text-white">Angebot</span>
+          <span class="rounded-full bg-[#FFDC16] px-3 py-1 text-xs font-semibold text-[#2E434C]">Sonderhinweis</span>
         {% endif %}
         {% if product.featured %}
-          <span class="rounded-full bg-blue-600 px-3 py-1 text-xs font-semibold text-white">Empfehlung</span>
+          <span class="rounded-full bg-[#4B6671] px-3 py-1 text-xs font-semibold text-white">Hervorgehoben</span>
         {% endif %}
       </div>
     </div>
@@ -25,7 +25,7 @@
         {% if product.brand %}
           <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">{{ product.brand.name }}</p>
         {% endif %}
-        <h3 class="mt-1 text-lg font-bold leading-snug text-gray-900 group-hover:text-blue-700">
+        <h3 class="mt-1 text-lg font-bold leading-snug text-gray-900 group-hover:text-[#4B6671]">
           {{ product.title }}
         </h3>
       </div>
@@ -36,13 +36,13 @@
 
       <div class="mt-4 flex flex-wrap gap-2">
         {% if product.is_in_stock %}
-          <span class="rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700">Verfügbar</span>
+          <span class="rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700">Verf&uuml;gbar</span>
         {% else %}
-          <span class="rounded-full bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700">Aktuell nicht verfügbar</span>
+          <span class="rounded-full bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700">Aktuell nicht verf&uuml;gbar</span>
         {% endif %}
 
         {% if product.online_sell %}
-          <span class="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">Lieferung möglich</span>
+          <span class="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">Anfrage m&ouml;glich</span>
         {% endif %}
       </div>
 
@@ -51,11 +51,11 @@
           {% if product.should_show_price_card %}
             {% if product.is_reduced and product.discount_price %}
               <div class="flex flex-wrap items-end gap-2">
-                <span class="text-xl font-bold text-blue-600">{{ product.discount_price }} €</span>
-                <span class="pb-0.5 text-sm text-gray-400 line-through">{{ product.price }} €</span>
+                <span class="text-xl font-bold text-[#4B6671]">{{ product.discount_price }} &euro;</span>
+                <span class="pb-0.5 text-sm text-gray-400 line-through">{{ product.price }} &euro;</span>
               </div>
             {% else %}
-              <span class="text-xl font-bold text-gray-900">{{ product.price }} €</span>
+              <span class="text-xl font-bold text-gray-900">{{ product.price }} &euro;</span>
             {% endif %}
             {% if product.price_note %}
               <p class="mt-0.5 truncate text-xs text-gray-500">{{ product.price_note }}</p>
@@ -65,7 +65,7 @@
           {% endif %}
         </div>
 
-        <span class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white transition group-hover:bg-blue-700">
+        <span class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#4B6671] text-white transition group-hover:bg-[#3A505A]">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
             <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708" />
           </svg>

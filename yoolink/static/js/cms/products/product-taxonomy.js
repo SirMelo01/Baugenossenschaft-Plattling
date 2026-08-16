@@ -1,10 +1,10 @@
 /**
- * Zuordnung (Gruppierung / Hersteller / Kategorien) für Produkte.
+ * Zuordnung (Rubrik / Standort / Merkmale) für Immobilien.
  *
  * Statt Freitext-Eingaben öffnet sich ein Modal, in dem aus bestehenden
  * Einträgen gewählt oder ein neuer Eintrag angelegt werden kann.
  * Gruppen können zusätzlich sortiert und gelöscht werden, da ihre
- * Reihenfolge die Abschnitte der öffentlichen Produktseite bestimmt.
+ * Reihenfolge die Abschnitte der öffentlichen Immobilienseite bestimmt.
  */
 (function () {
   const formConfig = document.getElementById("productFormConfig");
@@ -25,25 +25,25 @@
 
   const KIND_CONFIG = {
     group: {
-      title: "Gruppierung wählen",
-      subtitle: "Gruppen bestimmen die Abschnitte und deren Reihenfolge auf der öffentlichen Produktseite.",
-      createLabel: "Neue Gruppe anlegen",
+      title: "Rubrik / Wohnanlage wählen",
+      subtitle: "Rubriken bestimmen die Abschnitte und deren Reihenfolge auf der öffentlichen Immobilienseite.",
+      createLabel: "Neue Rubrik anlegen",
       chipContainer: "selectedGroupChips",
       multi: false,
       manageOrder: true
     },
     brand: {
-      title: "Hersteller wählen",
-      subtitle: "Wähle den Hersteller des Produkts oder lege einen neuen an.",
-      createLabel: "Neuen Hersteller anlegen",
+      title: "Standort wählen",
+      subtitle: "Wähle den Standort der Immobilie oder lege einen neuen an.",
+      createLabel: "Neuen Standort anlegen",
       chipContainer: "selectedBrandChips",
       multi: false,
       manageOrder: false
     },
     category: {
-      title: "Kategorien wählen",
-      subtitle: "Kategorien dienen als Filter-Schlagworte. Mehrfachauswahl möglich.",
-      createLabel: "Neue Kategorie anlegen",
+      title: "Merkmale wählen",
+      subtitle: "Merkmale dienen als Filter-Schlagworte. Mehrfachauswahl möglich.",
+      createLabel: "Neues Merkmal anlegen",
       chipContainer: "selectedCategoryChips",
       multi: true,
       manageOrder: false
@@ -189,7 +189,7 @@
 
       const count = document.createElement("span");
       count.className = "ml-auto shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500";
-      count.textContent = item.product_count === 1 ? "1 Produkt" : `${item.product_count || 0} Produkte`;
+      count.textContent = item.product_count === 1 ? "1 Immobilie" : `${item.product_count || 0} Immobilien`;
 
       selectBtn.appendChild(check);
       selectBtn.appendChild(name);
@@ -368,8 +368,8 @@
 
   function deleteGroup(item) {
     Swal.fire({
-      title: `Gruppe "${item.name}" löschen?`,
-      text: "Produkte in dieser Gruppe bleiben erhalten und erscheinen dann unter \"Weitere Produkte\".",
+      title: `Rubrik "${item.name}" löschen?`,
+      text: "Immobilien in dieser Rubrik bleiben erhalten und erscheinen dann unter \"Weitere Immobilien\".",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#e3342f",
@@ -392,7 +392,7 @@
             state.group = [];
             renderChips("group");
           }
-          notify("Gruppe wurde gelöscht.", "success");
+          notify("Rubrik wurde gelöscht.", "success");
           loadItems();
         },
         error: function () {

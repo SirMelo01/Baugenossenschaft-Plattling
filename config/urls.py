@@ -1,12 +1,12 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import include, path
+from django.urls import include, path, re_path
 from django.views import defaults as default_views
 from django.views.generic import TemplateView
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework.authtoken.views import obtain_auth_token
-from yoolink.views import load_index, kontaktform, load_kunden, load_kunde_detail, load_cmsinfo, load_logos, load_visitenkarte, load_medien, load_webdesign, load_webdesign_deggendorf, datenschutz_view, cookies_view, leistungen_view, impressum_view
+from yoolink.views import load_index, kontaktform, load_kunden, load_kunde_detail, load_cmsinfo, load_logos, load_visitenkarte, load_medien, load_webdesign, load_webdesign_deggendorf, datenschutz_view, cookies_view, leistungen_view, impressum_view, aktuelles_view
 from django.views.generic import RedirectView
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.urls import path, include
@@ -14,6 +14,7 @@ from django.urls import path, include
 from django.contrib.sitemaps.views import sitemap
 from yoolink.sitemaps import StaticViewSitemap, BlogSitemap, CustomerSitemap, ProductSitemap
 
+from yoolink.blog.views import AktuellesDetailView
 from yoolink.ycms.applications.shop.views import cart_verify_success_view, cart_view, order_verify_success_view, order_verify_view
 
 sitemaps = {
@@ -52,6 +53,16 @@ urlpatterns += i18n_patterns(
     path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name="django.contrib.sitemaps.views.sitemap"),
     path("impressum/", view=impressum_view, name="impressum"),
     path("kontakt/", view=kontaktform, name="kontakt"),
+    # Aktuelles laeuft bewusst ohne Schraegstrich am Ende. Die alte Adresse mit
+    # Schraegstrich leitet per 301 weiter, damit Links und Google-Treffer nicht
+    # ins Leere laufen (CommonMiddleware entfernt keine Slashes, nur anhaengen).
+    path("aktuelles", view=aktuelles_view, name="aktuelles"),
+    path("aktuelles/", RedirectView.as_view(pattern_name="aktuelles", permanent=True)),
+    path(
+        "aktuelles/<int:pk>-<slug:slug_title>",
+        view=AktuellesDetailView.as_view(),
+        name="aktuelles-detail",
+    ),
     path("datenschutz/", view=datenschutz_view, name="datenschutz"),
     path("cookies/", view=cookies_view, name="cookies"),
     path("leistungen/cms/", view=load_cmsinfo, name="leistungen_cms"),
@@ -65,9 +76,22 @@ urlpatterns += i18n_patterns(
     path("kunden/", view=load_kunden, name="kunden"),
     path("kunden/<slug:slug>/", view=load_kunde_detail, name="kunde-detail"),
     path("leistungen/", view=leistungen_view, name="leistungen"),
-    path("products/", include("yoolink.ycms.applications.shop.public_product_urls")),
+    path("immobilien/", include("yoolink.ycms.applications.shop.public_product_urls")),
+    path("products/", RedirectView.as_view(pattern_name="products", permanent=True)),
     prefix_default_language=False,
 )
+
+# Solange Englisch nicht in settings.LANGUAGES steht, erzeugt i18n_patterns keine
+# /en/-Routen mehr. Alte Links und Google-Treffer sollen deshalb per 301 auf die
+# deutsche Seite zeigen statt auf 404 zu laufen. Steht die Regel bewusst *nach*
+# i18n_patterns, greift sie automatisch nicht mehr, sobald Englisch wieder
+# aktiviert wird - dann gewinnen die echten /en/-Routen.
+urlpatterns += [
+    re_path(
+        r"^en/(?P<rest>.*)$",
+        RedirectView.as_view(url="/%(rest)s", permanent=True, query_string=True),
+    ),
+]
 
 
 

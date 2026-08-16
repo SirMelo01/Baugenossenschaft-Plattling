@@ -122,7 +122,7 @@ def validate_extension(value, allowed_extensions, label="Datei"):
     extension = file_extension(value)
     if extension not in allowed_extensions:
         allowed = ", ".join(sorted(allowed_extensions))
-        raise ValidationError(f"{label}: Dateiformat \"{extension or 'unbekannt'}\" wird nicht unterstuetzt. Erlaubt: {allowed}.")
+        raise ValidationError(f"{label}: Dateiformat \"{extension or 'unbekannt'}\" wird nicht unterstützt. Erlaubt: {allowed}.")
 
 
 def validate_upload_size(value, upload_kind, label="Datei"):

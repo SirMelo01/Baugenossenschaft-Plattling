@@ -24,18 +24,18 @@ class NotificationAdmin(admin.ModelAdmin):
             return f"Message #{obj.message_id}"
         if obj.link_url:
             return obj.link_url
-        return "â€”"
+        return "—"
 
-    linked_object.short_description = "VerknÃ¼pft mit"
+    linked_object.short_description = "Verknüpft mit"
 
     def mark_as_read(self, request, queryset):
         updated = queryset.update(seen=True)
         self.message_user(request, f"{updated} Benachrichtigung(en) als gelesen markiert.")
 
-    mark_as_read.short_description = "AusgewÃ¤hlte als gelesen markieren"
+    mark_as_read.short_description = "Ausgewählte als gelesen markieren"
 
     def mark_as_unread(self, request, queryset):
         updated = queryset.update(seen=False)
         self.message_user(request, f"{updated} Benachrichtigung(en) als ungelesen markiert.")
 
-    mark_as_unread.short_description = "AusgewÃ¤hlte als ungelesen markieren"
+    mark_as_unread.short_description = "Ausgewählte als ungelesen markieren"

@@ -25,11 +25,9 @@
     {% include "pages/cms/components/_stat_card.html" with icon="bi-blockquote-right" tone="violet" value=blog_count label="Blogs" link_url="/cms/blog/" %}
     {% endif %}
     {% if 'products.edit' in cms_permissions %}
-    {% include "pages/cms/components/_stat_card.html" with icon="bi-box-seam" tone="emerald" value=product_count label="Produkte" link_url="/cms/shop/products/" %}
+    {% include "pages/cms/components/_stat_card.html" with icon="bi-buildings" tone="emerald" value=product_count label="Immobilien" link_url="/cms/shop/products/" %}
     {% endif %}
-    {% if 'orders.edit' in cms_permissions %}
-    {% include "pages/cms/components/_stat_card.html" with icon="bi-bag-check" tone="amber" value=order_not_closed_count label="Offene Aufträge" link_url="/cms/shop/orders/" %}
-    {% endif %}
+    {% comment %}Shop-Bestellungen sind für diesen Kunden ausgeblendet.{% endcomment %}
 </div>
 
 <h2 class="mb-3 mt-8 text-xs font-semibold uppercase tracking-wider text-gray-500">Schnellzugriff</h2>
@@ -49,8 +47,8 @@
     {% include "pages/cms/components/_quick_card.html" with icon="bi-blockquote-right" tone="violet" title="Blog" desc="Beiträge schreiben, bearbeiten und veröffentlichen." url="/cms/blog/" %}
     {% endif %}
 
-    {% if 'shop.view' in cms_permissions or 'products.edit' in cms_permissions or 'orders.edit' in cms_permissions %}
-    {% include "pages/cms/components/_quick_card.html" with icon="bi-shop" tone="emerald" title="Shop" desc="Produkte pflegen und Bestellungen bearbeiten." url="/cms/shop/" %}
+    {% if 'products.edit' in cms_permissions %}
+    {% include "pages/cms/components/_quick_card.html" with icon="bi-buildings" tone="emerald" title="Immobilien" desc="Objekte, Bilder, Merkmale und Verf&uuml;gbarkeit pflegen." url="/cms/shop/products/" %}
     {% endif %}
 
     {% if 'opening_hours.edit' in cms_permissions %}
@@ -61,13 +59,7 @@
     {% include "pages/cms/components/_quick_card.html" with icon="bi-people" tone="rose" title="Team" desc="Mitarbeiter und Ansprechpartner verwalten." url="/cms/team/" %}
     {% endif %}
 
-    {% if 'pricing.edit' in cms_permissions %}
-    {% include "pages/cms/components/_quick_card.html" with icon="bi-cash-coin" tone="teal" title="Preise" desc="Preiskarten und Pakete konfigurieren." url="/cms/pricing/" %}
-    {% endif %}
-
-    {% if 'buttons.edit' in cms_permissions %}
-    {% include "pages/cms/components/_quick_card.html" with icon="bi-hand-index" tone="slate" title="Buttons" desc="Wiederverwendbare Call-to-Action Buttons." url="/cms/buttons/" %}
-    {% endif %}
+    {% comment %}Preise und Buttons sind für diesen Kunden ausgeblendet.{% endcomment %}
 
 </div>
 

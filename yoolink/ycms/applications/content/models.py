@@ -35,23 +35,23 @@ class PrivacyPolicy(models.Model):
 
     RESPONSIBLE_SECTION_HTML = (
         "<h3>Hinweis zur verantwortlichen Stelle</h3>"
-        "<p>Die verantwortliche Stelle fÃ¼r die Datenverarbeitung auf dieser Website ist:</p>"
+        "<p>Die verantwortliche Stelle für die Datenverarbeitung auf dieser Website ist:</p>"
         "<p>[[OWNER_NAME]]<br />[[ADDRESS]]</p>"
         "<p>Telefon: [[TEL]]<br />E-Mail: [[EMAIL]]</p>"
-        "<p>Verantwortliche Stelle ist die natuerliche oder juristische Person, die allein "
-        "oder gemeinsam mit anderen Ã¼ber die Zwecke und Mittel der Verarbeitung von personenbezogenen "
+        "<p>Verantwortliche Stelle ist die natürliche oder juristische Person, die allein "
+        "oder gemeinsam mit anderen über die Zwecke und Mittel der Verarbeitung von personenbezogenen "
         "Daten (z. B. Namen, E-Mail-Adressen o. A.) entscheidet.</p>"
     )
 
     RESPONSIBLE_SECTION_TEXT = (
         "Hinweis zur verantwortlichen Stelle\n"
-        "Die verantwortliche Stelle fÃ¼r die Datenverarbeitung auf dieser Website ist:\n"
+        "Die verantwortliche Stelle für die Datenverarbeitung auf dieser Website ist:\n"
         "[[OWNER_NAME]]\n"
         "[[ADDRESS]]\n"
         "Telefon: [[TEL]]\n"
         "E-Mail: [[EMAIL]]\n"
-        "Verantwortliche Stelle ist die natuerliche oder juristische Person, die allein oder gemeinsam "
-        "mit anderen Ã¼ber die Zwecke und Mittel der Verarbeitung von personenbezogenen Daten (z. B. Namen, "
+        "Verantwortliche Stelle ist die natürliche oder juristische Person, die allein oder gemeinsam "
+        "mit anderen über die Zwecke und Mittel der Verarbeitung von personenbezogenen Daten (z. B. Namen, "
         "E-Mail-Adressen o. A.) entscheidet."
     )
 

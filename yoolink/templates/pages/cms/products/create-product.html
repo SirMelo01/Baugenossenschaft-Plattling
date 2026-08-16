@@ -1,7 +1,7 @@
 {% extends 'cmsbase.html' %}
 {% load compress static %}
 
-{% block title %}{{ block.super }} | CMS | Produkt erstellen{% endblock %}
+{% block title %}{{ block.super }} | CMS | Immobilie anlegen{% endblock %}
 
 {% block javascript %}
 <link rel="stylesheet" type="text/css" href="{% static 'css/cms/slick/slick-carousel.css' %}" />
@@ -119,11 +119,11 @@
     <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
       <div>
         <h1 class="text-2xl font-semibold text-gray-900">
-          <a href="{% url 'cms:products' %}" class="text-blue-500 hover:text-blue-700">Produkte</a>
+          <a href="{% url 'cms:products' %}" class="text-blue-500 hover:text-blue-700">Immobilien</a>
           <span class="mx-2 text-gray-400">/</span>
-          <span id="titleSpan">Neues Produkt</span>
+          <span id="titleSpan">Neue Immobilie</span>
         </h1>
-        <p class="mt-1 text-sm text-gray-500">Erstelle Produktdaten, Medien, Galerie, Spezifikationen und Dateianhänge</p>
+        <p class="mt-1 text-sm text-gray-500">Lege Objektdaten, Medien, Galerie, Merkmale und Dateianh&auml;nge an</p>
       </div>
 
       <div class="flex flex-wrap gap-3">
@@ -157,7 +157,7 @@
           >
             <div>
               <h2 class="text-lg font-semibold text-gray-900">Stammdaten</h2>
-              <p class="text-sm text-gray-500">Titel, Beschreibung, Hersteller und Kategorien</p>
+              <p class="text-sm text-gray-500">Objektbezeichnung, Beschreibung, Standort und Merkmale</p>
             </div>
 
             <span class="mt-1 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-600">
@@ -170,7 +170,7 @@
           <div class="collapsible-content px-5 pb-5">
             <div class="space-y-5 border-t border-gray-100 pt-5">
               <div>
-                <label class="mb-2 block text-sm font-semibold text-gray-700" for="title">Titel</label>
+                <label class="mb-2 block text-sm font-semibold text-gray-700" for="title">Objektbezeichnung</label>
                 <input
                   id="title"
                   name="title"
@@ -178,7 +178,7 @@
                   value=""
                   required
                   class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-800 focus:border-blue-500 focus:bg-white focus:outline-none"
-                  placeholder="Produktname"
+                  placeholder="z.B. 3-Zimmer-Wohnung in Plattling"
                 />
               </div>
 
@@ -192,7 +192,7 @@
               </div>
 
               <div class="xl:max-w-sm">
-                <label class="mb-2 block text-sm font-semibold text-gray-700" for="sku">Artikelnummer (optional)</label>
+                <label class="mb-2 block text-sm font-semibold text-gray-700" for="sku">Objektnummer (optional)</label>
                 <input
                   id="sku"
                   name="sku"
@@ -200,7 +200,7 @@
                   value=""
                   maxlength="64"
                   class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-800 focus:border-blue-500 focus:bg-white focus:outline-none"
-                  placeholder="z.B. ART-1024"
+                  placeholder="z.B. WHG-1024"
                 />
               </div>
 
@@ -210,8 +210,8 @@
                   <div class="flex h-full flex-col rounded-2xl border border-gray-200 bg-gray-50 p-4">
                     <div class="flex items-start justify-between gap-2">
                       <div class="min-w-0">
-                        <p class="text-sm font-semibold text-gray-800">Gruppierung</p>
-                        <p class="mt-0.5 text-xs text-gray-500">Abschnitt auf der Produktseite</p>
+                        <p class="text-sm font-semibold text-gray-800">Rubrik / Wohnanlage</p>
+                        <p class="mt-0.5 text-xs text-gray-500">Abschnitt auf der Immobilienseite</p>
                       </div>
                       <button
                         type="button"
@@ -221,14 +221,14 @@
                         Wählen
                       </button>
                     </div>
-                    <div id="selectedGroupChips" class="mt-auto flex min-h-[2.25rem] flex-wrap items-center gap-2 pt-3" data-empty-text="Keine Gruppierung zugeordnet"></div>
+                    <div id="selectedGroupChips" class="mt-auto flex min-h-[2.25rem] flex-wrap items-center gap-2 pt-3" data-empty-text="Keine Rubrik zugeordnet"></div>
                   </div>
 
                   <div class="flex h-full flex-col rounded-2xl border border-gray-200 bg-gray-50 p-4">
                     <div class="flex items-start justify-between gap-2">
                       <div class="min-w-0">
-                        <p class="text-sm font-semibold text-gray-800">Hersteller</p>
-                        <p class="mt-0.5 text-xs text-gray-500">Marke des Produkts</p>
+                        <p class="text-sm font-semibold text-gray-800">Standort</p>
+                        <p class="mt-0.5 text-xs text-gray-500">Ort, Stra&szlig;e oder Wohngebiet</p>
                       </div>
                       <button
                         type="button"
@@ -238,14 +238,14 @@
                         Wählen
                       </button>
                     </div>
-                    <div id="selectedBrandChips" class="mt-auto flex min-h-[2.25rem] flex-wrap items-center gap-2 pt-3" data-empty-text="Kein Hersteller zugeordnet"></div>
+                    <div id="selectedBrandChips" class="mt-auto flex min-h-[2.25rem] flex-wrap items-center gap-2 pt-3" data-empty-text="Kein Standort zugeordnet"></div>
                   </div>
 
                   <div class="flex h-full flex-col rounded-2xl border border-gray-200 bg-gray-50 p-4">
                     <div class="flex items-start justify-between gap-2">
                       <div class="min-w-0">
-                        <p class="text-sm font-semibold text-gray-800">Kategorien</p>
-                        <p class="mt-0.5 text-xs text-gray-500">Filter-Schlagworte, mehrere möglich</p>
+                        <p class="text-sm font-semibold text-gray-800">Merkmale</p>
+                        <p class="mt-0.5 text-xs text-gray-500">Filter-Schlagworte, mehrere m&ouml;glich</p>
                       </div>
                       <button
                         type="button"
@@ -255,7 +255,7 @@
                         Wählen
                       </button>
                     </div>
-                    <div id="selectedCategoryChips" class="mt-auto flex min-h-[2.25rem] flex-wrap items-center gap-2 pt-3" data-empty-text="Keine Kategorien zugeordnet"></div>
+                    <div id="selectedCategoryChips" class="mt-auto flex min-h-[2.25rem] flex-wrap items-center gap-2 pt-3" data-empty-text="Keine Merkmale zugeordnet"></div>
                   </div>
                 </div>
               </div>
@@ -270,8 +270,8 @@
             data-collapsible-trigger
           >
             <div>
-              <h2 class="text-lg font-semibold text-gray-900">Spezifikationen</h2>
-              <p class="text-sm text-gray-500">Beliebige Merkmale wie Länge, Breite, PS, Material oder Farbe</p>
+              <h2 class="text-lg font-semibold text-gray-900">Merkmale</h2>
+              <p class="text-sm text-gray-500">Beliebige Merkmale wie Zimmer, Etage, Balkon, Baujahr oder Energieklasse</p>
             </div>
 
             <span class="mt-1 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-600">
@@ -285,8 +285,8 @@
             <div class="border-t border-gray-100 pt-5">
               <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div>
-                  <h3 class="text-base font-semibold text-gray-900">Produktdetails</h3>
-                  <p class="text-sm text-gray-500">Füge beliebig viele Spezifikationen hinzu</p>
+                  <h3 class="text-base font-semibold text-gray-900">Objektdetails</h3>
+                  <p class="text-sm text-gray-500">F&uuml;ge beliebig viele Merkmale hinzu</p>
                 </div>
 
                 <button
@@ -294,7 +294,7 @@
                   id="addSpecificationRow"
                   class="rounded-xl bg-blue-500 px-4 py-2 font-semibold text-white transition hover:bg-blue-700"
                 >
-                  Spezifikation hinzufügen
+                  Merkmal hinzuf&uuml;gen
                 </button>
               </div>
 
@@ -304,7 +304,7 @@
                 id="noSpecificationsPlaceholder"
                 class="mt-3 rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-4 text-sm text-gray-500"
               >
-                Noch keine Spezifikationen vorhanden
+                Noch keine Merkmale vorhanden
               </div>
             </div>
           </div>
@@ -317,8 +317,8 @@
             data-collapsible-trigger
           >
             <div>
-              <h2 class="text-lg font-semibold text-gray-900">Preis und Verfügbarkeit</h2>
-              <p class="text-sm text-gray-500">Preislogik und Shopstatus des Produkts</p>
+              <h2 class="text-lg font-semibold text-gray-900">Miete und Verf&uuml;gbarkeit</h2>
+              <p class="text-sm text-gray-500">Kostenangaben, Sichtbarkeit und Anfrage-Status der Immobilie</p>
             </div>
 
             <span class="mt-1 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-600">
@@ -331,7 +331,7 @@
           <div class="collapsible-content px-5 pb-5">
             <div class="grid grid-cols-1 gap-5 border-t border-gray-100 pt-5 lg:grid-cols-2">
               <div>
-                <label class="mb-2 block text-sm font-semibold text-gray-700" for="price">Preis</label>
+                <label class="mb-2 block text-sm font-semibold text-gray-700" for="price">Miete / Preis</label>
                 <input
                   id="price"
                   name="price"
@@ -344,7 +344,7 @@
               </div>
 
               <div>
-                <label class="mb-2 block text-sm font-semibold text-gray-700" for="reducedPrice">Reduzierter Preis</label>
+                <label class="mb-2 block text-sm font-semibold text-gray-700" for="reducedPrice">Alternative Angabe (optional)</label>
                 <input
                   id="reducedPrice"
                   name="reducedPrice"
@@ -356,7 +356,7 @@
               </div>
 
               <div>
-                <label class="mb-2 block text-sm font-semibold text-gray-700" for="weight">Produktgewicht in kg</label>
+                <label class="mb-2 block text-sm font-semibold text-gray-700" for="weight">Wohnfl&auml;che in m&sup2;</label>
                 <input
                   id="weight"
                   name="weight"
@@ -377,7 +377,7 @@
                   value=""
                   maxlength="120"
                   class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-800 focus:border-blue-500 focus:bg-white focus:outline-none"
-                  placeholder='z.B. "pro Stück" oder "zzgl. Versand"'
+                  placeholder='z.B. "Kaltmiete" oder "auf Anfrage"'
                 />
               </div>
 
@@ -408,8 +408,8 @@
                   <label class="rounded-2xl border border-gray-200 bg-gray-50 p-4 transition hover:border-blue-400 hover:bg-white">
                     <div class="flex items-start justify-between gap-3">
                       <div>
-                        <p class="text-sm font-semibold text-gray-800">In Stock</p>
-                        <p class="mt-1 text-xs text-gray-500">Lagerbestand vorhanden</p>
+                        <p class="text-sm font-semibold text-gray-800">Verf&uuml;gbar</p>
+                        <p class="mt-1 text-xs text-gray-500">Objekt ist aktuell verf&uuml;gbar</p>
                       </div>
 
                       <span class="relative inline-flex h-6 w-11 shrink-0 items-center">
@@ -429,8 +429,8 @@
                   <label class="rounded-2xl border border-gray-200 bg-gray-50 p-4 transition hover:border-blue-400 hover:bg-white">
                     <div class="flex items-start justify-between gap-3">
                       <div>
-                        <p class="text-sm font-semibold text-gray-800">Lieferung möglich</p>
-                        <p class="mt-1 text-xs text-gray-500">Produkt kann an Kunden geliefert werden</p>
+                        <p class="text-sm font-semibold text-gray-800">Anfrage m&ouml;glich</p>
+                        <p class="mt-1 text-xs text-gray-500">Interessenten k&ouml;nnen zum Objekt Kontakt aufnehmen</p>
                       </div>
 
                       <span class="relative inline-flex h-6 w-11 shrink-0 items-center">
@@ -449,8 +449,8 @@
                   <label class="rounded-2xl border border-gray-200 bg-gray-50 p-4 transition hover:border-blue-400 hover:bg-white">
                     <div class="flex items-start justify-between gap-3">
                       <div>
-                        <p class="text-sm font-semibold text-gray-800">Reduziert</p>
-                        <p class="mt-1 text-xs text-gray-500">Sonderpreis aktiv</p>
+                        <p class="text-sm font-semibold text-gray-800">Sonderhinweis</p>
+                        <p class="mt-1 text-xs text-gray-500">Alternative Kostenangabe hervorheben</p>
                       </div>
 
                       <span class="relative inline-flex h-6 w-11 shrink-0 items-center">
@@ -469,8 +469,8 @@
                   <label class="rounded-2xl border border-gray-200 bg-gray-50 p-4 transition hover:border-blue-400 hover:bg-white">
                     <div class="flex items-start justify-between gap-3">
                       <div>
-                        <p class="text-sm font-semibold text-gray-800">Showcase only</p>
-                        <p class="mt-1 text-xs text-gray-500">Standard: Produkte werden nur präsentiert, kein Online Kauf</p>
+                        <p class="text-sm font-semibold text-gray-800">Nur Ausstellung</p>
+                        <p class="mt-1 text-xs text-gray-500">Standard: Immobilien werden pr&auml;sentiert, kein Online-Kauf</p>
                       </div>
 
                       <span class="relative inline-flex h-6 w-11 shrink-0 items-center">
@@ -491,8 +491,8 @@
                   <label class="rounded-2xl border border-gray-200 bg-gray-50 p-4 transition hover:border-blue-400 hover:bg-white">
                     <div class="flex items-start justify-between gap-3">
                       <div>
-                        <p class="text-sm font-semibold text-gray-800">Preis im Showcase anzeigen</p>
-                        <p class="mt-1 text-xs text-gray-500">Preis sichtbar lassen, aber ohne Kaufaktion</p>
+                        <p class="text-sm font-semibold text-gray-800">Miete/Preis anzeigen</p>
+                        <p class="mt-1 text-xs text-gray-500">Kostenangabe sichtbar lassen, aber ohne Kaufaktion</p>
                       </div>
 
                       <span class="relative inline-flex h-6 w-11 shrink-0 items-center">
@@ -513,7 +513,7 @@
                     <div class="flex items-start justify-between gap-3">
                       <div>
                         <p class="text-sm font-semibold text-gray-800">Hervorheben</p>
-                        <p class="mt-1 text-xs text-gray-500">Produkt wird auf der Produktseite zuerst angezeigt</p>
+                        <p class="mt-1 text-xs text-gray-500">Immobilie wird auf der Immobilienseite zuerst angezeigt</p>
                       </div>
 
                       <span class="relative inline-flex h-6 w-11 shrink-0 items-center">
@@ -542,7 +542,7 @@
           >
             <div>
               <h2 class="text-lg font-semibold text-gray-900">Dateien</h2>
-              <p class="text-sm text-gray-500">Beliebig viele Dateien dem Produkt zuordnen</p>
+              <p class="text-sm text-gray-500">Beliebig viele Dateien der Immobilie zuordnen</p>
             </div>
 
             <span class="mt-1 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-600">
@@ -618,7 +618,7 @@
                   </span>
                 </label>
 
-                <p class="mt-3 text-sm text-gray-500">Bitte lade ein Titelbild für das Produkt hoch</p>
+                <p class="mt-3 text-sm text-gray-500">Bitte lade ein Titelbild f&uuml;r die Immobilie hoch</p>
               </div>
 
               <div class="flex min-h-[18rem] items-center justify-center rounded-2xl border border-gray-200 bg-gray-50 p-4">
@@ -636,7 +636,7 @@
           >
             <div>
               <h2 class="text-lg font-semibold text-gray-900">Galerie</h2>
-              <p class="text-sm text-gray-500">Zusätzliche Bilder dem Produkt zuordnen</p>
+              <p class="text-sm text-gray-500">Zus&auml;tzliche Bilder der Immobilie zuordnen</p>
             </div>
 
             <span class="mt-1 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-600">
@@ -711,7 +711,7 @@
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                     </svg>
                   </span>
-                  <p class="text-sm leading-6 text-gray-700">Preis und reduzierter Preis werden beim Speichern geprüft</p>
+                  <p class="text-sm leading-6 text-gray-700">Miete/Preis und alternative Angabe werden beim Speichern gepr&uuml;ft</p>
                 </div>
 
                 <div class="flex items-start gap-3 rounded-2xl border border-gray-200 bg-gray-50 p-4">
@@ -720,7 +720,7 @@
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                     </svg>
                   </span>
-                  <p class="text-sm leading-6 text-gray-700">Dateien, Galerie und Spezifikationen können direkt mit angelegt werden</p>
+                  <p class="text-sm leading-6 text-gray-700">Dateien, Galerie und Merkmale k&ouml;nnen direkt mit angelegt werden</p>
                 </div>
 
                 <div class="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4">
@@ -729,7 +729,7 @@
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z" />
                     </svg>
                   </span>
-                  <p class="text-sm leading-6 text-amber-800">Showcase Produkte sind nicht für den Online Kauf gedacht</p>
+                  <p class="text-sm leading-6 text-amber-800">Immobilien werden hier nur ausgestellt; Online-Kauf und Shop-Funktionen bleiben ausgeblendet</p>
                 </div>
               </div>
             </div>

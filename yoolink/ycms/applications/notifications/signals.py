@@ -17,7 +17,7 @@ def create_notification_for_message(sender, instance: Message, created, **kwargs
     spam_flag = is_spam_message(instance)
 
     Notification.objects.create(
-        title="Neue Kontaktanfrage" if not spam_flag else "MÃ¶glicher Spam (Kontaktformular)",
+        title="Neue Kontaktanfrage" if not spam_flag else "Möglicher Spam (Kontaktformular)",
         description=(instance.title or instance.message[:120]),
         priority=Notification.Priority.NORMAL if not spam_flag else Notification.Priority.LOW,
         message=instance,
@@ -38,8 +38,8 @@ def create_notification_for_order(sender, instance: Order, created, **kwargs):
 
     title = f"Neue Bestellung #{instance.pk}"
     description = (
-        f"Kunde: {buyer or '-'}  â€¢  E-Mail: {email}\n"
-        f"Positionen: {total_qty}  â€¢  Gesamt: {total_sum} â‚¬  â€¢  Status: {instance.get_status_display()}"
+        f"Kunde: {buyer or '-'}  •  E-Mail: {email}\n"
+        f"Positionen: {total_qty}  •  Gesamt: {total_sum} €  •  Status: {instance.get_status_display()}"
     )
     priority = (
         Notification.Priority.HIGH

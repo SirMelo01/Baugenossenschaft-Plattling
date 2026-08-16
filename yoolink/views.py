@@ -1,10 +1,13 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from yoolink.ycms.applications.content.bgp_content import bgp_content_context
 from yoolink.ycms.applications.content.models import Customer, ImpressumBlock, PrivacyPolicy, ServiceLocation, TextContent
 from yoolink.ycms.models import FAQ, Message, PricingCard, TeamMember, fileentry, Galerie, OpeningHours, WebsiteSettings, Button
 import datetime
 from django.http import Http404, HttpResponseRedirect
 from django.utils.translation import get_language_from_request, activate
 from django.conf import settings
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 
 def get_opening_hours():
     opening_hours = {}
@@ -50,6 +53,23 @@ def get_opening_hours():
         opening_hours["footerText"] = TextContent.objects.get(name='footer')
         
     return opening_hours
+
+
+def get_text_content(name):
+    return TextContent.objects.filter(name=name).first()
+
+
+def get_bgp_context(extra=None):
+    # Textbausteine und Bilder kommen aus bgp_content.py - derselben Quelle, aus der
+    # sich auch der CMS-Editor speist. So kann kein Feld nur auf einer Seite existieren.
+    context = {
+        "bgp_is_public": True,
+        "owner_data": WebsiteSettings.get_site_owner(),
+    }
+    context.update(bgp_content_context())
+    if extra:
+        context.update(extra)
+    return context
 
 def load_kunden(request):
     context = {}
@@ -184,7 +204,49 @@ def load_index(request):
 
     context.update(get_opening_hours())
 
-    return render(request, 'pages/index.html', context=context)
+    return render(request, 'pages/demos/baugenossenschaft-plattling.html', get_bgp_context(context))
+
+
+# Meldungen pro Seite in der Aktuelles-Uebersicht (ohne die Top-Meldung).
+AKTUELLES_PER_PAGE = 9
+
+
+def aktuelles_view(request):
+    """Aktuelles-Uebersicht: Top-Meldung plus paginierte Liste, alles aus dem Blog."""
+    from django.core.paginator import Paginator
+
+    from yoolink.blog.views import get_active_language
+    from yoolink.ycms.models import Blog
+
+    language = get_active_language(request)
+    originals = (
+        Blog.objects.filter(original__isnull=True, active=True)
+        .order_by("-date")
+        .prefetch_related("translations")
+    )
+
+    def localized(blog):
+        variant = blog.translations.filter(language=language, active=True).first()
+        return variant or blog
+
+    posts = [localized(blog) for blog in originals]
+    # Die neueste Meldung steht als Top-Meldung ueber der Liste und darf dort
+    # nicht noch einmal auftauchen.
+    lead = posts[0] if posts else None
+    page_obj = Paginator(posts[1:], AKTUELLES_PER_PAGE).get_page(request.GET.get("page"))
+
+    context = {
+        "demo_page": "aktuelles",
+        "news_lead": lead,
+        "news_page": page_obj,
+        "news_total": len(posts),
+    }
+    context.update(get_opening_hours())
+    return render(
+        request,
+        "pages/demos/baugenossenschaft-plattling-aktuelles.html",
+        get_bgp_context(context),
+    )
 
 
 def load_logos(request):
@@ -659,16 +721,37 @@ from .forms import ContactForm
 def kontaktform(request):
     success = False
     if request.method == 'POST':
-        form = ContactForm(request.POST)
-        if form.is_valid():
-            # Hier Nachricht verarbeiten und speichern
-            Message.objects.create(
-                name=form.cleaned_data['name'],
-                email=form.cleaned_data['email'],
-                title=form.cleaned_data['title'],
-                message=form.cleaned_data['message'],
-            )
-            success = True
+        if request.POST.get("bgp_contact_form") == "1":
+            name = (request.POST.get("name") or "").strip()
+            email = (request.POST.get("email") or "").strip()
+            title = (request.POST.get("betreff") or "Kontaktanfrage").strip()
+            message = (request.POST.get("nachricht") or "").strip()
+            datenschutz = request.POST.get("datenschutz")
+            try:
+                validate_email(email)
+                email_is_valid = True
+            except ValidationError:
+                email_is_valid = False
+            if name and email_is_valid and title and message and datenschutz:
+                Message.objects.create(
+                    name=name,
+                    email=email,
+                    title=title,
+                    message=message,
+                )
+                success = True
+            form = ContactForm()
+        else:
+            form = ContactForm(request.POST)
+            if form.is_valid():
+                # Hier Nachricht verarbeiten und speichern
+                Message.objects.create(
+                    name=form.cleaned_data['name'],
+                    email=form.cleaned_data['email'],
+                    title=form.cleaned_data['title'],
+                    message=form.cleaned_data['message'],
+                )
+                success = True
     else:
         form = ContactForm()
 
@@ -698,6 +781,10 @@ def kontaktform(request):
     # Erfolgsmeldung
     context['textContent_success'] = get_text('main_kontakt_success')
 
-    return render(request, 'pages/kontakt.html', context)
+    return render(
+        request,
+        "pages/demos/baugenossenschaft-plattling-kontakt.html",
+        get_bgp_context({**context, "demo_page": "kontakt"}),
+    )
 
 # Authentication

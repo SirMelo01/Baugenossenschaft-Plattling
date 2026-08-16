@@ -1,8 +1,8 @@
 # YooLink Connect Integration
 
-YooLink Connect ist ein browserbasierter Verbindungsflow fuer externe Plattformen. Die Plattform speichert keine YooLink-Zugangsdaten. Nutzer loggen sich im jeweiligen YooLink CMS ein, bestaetigen die Verbindung, und die Plattform tauscht danach einen kurzlebigen Authorization Code gegen einen Developer API Key.
+YooLink Connect ist ein browserbasierter Verbindungsflow für externe Plattformen. Die Plattform speichert keine YooLink-Zugangsdaten. Nutzer loggen sich im jeweiligen YooLink CMS ein, bestätigen die Verbindung, und die Plattform tauscht danach einen kurzlebigen Authorization Code gegen einen Developer API Key.
 
-Der Flow ist fuer mehrere YooLink-CMS-Instanzen gedacht. Die externe Anwendung muss nur die jeweilige CMS-URL kennen, zum Beispiel `https://kunde-a.de` oder `https://kunde-b.de`.
+Der Flow ist für mehrere YooLink-CMS-Instanzen gedacht. Die externe Anwendung muss nur die jeweilige CMS-URL kennen, zum Beispiel `https://kunde-a.de` oder `https://kunde-b.de`.
 
 ## Endpunkte pro CMS
 
@@ -31,11 +31,11 @@ YooLink Connect nutzt PKCE mit `S256`.
 
 Die externe Plattform erzeugt vor dem Redirect:
 
-- `code_verifier`: zufaelliger String mit 43 bis 128 Zeichen.
+- `code_verifier`: zufälliger String mit 43 bis 128 Zeichen.
 - `code_challenge`: `base64url(sha256(code_verifier))`.
-- `state`: zufaelliger CSRF-Schutzwert.
+- `state`: zufälliger CSRF-Schutzwert.
 
-Die Plattform speichert `code_verifier`, `state`, `cms_base_url` und `redirect_uri` serverseitig in einer Session oder kurzlebigen Datenbankzeile. Der API Key wird erst beim Token Exchange erzeugt und nur einmal zurueckgegeben.
+Die Plattform speichert `code_verifier`, `state`, `cms_base_url` und `redirect_uri` serverseitig in einer Session oder kurzlebigen Datenbankzeile. Der API Key wird erst beim Token Exchange erzeugt und nur einmal zurückgegeben.
 
 ## Authorize Request
 
@@ -58,13 +58,13 @@ Parameter:
 | --- | --- | --- |
 | `client_name` | nein | Anzeigename der externen Anwendung. |
 | `redirect_uri` | ja | Callback-URL deiner Plattform. Muss HTTPS sein. Lokal im YooLink DEBUG-Modus ist `http://localhost` erlaubt. |
-| `scope` | nein | Aktuell `blog`. Mehrere Scopes koennen spaeter per Leerzeichen oder Komma gesendet werden. |
+| `scope` | nein | Aktuell `blog`. Mehrere Scopes können später per Leerzeichen oder Komma gesendet werden. |
 | `access_level` | nein | `read` oder `write`. Standard ist `read`. |
-| `state` | empfohlen | Zufallswert, den du im Callback pruefst. |
+| `state` | empfohlen | Zufallswert, den du im Callback prüfst. |
 | `code_challenge` | ja | PKCE Challenge. |
 | `code_challenge_method` | ja | Muss `S256` sein. |
 
-Nach Login, 2FA und Zustimmung leitet YooLink zur `redirect_uri` zurueck:
+Nach Login, 2FA und Zustimmung leitet YooLink zur `redirect_uri` zurück:
 
 ```text
 https://ki.example.com/api/yoolink/callback?code=yl_connect_...&state=<random-state>
@@ -107,7 +107,7 @@ Erfolgreiche Antwort:
 }
 ```
 
-Speichere `api_key`, `base_url`, `ping_url`, `schema_url`, `access_level`, `allowed_apps` und die CMS-Domain verschluesselt oder in deinem Secret Store. Der `code` kann nur einmal verwendet werden und laeuft nach kurzer Zeit ab.
+Speichere `api_key`, `base_url`, `ping_url`, `schema_url`, `access_level`, `allowed_apps` und die CMS-Domain verschlüsselt oder in deinem Secret Store. Der `code` kann nur einmal verwendet werden und läuft nach kurzer Zeit ab.
 
 ## API-Nutzung danach
 
@@ -121,19 +121,19 @@ GET https://<cms-domain>/api/cms/blog/
 Authorization: Bearer yl_live_...
 ```
 
-Die wichtigsten Blog-Workflows fuer KI-Plattformen sind in der separaten Detaildoku beschrieben:
+Die wichtigsten Blog-Workflows für KI-Plattformen sind in der separaten Detaildoku beschrieben:
 
 - `docs/yoolink-blog-api.md`
 
-Kurzfassung fuer die Einrichtung:
+Kurzfassung für die Einrichtung:
 
-1. Nach dem Token Exchange `ping_url` aufrufen und die Verbindung pruefen.
-2. Fuer Blog-Erstellung muss `access_level` den Wert `write` haben und `allowed_apps` muss `blog` enthalten.
+1. Nach dem Token Exchange `ping_url` aufrufen und die Verbindung prüfen.
+2. Für Blog-Erstellung muss `access_level` den Wert `write` haben und `allowed_apps` muss `blog` enthalten.
 3. Inhalte bevorzugt als `markdown` an `POST /api/cms/blog/` senden.
-4. Bilder zuerst per `POST /api/cms/blog/media/` hochladen und danach das zurueckgegebene Markdown-Snippet in den Blog einfuegen.
-5. Ein Titelbild bei JSON-Requests ueber `title_image_media_id` setzen, nicht als externe URL.
-6. OpenAPI Schema fuer Client-Generatoren: `https://<cms-domain>/api/schema/`.
-7. Swagger UI fuer Menschen und Tests im Browser: `https://<cms-domain>/api/docs/`.
+4. Bilder zuerst per `POST /api/cms/blog/media/` hochladen und danach das zurückgegebene Markdown-Snippet in den Blog einfügen.
+5. Ein Titelbild bei JSON-Requests über `title_image_media_id` setzen, nicht als externe URL.
+6. OpenAPI Schema für Client-Generatoren: `https://<cms-domain>/api/schema/`.
+7. Swagger UI für Menschen und Tests im Browser: `https://<cms-domain>/api/docs/`.
 
 Minimaler KI-Blog-Create:
 
@@ -143,9 +143,9 @@ Authorization: Bearer yl_live_...
 Content-Type: application/json
 
 {
-  "title": "KI Event Rueckblick",
-  "description": "Kurzer SEO-Teaser fuer Blogkarten und Meta Description.",
-  "markdown": "## Rueckblick\n\nDer Event war stark besucht.",
+  "title": "KI Event Rückblick",
+  "description": "Kurzer SEO-Teaser für Blogkarten und Meta Description.",
+  "markdown": "## Rückblick\n\nDer Event war stark besucht.",
   "active": true,
   "language": "de"
 }
@@ -283,7 +283,7 @@ if (!response.ok) {
 }
 ```
 
-## Wiederverwendung fuer mehrere CMS-Projekte
+## Wiederverwendung für mehrere CMS-Projekte
 
 Speichere pro Verbindung mindestens:
 

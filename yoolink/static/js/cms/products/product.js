@@ -109,21 +109,21 @@ function buildStatusBadges(product) {
   const badges = []
 
   if (product.is_in_stock) {
-    badges.push('<span class="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700">Auf Lager</span>')
+    badges.push('<span class="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700">Verf&uuml;gbar</span>')
   } else {
-    badges.push('<span class="rounded-full bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700">Nicht auf Lager</span>')
+    badges.push('<span class="rounded-full bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700">Nicht verf&uuml;gbar</span>')
   }
 
   if (product.online_sell) {
-    badges.push('<span class="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">Lieferung</span>')
+    badges.push('<span class="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">Anfrage</span>')
   }
 
   if (product.showcase_only) {
-    badges.push('<span class="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700">Showcase</span>')
+    badges.push('<span class="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700">Ausstellung</span>')
   }
 
   if (product.is_reduced) {
-    badges.push('<span class="rounded-full bg-orange-50 px-2.5 py-1 text-xs font-medium text-orange-700">Reduziert</span>')
+    badges.push('<span class="rounded-full bg-orange-50 px-2.5 py-1 text-xs font-medium text-orange-700">Sonderhinweis</span>')
   }
 
   if (product.featured) {
@@ -135,7 +135,7 @@ function buildStatusBadges(product) {
 
 function buildPriceBadge(product) {
   if (product.showcase_only && !product.show_price_when_showcase) {
-    return '<span class="rounded-full bg-gray-900 px-3 py-1 text-xs font-semibold text-white">Showcase</span>'
+    return '<span class="rounded-full bg-gray-900 px-3 py-1 text-xs font-semibold text-white">Ausstellung</span>'
   }
 
   if (product.is_reduced && product.discount_price) {
@@ -223,7 +223,7 @@ function updateProductGrid(products) {
   if (!products || products.length === 0) {
     productGrid.html(`
       <div class="col-span-full rounded-2xl border border-dashed border-gray-300 bg-white p-10 text-center text-gray-500 shadow-sm">
-        Keine Produkte für diese Filter gefunden
+        Keine Immobilien f&uuml;r diese Filter gefunden
       </div>
     `)
     return
@@ -350,7 +350,7 @@ function updatePagination(pagination) {
 }
 
 function updateResultsInfo(pagination) {
-  $("#productResultsInfo").text(`${pagination.total_count} Produkte gefunden`)
+  $("#productResultsInfo").text(`${pagination.total_count} Immobilien gefunden`)
   $("#currentPageLabel").text(pagination.current_page)
   $("#totalPagesLabel").text(pagination.num_pages)
 }
@@ -384,7 +384,7 @@ function loadProducts(page = 1) {
     },
     error: function (xhr) {
       console.error(xhr)
-      sendNotif("Die Produktsuche konnte nicht ausgeführt werden.", "error")
+      sendNotif("Die Immobiliensuche konnte nicht ausgef&uuml;hrt werden.", "error")
     }
   })
 }

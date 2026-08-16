@@ -349,7 +349,7 @@ def test_anyfile_upload_accepts_documents_but_rejects_images(logged_in_client, c
     )
 
     assert image_response.status_code == 400
-    assert "nicht unterstuetzt" in image_response.json()["error"]
+    assert "nicht unterstützt" in image_response.json()["error"]
     assert AnyFile.objects.count() == 1
 
 

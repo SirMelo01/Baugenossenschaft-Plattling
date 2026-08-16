@@ -31,6 +31,15 @@ TIME_ZONE = "Europe/Berlin"
 LANGUAGE_CODE = "de"
 # https://docs.djangoproject.com/en/dev/ref/settings/#site-id
 SITE_ID = 1
+# Produktionsdomain dieser Seite. Einzige Stelle, an der die Domain gepflegt wird -
+# ALLOWED_HOSTS, der www-Redirect, canonical-/OG-URLs, das JSON-LD und die Sitemap
+# leiten sich davon ab. Per DJANGO_SITE_DOMAIN in der Env überschreibbar.
+# Aktuell laeuft die Seite auf der Übergangs-Subdomain. Beim Umzug auf die
+# Kundendomain hier auf "baugenossenschaft-plattling.de" umstellen und die
+# Host-Regeln in compose/production/traefik/traefik.yml sowie nginx/default.conf
+# mitziehen.
+SITE_DOMAIN = env("DJANGO_SITE_DOMAIN", default="bgsplattling.yoolink.de")
+SITE_BASE_URL = f"https://{SITE_DOMAIN}"
 # https://docs.djangoproject.com/en/dev/ref/settings/#use-i18n
 USE_I18N = True
 # https://docs.djangoproject.com/en/dev/ref/settings/#use-tz
@@ -38,9 +47,13 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/dev/ref/settings/#locale-paths
 LOCALE_PATHS = [str(BASE_DIR / "locale")]
 # Languages
+# Einzige Stelle, an der die aktiven Sprachen konfiguriert werden. Steht hier nur
+# eine Sprache, blenden CMS und öffentliche Seite den Sprachumschalter komplett
+# aus, es gibt keine /en-URLs mehr und ein englischer Browser bekommt trotzdem
+# die deutsche Seite. Zum Reaktivieren einfach ('en', _('Englisch')) wieder
+# eintragen - sonst ist nichts zu tun.
 LANGUAGES = (
     ('de', _('Deutsch')),
-    ('en', _('Englisch')),
 )
 
 # DATABASES
@@ -213,7 +226,7 @@ AWS_LOCATION = 'https://yoolink.fra1.digitaloceanspaces.com/'
 RECOVERY_REMOTE_BACKUPS_ENABLED = env.bool("RECOVERY_REMOTE_BACKUPS_ENABLED", default=False)
 RECOVERY_BACKUP_ENCRYPTION_KEY = env("RECOVERY_BACKUP_ENCRYPTION_KEY", default="")
 RECOVERY_BACKUP_BUCKET_NAME = env("RECOVERY_BACKUP_BUCKET_NAME", default=AWS_STORAGE_BUCKET_NAME)
-RECOVERY_BACKUP_PREFIX = env("RECOVERY_BACKUP_PREFIX", default="private/recovery-backups")
+RECOVERY_BACKUP_PREFIX = env("RECOVERY_BACKUP_PREFIX", default="private/bgp/recovery-backups")
 RECOVERY_REMOTE_BACKUP_ROTATION_SLOTS = env.int("RECOVERY_REMOTE_BACKUP_ROTATION_SLOTS", default=2)
 RECOVERY_REMOTE_BACKUP_INCLUDE_MEDIA = env.bool("RECOVERY_REMOTE_BACKUP_INCLUDE_MEDIA", default=False)
 
@@ -296,7 +309,7 @@ SECURE_BROWSER_XSS_FILTER = True
 X_FRAME_OPTIONS = "DENY"
 
 EMAIL_OWNER = 'yoolink@t-online.de'
-DASHBOARD_URL = 'https://yoolink.de/'
+DASHBOARD_URL = f"{SITE_BASE_URL}/"
 
 
 # ADMIN
@@ -400,9 +413,9 @@ REST_FRAMEWORK = {
     #),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-    # Nur JSON ausliefern. Die Browsable API (HTML-Oberflaeche) wird in
-    # local.py fuer die Entwicklung wieder aktiviert, ist in Produktion aber
-    # bewusst deaktiviert, damit oeffentliche Endpunkte keine REST-Oberflaeche
+    # Nur JSON ausliefern. Die Browsable API (HTML-Oberfläche) wird in
+    # local.py für die Entwicklung wieder aktiviert, ist in Produktion aber
+    # bewusst deaktiviert, damit öffentliche Endpunkte keine REST-Oberfläche
     # mit Struktur/Formular offenlegen.
     "DEFAULT_RENDERER_CLASSES": ("rest_framework.renderers.JSONRenderer",),
 }

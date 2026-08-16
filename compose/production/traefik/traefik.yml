@@ -29,9 +29,13 @@ certificatesResolvers:
         entryPoint: web
 
 http:
+  # Domain-Regeln muessen zu settings.SITE_DOMAIN passen (config/settings/base.py).
+  # Aktuell: Übergangs-Subdomain bgsplattling.yoolink.de. Kein www-Host, weil dafuer
+  # weder ein DNS-Eintrag existiert noch ein Zertifikat ausgestellt werden koennte -
+  # ein nicht aufloesender Host im Router laesst die ACME-Challenge scheitern.
   routers:
     web-secure-router:
-      rule: "Host(`yoolink.de`) || Host(`www.yoolink.de`)"
+      rule: "Host(`bgsplattling.yoolink.de`)"
       entryPoints:
         - web-secure
       middlewares:
@@ -43,7 +47,7 @@ http:
         certResolver: letsencrypt
 
     flower-secure-router:
-      rule: "Host(`yoolink.de`)"
+      rule: "Host(`bgsplattling.yoolink.de`)"
       entryPoints:
         - flower
       service: flower
@@ -52,7 +56,7 @@ http:
         certResolver: letsencrypt
 
     web-media-router:
-      rule: "Host(`yoolink.de`) && PathPrefix(`/media/`)"
+      rule: "Host(`bgsplattling.yoolink.de`) && PathPrefix(`/media/`)"
       entryPoints:
         - web-secure
       middlewares:

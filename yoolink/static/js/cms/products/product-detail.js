@@ -253,7 +253,7 @@ function initDescriptionEditor() {
 
   descriptionEditor = new Quill(container, {
     theme: "snow",
-    placeholder: "Beschreibe das Produkt – Formatierungen, Listen, Links und Bilder sind möglich",
+    placeholder: "Beschreibe die Immobilie - Formatierungen, Listen, Links und Bilder sind möglich",
     modules: {
       toolbar: {
         container: [
@@ -580,7 +580,7 @@ $(document).ready(function () {
         disableSpinner($("#updateProduct"));
 
         if (response.success) {
-          sendNotif("Das Produkt wurde erfolgreich gespeichert.", "success");
+          sendNotif("Die Immobilie wurde erfolgreich gespeichert.", "success");
         } else {
           sendNotif(response.error || "Speichern fehlgeschlagen.", "error");
         }
@@ -600,8 +600,8 @@ $(document).ready(function () {
   }
 
   Swal.fire({
-    title: "Produkt wirklich löschen?",
-    text: "Das Produkt wird dauerhaft gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.",
+    title: "Immobilie wirklich löschen?",
+    text: "Die Immobilie wird dauerhaft gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.",
     icon: "warning",
     showCancelButton: true,
     confirmButtonColor: "#e3342f",
@@ -613,7 +613,7 @@ $(document).ready(function () {
       return;
     }
 
-    sendNotif("Das Produkt wird gelöscht...", "info");
+    sendNotif("Die Immobilie wird gelöscht...", "info");
 
     $.ajax({
       url: deleteUrl,
@@ -626,7 +626,7 @@ $(document).ready(function () {
         if (response.error) {
           Swal.fire({
             title: "Fehler",
-            text: response.error || "Das Produkt konnte nicht gelöscht werden.",
+            text: response.error || "Die Immobilie konnte nicht gelöscht werden.",
             icon: "error",
           });
           return;
@@ -634,7 +634,7 @@ $(document).ready(function () {
 
         Swal.fire({
           title: "Gelöscht!",
-          text: "Das Produkt wurde erfolgreich entfernt.",
+          text: "Die Immobilie wurde erfolgreich entfernt.",
           icon: "success",
           timer: 1500,
           showConfirmButton: false,
@@ -730,7 +730,7 @@ $(document).ready(function () {
       },
       success: function (response) {
         if (response.success) {
-          sendNotif("Das Produkt wurde erfolgreich erstellt.", "success");
+          sendNotif("Die Immobilie wurde erfolgreich erstellt.", "success");
           setTimeout(function () {
             window.location.href = buildProductDetailUrl(response.productId, response.slug);
             disableSpinner($("#createProduct"));

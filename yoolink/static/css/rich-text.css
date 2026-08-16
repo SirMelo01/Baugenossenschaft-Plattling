@@ -4,7 +4,14 @@
 .rich-text {
   color: #374151;
   line-height: 1.75;
-  word-break: break-word;
+  /* Lange deutsche Komposita werden am Zeilenende getrennt, statt komplett in die
+     naechste Zeile zu rutschen. Braucht das lang-Attribut am <html> (base.html).
+     overflow-wrap greift nur noch, wenn selbst die Silbentrennung nicht reicht.
+     Bewusst als CSS und nicht als Tailwind-Utility: das Projekt hat kein
+     Autoprefixer, und ohne -webkit-hyphens trennt Safari gar nicht. */
+  -webkit-hyphens: auto;
+  hyphens: auto;
+  overflow-wrap: break-word;
 }
 
 .rich-text p {

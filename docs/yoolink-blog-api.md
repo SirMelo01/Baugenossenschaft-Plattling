@@ -1,6 +1,6 @@
-# YooLink Blog API fuer KI-Plattformen
+# YooLink Blog API für KI-Plattformen
 
-Diese Datei beschreibt, wie eine externe KI-Plattform nach erfolgreicher YooLink-Connect-Einrichtung Blogs erstellt, aktualisiert und Medien hochlaedt.
+Diese Datei beschreibt, wie eine externe KI-Plattform nach erfolgreicher YooLink-Connect-Einrichtung Blogs erstellt, aktualisiert und Medien hochlädt.
 
 Die Connect-Einrichtung steht in `docs/yoolink-connect.md`. Diese Datei beschreibt die Nutzung danach.
 
@@ -55,14 +55,14 @@ Alternativ:
 X-YooLink-API-Key: <api-key>
 ```
 
-Ein `read` Key darf nur lesen. Ein `write` Key darf zusaetzlich erstellen, aktualisieren, loeschen und Medien hochladen.
+Ein `read` Key darf nur lesen. Ein `write` Key darf zusätzlich erstellen, aktualisieren, löschen und Medien hochladen.
 
-Voraussetzungen fuer Blog-Erstellung:
+Voraussetzungen für Blog-Erstellung:
 
 - `access_level`: `write`
-- `allowed_apps`: enthaelt `blog`
+- `allowed_apps`: enthält `blog`
 
-## Verbindung pruefen
+## Verbindung prüfen
 
 Direkt nach dem Speichern des API Keys sollte die Plattform den Ping-Endpunkt aufrufen.
 
@@ -90,10 +90,10 @@ Beispielantwort:
 | --- | --- | --- | --- |
 | `GET` | `/api/cms/blog/` | Blogs listen | `read` oder `write` |
 | `POST` | `/api/cms/blog/` | Blog erstellen | `write` |
-| `GET` | `/api/cms/blog/{id}/` | Blog vollstaendig laden | `read` oder `write` |
+| `GET` | `/api/cms/blog/{id}/` | Blog vollständig laden | `read` oder `write` |
 | `PATCH` | `/api/cms/blog/{id}/` | Blog teilweise aktualisieren | `write` |
 | `PUT` | `/api/cms/blog/{id}/` | Blog komplett ersetzen | `write` |
-| `DELETE` | `/api/cms/blog/{id}/` | Blog loeschen | `write` |
+| `DELETE` | `/api/cms/blog/{id}/` | Blog löschen | `write` |
 | `POST` | `/api/cms/blog/media/` | Bild hochladen | `write` |
 
 ## Blogs listen
@@ -109,10 +109,10 @@ Query-Parameter:
 | --- | --- | --- |
 | `q` | String | Suche im Titel. |
 | `language` | z. B. `de`, `en`, `fr` | Filtert nach Sprache. |
-| `active` | `true`, `false`, `1`, `0`, `yes`, `no` | Filtert nach veroeffentlichten oder inaktiven Blogs. |
+| `active` | `true`, `false`, `1`, `0`, `yes`, `no` | Filtert nach veröffentlichten oder inaktiven Blogs. |
 | `original_only` | `true`, `false`, `1`, `0`, `yes`, `no` | Nur Original-Blogs ohne Sprachvarianten. |
 
-Die Liste ist bewusst kompakt. Sie enthaelt kein `markdown`, `body`, `code` und keine `translations`. Fuer vollstaendige Daten `GET /api/cms/blog/{id}/` verwenden.
+Die Liste ist bewusst kompakt. Sie enthält kein `markdown`, `body`, `code` und keine `translations`. Für vollständige Daten `GET /api/cms/blog/{id}/` verwenden.
 
 Beispielantwort:
 
@@ -120,7 +120,7 @@ Beispielantwort:
 [
   {
     "id": 12,
-    "title": "Event Rueckblick",
+    "title": "Event Rückblick",
     "slug": "event-rueckblick",
     "description": "Kurzer SEO-Teaser.",
     "active": true,
@@ -137,10 +137,10 @@ Beispielantwort:
 
 ## Blog erstellen
 
-Fuer KI-Workflows ist `markdown` der empfohlene Inhaltstyp. YooLink erzeugt daraus automatisch:
+Für KI-Workflows ist `markdown` der empfohlene Inhaltstyp. YooLink erzeugt daraus automatisch:
 
-- `body` als HTML fuer die Ausgabe
-- `code` als Blog-Builder-Struktur fuer das CMS
+- `body` als HTML für die Ausgabe
+- `code` als Blog-Builder-Struktur für das CMS
 
 ```http
 POST https://<cms-domain>/api/cms/blog/
@@ -150,9 +150,9 @@ Content-Type: application/json
 
 ```json
 {
-  "title": "KI Event Rueckblick",
-  "description": "Kurzer SEO-Teaser fuer Blogkarten und Meta Description.",
-  "markdown": "## Rueckblick\n\nDer Event war stark besucht.\n\n- Punkt eins\n- Punkt zwei",
+  "title": "KI Event Rückblick",
+  "description": "Kurzer SEO-Teaser für Blogkarten und Meta Description.",
+  "markdown": "## Rückblick\n\nDer Event war stark besucht.\n\n- Punkt eins\n- Punkt zwei",
   "active": true,
   "language": "de"
 }
@@ -163,14 +163,14 @@ Wichtige Felder:
 | Feld | Pflicht | Typ | Beschreibung |
 | --- | --- | --- | --- |
 | `title` | ja | String | Blogtitel. Darf nicht leer sein. |
-| `description` | ja | String | Kurzbeschreibung fuer Blogkarten, SEO und Meta Description. Darf nicht leer sein. |
-| `markdown` | bedingt | String | Empfohlener Inhalt fuer KI-Workflows. Entweder `markdown`, `body` oder `code` muss gesetzt sein. |
-| `body` | bedingt | HTML String | Alternative fuer vorhandenes HTML. YooLink erzeugt daraus Markdown und Builder-Code. |
+| `description` | ja | String | Kurzbeschreibung für Blogkarten, SEO und Meta Description. Darf nicht leer sein. |
+| `markdown` | bedingt | String | Empfohlener Inhalt für KI-Workflows. Entweder `markdown`, `body` oder `code` muss gesetzt sein. |
+| `body` | bedingt | HTML String | Alternative für vorhandenes HTML. YooLink erzeugt daraus Markdown und Builder-Code. |
 | `code` | bedingt | JSON Array/Object | Interne Blog-Builder-Struktur. YooLink erzeugt daraus HTML und Markdown. |
-| `active` | nein | Boolean | `true` veroeffentlicht den Blog, `false` speichert ihn als Entwurf. Standard im Modell ist `false`. |
+| `active` | nein | Boolean | `true` veröffentlicht den Blog, `false` speichert ihn als Entwurf. Standard im Modell ist `false`. |
 | `language` | nein | String | `de`, `en` oder `fr`. Standard ist `de`. |
 | `original` | nein | Integer/null | ID des Original-Blogs, wenn eine Sprachvariante erstellt wird. |
-| `title_image_media_id` | nein | Integer | ID aus `POST /api/cms/blog/media/` fuer ein Titelbild bei JSON-Requests. |
+| `title_image_media_id` | nein | Integer | ID aus `POST /api/cms/blog/media/` für ein Titelbild bei JSON-Requests. |
 | `title_image` | nein | Datei | Nur bei Multipart-Requests direkt an `/api/cms/blog/` oder `/api/cms/blog/{id}/`. |
 
 Read-only Felder in Antworten:
@@ -189,16 +189,16 @@ Beispielantwort:
 ```json
 {
   "id": 12,
-  "title": "KI Event Rueckblick",
+  "title": "KI Event Rückblick",
   "slug": "ki-event-rueckblick",
-  "description": "Kurzer SEO-Teaser fuer Blogkarten und Meta Description.",
-  "body": "<h2>Rueckblick</h2><p>Der Event war stark besucht.</p>",
-  "markdown": "## Rueckblick\n\nDer Event war stark besucht.",
+  "description": "Kurzer SEO-Teaser für Blogkarten und Meta Description.",
+  "body": "<h2>Rückblick</h2><p>Der Event war stark besucht.</p>",
+  "markdown": "## Rückblick\n\nDer Event war stark besucht.",
   "code": [
     {
       "name": "title-1",
       "type": "h2",
-      "value": "Rueckblick"
+      "value": "Rückblick"
     },
     {
       "name": "textArea",
@@ -216,7 +216,7 @@ Beispielantwort:
   "translations": [
     {
       "id": 12,
-      "title": "KI Event Rueckblick",
+      "title": "KI Event Rückblick",
       "language": "de",
       "active": true,
       "is_current": true,
@@ -230,9 +230,9 @@ Beispielantwort:
 }
 ```
 
-## Bilder fuer Blog-Inhalte hochladen
+## Bilder für Blog-Inhalte hochladen
 
-Content-Bilder fuer Markdown-Blogs sollten zuerst ueber den Media-Endpunkt hochgeladen werden.
+Content-Bilder für Markdown-Blogs sollten zuerst über den Media-Endpunkt hochgeladen werden.
 
 ```http
 POST https://<cms-domain>/api/cms/blog/media/
@@ -265,7 +265,7 @@ Beispielantwort:
 }
 ```
 
-Die KI-Plattform kann `markdown` direkt in den Blog-Inhalt einfuegen:
+Die KI-Plattform kann `markdown` direkt in den Blog-Inhalt einfügen:
 
 ```json
 {
@@ -278,7 +278,7 @@ Die KI-Plattform kann `markdown` direkt in den Blog-Inhalt einfuegen:
 }
 ```
 
-Wichtig: Bei JSON-Requests kann `title_image` keine externe URL sein. Fuer Titelbilder immer `title_image_media_id` verwenden oder den Blog als Multipart mit `title_image` senden.
+Wichtig: Bei JSON-Requests kann `title_image` keine externe URL sein. Für Titelbilder immer `title_image_media_id` verwenden oder den Blog als Multipart mit `title_image` senden.
 
 ## Blog aktualisieren
 
@@ -305,7 +305,7 @@ Wenn `markdown` aktualisiert wird, rendert YooLink `body` und `code` erneut:
 
 ## Sprachvarianten
 
-Ein Blog ohne `original` ist ein Original-Blog. Eine Uebersetzung referenziert das Original ueber `original`.
+Ein Blog ohne `original` ist ein Original-Blog. Eine Übersetzung referenziert das Original über `original`.
 
 ```http
 POST https://<cms-domain>/api/cms/blog/
@@ -322,7 +322,7 @@ Content-Type: application/json
 }
 ```
 
-Pro Original darf jede Sprache nur einmal existieren. Wenn fuer ein Original bereits eine `en`-Variante existiert, gibt die API `400` zurueck.
+Pro Original darf jede Sprache nur einmal existieren. Wenn für ein Original bereits eine `en`-Variante existiert, gibt die API `400` zurück.
 
 ## OpenAPI und Swagger
 
@@ -336,9 +336,9 @@ Swagger UI:
 https://<cms-domain>/api/docs/
 ```
 
-Das OpenAPI Schema wird von `drf-spectacular` erzeugt und enthaelt die YooLink-Developer-Key-Authentifizierung als Security Scheme `YooLinkDeveloperApiKey`.
+Das OpenAPI Schema wird von `drf-spectacular` erzeugt und enthält die YooLink-Developer-Key-Authentifizierung als Security Scheme `YooLinkDeveloperApiKey`.
 
-Fuer Client-Generatoren:
+Für Client-Generatoren:
 
 ```bash
 openapi-generator-cli generate \
@@ -359,18 +359,18 @@ oder:
 X-YooLink-API-Key: <api-key>
 ```
 
-## Empfohlener Ablauf fuer KI-Plattformen
+## Empfohlener Ablauf für KI-Plattformen
 
 1. User gibt CMS-Domain ein, z. B. `https://kunde.de`.
 2. Plattform startet YooLink Connect mit `scope=blog` und `access_level=write`.
-3. User bestaetigt im YooLink CMS.
+3. User bestätigt im YooLink CMS.
 4. Plattform tauscht `code` plus `code_verifier` gegen `api_key`.
 5. Plattform speichert `api_key`, `base_url`, `ping_url`, `schema_url`, `docs_url`, `access_level`, `allowed_apps`.
 6. Plattform ruft `GET /api/ping/` auf.
 7. KI erstellt Artikelentwurf als Markdown.
-8. KI laedt benoetigte Bilder ueber `POST /api/cms/blog/media/` hoch.
+8. KI lädt benötigte Bilder über `POST /api/cms/blog/media/` hoch.
 9. KI setzt Bild-Markdown in den Artikel und optional `title_image_media_id`.
-10. Plattform erstellt den Blog ueber `POST /api/cms/blog/`.
+10. Plattform erstellt den Blog über `POST /api/cms/blog/`.
 11. Plattform zeigt `absolute_url` und `api_url` aus der Antwort an.
 
 ## JavaScript-Beispiele
@@ -404,9 +404,9 @@ async function createYooLinkBlog(connection: { cmsBaseUrl: string; apiKey: strin
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      title: "KI Event Rueckblick",
-      description: "Kurzer SEO-Teaser fuer Blogkarten und Meta Description.",
-      markdown: "## Rueckblick\n\nDer Event war stark besucht.",
+      title: "KI Event Rückblick",
+      description: "Kurzer SEO-Teaser für Blogkarten und Meta Description.",
+      markdown: "## Rückblick\n\nDer Event war stark besucht.",
       active: true,
       language: "de",
     }),
@@ -455,15 +455,15 @@ async function uploadYooLinkBlogImage(
 | Status | Bedeutung |
 | --- | --- |
 | `400` | Validierungsfehler, z. B. fehlender Titel, leere Beschreibung, doppelte Sprachvariante oder falscher Upload-Typ. |
-| `401` | API Key fehlt, ist ungueltig, abgelaufen oder widerrufen. |
+| `401` | API Key fehlt, ist ungültig, abgelaufen oder widerrufen. |
 | `403` | API Key hat nicht den Scope `blog` oder nur `read`, obwohl ein Schreibzugriff versucht wurde. |
 | `404` | Blog-ID existiert nicht. |
 
-## Hinweise fuer KI-generierte Inhalte
+## Hinweise für KI-generierte Inhalte
 
 - Immer `title` und `description` setzen.
-- Markdown bevorzugen, weil YooLink daraus automatisch HTML und Builder-Bloecke erzeugt.
-- `active: false` verwenden, wenn der Artikel erst geprueft werden soll.
-- `active: true` nur setzen, wenn die Plattform direkt veroeffentlichen darf.
-- Fuer Bilder zuerst `/api/cms/blog/media/` verwenden und das `markdown` aus der Antwort in den Artikel einfuegen.
-- Die Antwort nach `POST /api/cms/blog/` enthaelt `absolute_url` fuer die oeffentliche Seite und `id` fuer spaetere Updates.
+- Markdown bevorzugen, weil YooLink daraus automatisch HTML und Builder-Blöcke erzeugt.
+- `active: false` verwenden, wenn der Artikel erst geprüft werden soll.
+- `active: true` nur setzen, wenn die Plattform direkt veröffentlichen darf.
+- Für Bilder zuerst `/api/cms/blog/media/` verwenden und das `markdown` aus der Antwort in den Artikel einfügen.
+- Die Antwort nach `POST /api/cms/blog/` enthält `absolute_url` für die öffentliche Seite und `id` für spätere Updates.

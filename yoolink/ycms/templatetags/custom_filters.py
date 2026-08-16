@@ -8,9 +8,9 @@ register = template.Library()
 @register.simple_tag(takes_context=True)
 def translate_url(context, lang_code):
     """
-    Gibt die URL der aktuellen Seite in der angegebenen Sprache zurueck.
-    Beruecksichtigt das i18n_patterns-Praefix (z.B. /en/), sodass hreflang-
-    und canonical-Links korrekt erzeugt werden – ohne doppeltes/fehlendes Praefix.
+    Gibt die URL der aktuellen Seite in der angegebenen Sprache zurück.
+    Berücksichtigt das i18n_patterns-Präfix (z.B. /en/), sodass hreflang-
+    und canonical-Links korrekt erzeugt werden – ohne doppeltes/fehlendes Präfix.
     """
     request = context.get("request")
     if request is None:

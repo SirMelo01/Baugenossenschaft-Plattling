@@ -254,8 +254,8 @@ def test_write_key_creates_and_updates_blog(cms_user):
     create_response = client.post(
         "/api/cms/blog/",
         {
-            "title": "KI Event Rueckblick",
-            "description": "Automatisch erzeugter Rueckblick.",
+            "title": "KI Event Rückblick",
+            "description": "Automatisch erzeugter Rückblick.",
             "body": "<p>Der Event war stark besucht.</p>",
             "active": True,
             "language": "de",
@@ -264,7 +264,7 @@ def test_write_key_creates_and_updates_blog(cms_user):
     )
 
     assert create_response.status_code == 201
-    blog = Blog.objects.get(title="KI Event Rueckblick")
+    blog = Blog.objects.get(title="KI Event Rückblick")
     assert blog.author == cms_user
     assert blog.active is True
     assert blog.code[0]["name"] == "textArea"
@@ -320,7 +320,7 @@ def test_markdown_is_split_into_builder_blocks(cms_user):
             "markdown": (
                 "## Abschnitt\n\n"
                 "Ein kurzer Absatz mit **Fettschrift**.\n\n"
-                "![Buehne](https://example.com/event.png)\n\n"
+                "![Bühne](https://example.com/event.png)\n\n"
                 "### Details\n\n"
                 "- Punkt eins\n"
                 "- Punkt zwei\n\n"
@@ -336,9 +336,9 @@ def test_markdown_is_split_into_builder_blocks(cms_user):
     blog = Blog.objects.get(title="Strukturierter Markdown Blog")
     assert [block["name"] for block in blog.code] == ["title-1", "textArea", "image", "title-2", "textArea", "code"]
     assert blog.code[2]["attributes"]["src"] == "https://example.com/event.png"
-    assert blog.code[2]["attributes"]["alt"] == "Buehne"
+    assert blog.code[2]["attributes"]["alt"] == "Bühne"
     assert blog.code[5]["attributes"]["class"].endswith("language-python")
-    assert "![Buehne](https://example.com/event.png)" in blog.markdown
+    assert "![Bühne](https://example.com/event.png)" in blog.markdown
 
 
 def test_markdown_groups_section_text_into_one_builder_textarea(cms_user):
@@ -384,7 +384,7 @@ def test_markdown_image_options_are_rendered_and_preserved(cms_user):
         {
             "title": "Markdown Bildgröße",
             "description": "Markdown Bild mit Größe.",
-            "markdown": "## Bild\n\n![Buehne](https://example.com/event.png){width=50% height=320px}",
+            "markdown": "## Bild\n\n![Bühne](https://example.com/event.png){width=50% height=320px}",
             "active": True,
             "language": "de",
         },
@@ -395,7 +395,7 @@ def test_markdown_image_options_are_rendered_and_preserved(cms_user):
     blog = Blog.objects.get(title="Markdown Bildgröße")
     assert 'style="width: 50%; height: 320px"' in blog.body
     assert blog.code[1]["css"] == {"height": "320px", "width": "50%"}
-    assert "![Buehne](https://example.com/event.png){width=50% height=320px}" in blog.markdown
+    assert "![Bühne](https://example.com/event.png){width=50% height=320px}" in blog.markdown
 
 
 def test_markdown_gallery_block_renders_and_maps_to_builder(cms_user):
@@ -587,7 +587,7 @@ def test_cms_markdown_create_renders_body_and_builder_code(client, cms_user):
         reverse("ycms:blog-create"),
         {
             "title": "CMS Markdown Blog",
-            "description": "Direkt im CMS eingefuegt.",
+            "description": "Direkt im CMS eingefügt.",
             "content_source": "markdown",
             "markdown": "## CMS Abschnitt\n\nText aus Markdown.\n\n![Alt Text](/media/yoolink/images/bild.png)",
             "active": "true",

@@ -281,12 +281,13 @@ class BlogDetailView(DetailView):
         if not self.object.active and not (request.user.is_authenticated and request.user.is_staff):
             raise Http404("Blog nicht gefunden")
 
-        # 1) Canonical Slug sicherstellen
+        # 1) Canonical URL sicherstellen
         # Permanenter Redirect (301): der Slug ist unveränderlich, alte/kürzere
         # Slug-Varianten (z. B. ehemalige "-en"-Slugs) zeigen dauerhaft auf die
         # aktuelle URL, damit Google das Ranking überträgt statt neu zu bewerten.
-        url_slug = kwargs.get('slug_title')
-        if url_slug != self.object.slug:
+        # Das greift auch für die alte /blog/-Adresse, seit get_absolute_url() auf
+        # die Aktuelles-Detailseite zeigt - so bleibt es bei einer URL je Meldung.
+        if request.path != self.object.get_absolute_url():
             return redirect(self.object.get_absolute_url(), permanent=True)
 
         # 2) Sprachvariante prüfen → ggf. Redirect
@@ -305,3 +306,22 @@ class BlogDetailView(DetailView):
         # passt → normal rendern
         context = self.get_context_data(object=self.object)
         return self.render_to_response(context)
+
+
+class AktuellesDetailView(BlogDetailView):
+    """Die Meldung im Kundendesign unter /aktuelles/<pk>-<slug>.
+
+    Erbt bewusst alles von BlogDetailView: Markdown-Rendering, Consent-Gate für
+    eingebettete iframes, Slug-/Sprach-Redirects und die SEO-Felder sollen an
+    einer Stelle gepflegt bleiben. Hier kommt nur das Template dazu plus der
+    Kontext, den das BGP-Grundgerüst braucht.
+    """
+
+    template_name = "pages/demos/baugenossenschaft-plattling-aktuelles-detail.html"
+
+    def get_context_data(self, **kwargs):
+        from yoolink.views import get_bgp_context, get_opening_hours
+
+        context = super().get_context_data(**kwargs)
+        context.update(get_opening_hours())
+        return get_bgp_context({**context, "demo_page": "aktuelles"})

@@ -1,19 +1,17 @@
 {% extends "cmsbase.html" %}
 {% load compress static shop_extras %}
 
-{% block title %}{{ block.super }} | CMS | Produkte{% endblock %}
+{% block title %}{{ block.super }} | CMS | Immobilien{% endblock %}
 
 {% block content %}
 <div class="mx-auto max-w-7xl">
   <div class="mb-6 mt-2 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
     <div>
       <nav class="mb-1 flex items-center gap-1.5 text-sm text-slate-400">
-        <a href="{% url 'cms:shop' %}" class="font-medium text-slate-500 transition hover:text-blue-600">Shop</a>
-        <i class="bi bi-chevron-right text-xs"></i>
-        <span>Produkte</span>
+        <span>Immobilien</span>
       </nav>
-      <h1 class="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">Produkte</h1>
-      <p class="mt-1.5 text-slate-500">Produkte filtern, durchsuchen und verwalten.</p>
+      <h1 class="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">Immobilien</h1>
+      <p class="mt-1.5 text-slate-500">Immobilien filtern, durchsuchen und verwalten.</p>
     </div>
 
     <div class="flex flex-col gap-2 sm:flex-row">
@@ -23,7 +21,7 @@
       </a>
       <a href="{% url 'cms:product-create' %}"
         class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 sm:w-auto">
-        <i class="bi bi-plus-lg"></i> Produkt erstellen
+        <i class="bi bi-plus-lg"></i> Immobilie anlegen
       </a>
     </div>
   </div>
@@ -69,7 +67,7 @@
               id="searchProductInput"
               type="text"
               value="{{ filters.q }}"
-              placeholder="Titel, Beschreibung, Hersteller oder Kategorie"
+              placeholder="Objektbezeichnung, Beschreibung, Standort oder Merkmal"
               class="w-full rounded-xl border border-gray-200 bg-gray-50 py-3 pl-11 pr-4 text-gray-800 focus:border-blue-500 focus:bg-white focus:outline-none"
             />
           </div>
@@ -100,10 +98,10 @@
               class="w-full appearance-none rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 pr-11 text-gray-800 focus:border-blue-500 focus:bg-white focus:outline-none"
             >
               <option value="" {% if not filters.availability %}selected{% endif %}>Alle</option>
-              <option value="in_stock" {% if filters.availability == "in_stock" %}selected{% endif %}>Auf Lager</option>
-              <option value="out_of_stock" {% if filters.availability == "out_of_stock" %}selected{% endif %}>Nicht auf Lager</option>
-              <option value="online" {% if filters.availability == "online" %}selected{% endif %}>Lieferung möglich</option>
-              <option value="offline" {% if filters.availability == "offline" %}selected{% endif %}>Keine Lieferung</option>
+              <option value="in_stock" {% if filters.availability == "in_stock" %}selected{% endif %}>Verf&uuml;gbar</option>
+              <option value="out_of_stock" {% if filters.availability == "out_of_stock" %}selected{% endif %}>Nicht verf&uuml;gbar</option>
+              <option value="online" {% if filters.availability == "online" %}selected{% endif %}>Anfrage m&ouml;glich</option>
+              <option value="offline" {% if filters.availability == "offline" %}selected{% endif %}>Keine Anfrage</option>
             </select>
             <span class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4 text-gray-400">
               <i class="bi bi-chevron-down text-xs"></i>
@@ -119,11 +117,10 @@
               class="w-full appearance-none rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 pr-11 text-gray-800 focus:border-blue-500 focus:bg-white focus:outline-none"
             >
               <option value="" {% if not filters.type %}selected{% endif %}>Alle</option>
-              <option value="shop" {% if filters.type == "shop" %}selected{% endif %}>Shop Produkte</option>
-              <option value="showcase" {% if filters.type == "showcase" %}selected{% endif %}>Showcase Produkte</option>
-              <option value="reduced" {% if filters.type == "reduced" %}selected{% endif %}>Reduzierte Produkte</option>
-              <option value="with_price" {% if filters.type == "with_price" %}selected{% endif %}>Mit Preis</option>
-              <option value="without_price" {% if filters.type == "without_price" %}selected{% endif %}>Ohne Preis</option>
+              <option value="showcase" {% if filters.type == "showcase" %}selected{% endif %}>Ausstellung</option>
+              <option value="with_price" {% if filters.type == "with_price" %}selected{% endif %}>Mit Miet-/Preisangabe</option>
+              <option value="without_price" {% if filters.type == "without_price" %}selected{% endif %}>Ohne Miet-/Preisangabe</option>
+              <option value="reduced" {% if filters.type == "reduced" %}selected{% endif %}>Mit Sonderhinweis</option>
             </select>
             <span class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4 text-gray-400">
               <i class="bi bi-chevron-down text-xs"></i>
@@ -146,8 +143,8 @@
               <option value="updated_asc" {% if filters.ordering == "updated_asc" %}selected{% endif %}>Zuerst ältere Updates</option>
               <option value="created_desc" {% if filters.ordering == "created_desc" %}selected{% endif %}>Neueste zuerst</option>
               <option value="created_asc" {% if filters.ordering == "created_asc" %}selected{% endif %}>Älteste zuerst</option>
-              <option value="price_asc" {% if filters.ordering == "price_asc" %}selected{% endif %}>Preis aufsteigend</option>
-              <option value="price_desc" {% if filters.ordering == "price_desc" %}selected{% endif %}>Preis absteigend</option>
+              <option value="price_asc" {% if filters.ordering == "price_asc" %}selected{% endif %}>Miete/Preis aufsteigend</option>
+              <option value="price_desc" {% if filters.ordering == "price_desc" %}selected{% endif %}>Miete/Preis absteigend</option>
             </select>
             <span class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4 text-gray-400">
               <i class="bi bi-chevron-down text-xs"></i>
@@ -176,9 +173,9 @@
 
   <div class="mb-5 flex flex-col gap-3 rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
     <div>
-      <p class="text-sm font-semibold text-gray-900">Produkte Übersicht</p>
+      <p class="text-sm font-semibold text-gray-900">Immobilien-&Uuml;bersicht</p>
       <p id="productResultsInfo" class="text-sm text-gray-500">
-        {{ page_obj.paginator.count }} Produkte gefunden
+        {{ page_obj.paginator.count }} Immobilien gefunden
       </p>
     </div>
 
@@ -199,7 +196,7 @@
 
           <div class="absolute left-3 top-3 flex flex-wrap gap-2">
             {% if product.showcase_only and not product.show_price_when_showcase %}
-              <span class="rounded-full bg-gray-900 px-3 py-1 text-xs font-semibold text-white">Showcase</span>
+              <span class="rounded-full bg-gray-900 px-3 py-1 text-xs font-semibold text-white">Ausstellung</span>
             {% elif product.is_reduced and product.discount_price %}
               <span class="rounded-full bg-red-500 px-3 py-1 text-xs font-semibold text-white">{{ product.discount_price }} €</span>
               <span class="rounded-full bg-white/95 px-3 py-1 text-xs font-semibold text-gray-500 line-through shadow-sm">{{ product.price }} €</span>
@@ -227,21 +224,21 @@
 
           <div class="mt-3 flex flex-wrap gap-2">
             {% if product.is_in_stock %}
-              <span class="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700">Auf Lager</span>
+              <span class="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700">Verf&uuml;gbar</span>
             {% else %}
-              <span class="rounded-full bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700">Nicht auf Lager</span>
+              <span class="rounded-full bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700">Nicht verf&uuml;gbar</span>
             {% endif %}
 
             {% if product.online_sell %}
-              <span class="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">Lieferung</span>
+              <span class="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">Anfrage</span>
             {% endif %}
 
             {% if product.showcase_only %}
-              <span class="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700">Showcase</span>
+              <span class="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700">Ausstellung</span>
             {% endif %}
 
             {% if product.is_reduced %}
-              <span class="rounded-full bg-orange-50 px-2.5 py-1 text-xs font-medium text-orange-700">Reduziert</span>
+              <span class="rounded-full bg-orange-50 px-2.5 py-1 text-xs font-medium text-orange-700">Sonderhinweis</span>
             {% endif %}
 
             {% if product.featured %}
@@ -294,7 +291,7 @@
       </div>
     {% empty %}
       <div class="col-span-full rounded-2xl border border-dashed border-gray-300 bg-white p-10 text-center text-gray-500 shadow-sm">
-        Noch keine Produkte gefunden
+        Noch keine Immobilien gefunden
       </div>
     {% endfor %}
   </div>

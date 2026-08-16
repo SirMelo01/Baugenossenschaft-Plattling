@@ -1,0 +1,516 @@
+{% extends "cmsbase.html" %}
+{% load compress static %}
+{% block title %} {{ block.super }} | CMS - Baugenossenschaft Plattling {% endblock %}
+
+{% block content %}
+{% include "pages/cms/components/ImageSelectModal.html" %}
+
+{% comment %}
+Editor der Startseite. Die Abschnitte folgen exakt der Reihenfolge der oeffentlichen
+Seite (pages/demos/baugenossenschaft-plattling.html), damit klar ist, welches Feld
+wo landet. Jeder sichtbare Text der Seite hat hier ein Eingabefeld.
+{% endcomment %}
+
+<div class="mx-auto mt-4 max-w-6xl px-4 sm:mt-8 sm:px-6">
+  <div class="sticky top-[4.25rem] z-30 mb-6 flex flex-col gap-3 rounded-2xl border border-gray-200 bg-white/95 px-5 py-4 shadow-sm backdrop-blur sm:flex-row sm:items-center sm:justify-between">
+    <h1 class="text-2xl">
+      <a href="{% url 'cms:sites' %}" class="text-blue-500">Seiten</a>
+      / <span>Startseite (/)</span>
+    </h1>
+    <div class="flex items-center gap-3">
+      {% csrf_token %}
+      <a href="/" target="_blank" rel="noopener"
+         class="hidden rounded border border-gray-200 px-4 py-2 text-center text-sm font-semibold text-gray-700 hover:bg-gray-50 sm:block">
+        <i class="bi bi-box-arrow-up-right"></i> Seite ansehen
+      </a>
+      <a class="block w-full rounded bg-green-500 px-4 py-3 text-center font-bold text-white hover:cursor-pointer hover:bg-green-700 sm:w-auto sm:py-2"
+         id="saveTextData" name="main_bgp">
+        Speichern
+      </a>
+    </div>
+  </div>
+
+  <p class="rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-600 ring-1 ring-slate-200">
+    Die Abschnitte stehen in derselben Reihenfolge wie auf der Startseite. Leer gelassene Felder
+    fallen automatisch auf den hinterlegten Standardtext zurück.
+  </p>
+
+  <div class="mt-8 space-y-8 pb-20">
+
+    {# ─────────────── HERO ─────────────── #}
+    <section class="overflow-hidden rounded-2xl ring-1 ring-slate-200">
+      <div class="bgp-cms-navy px-6 py-3">
+        <p class="text-xs font-semibold uppercase tracking-wider text-white/80">1 &middot; Hero (oberster Bereich)</p>
+      </div>
+      <div class="grid grid-cols-1 gap-6 bg-slate-800 p-6 lg:grid-cols-2">
+
+        <div class="flex flex-col gap-4">
+          <div class="text-content flex flex-col gap-3" key="main_bgp_hero">
+            <div>
+              <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-white/60">Überschrift (weiß, eine Zeile pro Umbruch)</span>
+              <textarea inputType="title" rows="2"
+                        class="w-full rounded-lg border-2 border-slate-600 bg-slate-700 px-4 py-2 text-2xl font-bold text-white focus:border-yellow-300 focus:outline-none"
+                        placeholder="Gemeinsam bauen.&#10;Sicher wohnen.">{{ bgp_hero.title }}</textarea>
+            </div>
+            <div>
+              <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-yellow-300">Gelbe Schlusszeile</span>
+              <input inputType="header" type="text"
+                     class="w-full rounded-lg border-2 border-slate-600 bg-slate-700 px-4 py-2 text-2xl font-bold text-yellow-300 focus:border-yellow-300 focus:outline-none"
+                     value="{{ bgp_hero.header }}">
+            </div>
+            <div>
+              <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-white/60">Einleitungstext</span>
+              <textarea inputType="description" rows="4"
+                        class="w-full rounded-lg border-2 border-slate-600 bg-slate-700 px-4 py-2 text-base leading-relaxed text-white focus:border-yellow-300 focus:outline-none">{{ bgp_hero.description }}</textarea>
+            </div>
+            <div>
+              <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-white/60">Button 1 (gelb, führt zu den Immobilien)</span>
+              <input inputType="buttonText" type="text"
+                     class="w-full rounded-lg bg-yellow-300 px-6 py-3 text-sm font-bold text-slate-900 focus:outline-none"
+                     value="{{ bgp_hero.buttonText }}">
+            </div>
+          </div>
+          <div class="text-content" key="main_bgp_hero_secondary">
+            <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-white/60">Button 2 (Umriss, führt zum Kontakt)</span>
+            <input inputType="buttonText" type="text"
+                   class="w-full rounded-lg border-2 border-white/40 bg-transparent px-6 py-3 text-sm font-bold text-white focus:border-yellow-300 focus:outline-none"
+                   value="{{ bgp_hero_secondary.buttonText }}">
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-4">
+          <div>
+            <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-white/60">Hero-Bild</span>
+            <div class="relative overflow-hidden rounded-2xl ring-1 ring-white/20">
+              <span class="edit-img absolute left-2 top-2 z-40 inline-block rounded-full bg-blue-500 px-2 py-1 text-sm font-semibold text-white hover:cursor-pointer" title="Bild austauschen">
+                <i class="bi bi-pencil-square"></i>
+              </span>
+              {% if bgp_hero_image %}
+              <img src="{{ bgp_hero_image.file.url }}" imgId="{{ bgp_hero_image.id }}" key="main_bgp_hero"
+                   alt="Hero-Bild" class="content-image h-56 w-full rounded-2xl object-cover" />
+              {% else %}
+              <img src="{% static 'images/demos/bgp/gebaeude.jpg' %}" imgId="-1" key="main_bgp_hero"
+                   alt="Hero-Bild" class="content-image h-56 w-full rounded-2xl object-cover" />
+              {% endif %}
+            </div>
+            <p class="mt-1 text-xs text-white/50">Standardbild, solange kein eigenes Bild gewählt wurde.</p>
+          </div>
+          <div class="text-content flex flex-col gap-3" key="main_bgp_hero_bild">
+            <div>
+              <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-white/60">Bildunterschrift</span>
+              <input inputType="description" type="text"
+                     class="w-full rounded-lg border-2 border-slate-600 bg-slate-700 px-3 py-2 text-sm text-white focus:border-yellow-300 focus:outline-none"
+                     value="{{ bgp_hero_bild.description }}">
+            </div>
+            <div>
+              <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-white/60">Bildbeschreibung für Screenreader &amp; SEO</span>
+              <input inputType="title" type="text"
+                     class="w-full rounded-lg border-2 border-slate-600 bg-slate-700 px-3 py-2 text-sm text-white focus:border-yellow-300 focus:outline-none"
+                     value="{{ bgp_hero_bild.title }}">
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="text-content rounded-2xl bg-white p-3" key="main_bgp_hero_badge_1">
+              <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Badge oben links</span>
+              <input inputType="title" type="text" class="mb-2 w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 text-lg font-bold" value="{{ bgp_hero_badge_1.title }}">
+              <input inputType="description" type="text" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 text-xs" value="{{ bgp_hero_badge_1.description }}">
+            </div>
+            <div class="text-content rounded-2xl bg-yellow-300 p-3" key="main_bgp_hero_badge_2">
+              <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-700">Badge unten rechts</span>
+              <input inputType="title" type="text" class="mb-2 w-full rounded-lg border-2 border-yellow-400 bg-yellow-100 px-3 py-2 text-lg font-bold" value="{{ bgp_hero_badge_2.title }}">
+              <input inputType="description" type="text" class="w-full rounded-lg border-2 border-yellow-400 bg-yellow-100 px-3 py-2 text-xs" value="{{ bgp_hero_badge_2.description }}">
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {# ─────────────── FAKTENLEISTE ─────────────── #}
+    <section class="overflow-hidden rounded-2xl ring-1 ring-slate-200">
+      <div class="bg-slate-100 px-6 py-3">
+        <p class="text-xs font-semibold uppercase tracking-wider text-slate-600">2 &middot; Faktenleiste (die vier Kacheln unter dem Hero)</p>
+      </div>
+      <div class="grid grid-cols-1 gap-4 bg-white p-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="text-content rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200" key="main_bgp_fact_1">
+          <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Kachel 1</span>
+          <input inputType="title" type="text" class="mb-2 w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 font-bold" value="{{ bgp_fact_1.title }}">
+          <input inputType="description" type="text" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 text-xs uppercase tracking-wider" value="{{ bgp_fact_1.description }}">
+        </div>
+        <div class="text-content rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200" key="main_bgp_fact_2">
+          <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Kachel 2</span>
+          <input inputType="title" type="text" class="mb-2 w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 font-bold" value="{{ bgp_fact_2.title }}">
+          <input inputType="description" type="text" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 text-xs uppercase tracking-wider" value="{{ bgp_fact_2.description }}">
+        </div>
+        <div class="text-content rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200" key="main_bgp_fact_3">
+          <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Kachel 3</span>
+          <input inputType="title" type="text" class="mb-2 w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 font-bold" value="{{ bgp_fact_3.title }}">
+          <input inputType="description" type="text" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 text-xs uppercase tracking-wider" value="{{ bgp_fact_3.description }}">
+        </div>
+        {% comment %}
+        Kachel 4 zeigt die Oeffnungszeiten. Solange im Modul "Oeffnungszeiten" mindestens
+        ein Tag geoeffnet ist, wird sie daraus erzeugt und ist hier bewusst nur Vorschau -
+        sonst muesste man dieselben Zeiten an zwei Stellen pflegen. Ist dort nichts
+        hinterlegt, faellt die Kachel auf diese Textfelder zurueck.
+        {% endcomment %}
+        {% if bgp_opening_hours_auto %}
+        <div class="rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200">
+          <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Kachel 4 &middot; Öffnungszeiten</span>
+          <p class="mb-2 rounded-lg border-2 border-dashed border-gray-200 bg-white px-3 py-2 font-bold text-gray-700">{{ bgp_fact_4.title }}</p>
+          <p class="rounded-lg border-2 border-dashed border-gray-200 bg-white px-3 py-2 text-xs uppercase tracking-wider text-gray-700">{{ bgp_fact_4.description }}</p>
+          <p class="mt-2 text-xs leading-5 text-gray-500">
+            <i class="bi bi-clock mr-1"></i>
+            Kommt aus
+            <a href="{% url 'cms:openinghours-view' %}" class="font-semibold text-blue-600 hover:underline">Öffnungszeiten</a>
+            und wird dort gepflegt.
+          </p>
+        </div>
+        {% else %}
+        <div class="text-content rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200" key="main_bgp_fact_4">
+          <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Kachel 4</span>
+          <input inputType="title" type="text" class="mb-2 w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 font-bold" value="{{ bgp_fact_4.title }}">
+          <input inputType="description" type="text" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 text-xs uppercase tracking-wider" value="{{ bgp_fact_4.description }}">
+          <p class="mt-2 text-xs leading-5 text-amber-700">
+            <i class="bi bi-exclamation-triangle mr-1"></i>
+            Sobald unter
+            <a href="{% url 'cms:openinghours-view' %}" class="font-semibold text-blue-600 hover:underline">Öffnungszeiten</a>
+            ein Tag geöffnet ist, wird diese Kachel automatisch daraus erzeugt.
+          </p>
+        </div>
+        {% endif %}
+      </div>
+    </section>
+
+    {# ─────────────── UNSERE GENOSSENSCHAFT ─────────────── #}
+    <section class="overflow-hidden rounded-2xl ring-1 ring-slate-200">
+      <div class="bg-slate-100 px-6 py-3">
+        <p class="text-xs font-semibold uppercase tracking-wider text-slate-600">3 &middot; Unsere Genossenschaft</p>
+      </div>
+      <div class="bg-white p-6">
+        <div class="text-content flex flex-col gap-3" key="main_bgp_genossenschaft">
+          <div>
+            <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Kleine Überschrift darüber</span>
+            <input inputType="header" type="text" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-sm font-semibold uppercase tracking-widest" value="{{ bgp_genossenschaft.header }}">
+          </div>
+          <div>
+            <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Überschrift</span>
+            <input inputType="title" type="text" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-xl font-bold" value="{{ bgp_genossenschaft.title }}">
+          </div>
+          <div>
+            <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Erster Absatz</span>
+            <textarea inputType="description" rows="4" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-base leading-relaxed">{{ bgp_genossenschaft.description }}</textarea>
+          </div>
+        </div>
+
+        <div class="text-content mt-3" key="main_bgp_genossenschaft_text2">
+          <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Zweiter Absatz</span>
+          <textarea inputType="description" rows="4" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-base leading-relaxed">{{ bgp_genossenschaft_text2.description }}</textarea>
+        </div>
+
+        <p class="mb-2 mt-5 text-xs font-semibold uppercase tracking-wider text-gray-500">Haken-Liste (vier Punkte)</p>
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div class="text-content flex items-center gap-3" key="main_bgp_benefit_1">
+            <span class="inline-flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-yellow-300"><i class="bi bi-check-lg text-sm text-slate-900"></i></span>
+            <input inputType="title" type="text" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 text-sm font-semibold" value="{{ bgp_benefit_1.title }}">
+          </div>
+          <div class="text-content flex items-center gap-3" key="main_bgp_benefit_2">
+            <span class="inline-flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-yellow-300"><i class="bi bi-check-lg text-sm text-slate-900"></i></span>
+            <input inputType="title" type="text" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 text-sm font-semibold" value="{{ bgp_benefit_2.title }}">
+          </div>
+          <div class="text-content flex items-center gap-3" key="main_bgp_benefit_3">
+            <span class="inline-flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-yellow-300"><i class="bi bi-check-lg text-sm text-slate-900"></i></span>
+            <input inputType="title" type="text" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 text-sm font-semibold" value="{{ bgp_benefit_3.title }}">
+          </div>
+          <div class="text-content flex items-center gap-3" key="main_bgp_benefit_4">
+            <span class="inline-flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-yellow-300"><i class="bi bi-check-lg text-sm text-slate-900"></i></span>
+            <input inputType="title" type="text" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 text-sm font-semibold" value="{{ bgp_benefit_4.title }}">
+          </div>
+        </div>
+
+        <p class="mb-2 mt-6 text-xs font-semibold uppercase tracking-wider text-gray-500">Die drei Karten rechts daneben</p>
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <div class="text-content rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200" key="main_bgp_feature_about">
+            <input inputType="title" type="text" class="mb-2 w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 font-bold" value="{{ bgp_feature_about.title }}">
+            <textarea inputType="description" rows="3" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 text-sm">{{ bgp_feature_about.description }}</textarea>
+          </div>
+          <div class="text-content rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200" key="main_bgp_feature_organe">
+            <input inputType="title" type="text" class="mb-2 w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 font-bold" value="{{ bgp_feature_organe.title }}">
+            <textarea inputType="description" rows="3" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 text-sm">{{ bgp_feature_organe.description }}</textarea>
+          </div>
+          <div class="text-content rounded-xl bg-slate-800 p-4 text-white" key="main_bgp_feature_historie">
+            <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-yellow-300">Gelbes Label</span>
+            <input inputType="header" type="text" class="mb-2 w-full rounded-lg border-2 border-slate-600 bg-slate-700 px-3 py-2 text-xs font-bold uppercase tracking-widest text-yellow-300 focus:border-yellow-300 focus:outline-none" value="{{ bgp_feature_historie.header }}">
+            <input inputType="title" type="text" class="mb-2 w-full rounded-lg border-2 border-slate-600 bg-slate-700 px-3 py-2 font-bold focus:border-yellow-300 focus:outline-none" value="{{ bgp_feature_historie.title }}">
+            <textarea inputType="description" rows="3" class="w-full rounded-lg border-2 border-slate-600 bg-slate-700 px-3 py-2 text-sm focus:border-yellow-300 focus:outline-none">{{ bgp_feature_historie.description }}</textarea>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {# ─────────────── VERMIETUNG ─────────────── #}
+    <section class="overflow-hidden rounded-2xl ring-1 ring-slate-200">
+      <div class="bg-slate-100 px-6 py-3">
+        <p class="text-xs font-semibold uppercase tracking-wider text-slate-600">4 &middot; Vermietung</p>
+      </div>
+      <div class="bg-white p-6">
+        <div class="text-content flex flex-col gap-3" key="main_bgp_vermietung">
+          <div>
+            <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Kleine Überschrift darüber</span>
+            <input inputType="header" type="text" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-sm font-semibold uppercase tracking-widest" value="{{ bgp_vermietung.header }}">
+          </div>
+          <div>
+            <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Überschrift</span>
+            <input inputType="title" type="text" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-xl font-bold" value="{{ bgp_vermietung.title }}">
+          </div>
+          <div>
+            <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Einleitungstext</span>
+            <textarea inputType="description" rows="3" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-base leading-relaxed">{{ bgp_vermietung.description }}</textarea>
+          </div>
+          <div>
+            <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Button unter den Karten</span>
+            <input inputType="buttonText" type="text" class="w-full rounded-lg bg-slate-800 px-6 py-3 text-sm font-bold text-white" value="{{ bgp_vermietung.buttonText }}">
+          </div>
+        </div>
+
+        <p class="mb-2 mt-6 text-xs font-semibold uppercase tracking-wider text-gray-500">Die vier Karten</p>
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
+          <div class="text-content rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200" key="main_bgp_rental_angebote">
+            <input inputType="title" type="text" class="mb-2 w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 font-bold" value="{{ bgp_rental_angebote.title }}">
+            <textarea inputType="description" rows="4" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 text-sm">{{ bgp_rental_angebote.description }}</textarea>
+          </div>
+          <div class="text-content rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200" key="main_bgp_rental_objekte">
+            <input inputType="title" type="text" class="mb-2 w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 font-bold" value="{{ bgp_rental_objekte.title }}">
+            <textarea inputType="description" rows="4" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 text-sm">{{ bgp_rental_objekte.description }}</textarea>
+          </div>
+          <div class="text-content rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200" key="main_bgp_rental_bewerbung">
+            <input inputType="title" type="text" class="mb-2 w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 font-bold" value="{{ bgp_rental_bewerbung.title }}">
+            <textarea inputType="description" rows="4" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 text-sm">{{ bgp_rental_bewerbung.description }}</textarea>
+          </div>
+          <div class="text-content rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200" key="main_bgp_rental_infos">
+            <input inputType="title" type="text" class="mb-2 w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 font-bold" value="{{ bgp_rental_infos.title }}">
+            <textarea inputType="description" rows="4" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 text-sm">{{ bgp_rental_infos.description }}</textarea>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {# ─────────────── AKTUELLES-TEASER ─────────────── #}
+    <section class="overflow-hidden rounded-2xl ring-1 ring-slate-200">
+      <div class="bg-slate-100 px-6 py-3">
+        <p class="text-xs font-semibold uppercase tracking-wider text-slate-600">5 &middot; Aktuelles-Teaser auf der Startseite</p>
+      </div>
+      <div class="bg-white p-6">
+        <div class="text-content flex flex-col gap-3" key="main_bgp_home_aktuelles">
+          <div>
+            <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Kleine Überschrift darüber</span>
+            <input inputType="header" type="text" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-sm font-semibold uppercase tracking-widest" value="{{ bgp_home_aktuelles.header }}">
+          </div>
+          <div>
+            <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Überschrift</span>
+            <input inputType="title" type="text" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-xl font-bold" value="{{ bgp_home_aktuelles.title }}">
+          </div>
+          <div>
+            <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Link oben rechts</span>
+            <input inputType="buttonText" type="text" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-sm font-bold" value="{{ bgp_home_aktuelles.buttonText }}">
+          </div>
+        </div>
+
+        {% comment %}
+        Die Meldungskarten kommen aus dem Blog-Modul und werden dort gepflegt - hier
+        stehen nur die Beschriftungen, die auf jeder Karte gleich sind, sowie der Text
+        fuer den Fall, dass noch kein Beitrag veroeffentlicht ist.
+        {% endcomment %}
+        <div class="mt-6 rounded-xl bg-blue-50 px-4 py-3 text-sm leading-6 text-blue-900 ring-1 ring-blue-200">
+          <i class="bi bi-info-circle mr-1"></i>
+          Die drei Meldungskarten sind die neuesten
+          <a href="{% url 'cms:blog-view' %}" class="font-semibold underline hover:no-underline">Blogbeiträge</a>.
+          Neue Meldung anlegen, Reihenfolge oder Text ändern: alles unter „Blog" in der Seitenleiste.
+          Nur veröffentlichte Beiträge erscheinen auf der Seite.
+        </div>
+
+        <p class="mb-2 mt-6 text-xs font-semibold uppercase tracking-wider text-gray-500">Aktuell auf der Startseite</p>
+        {% if bgp_home_news_posts %}
+        <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
+          {% for post in bgp_home_news_posts %}
+          <div class="overflow-hidden rounded-xl ring-1 ring-slate-200">
+            <div class="flex items-center justify-between bg-slate-800 px-4 py-2">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-white/70">{{ bgp_home_news_card.header }}</span>
+              <span class="text-[10px] font-bold text-yellow-300">{{ post.date|date:"d.m.Y" }}</span>
+            </div>
+            <div class="bg-white p-4">
+              <p class="mb-2 font-bold text-gray-800">{{ post.title }}</p>
+              <p class="text-sm leading-6 text-gray-600">{{ post.description|truncatechars:140 }}</p>
+              <a href="{% url 'cms:blog-details' post.id %}" class="mt-3 inline-block text-sm font-semibold text-blue-600 hover:underline">
+                <i class="bi bi-pencil"></i> Beitrag bearbeiten
+              </a>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p class="rounded-xl bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-800 ring-1 ring-amber-200">
+          <i class="bi bi-exclamation-triangle mr-1"></i>
+          Es ist noch kein Beitrag veröffentlicht. Auf der Startseite steht solange der
+          Hinweistext aus dem nächsten Feld.
+        </p>
+        {% endif %}
+
+        <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div class="text-content rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200" key="main_bgp_home_news_card">
+            <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Beschriftung oben links auf jeder Karte</span>
+            <input inputType="header" type="text" class="mb-3 w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 text-sm font-bold uppercase tracking-wider" value="{{ bgp_home_news_card.header }}">
+            <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Link-Text unten auf jeder Karte</span>
+            <input inputType="buttonText" type="text" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 text-sm font-bold" value="{{ bgp_home_news_card.buttonText }}">
+          </div>
+          <div class="text-content rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200" key="main_bgp_home_news_empty">
+            <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Überschrift, wenn es keine Beiträge gibt</span>
+            <input inputType="title" type="text" class="mb-3 w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 font-bold" value="{{ bgp_home_news_empty.title }}">
+            <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Text darunter</span>
+            <textarea inputType="description" rows="3" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 text-sm">{{ bgp_home_news_empty.description }}</textarea>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {# ─────────────── KONTAKT-TEASER ─────────────── #}
+    <section class="overflow-hidden rounded-2xl ring-1 ring-slate-200">
+      <div class="bgp-cms-navy px-6 py-3">
+        <p class="text-xs font-semibold uppercase tracking-wider text-white/80">6 &middot; Kontakt-Teaser (dunkler Abschnitt unten)</p>
+      </div>
+      <div class="bg-slate-800 p-6">
+        <div class="text-content flex flex-col gap-3" key="main_bgp_kontakt_teaser">
+          <div>
+            <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-yellow-300">Kleine Überschrift darüber</span>
+            <input inputType="header" type="text" class="w-full rounded-lg border-2 border-slate-600 bg-slate-700 px-4 py-2 text-sm font-semibold uppercase tracking-widest text-yellow-300 focus:border-yellow-300 focus:outline-none" value="{{ bgp_kontakt_teaser.header }}">
+          </div>
+          <div>
+            <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-white/60">Überschrift</span>
+            <input inputType="title" type="text" class="w-full rounded-lg border-2 border-slate-600 bg-slate-700 px-4 py-2 text-xl font-bold text-white focus:border-yellow-300 focus:outline-none" value="{{ bgp_kontakt_teaser.title }}">
+          </div>
+          <div>
+            <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-white/60">Einleitungstext</span>
+            <textarea inputType="description" rows="2" class="w-full rounded-lg border-2 border-slate-600 bg-slate-700 px-4 py-2 text-sm text-white focus:border-yellow-300 focus:outline-none">{{ bgp_kontakt_teaser.description }}</textarea>
+          </div>
+        </div>
+
+        {% comment %}
+        Die Karteninhalte kommen aus den Website-Daten bzw. dem Modul
+        "Oeffnungszeiten" - hier sind nur die Kachel-Ueberschriften und der Hinweis
+        unter den Zeiten pflegbar. Solange im Profil ein Feld leer ist, zeigt die
+        Kachel stattdessen ein Textfeld als Rueckfallebene.
+        {% endcomment %}
+        <p class="mb-2 mt-6 text-xs font-semibold uppercase tracking-wider text-white/60">Die vier Infokarten</p>
+        <div class="mb-3 rounded-xl bg-white/5 px-4 py-3 text-sm leading-6 text-white/80 ring-1 ring-white/10">
+          <i class="bi bi-info-circle mr-1"></i>
+          Anschrift, Telefon und E-Mail stehen unter Einstellungen &rarr;
+          <a href="{% url 'cms:settings-view' %}" class="font-semibold text-yellow-300 underline hover:no-underline">Website-Daten</a>,
+          die Zeiten unter
+          <a href="{% url 'cms:openinghours-view' %}" class="font-semibold text-yellow-300 underline hover:no-underline">Öffnungszeiten</a>.
+          Änderungen dort wirken sich sofort auf diese Karten aus.
+        </div>
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div class="text-content rounded-xl bg-white/5 p-4 ring-1 ring-white/10" key="main_bgp_contact_card_1">
+            <span class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-white/50">Überschrift</span>
+            <input inputType="title" type="text" class="mb-2 w-full rounded-lg border-2 border-slate-600 bg-slate-700 px-3 py-2 font-bold text-white focus:border-yellow-300 focus:outline-none" value="{{ bgp_contact_card_1.title }}">
+            {% if bgp_contact.company_name or bgp_contact.address_lines %}
+            <p class="rounded-lg border-2 border-dashed border-white/20 px-3 py-2 text-sm leading-6 text-white/80">
+              {% if bgp_contact.company_name %}{{ bgp_contact.company_name }}<br />{% endif %}
+              {% for line in bgp_contact.address_lines %}{{ line }}{% if not forloop.last %}<br />{% endif %}{% endfor %}
+            </p>
+            <p class="mt-1 text-[10px] text-white/50">Aus den Website-Daten.</p>
+            {% else %}
+            <textarea inputType="description" rows="4" class="w-full rounded-lg border-2 border-slate-600 bg-slate-700 px-3 py-2 text-sm text-white focus:border-yellow-300 focus:outline-none">{{ bgp_contact_card_1.description }}</textarea>
+            <p class="mt-1 text-[10px] text-amber-300">Unter Website-Daten ist keine Anschrift hinterlegt.</p>
+            {% endif %}
+          </div>
+          <div class="text-content rounded-xl bg-white/5 p-4 ring-1 ring-white/10" key="main_bgp_contact_card_2">
+            <span class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-white/50">Überschrift</span>
+            <input inputType="title" type="text" class="mb-2 w-full rounded-lg border-2 border-slate-600 bg-slate-700 px-3 py-2 font-bold text-white focus:border-yellow-300 focus:outline-none" value="{{ bgp_contact_card_2.title }}">
+            {% if bgp_contact.tel or bgp_contact.fax %}
+            <p class="rounded-lg border-2 border-dashed border-white/20 px-3 py-2 text-sm leading-6 text-white/80">
+              {% if bgp_contact.tel %}Tel: {{ bgp_contact.tel }}{% endif %}
+              {% if bgp_contact.tel and bgp_contact.fax %}<br />{% endif %}
+              {% if bgp_contact.fax %}Fax: {{ bgp_contact.fax }}{% endif %}
+            </p>
+            <p class="mt-1 text-[10px] text-white/50">Aus den Website-Daten. Die Telefonnummer wird automatisch verlinkt.</p>
+            {% else %}
+            <textarea inputType="description" rows="4" class="w-full rounded-lg border-2 border-slate-600 bg-slate-700 px-3 py-2 text-sm text-white focus:border-yellow-300 focus:outline-none">{{ bgp_contact_card_2.description }}</textarea>
+            <p class="mt-1 text-[10px] text-amber-300">Unter Website-Daten ist keine Telefonnummer hinterlegt.</p>
+            {% endif %}
+          </div>
+          <div class="text-content rounded-xl bg-white/5 p-4 ring-1 ring-white/10" key="main_bgp_contact_card_3">
+            <span class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-white/50">Überschrift</span>
+            <input inputType="title" type="text" class="mb-2 w-full rounded-lg border-2 border-slate-600 bg-slate-700 px-3 py-2 font-bold text-white focus:border-yellow-300 focus:outline-none" value="{{ bgp_contact_card_3.title }}">
+            {% if bgp_contact.email %}
+            <p class="break-words rounded-lg border-2 border-dashed border-white/20 px-3 py-2 text-sm leading-6 text-white/80">{{ bgp_contact.email }}</p>
+            <p class="mt-1 text-[10px] text-white/50">Aus den Website-Daten, wird automatisch verlinkt.</p>
+            {% else %}
+            <textarea inputType="description" rows="4" class="w-full rounded-lg border-2 border-slate-600 bg-slate-700 px-3 py-2 text-sm text-white focus:border-yellow-300 focus:outline-none">{{ bgp_contact_card_3.description }}</textarea>
+            <p class="mt-1 text-[10px] text-amber-300">Unter Website-Daten ist keine E-Mail-Adresse hinterlegt.</p>
+            {% endif %}
+          </div>
+          <div class="text-content rounded-xl bg-white/5 p-4 ring-1 ring-white/10" key="main_bgp_contact_card_4">
+            <span class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-white/50">Überschrift</span>
+            <input inputType="title" type="text" class="mb-2 w-full rounded-lg border-2 border-slate-600 bg-slate-700 px-3 py-2 font-bold text-white focus:border-yellow-300 focus:outline-none" value="{{ bgp_contact_card_4.title }}">
+            {% if bgp_opening_hours_groups %}
+            <p class="rounded-lg border-2 border-dashed border-white/20 px-3 py-2 text-sm leading-6 text-white/80">
+              {% for group in bgp_opening_hours_groups %}{{ group.days }}<br />{{ group.times }}{% if not forloop.last %}<br />{% endif %}{% endfor %}
+            </p>
+            <p class="mt-1 text-[10px] text-white/50">Aus dem Modul Öffnungszeiten.</p>
+            {% else %}
+            <textarea inputType="description" rows="4" class="w-full rounded-lg border-2 border-slate-600 bg-slate-700 px-3 py-2 text-sm text-white focus:border-yellow-300 focus:outline-none">{{ bgp_contact_card_4.description }}</textarea>
+            <p class="mt-1 text-[10px] text-amber-300">Unter Öffnungszeiten ist kein Tag geöffnet.</p>
+            {% endif %}
+            <span class="mb-1 mt-2 block text-[10px] font-semibold uppercase tracking-wider text-white/50">Zusatzhinweis darunter</span>
+            <input inputType="buttonText" type="text" class="w-full rounded-lg border-2 border-slate-600 bg-slate-700 px-3 py-2 text-xs text-white focus:border-yellow-300 focus:outline-none" value="{{ bgp_contact_card_4.buttonText }}">
+          </div>
+        </div>
+
+        <div class="text-content mt-6 flex flex-col gap-3 border-t border-white/10 pt-6" key="main_bgp_kontakt_cta">
+          <div>
+            <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-white/60">Abschlusssatz</span>
+            <input inputType="description" type="text" class="w-full rounded-lg border-2 border-slate-600 bg-slate-700 px-4 py-2 text-sm text-white focus:border-yellow-300 focus:outline-none" value="{{ bgp_kontakt_cta.description }}">
+          </div>
+          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div>
+              <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-white/60">Button 1 (gelb)</span>
+              <input inputType="buttonText" type="text" class="w-full rounded-lg bg-yellow-300 px-6 py-3 text-sm font-bold text-slate-900 focus:outline-none" value="{{ bgp_kontakt_cta.buttonText }}">
+            </div>
+            <div>
+              <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-white/60">Button 2 (Telefonnummer)</span>
+              {% if bgp_contact.tel %}
+              <p class="rounded-lg border-2 border-dashed border-white/40 px-6 py-3 text-sm font-bold text-white">{{ bgp_contact.tel }}</p>
+              <p class="mt-1 text-[10px] text-white/50">Aus den Website-Daten.</p>
+              {% else %}
+              <p class="rounded-lg border-2 border-dashed border-amber-300/60 px-6 py-3 text-sm text-amber-300">
+                Ohne Telefonnummer unter Website-Daten wird dieser Button nicht angezeigt.
+              </p>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block css %}
+<style>
+  .bgp-cms-navy { background-color: #12284c; }
+</style>
+{% endblock css %}
+
+{% block javascriptend %}
+{% compress js %}
+<script defer src="{% static 'js/cms.js' %}"></script>
+<script defer src="{% static 'js/cms/content/siteManager.js' %}"></script>
+<script src="{% static 'js/cms/content/save-text.js' %}"></script>
+<script defer src="{% static 'js/cms/unsaved-guard.js' %}"></script>
+<script defer>
+  $(document).ready(function () {
+    loadImages(false);
+  });
+</script>
+{% endcompress js %}
+{% endblock %}

@@ -6,7 +6,7 @@
 
 {% block og_title %}{{ customer.name }} - {% trans "case_og_reference_by" %}{% endblock %}
 {% block og_description %}{% if customer.short_description %}{{ customer.short_description }}{% elif customer.subtitle %}{{ customer.subtitle }}{% else %}{% trans "case_og_default_description" %}{% endif %}{% endblock %}
-{% block og_image %}{% if customer.banner_image and customer.banner_image.file %}https://yoolink.de{{ customer.banner_image.file.url }}{% elif customer.title_image and customer.title_image.file %}https://yoolink.de{{ customer.title_image.file.url }}{% else %}{{ block.super }}{% endif %}{% endblock %}
+{% block og_image %}{% if customer.banner_image and customer.banner_image.file %}{{ site_base_url }}{{ customer.banner_image.file.url }}{% elif customer.title_image and customer.title_image.file %}{{ site_base_url }}{{ customer.title_image.file.url }}{% else %}{{ block.super }}{% endif %}{% endblock %}
 
 {% block css %}
 {% compress css %}

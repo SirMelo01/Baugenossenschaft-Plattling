@@ -1,15 +1,16 @@
-{% extends "base.html" %}
+{% extends "pages/demos/_bgp_base.html" %}
 {% load compress static %}
 
-{% block title %}{{ block.super }} | Produkte{% endblock title %}
+{% block title %}{{ block.super }} | Immobilien{% endblock title %}
 
 {% block content %}
-<div class="container mx-auto min-h-screen max-w-7xl px-3 py-8 lg:px-4">
-  <div class="mb-8 rounded-3xl border border-gray-200 bg-white p-5 shadow-sm">
+<div class="bgp-bg-ice min-h-screen">
+<div class="container mx-auto max-w-7xl px-3 py-8 lg:px-4">
+  <div class="mb-8 rounded-2xl border border-[#C9DEE6] bg-white p-5 shadow-sm">
     <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
       <div>
-        <h1 class="text-3xl font-bold leading-none tracking-tight text-gray-900 sm:text-4xl">{{ shop_settings.products_title|default:"Produkte" }}</h1>
-        <p class="mt-3 text-base leading-7 text-gray-600 md:text-lg">{{ shop_settings.products_intro|default:"Finde passende Produkte mit Suche, Filtern und Sortierung" }}</p>
+        <h1 class="bgp-text-navy-dark text-3xl font-bold leading-none tracking-tight sm:text-4xl">{{ shop_settings.products_title|default:"Immobilien" }}</h1>
+        <p class="mt-3 text-base leading-7 text-gray-600 md:text-lg">{{ shop_settings.products_intro|default:"Freie und vorgemerkte Objekte der Baugenossenschaft Plattling auf einen Blick." }}</p>
       </div>
     </div>
 
@@ -36,7 +37,7 @@
           id="shopSearchInput"
           type="text"
           value="{{ filters.q }}"
-          placeholder="Suche nach einem Produkt"
+          placeholder="Suche nach einer Immobilie"
           class="w-full rounded-2xl border border-gray-200 bg-gray-50 py-3 pl-12 pr-4 text-gray-800 focus:border-blue-500 focus:bg-white focus:outline-none"
         />
       </div>
@@ -44,7 +45,7 @@
       <button
         id="searchProductsBtn"
         type="button"
-        class="inline-flex items-center justify-center rounded-2xl bg-blue-500 px-5 py-3 font-semibold text-white transition hover:bg-blue-700"
+        class="bgp-btn-navy inline-flex items-center justify-center rounded-2xl px-5 py-3 font-semibold transition"
       >
         <svg xmlns="http://www.w3.org/2000/svg" class="mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -57,7 +58,7 @@
   <div class="grid grid-cols-1 gap-6 lg:grid-cols-[18rem_minmax(0,1fr)] lg:items-start">
     <aside
       id="shopFiltersPanel"
-      class="hidden rounded-3xl border border-gray-200 bg-white p-5 shadow-sm lg:sticky lg:top-24 lg:block"
+      class="hidden rounded-2xl border border-[#C9DEE6] bg-white p-5 shadow-sm lg:sticky lg:top-24 lg:block"
     >
       <div class="mb-4 flex items-center justify-between">
         <div class="flex items-center gap-2">
@@ -72,10 +73,10 @@
 
       <div class="space-y-6">
         <div>
-          <h3 class="mb-3 text-sm font-semibold text-gray-900">Aktionen</h3>
+          <h3 class="mb-3 text-sm font-semibold text-gray-900">Hinweise</h3>
           <label class="flex cursor-pointer items-center gap-3 text-sm text-gray-700">
             <input id="filterReduced" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" {% if filters.is_reduced %}checked{% endif %}>
-            <span>Aktionspreis</span>
+            <span>Sonderhinweis</span>
           </label>
         </div>
 
@@ -84,12 +85,12 @@
           <div class="space-y-3">
             <label class="flex cursor-pointer items-center gap-3 text-sm text-gray-700">
               <input id="filterInStock" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" {% if filters.is_in_stock %}checked{% endif %}>
-              <span>Nur auf Lager</span>
+              <span>Nur verf&uuml;gbare Objekte</span>
             </label>
 
             <label class="flex cursor-pointer items-center gap-3 text-sm text-gray-700">
               <input id="filterOnlineOnly" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" {% if filters.online_only %}checked{% endif %}>
-              <span>Lieferung möglich</span>
+              <span>Anfrage m&ouml;glich</span>
             </label>
           </div>
         </div>
@@ -100,28 +101,28 @@
             <label class="block cursor-pointer">
               <input type="radio" name="shopProductType" value="" class="peer sr-only" {% if not filters.type %}checked{% endif %}>
               <span class="block rounded-2xl border border-gray-200 px-3 py-2 text-sm text-gray-700 transition peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700">
-                Alle Produkte
+                Alle Immobilien
               </span>
             </label>
 
             <label class="block cursor-pointer">
               <input type="radio" name="shopProductType" value="shop" class="peer sr-only" {% if filters.type == "shop" %}checked{% endif %}>
               <span class="block rounded-2xl border border-gray-200 px-3 py-2 text-sm text-gray-700 transition peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700">
-                Shop Produkte
+                Anfrageobjekte
               </span>
             </label>
 
             <label class="block cursor-pointer">
               <input type="radio" name="shopProductType" value="showcase" class="peer sr-only" {% if filters.type == "showcase" %}checked{% endif %}>
               <span class="block rounded-2xl border border-gray-200 px-3 py-2 text-sm text-gray-700 transition peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700">
-                Showcase Produkte
+                Ausgestellte Objekte
               </span>
             </label>
           </div>
         </div>
 
         <div class="border-t border-gray-100 pt-6">
-          <h3 class="mb-3 text-sm font-semibold text-gray-900">Preis</h3>
+          <h3 class="mb-3 text-sm font-semibold text-gray-900">Miete / Preis</h3>
           <div class="grid grid-cols-2 gap-3">
             <input
               id="filterMinPrice"
@@ -145,12 +146,12 @@
         </div>
 
         <div class="border-t border-gray-100 pt-6">
-          <h3 class="mb-3 text-sm font-semibold text-gray-900">Hersteller</h3>
+          <h3 class="mb-3 text-sm font-semibold text-gray-900">Standort</h3>
           <div class="max-h-56 space-y-2 overflow-y-auto pr-1">
             <label class="block cursor-pointer">
               <input type="radio" name="shopBrand" value="" class="peer sr-only" {% if not filters.brand %}checked{% endif %}>
               <span class="block rounded-2xl border border-gray-200 px-3 py-2 text-sm text-gray-700 transition peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700">
-                Alle Hersteller
+                Alle Standorte
               </span>
             </label>
 
@@ -166,12 +167,12 @@
         </div>
 
         <div class="border-t border-gray-100 pt-6">
-          <h3 class="mb-3 text-sm font-semibold text-gray-900">Kategorien</h3>
+          <h3 class="mb-3 text-sm font-semibold text-gray-900">Merkmale</h3>
           <div class="max-h-64 space-y-2 overflow-y-auto pr-1">
             <label class="block cursor-pointer">
               <input type="radio" name="shopCategory" value="" class="peer sr-only" {% if not filters.category %}checked{% endif %}>
               <span class="block rounded-2xl border border-gray-200 px-3 py-2 text-sm text-gray-700 transition peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700">
-                Alle Kategorien
+                Alle Merkmale
               </span>
             </label>
 
@@ -191,7 +192,7 @@
             <button
               id="applyShopFilters"
               type="button"
-              class="rounded-2xl bg-blue-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-700"
+              class="bgp-btn-navy rounded-2xl px-4 py-3 text-sm font-semibold transition"
             >
               Filter anwenden
             </button>
@@ -209,11 +210,11 @@
     </aside>
 
     <div class="min-w-0">
-      <div class="mb-5 rounded-3xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
+      <div class="mb-5 rounded-2xl border border-[#C9DEE6] bg-white px-5 py-4 shadow-sm">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p class="text-sm font-semibold text-gray-900">Produkte</p>
-            <p id="shopResultsInfo" class="text-sm text-gray-500">{{ page_obj.paginator.count }} Produkte gefunden</p>
+            <p class="text-sm font-semibold text-gray-900">Immobilien</p>
+            <p id="shopResultsInfo" class="text-sm text-gray-500">{{ page_obj.paginator.count }} Immobilien gefunden</p>
           </div>
 
           <div class="flex items-center gap-3">
@@ -225,8 +226,8 @@
               >
                 <option value="title_asc" {% if filters.ordering == "title_asc" %}selected{% endif %}>Titel A bis Z</option>
                 <option value="title_desc" {% if filters.ordering == "title_desc" %}selected{% endif %}>Titel Z bis A</option>
-                <option value="price_asc" {% if filters.ordering == "price_asc" %}selected{% endif %}>Preis aufsteigend</option>
-                <option value="price_desc" {% if filters.ordering == "price_desc" %}selected{% endif %}>Preis absteigend</option>
+                <option value="price_asc" {% if filters.ordering == "price_asc" %}selected{% endif %}>Miete/Preis aufsteigend</option>
+                <option value="price_desc" {% if filters.ordering == "price_desc" %}selected{% endif %}>Miete/Preis absteigend</option>
                 <option value="updated_desc" {% if filters.ordering == "updated_desc" %}selected{% endif %}>Neu aktualisiert</option>
                 <option value="created_desc" {% if filters.ordering == "created_desc" %}selected{% endif %}>Neueste zuerst</option>
               </select>
@@ -245,7 +246,7 @@
           {% include "pages/components/product_card.html" with product=product %}
         {% empty %}
           <div class="col-span-full rounded-3xl border border-dashed border-gray-300 bg-white p-10 text-center text-gray-500 shadow-sm">
-            Noch keine Produkte gefunden
+            Noch keine Immobilien gefunden
           </div>
         {% endfor %}
       </div>
@@ -294,6 +295,7 @@
     </div>
   </div>
 </div>
+</div>
 
 <div
   id="shopOverviewConfig"
@@ -303,6 +305,7 @@
 {% endblock content %}
 
 {% block javascriptend %}
+{{ block.super }}
 {% compress js %}
 <script defer src="{% static 'js/products/shop.js' %}"></script>
 {% endcompress js %}

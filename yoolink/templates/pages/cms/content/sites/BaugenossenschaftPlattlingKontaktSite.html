@@ -1,0 +1,241 @@
+{% extends "cmsbase.html" %}
+{% load compress static %}
+{% block title %} {{ block.super }} | CMS - Kontakt {% endblock %}
+
+{% block content %}
+<div class="mx-auto mt-4 max-w-6xl px-4 sm:mt-8 sm:px-6">
+  <div class="sticky top-[4.25rem] z-30 mb-6 flex flex-col gap-3 rounded-2xl border border-gray-200 bg-white/95 px-5 py-4 shadow-sm backdrop-blur sm:flex-row sm:items-center sm:justify-between">
+    <h1 class="text-2xl">
+      <a href="{% url 'cms:sites' %}" class="text-blue-500">Seiten</a>
+      / <span>Kontakt (/kontakt)</span>
+    </h1>
+    <div>
+      {% csrf_token %}
+      <a class="block w-full rounded bg-green-500 px-4 py-3 text-center font-bold text-white hover:cursor-pointer hover:bg-green-700 sm:w-auto sm:py-2"
+         id="saveTextData" name="main_bgp_contact">
+        Speichern
+      </a>
+    </div>
+  </div>
+
+  <p class="rounded-xl bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-800 ring-1 ring-amber-200">
+    <i class="bi bi-info-circle mr-1"></i>
+    Anschrift, Telefon, Fax und E-Mail stehen unter Einstellungen &rarr;
+    <a href="{% url 'cms:settings-view' %}" class="font-semibold underline hover:no-underline">Website-Daten</a>,
+    die Zeiten unter
+    <a href="{% url 'cms:openinghours-view' %}" class="font-semibold underline hover:no-underline">Öffnungszeiten</a>.
+    Änderungen dort wirken sich sofort auf diese Seite aus - hier pflegst du die redaktionellen Texte drumherum.
+  </p>
+
+  <div class="mt-8 space-y-8 pb-20">
+
+    {# ─────────────── KOPFBEREICH ─────────────── #}
+    <section class="overflow-hidden rounded-2xl ring-1 ring-slate-200">
+      <div class="bgp-cms-navy px-6 py-3">
+        <p class="text-xs font-semibold uppercase tracking-wider text-white/80">1 &middot; Kopfbereich</p>
+      </div>
+      <div class="text-content flex flex-col gap-3 bg-slate-800 p-6" key="main_bgp_contact_hero">
+        <div>
+          <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-yellow-300">Kleine Überschrift darüber</span>
+          <input inputType="header" type="text" class="w-full rounded-lg border-2 border-slate-600 bg-slate-700 px-4 py-2 text-sm font-semibold uppercase tracking-widest text-yellow-300 focus:border-yellow-300 focus:outline-none" value="{{ bgp_contact_hero.header }}">
+        </div>
+        <div>
+          <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-white/60">Überschrift</span>
+          <input inputType="title" type="text" class="w-full rounded-lg border-2 border-slate-600 bg-slate-700 px-4 py-2 text-2xl font-bold text-white focus:border-yellow-300 focus:outline-none" value="{{ bgp_contact_hero.title }}">
+        </div>
+        <div>
+          <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-white/60">Einleitungstext</span>
+          <textarea inputType="description" rows="4" class="w-full rounded-lg border-2 border-slate-600 bg-slate-700 px-4 py-2 text-base text-white focus:border-yellow-300 focus:outline-none">{{ bgp_contact_hero.description }}</textarea>
+        </div>
+      </div>
+    </section>
+
+    {# ─────────────── SCHNELL-KACHELN ─────────────── #}
+    <section class="overflow-hidden rounded-2xl ring-1 ring-slate-200">
+      <div class="bg-slate-100 px-6 py-3">
+        <p class="text-xs font-semibold uppercase tracking-wider text-slate-600">2 &middot; Die drei Kacheln unter dem Kopfbereich</p>
+      </div>
+      {% comment %}
+      Die Werte der drei Kacheln kommen aus den Website-Daten bzw. dem Modul
+      "Oeffnungszeiten". Solange dort ein Feld leer ist, zeigt die Kachel stattdessen
+      den hier gepflegten Text als Rueckfallebene.
+      {% endcomment %}
+      <div class="grid grid-cols-1 gap-4 bg-white p-6 sm:grid-cols-3">
+        <div class="text-content rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200" key="main_bgp_contact_tile_1">
+          <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Beschriftung</span>
+          <input inputType="title" type="text" class="mb-2 w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 text-xs font-semibold uppercase tracking-wider" value="{{ bgp_contact_tile_1.title }}">
+          <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Wert</span>
+          {% if bgp_contact.tel %}
+          <p class="break-words rounded-lg border-2 border-dashed border-gray-300 px-3 py-2 font-bold text-gray-700">{{ bgp_contact.tel }}</p>
+          <p class="mt-1 text-[10px] text-gray-500">Aus den Website-Daten, wird automatisch verlinkt.</p>
+          {% else %}
+          <input inputType="description" type="text" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 font-bold" value="{{ bgp_contact_tile_1.description }}">
+          <p class="mt-1 text-[10px] text-amber-700">Unter Website-Daten ist keine Telefonnummer hinterlegt.</p>
+          {% endif %}
+        </div>
+        <div class="text-content rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200" key="main_bgp_contact_tile_2">
+          <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Beschriftung</span>
+          <input inputType="title" type="text" class="mb-2 w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 text-xs font-semibold uppercase tracking-wider" value="{{ bgp_contact_tile_2.title }}">
+          <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Wert</span>
+          {% if bgp_contact.email %}
+          <p class="break-words rounded-lg border-2 border-dashed border-gray-300 px-3 py-2 font-bold text-gray-700">{{ bgp_contact.email }}</p>
+          <p class="mt-1 text-[10px] text-gray-500">Aus den Website-Daten, wird automatisch verlinkt.</p>
+          {% else %}
+          <input inputType="description" type="text" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 font-bold" value="{{ bgp_contact_tile_2.description }}">
+          <p class="mt-1 text-[10px] text-amber-700">Unter Website-Daten ist keine E-Mail-Adresse hinterlegt.</p>
+          {% endif %}
+        </div>
+        <div class="text-content rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200" key="main_bgp_contact_tile_3">
+          <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Beschriftung</span>
+          <input inputType="title" type="text" class="mb-2 w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 text-xs font-semibold uppercase tracking-wider" value="{{ bgp_contact_tile_3.title }}">
+          <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Wert</span>
+          {% if bgp_opening_hours_summary %}
+          <p class="break-words rounded-lg border-2 border-dashed border-gray-300 px-3 py-2 font-bold text-gray-700">{{ bgp_opening_hours_summary }}</p>
+          <p class="mt-1 text-[10px] text-gray-500">Aus dem Modul Öffnungszeiten.</p>
+          {% else %}
+          <input inputType="description" type="text" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 font-bold" value="{{ bgp_contact_tile_3.description }}">
+          <p class="mt-1 text-[10px] text-amber-700">Unter Öffnungszeiten ist kein Tag geöffnet.</p>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+
+    {# ─────────────── FORMULAR ─────────────── #}
+    <section class="overflow-hidden rounded-2xl ring-1 ring-slate-200">
+      <div class="bg-slate-100 px-6 py-3">
+        <p class="text-xs font-semibold uppercase tracking-wider text-slate-600">3 &middot; Formularbereich</p>
+      </div>
+      <div class="text-content flex flex-col gap-3 bg-white p-6" key="main_bgp_contact_form">
+        <div>
+          <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Überschrift</span>
+          <input inputType="title" type="text" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-xl font-bold" value="{{ bgp_contact_form.title }}">
+        </div>
+        <div>
+          <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Text unter der Überschrift</span>
+          <textarea inputType="description" rows="3" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-base">{{ bgp_contact_form.description }}</textarea>
+        </div>
+        <p class="rounded-lg bg-amber-50 px-4 py-2 text-xs leading-5 text-amber-800 ring-1 ring-amber-200">
+          <i class="bi bi-info-circle mr-1"></i>
+          Die Beschriftungen der einzelnen Formularfelder (Anrede, Name, E-Mail …) sind fest im
+          Seitenaufbau hinterlegt und hier noch nicht pflegbar.
+        </p>
+      </div>
+    </section>
+
+    {# ─────────────── INFOKARTEN NEBEN DEM FORMULAR ─────────────── #}
+    <section class="overflow-hidden rounded-2xl ring-1 ring-slate-200">
+      <div class="bg-slate-100 px-6 py-3">
+        <p class="text-xs font-semibold uppercase tracking-wider text-slate-600">4 &middot; Karten neben dem Formular</p>
+      </div>
+      <div class="grid grid-cols-1 gap-4 bg-white p-6 lg:grid-cols-3">
+        <div class="text-content rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200" key="main_bgp_contact_address">
+          <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Überschrift</span>
+          <input inputType="title" type="text" class="mb-2 w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 font-bold" value="{{ bgp_contact_address.title }}">
+          <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Anschrift</span>
+          {% if bgp_contact.company_name or bgp_contact.address_lines %}
+          <p class="mb-2 rounded-lg border-2 border-dashed border-gray-300 px-3 py-2 text-sm leading-6 text-gray-700">
+            {% if bgp_contact.company_name %}{{ bgp_contact.company_name }}<br />{% endif %}
+            {% for line in bgp_contact.address_lines %}{{ line }}{% if not forloop.last %}<br />{% endif %}{% endfor %}
+          </p>
+          {% else %}
+          <textarea inputType="description" rows="3" class="mb-2 w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 text-sm">{{ bgp_contact_address.description }}</textarea>
+          <p class="mb-2 text-[10px] text-amber-700">Unter Website-Daten ist keine Anschrift hinterlegt.</p>
+          {% endif %}
+          <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Telefon / Fax</span>
+          {% if bgp_contact.tel or bgp_contact.fax %}
+          <p class="rounded-lg border-2 border-dashed border-gray-300 px-3 py-2 text-sm leading-6 text-gray-700">
+            {% if bgp_contact.tel %}Tel: {{ bgp_contact.tel }}{% endif %}
+            {% if bgp_contact.tel and bgp_contact.fax %}<br />{% endif %}
+            {% if bgp_contact.fax %}Fax: {{ bgp_contact.fax }}{% endif %}
+          </p>
+          {% else %}
+          <textarea inputType="buttonText" rows="2" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 text-sm">{{ bgp_contact_address.buttonText }}</textarea>
+          <p class="mt-1 text-[10px] text-amber-700">Unter Website-Daten ist keine Telefonnummer hinterlegt.</p>
+          {% endif %}
+        </div>
+        <div class="text-content rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200" key="main_bgp_contact_map">
+          <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Bildunterschrift Karte</span>
+          {% if bgp_contact.address_inline %}
+          <p class="mb-2 rounded-lg border-2 border-dashed border-gray-300 px-3 py-2 text-sm font-bold text-gray-700">{{ bgp_contact.address_inline }}</p>
+          {% else %}
+          <input inputType="title" type="text" class="mb-2 w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 font-bold" value="{{ bgp_contact_map.title }}">
+          <p class="mb-2 text-[10px] text-amber-700">Unter Website-Daten ist keine Anschrift hinterlegt.</p>
+          {% endif %}
+          <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Zusatz</span>
+          <input inputType="description" type="text" class="mb-2 w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 text-sm" value="{{ bgp_contact_map.description }}">
+          <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Button</span>
+          <input inputType="buttonText" type="text" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 text-sm font-bold" value="{{ bgp_contact_map.buttonText }}">
+          <p class="mt-1 text-[10px] text-gray-500">Der Button öffnet die Route zur hinterlegten Anschrift.</p>
+        </div>
+        <div class="text-content rounded-xl bg-slate-800 p-4 text-white" key="main_bgp_contact_hours">
+          <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-white/60">Überschrift Öffnungszeiten</span>
+          <input inputType="title" type="text" class="w-full rounded-lg border-2 border-slate-600 bg-slate-700 px-3 py-2 font-bold focus:border-yellow-300 focus:outline-none" value="{{ bgp_contact_hours.title }}">
+          {% if bgp_opening_hours_table.rows %}
+          <p class="mt-2 rounded-lg border-2 border-dashed border-white/20 px-3 py-2 text-sm leading-6 text-white/80">
+            {% for row in bgp_opening_hours_table.rows %}{{ row.day }}: {{ row.times }}<br />{% endfor %}
+            {% if bgp_opening_hours_table.closed %}{{ bgp_opening_hours_table.closed }}: geschlossen{% endif %}
+          </p>
+          <p class="mt-1 text-[10px] leading-4 text-white/50">
+            Die Wochentage und Uhrzeiten pflegst du unter
+            <a href="{% url 'cms:openinghours-view' %}" class="font-semibold text-yellow-300 underline hover:no-underline">Öffnungszeiten</a>.
+          </p>
+          {% else %}
+          <span class="mb-1 mt-2 block text-[10px] font-semibold uppercase tracking-wider text-white/50">Text statt der Zeiten</span>
+          <textarea inputType="description" rows="3" class="w-full rounded-lg border-2 border-slate-600 bg-slate-700 px-3 py-2 text-sm text-white focus:border-yellow-300 focus:outline-none">{{ bgp_contact_hours.description }}</textarea>
+          <p class="mt-1 text-[10px] text-amber-300">Unter Öffnungszeiten ist kein Tag geöffnet.</p>
+          {% endif %}
+          <span class="mb-1 mt-2 block text-[10px] font-semibold uppercase tracking-wider text-white/50">Zusatzhinweis darunter</span>
+          <textarea inputType="buttonText" rows="3" class="w-full rounded-lg border-2 border-slate-600 bg-slate-700 px-3 py-2 text-xs text-white focus:border-yellow-300 focus:outline-none">{{ bgp_contact_hours.buttonText }}</textarea>
+        </div>
+      </div>
+    </section>
+
+    {# ─────────────── NOTFALL + BESTAETIGUNG ─────────────── #}
+    <section class="overflow-hidden rounded-2xl ring-1 ring-slate-200">
+      <div class="bg-slate-100 px-6 py-3">
+        <p class="text-xs font-semibold uppercase tracking-wider text-slate-600">5 &middot; Notfall-Hinweis und Bestätigung nach dem Absenden</p>
+      </div>
+      <div class="grid grid-cols-1 gap-4 bg-white p-6 lg:grid-cols-2">
+        <div class="text-content flex flex-col gap-3 rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200" key="main_bgp_contact_emergency">
+          <div>
+            <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Überschrift</span>
+            <input inputType="title" type="text" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 font-bold" value="{{ bgp_contact_emergency.title }}">
+          </div>
+          <div>
+            <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Text</span>
+            <textarea inputType="description" rows="3" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-sm">{{ bgp_contact_emergency.description }}</textarea>
+          </div>
+          <div>
+            <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Button</span>
+            <input inputType="buttonText" type="text" class="w-full rounded-lg bg-slate-800 px-6 py-3 text-sm font-bold text-white" value="{{ bgp_contact_emergency.buttonText }}">
+          </div>
+        </div>
+        <div class="text-content flex flex-col gap-3 rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200" key="main_bgp_contact_success">
+          <div>
+            <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Überschrift der Bestätigung</span>
+            <input inputType="title" type="text" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 font-bold" value="{{ bgp_contact_success.title }}">
+          </div>
+          <div>
+            <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Text der Bestätigung</span>
+            <textarea inputType="description" rows="3" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-sm">{{ bgp_contact_success.description }}</textarea>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %}
+
+{% block css %}
+<style>
+  .bgp-cms-navy { background-color: #12284c; }
+</style>
+{% endblock css %}
+
+{% block javascriptend %}
+{% compress js %}
+<script defer src="{% static 'js/cms.js' %}"></script>
+<script src="{% static 'js/cms/content/save-text.js' %}"></script>
+<script defer src="{% static 'js/cms/unsaved-guard.js' %}"></script>
+{% endcompress js %}
+{% endblock %}

@@ -106,12 +106,12 @@ def upload_validation_error_response(error):
 
 
 def get_active_language(request):
-    """Holt die aktuelle Sprache aus dem Request oder setzt Fallback auf 'en'"""
+    """Holt die aktuelle Sprache aus dem Request oder fällt auf settings.LANGUAGE_CODE zurück"""
     lang = get_language_from_request(request)  # Browser-Sprache holen
     available_languages = dict(settings.LANGUAGES)  # Unterstützte Sprachen aus settings.py
 
     if lang not in available_languages:
-        lang = "en"  # Standard-Sprache setzen
+        lang = settings.LANGUAGE_CODE  # Standard-Sprache setzen
 
     activate(lang)  # Sprache für diese Anfrage aktiv setzen
     return lang
@@ -3200,7 +3200,7 @@ DEMO_SUBPAGES = {
 }
 
 def _demo_noindex(response):
-    # Demos sind ohne Login erreichbar, duerfen aber nicht in Suchmaschinen landen.
+    # Demos sind ohne Login erreichbar, dürfen aber nicht in Suchmaschinen landen.
     response['X-Robots-Tag'] = 'noindex, nofollow'
     return response
 
@@ -3560,16 +3560,10 @@ def manage_features(request, pk):
 # Vorschläge für den Seitenpfad beim Anlegen von Seiten-Links
 SITE_PAGE_SUGGESTIONS = [
     ("/", "Startseite"),
-    ("/leistungen/", "Leistungen"),
-    ("/leistungen/webdesign/", "Leistungen – Webdesign"),
-    ("/leistungen/cms/", "Leistungen – CMS"),
-    ("/leistungen/logos/", "Leistungen – Logos"),
-    ("/leistungen/visitenkarte/", "Leistungen – Visitenkarte"),
-    ("/leistungen/medien/", "Leistungen – Medien"),
-    ("/webdesign-deggendorf/", "Webdesign Deggendorf"),
-    ("/kunden/", "Kunden"),
-    ("/blog/", "Blog"),
-    ("/shop/", "Shop"),
+    ("/#genossenschaft", "Unsere Genossenschaft"),
+    ("/#vermietung", "Vermietung"),
+    ("/immobilien/", "Immobilien"),
+    ("/aktuelles", "Aktuelles"),
     ("/kontakt/", "Kontakt"),
     ("/impressum/", "Impressum"),
     ("/datenschutz/", "Datenschutz"),

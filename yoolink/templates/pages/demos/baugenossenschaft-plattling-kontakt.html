@@ -2,7 +2,11 @@
 {% load static %}
 
 {% block title %}Kontakt | Baugenossenschaft Plattling eG{% endblock title %}
-{% block meta_description %}Kontakt zur Baugenossenschaft Plattling eG: Schillerstr. 6b, 94447 Plattling. Schreiben Sie uns über das Kontaktformular oder rufen Sie uns an - Mo, Mi und Fr von 8:00 bis 12:00 Uhr.{% endblock %}
+{% comment %}
+Anschrift und Zeiten in der Meta-Beschreibung kommen aus denselben Website-Daten
+wie die Seite selbst, damit die Google-Vorschau nicht veraltet.
+{% endcomment %}
+{% block meta_description %}Kontakt zur {% firstof bgp_contact.company_name "Baugenossenschaft Plattling eG" %}{% if bgp_contact.address_inline %}: {{ bgp_contact.address_inline }}{% endif %}. Schreiben Sie uns über das Kontaktformular{% if bgp_contact.tel %} oder rufen Sie uns an{% endif %}{% if bgp_opening_hours_summary %} - {{ bgp_opening_hours_summary }}{% endif %}.{% endblock %}
 
 {% block demo_css %}
 <style>
@@ -74,7 +78,12 @@
 {% endblock demo_css %}
 
 {% block content %}
-{% url 'ycms:demo-detail' slug='baugenossenschaft-plattling' as bgp_home_url %}
+{% if bgp_is_public %}
+  {% url 'home' as bgp_home_url %}
+  {% url 'datenschutz' as bgp_datenschutz_url %}
+{% else %}
+  {% url 'ycms:demo-detail' slug='baugenossenschaft-plattling' as bgp_home_url %}
+{% endif %}
 
 <!-- SEITENKOPF -->
 <section class="bgp-hero relative overflow-hidden px-4 py-16 text-white lg:py-20">
@@ -86,12 +95,10 @@
       <span class="font-semibold text-white">Kontakt</span>
     </nav>
     <div class="max-w-2xl">
-      <p class="bgp-text-yellow mb-4 text-sm font-semibold uppercase tracking-widest">Kontakt</p>
-      <h1 class="mb-5 text-4xl font-bold leading-tight tracking-tight sm:text-5xl">Wir sind für Sie da</h1>
+      <p class="bgp-text-yellow mb-4 text-sm font-semibold uppercase tracking-widest">{{ bgp_contact_hero.header }}</p>
+      <h1 class="mb-5 text-4xl font-bold leading-tight tracking-tight sm:text-5xl">{{ bgp_contact_hero.title }}</h1>
       <p class="text-base leading-7 text-white/80 md:text-lg">
-        Ob Frage zur Mitgliedschaft, Interesse an einer Wohnung oder ein Anliegen rund um Ihre Mietwohnung:
-        Schreiben Sie uns über das Formular oder rufen Sie einfach an. Wir melden uns in der Regel innerhalb
-        von zwei Werktagen zurück.
+        {{ bgp_contact_hero.description|linebreaksbr }}
       </p>
     </div>
   </div>
@@ -101,22 +108,27 @@
 <section class="bg-white px-4">
   <div class="mx-auto -mt-10 max-w-6xl">
     <div class="bgp-ring-ice relative z-10 grid grid-cols-1 gap-2 rounded-2xl bg-white p-4 shadow-2xl ring-1 sm:grid-cols-3 sm:p-6" data-aos="fade-up">
-      <a href="tel:0993189007300" class="bgp-focus flex items-center gap-4 rounded-xl px-3 py-3 transition hover:bg-gray-50">
+      {% comment %}
+      Telefonnummer, E-Mail und Zeiten kommen aus den Website-Daten bzw. dem Modul
+      "Oeffnungszeiten". Fehlt dort etwas, greift der im CMS gepflegte Text der
+      Kachel; ohne Nummer bzw. Adresse entfaellt auch der Link.
+      {% endcomment %}
+      <a {% if bgp_contact.tel_href %}href="{{ bgp_contact.tel_href }}"{% endif %} class="bgp-focus flex items-center gap-4 rounded-xl px-3 py-3 transition hover:bg-gray-50">
         <span class="bgp-bg-ice-deep bgp-text-navy inline-flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl">
           <i class="bi bi-telephone text-xl"></i>
         </span>
         <div class="min-w-0">
-          <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">Telefon</p>
-          <p class="bgp-text-navy-dark truncate font-bold">09931 890073-0</p>
+          <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">{{ bgp_contact_tile_1.title }}</p>
+          <p class="bgp-text-navy-dark truncate font-bold">{% firstof bgp_contact.tel bgp_contact_tile_1.description %}</p>
         </div>
       </a>
-      <a href="mailto:info@baugenossenschaft-plattling.de" class="bgp-focus flex items-center gap-4 rounded-xl px-3 py-3 transition hover:bg-gray-50">
+      <a {% if bgp_contact.email %}href="mailto:{{ bgp_contact.email }}"{% endif %} class="bgp-focus flex items-center gap-4 rounded-xl px-3 py-3 transition hover:bg-gray-50">
         <span class="bgp-bg-ice-deep bgp-text-navy inline-flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl">
           <i class="bi bi-envelope text-xl"></i>
         </span>
         <div class="min-w-0">
-          <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">E-Mail</p>
-          <p class="bgp-text-navy-dark truncate font-bold">info@baugenossenschaft-plattling.de</p>
+          <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">{{ bgp_contact_tile_2.title }}</p>
+          <p class="bgp-text-navy-dark truncate font-bold">{% firstof bgp_contact.email bgp_contact_tile_2.description %}</p>
         </div>
       </a>
       <div class="flex items-center gap-4 px-3 py-3">
@@ -124,8 +136,8 @@
           <i class="bi bi-clock text-xl"></i>
         </span>
         <div class="min-w-0">
-          <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">Bürozeiten</p>
-          <p class="bgp-text-navy-dark font-bold">Mo / Mi / Fr · 8-12 Uhr</p>
+          <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">{{ bgp_contact_tile_3.title }}</p>
+          <p class="bgp-text-navy-dark font-bold">{% firstof bgp_opening_hours_summary bgp_contact_tile_3.description %}</p>
         </div>
       </div>
     </div>
@@ -138,13 +150,14 @@
 
     <!-- Formular -->
     <div class="lg:col-span-3" data-aos="fade-right">
-      <h2 class="bgp-text-navy-dark mb-3 text-3xl font-bold tracking-tight">Schreiben Sie uns</h2>
+      <h2 class="bgp-text-navy-dark mb-3 text-3xl font-bold tracking-tight">{{ bgp_contact_form.title }}</h2>
       <p class="mb-8 text-base leading-7 text-gray-600">
-        Felder mit <span class="text-red-600">*</span> sind Pflichtfelder. Wir verwenden Ihre Angaben
-        ausschließlich zur Bearbeitung Ihrer Anfrage.
+        {{ bgp_contact_form.description|linebreaksbr }}
       </p>
 
-      <form id="bgpContactForm" novalidate class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
+      <form id="bgpContactForm" method="post" action="{{ request.path }}" novalidate class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
+        {% csrf_token %}
+        <input type="hidden" name="bgp_contact_form" value="1" />
         <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
           <div class="sm:col-span-2">
             <label class="bgp-label" for="bgpAnrede">Anrede</label>
@@ -202,7 +215,7 @@
                      class="bgp-focus mt-1 h-4 w-4 flex-shrink-0 rounded border-gray-300"
                      aria-describedby="bgpDatenschutzError" />
               <span class="text-sm leading-6 text-gray-600">
-                Ich habe die <button type="button" data-demo-hint="Datenschutzerklärung" class="bgp-text-navy font-semibold underline">Datenschutzerklärung</button>
+                Ich habe die {% if bgp_is_public %}<a href="{{ bgp_datenschutz_url }}" class="bgp-text-navy font-semibold underline">Datenschutzerklärung</a>{% else %}<button type="button" data-demo-hint="Datenschutzerklärung" class="bgp-text-navy font-semibold underline">Datenschutzerklärung</button>{% endif %}
                 gelesen und bin mit der Verarbeitung meiner Daten zur Bearbeitung der Anfrage einverstanden.
                 <span class="text-red-600">*</span>
               </span>
@@ -227,16 +240,33 @@
         <span class="bgp-bg-navy inline-flex h-12 w-12 items-center justify-center rounded-xl text-white">
           <i class="bi bi-geo-alt text-xl"></i>
         </span>
-        <h3 class="bgp-text-navy-dark mb-3 mt-4 text-lg font-bold">Anschrift</h3>
+        <h3 class="bgp-text-navy-dark mb-3 mt-4 text-lg font-bold">{{ bgp_contact_address.title }}</h3>
+        {% comment %}
+        Anschrift und Rufnummern stehen nur in den Website-Daten. Der im CMS
+        gepflegte Text der Karte ist die Rueckfallebene, falls dort nichts steht.
+        {% endcomment %}
         <p class="text-sm leading-7 text-gray-600">
-          Baugenossenschaft Plattling eG<br />
-          Schillerstr. 6b<br />
-          94447 Plattling
+          {% if bgp_contact.company_name or bgp_contact.address_lines %}
+            {% if bgp_contact.company_name %}{{ bgp_contact.company_name }}<br />{% endif %}
+            {% for line in bgp_contact.address_lines %}{{ line }}{% if not forloop.last %}<br />{% endif %}{% endfor %}
+          {% else %}
+            {{ bgp_contact_address.description|linebreaksbr }}
+          {% endif %}
         </p>
         <p class="mt-4 text-sm leading-7 text-gray-600">
-          Tel: <a href="tel:0993189007300" class="bgp-text-navy font-semibold hover:underline">09931 890073-0</a><br />
-          Fax: 09931 890073-9
+          {% if bgp_contact.tel or bgp_contact.fax %}
+            {% if bgp_contact.tel %}Tel: <a href="{{ bgp_contact.tel_href }}" class="bgp-text-navy font-semibold underline-offset-2 hover:underline">{{ bgp_contact.tel }}</a>{% endif %}
+            {% if bgp_contact.tel and bgp_contact.fax %}<br />{% endif %}
+            {% if bgp_contact.fax %}Fax: {{ bgp_contact.fax }}{% endif %}
+          {% else %}
+            {{ bgp_contact_address.buttonText|linebreaksbr }}
+          {% endif %}
         </p>
+        {% if bgp_contact.email %}
+        <p class="mt-4 text-sm leading-7 text-gray-600">
+          <a href="mailto:{{ bgp_contact.email }}" class="bgp-text-navy font-semibold underline-offset-2 hover:underline">{{ bgp_contact.email }}</a>
+        </p>
+        {% endif %}
       </div>
 
       <div class="overflow-hidden rounded-2xl border border-gray-200 shadow-sm">
@@ -247,12 +277,22 @@
         </div>
         <div class="flex items-center justify-between gap-4 bg-white px-5 py-4">
           <div>
-            <p class="bgp-text-navy-dark text-sm font-bold">Schillerstr. 6b, Plattling</p>
-            <p class="text-xs text-gray-500">Parkplätze direkt am Haus</p>
+            <p class="bgp-text-navy-dark text-sm font-bold">{% firstof bgp_contact.address_inline bgp_contact_map.title %}</p>
+            <p class="text-xs text-gray-500">{{ bgp_contact_map.description }}</p>
           </div>
+          {% comment %}
+          Der Routen-Button fuehrt zur Anschrift aus den Website-Daten; in der
+          Demo-Ansicht bleibt es beim Hinweis-Toast.
+          {% endcomment %}
+          {% if bgp_is_public and bgp_contact.maps_url %}
+          <a href="{{ bgp_contact.maps_url }}" target="_blank" rel="noopener" class="bgp-btn-navy bgp-focus inline-flex flex-shrink-0 items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold transition">
+            <i class="bi bi-signpost-split"></i> {{ bgp_contact_map.buttonText }}
+          </a>
+          {% elif not bgp_is_public %}
           <button type="button" data-demo-hint="Die interaktive Karte" class="bgp-btn-navy bgp-focus inline-flex flex-shrink-0 items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold transition">
-            <i class="bi bi-signpost-split"></i> Route
+            <i class="bi bi-signpost-split"></i> {{ bgp_contact_map.buttonText }}
           </button>
+          {% endif %}
         </div>
       </div>
 
@@ -260,26 +300,30 @@
         <span class="bgp-bg-yellow inline-flex h-12 w-12 items-center justify-center rounded-xl">
           <i class="bi bi-clock bgp-text-navy-dark text-xl"></i>
         </span>
-        <h3 class="mb-3 mt-4 text-lg font-bold">Öffnungszeiten</h3>
+        <h3 class="mb-3 mt-4 text-lg font-bold">{{ bgp_contact_hours.title }}</h3>
+        {# Wochentage und Uhrzeiten kommen aus dem CMS-Modul "Oeffnungszeiten". #}
+        {% if bgp_opening_hours_table.rows %}
         <dl class="flex flex-col gap-2 text-sm">
-          <div class="flex items-center justify-between border-b border-white/10 pb-2">
-            <dt class="bgp-text-ice">Montag</dt>
-            <dd class="font-semibold">08:00 - 12:00</dd>
+          {% for row in bgp_opening_hours_table.rows %}
+          <div class="flex items-center justify-between {% if not forloop.last or bgp_opening_hours_table.closed %}border-b border-white/10 pb-2{% endif %}">
+            <dt class="bgp-text-ice">{{ row.day }}</dt>
+            <dd class="font-semibold">{{ row.times }}</dd>
           </div>
-          <div class="flex items-center justify-between border-b border-white/10 pb-2">
-            <dt class="bgp-text-ice">Mittwoch</dt>
-            <dd class="font-semibold">08:00 - 12:00</dd>
-          </div>
-          <div class="flex items-center justify-between border-b border-white/10 pb-2">
-            <dt class="bgp-text-ice">Freitag</dt>
-            <dd class="font-semibold">08:00 - 12:00</dd>
-          </div>
+          {% endfor %}
+          {% if bgp_opening_hours_table.closed %}
           <div class="flex items-center justify-between">
-            <dt class="text-white/40">Di / Do / Sa / So</dt>
+            <dt class="text-white/40">{{ bgp_opening_hours_table.closed }}</dt>
             <dd class="font-semibold text-white/40">geschlossen</dd>
           </div>
+          {% endif %}
         </dl>
-        <p class="mt-4 text-xs text-white/50">An Brückentagen ist unser Büro geschlossen. Termine außerhalb der Bürozeiten vereinbaren wir gerne telefonisch.</p>
+        {% endif %}
+        {% if bgp_contact_hours.description %}
+        <p class="{% if bgp_opening_hours_table.rows %}mt-4 {% endif %}text-sm leading-7 text-white/70">{{ bgp_contact_hours.description|linebreaksbr }}</p>
+        {% endif %}
+        {% if bgp_contact_hours.buttonText %}
+        <p class="mt-4 text-xs text-white/50">{{ bgp_contact_hours.buttonText|linebreaksbr }}</p>
+        {% endif %}
       </div>
     </div>
   </div>
@@ -293,34 +337,39 @@
         <i class="bi bi-exclamation-triangle bgp-text-navy-dark text-2xl"></i>
       </span>
       <div class="flex-1">
-        <h2 class="bgp-text-navy-dark mb-1 text-lg font-bold">Notfall außerhalb der Bürozeiten?</h2>
+        <h2 class="bgp-text-navy-dark mb-1 text-lg font-bold">{{ bgp_contact_emergency.title }}</h2>
         <p class="text-sm leading-6 text-gray-600">
-          Bei akuten Schäden - etwa Wasserrohrbruch oder Heizungsausfall - erreichen Sie unseren
-          Bereitschaftsdienst rund um die Uhr unter der bekannten Rufnummer.
+          {{ bgp_contact_emergency.description|linebreaksbr }}
         </p>
       </div>
-      <a href="tel:0993189007300" class="bgp-btn-navy bgp-focus inline-flex flex-shrink-0 items-center gap-2 rounded-xl px-6 py-3.5 text-sm font-bold shadow-lg transition-transform duration-300 hover:-translate-y-0.5">
-        <i class="bi bi-telephone-fill"></i> Jetzt anrufen
+      {% if bgp_contact.tel_href %}
+      <a href="{{ bgp_contact.tel_href }}" class="bgp-btn-navy bgp-focus inline-flex flex-shrink-0 items-center gap-2 rounded-xl px-6 py-3.5 text-sm font-bold shadow-lg transition-transform duration-300 hover:-translate-y-0.5">
+        <i class="bi bi-telephone-fill"></i> {{ bgp_contact_emergency.buttonText }}
       </a>
+      {% endif %}
     </div>
   </div>
 </section>
 
-<!-- MODAL: Bestaetigung -->
+<!-- MODAL: Bestätigung -->
 <div id="bgpSuccessModal" class="bgp-modal" role="dialog" aria-modal="true" aria-labelledby="bgpSuccessTitle">
   <div class="bgp-modal-panel max-w-lg">
     <div class="px-7 pb-7 pt-9 text-center sm:px-9">
       <span class="bgp-bg-yellow mx-auto mb-5 inline-flex h-16 w-16 items-center justify-center rounded-full">
         <i class="bi bi-check-lg bgp-text-navy-dark text-3xl"></i>
       </span>
-      <h2 id="bgpSuccessTitle" class="bgp-text-navy-dark mb-3 text-2xl font-bold">Vielen Dank für Ihre Nachricht!</h2>
+      <h2 id="bgpSuccessTitle" class="bgp-text-navy-dark mb-3 text-2xl font-bold">{{ bgp_contact_success.title }}</h2>
       <p class="text-base leading-7 text-gray-600">
-        Wir haben Ihre Anfrage erhalten und melden uns in der Regel innerhalb von zwei Werktagen bei Ihnen zurück.
-        Eine Bestätigung geht an <strong id="bgpSuccessEmail" class="text-gray-900"></strong>.
+        {{ bgp_contact_success.description }}
+        Eine Bestätigung geht an <strong id="bgpSuccessEmail" class="text-gray-900">{{ request.POST.email }}</strong>.
       </p>
       <p class="mt-5 rounded-xl bg-gray-50 px-4 py-3 text-xs leading-5 text-gray-500">
+        {% if bgp_is_public %}
+        <i class="bi bi-info-circle"></i> Ihre Anfrage wurde im CMS gespeichert und kann dort weiterbearbeitet werden.
+        {% else %}
         <i class="bi bi-info-circle"></i> Dies ist eine Demo-Ansicht: Es wurde keine E-Mail verschickt und
         nichts gespeichert. Im echten CMS landet die Anfrage im Postfach und im Anfragen-Bereich.
+        {% endif %}
       </p>
     </div>
     <div class="flex items-center justify-center border-t border-gray-100 bg-gray-50 px-6 py-5">
@@ -335,8 +384,9 @@
 
 {% block demo_js %}
 <script>
-  /* Simuliertes Kontaktformular: clientseitige Validierung, Sende-Animation, Bestaetigung */
+  /* Simuliertes Kontaktformular: clientseitige Validierung, Sende-Animation, Bestätigung */
   (function () {
+    var bgpIsPublic = {% if bgp_is_public %}true{% else %}false{% endif %};
     var form = document.getElementById('bgpContactForm');
     var successModal = document.getElementById('bgpSuccessModal');
     var successEmail = document.getElementById('bgpSuccessEmail');
@@ -388,6 +438,11 @@
       submitLabel.textContent = 'Wird gesendet ...';
       submitIcon.className = 'bi bi-arrow-repeat animate-spin';
 
+      if (bgpIsPublic) {
+        HTMLFormElement.prototype.submit.call(form);
+        return;
+      }
+
       window.setTimeout(function () {
         successEmail.textContent = document.getElementById('bgpEmail').value.trim();
         bgpOpenModal(successModal);
@@ -404,6 +459,10 @@
         submitIcon.className = 'bi bi-send';
       }, 1100);
     });
+
+    {% if success %}
+    bgpOpenModal(successModal);
+    {% endif %}
   })();
 </script>
 {% endblock demo_js %}

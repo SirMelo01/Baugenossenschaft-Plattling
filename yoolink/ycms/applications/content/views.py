@@ -12,6 +12,7 @@ from django.views.decorators.http import require_http_methods
 
 from yoolink.ycms.models import FAQ, Button, Galerie, PageLink, PricingCard, TeamMember, UserSettings, VideoFile, WebsiteSettings, fileentry
 
+from .bgp_content import bgp_content_context
 from .models import Customer, ImpressumBlock, PrivacyPolicy, ServiceLocation, TextContent
 
 DEFAULT_LANGUAGE = "en"
@@ -22,7 +23,7 @@ def get_active_language(request):
     available_languages = dict(settings.LANGUAGES)
 
     if lang not in available_languages:
-        lang = DEFAULT_LANGUAGE
+        lang = settings.LANGUAGE_CODE
 
     activate(lang)
     return lang
@@ -49,6 +50,12 @@ def _get_image(place):
     return fileentry.objects.filter(place=place).first()
 
 
+def _bgp_text_context():
+    # Key-Liste liegt in bgp_content.py, damit CMS-Editor und oeffentliche Seite
+    # nicht auseinanderlaufen koennen.
+    return bgp_content_context()
+
+
 @login_required(login_url="login")
 def content_view(request):
     return render(request, "pages/cms/content/content.html", {})
@@ -56,48 +63,7 @@ def content_view(request):
 
 @login_required(login_url="login")
 def site_view_main(request):
-    """Single combined editor for the whole main page (all sections at once).
-
-    Gathers the same data the individual section views provide so everything can
-    be edited on one page. Saving still goes through ``save_text_content`` via the
-    generic ``.text-content`` / galery / video markup.
-    """
-    data = {
-        "pricing_count": PricingCard.objects.count(),
-        "member_count": TeamMember.objects.count(),
-        "faq_count": FAQ.objects.count(),
-        "location_count": ServiceLocation.objects.count(),
-        # Texts per section
-        "hero_text": _get_text("main_hero"),
-        "responsive_text": _get_text("main_responsive"),
-        "cms_text": _get_text("main_cms"),
-        "knowhow_text": _get_text("main_know_how"),
-        "kunden_text": _get_text("main_kunden"),
-        "standorte_text": _get_text("main_standorte"),
-        "price_text": _get_text("main_price"),
-        "team_text": _get_text("main_team"),
-        "faq_text": _get_text("main_faq"),
-    }
-
-    # Know-How cards
-    for index in range(1, 4):
-        data[f"knowhow_card_{index}"] = _get_text(f"main_know_how_card_{index}")
-
-    # Hero galery
-    if Galerie.objects.filter(place="main_hero").exists():
-        data["heroImages"] = Galerie.objects.get(place="main_hero").images.all()
-
-    # Responsive galeries
-    if Galerie.objects.filter(place="main_responsive_desktop").exists():
-        data["responsiveDesktopImages"] = Galerie.objects.get(place="main_responsive_desktop").images.all()
-    if Galerie.objects.filter(place="main_responsive_handy").exists():
-        data["responsiveHandyImages"] = Galerie.objects.get(place="main_responsive_handy").images.all()
-
-    # CMS video
-    if VideoFile.objects.filter(place="main_cms").exists():
-        data["cmsVideo"] = VideoFile.objects.get(place="main_cms")
-
-    return render(request, "pages/cms/content/sites/MainSite.html", data)
+    return render(request, "pages/cms/content/sites/BaugenossenschaftPlattlingSite.html", _bgp_text_context())
 
 
 @login_required(login_url="login")
@@ -581,21 +547,12 @@ def site_view_cookies(request):
 
 @login_required(login_url="login")
 def site_view_kontakt(request):
-    return render(
-        request,
-        "pages/cms/content/sites/KontaktSite.html",
-        {
-            "textContent_hero": _get_text("main_kontakt_hero"),
-            "textContent_panel": _get_text("main_kontakt_panel"),
-            "textContent_panel_labels": _get_text("main_kontakt_panel_labels"),
-            "textContent_opening_hours": _get_text("main_kontakt_opening_hours"),
-            "textContent_response": _get_text("main_kontakt_response"),
-            "textContent_form": _get_text("main_kontakt_form"),
-            "textContent_fields": _get_text("main_kontakt_fields"),
-            "textContent_message_placeholder": _get_text("main_kontakt_message_placeholder"),
-            "textContent_success": _get_text("main_kontakt_success"),
-        },
-    )
+    return render(request, "pages/cms/content/sites/BaugenossenschaftPlattlingKontaktSite.html", _bgp_text_context())
+
+
+@login_required(login_url="login")
+def site_view_bgp_aktuelles(request):
+    return render(request, "pages/cms/content/sites/BaugenossenschaftPlattlingAktuellesSite.html", _bgp_text_context())
 
 
 @login_required(login_url="login")
@@ -614,7 +571,7 @@ def site_view_blog_overview(request):
 @login_required(login_url="login")
 def save_text_content(request):
     if request.method != "POST":
-        return JsonResponse({"error": "Etwas ist falsch gelaufen. Versuche es spÃ¤ter nochmal"}, status=400)
+        return JsonResponse({"error": "Etwas ist falsch gelaufen. Versuche es später nochmal"}, status=400)
 
     lang = get_active_language(request)
     name = request.POST.get("name", "")
@@ -764,7 +721,7 @@ def _save_text_values(name, values, lang):
 @login_required(login_url="login")
 def save_privacy_policy(request):
     if request.method != "POST":
-        return JsonResponse({"error": "UngÃ¼ltige Anfrage"}, status=405)
+        return JsonResponse({"error": "Ungültige Anfrage"}, status=405)
 
     lang = get_active_language(request)
     content_html = request.POST.get("content_html", "")
@@ -778,7 +735,7 @@ def save_privacy_policy(request):
         policy.content_html = prepared_content
     policy.save(update_fields=["use_html", f"content_html_{lang}", "content_html", "updated_at"])
 
-    return JsonResponse({"success": "DatenschutzerklÃ¤rung wurde gespeichert"}, status=200)
+    return JsonResponse({"success": "Datenschutzerklärung wurde gespeichert"}, status=200)
 
 
 # ----------------------------------------------------------------------
@@ -995,12 +952,12 @@ def customer_create_view(request):
         )
 
     if request.method != "POST":
-        return JsonResponse({"error": "UngÃ¼ltige Anfrage"}, status=405)
+        return JsonResponse({"error": "Ungültige Anfrage"}, status=405)
 
     try:
         payload = json.loads(request.body)
     except (TypeError, ValueError):
-        return JsonResponse({"error": "UngÃ¼ltige Daten"}, status=400)
+        return JsonResponse({"error": "Ungültige Daten"}, status=400)
 
     lang = get_active_language(request)
     customer = Customer()
@@ -1032,12 +989,12 @@ def customer_edit_view(request, pk):
         )
 
     if request.method != "POST":
-        return JsonResponse({"error": "UngÃ¼ltige Anfrage"}, status=405)
+        return JsonResponse({"error": "Ungültige Anfrage"}, status=405)
 
     try:
         payload = json.loads(request.body)
     except (TypeError, ValueError):
-        return JsonResponse({"error": "UngÃ¼ltige Daten"}, status=400)
+        return JsonResponse({"error": "Ungültige Daten"}, status=400)
 
     lang = get_active_language(request)
     error = _apply_customer_payload(customer, payload, lang)
@@ -1055,7 +1012,7 @@ def customer_edit_view(request, pk):
 def customer_delete_view(request, pk):
     customer = get_object_or_404(Customer, pk=pk)
     customer.delete()
-    return JsonResponse({"success": "Kunde wurde gelÃ¶scht"}, status=200)
+    return JsonResponse({"success": "Kunde wurde gelöscht"}, status=200)
 
 
 # ----------------------------------------------------------------------
@@ -1203,21 +1160,21 @@ def location_reorder_view(request):
 @login_required(login_url="login")
 def customer_reorder_view(request):
     if request.method != "POST":
-        return JsonResponse({"error": "UngÃ¼ltige Anfrage"}, status=405)
+        return JsonResponse({"error": "Ungültige Anfrage"}, status=405)
 
     try:
         payload = json.loads(request.body)
     except (TypeError, ValueError):
-        return JsonResponse({"error": "UngÃ¼ltige Daten"}, status=400)
+        return JsonResponse({"error": "Ungültige Daten"}, status=400)
 
     order = payload.get("order") or []
     if not isinstance(order, list):
-        return JsonResponse({"error": "UngÃ¼ltige Reihenfolge"}, status=400)
+        return JsonResponse({"error": "Ungültige Reihenfolge"}, status=400)
 
     try:
         ids = [int(x) for x in order]
     except (TypeError, ValueError):
-        return JsonResponse({"error": "UngÃ¼ltige IDs"}, status=400)
+        return JsonResponse({"error": "Ungültige IDs"}, status=400)
 
     for index, customer_id in enumerate(ids, start=1):
         Customer.objects.filter(pk=customer_id).update(order=index)
