@@ -217,7 +217,7 @@ Wenn du den Blog als JSON erstellst, kann `title_image` keine URL sein. Lade das
 
 https://www.youtube.com/watch?v=DLxcyndCvO4 hier ab minute 28
 
-ssh root@195.201.112.17
+ssh -i ~/.ssh/id_ed25519_strato root@217.154.118.156
 
 
 ## Fehlerbehebung Space full
