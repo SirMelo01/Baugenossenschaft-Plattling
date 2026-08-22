@@ -177,6 +177,8 @@ class Product(TimeStampedModel):
     price = models.DecimalField(
         max_digits=10,
         decimal_places=2,
+        blank=True,
+        null=True,
         validators=[MinValueValidator(Decimal("0.01"))],
     )
     discount_price = models.DecimalField(
@@ -250,7 +252,12 @@ class Product(TimeStampedModel):
                 {"discount_price": "Eine alternative Preisangabe braucht einen gültigen Wert."}
             )
 
-        if self.discount_price is not None and self.discount_price >= self.price:
+        if self.is_reduced and self.price is None:
+            raise ValidationError(
+                {"price": "Eine alternative Preisangabe braucht einen regulaeren Preis."}
+            )
+
+        if self.discount_price is not None and self.price is not None and self.discount_price >= self.price:
             raise ValidationError(
                 {"discount_price": "Die alternative Preisangabe muss kleiner als der reguläre Preis sein."}
             )
@@ -275,13 +282,11 @@ class Product(TimeStampedModel):
 
     @property
     def effective_price(self):
-        if self.is_reduced and self.discount_price is not None:
-            return self.discount_price
         return self.price
 
     @property
     def should_show_price_card(self):
-        return (not self.showcase_only) or self.show_price_when_showcase
+        return self.effective_price is not None and ((not self.showcase_only) or self.show_price_when_showcase)
 
     @property
     def should_show_purchase_controls(self):

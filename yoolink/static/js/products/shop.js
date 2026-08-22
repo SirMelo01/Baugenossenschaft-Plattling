@@ -15,12 +15,9 @@ function getCurrentShopFilters() {
     q: $("#shopSearchInput").val().trim(),
     min_price: $("#filterMinPrice").val().trim(),
     max_price: $("#filterMaxPrice").val().trim(),
-    is_reduced: $("#filterReduced").is(":checked"),
-    is_in_stock: $("#filterInStock").is(":checked"),
     online_only: $("#filterOnlineOnly").is(":checked"),
     type: getCheckedRadioValue("shopProductType"),
     brand: getCheckedRadioValue("shopBrand"),
-    category: getCheckedRadioValue("shopCategory"),
     ordering: $("#shopSortSelect").val() || "title_asc",
   }
 }
@@ -32,12 +29,9 @@ function getActiveShopFilterCount() {
   if (filters.q) count += 1
   if (filters.min_price) count += 1
   if (filters.max_price) count += 1
-  if (filters.is_reduced) count += 1
-  if (filters.is_in_stock) count += 1
   if (filters.online_only) count += 1
   if (filters.type) count += 1
   if (filters.brand) count += 1
-  if (filters.category) count += 1
   if (filters.ordering && filters.ordering !== "title_asc") count += 1
 
   return count
@@ -64,12 +58,9 @@ function buildShopSearchParams(page = 1) {
   if (filters.q) params.set("q", filters.q)
   if (filters.min_price) params.set("min_price", filters.min_price)
   if (filters.max_price) params.set("max_price", filters.max_price)
-  if (filters.is_reduced) params.set("is_reduced", "true")
-  if (filters.is_in_stock) params.set("is_in_stock", "true")
   if (filters.online_only) params.set("online_only", "true")
   if (filters.type) params.set("type", filters.type)
   if (filters.brand) params.set("brand", filters.brand)
-  if (filters.category) params.set("category", filters.category)
   if (filters.ordering) params.set("ordering", filters.ordering)
 
   params.set("page", page)
@@ -83,23 +74,14 @@ function buildPublicProductCard(product) {
   const description = escapeHtml(product.description || "Keine Beschreibung vorhanden")
   const brand = escapeHtml(product.brand || "")
   const priceNote = escapeHtml(product.price_note || "")
-  const showPriceCard = !product.showcase_only || product.show_price_when_showcase
+  const showPriceCard = Boolean(product.should_show_price_card)
 
   const topBadges = []
-  if (product.is_reduced && product.discount_price && showPriceCard) {
-    topBadges.push('<span class="rounded-full bg-[#FFDC16] px-3 py-1 text-xs font-semibold text-[#2E434C]">Sonderhinweis</span>')
-  }
   if (product.featured) {
     topBadges.push('<span class="rounded-full bg-[#4B6671] px-3 py-1 text-xs font-semibold text-white">Hervorgehoben</span>')
   }
 
   const badges = []
-  if (product.is_in_stock) {
-    badges.push('<span class="rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700">Verf&uuml;gbar</span>')
-  } else {
-    badges.push('<span class="rounded-full bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700">Aktuell nicht verf&uuml;gbar</span>')
-  }
-
   if (product.online_sell) {
     badges.push('<span class="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">Anfrage m&ouml;glich</span>')
   }
@@ -107,15 +89,8 @@ function buildPublicProductCard(product) {
   let priceHtml = ""
   if (!showPriceCard) {
     priceHtml = '<span class="text-sm font-semibold text-gray-500">Mehr erfahren</span>'
-  } else if (product.is_reduced && product.discount_price) {
-    priceHtml = `
-      <div class="flex flex-wrap items-end gap-2">
-        <span class="text-xl font-bold text-[#4B6671]">${escapeHtml(product.discount_price)} &euro;</span>
-        <span class="pb-0.5 text-sm text-gray-400 line-through">${escapeHtml(product.price)} &euro;</span>
-      </div>
-    `
   } else {
-    priceHtml = `<span class="text-xl font-bold text-gray-900">${escapeHtml(product.price)} &euro;</span>`
+    priceHtml = `<span class="text-xl font-bold text-gray-900">${escapeHtml(product.effective_price || product.price)} &euro;</span>`
   }
 
   if (showPriceCard && priceNote) {
@@ -359,27 +334,24 @@ $(document).ready(function () {
     }
   })
 
-  $("#filterReduced, #filterInStock, #filterOnlineOnly, #filterMinPrice, #filterMaxPrice, #shopSortSelect").on("change input", function () {
+  $("#filterOnlineOnly, #filterMinPrice, #filterMaxPrice, #shopSortSelect").on("change input", function () {
     updateShopFilterCount()
     loadShopProducts(1)
   })
 
-  $('input[name="shopProductType"], input[name="shopBrand"], input[name="shopCategory"]').on("change", function () {
+  $('input[name="shopProductType"], input[name="shopBrand"]').on("change", function () {
     updateShopFilterCount()
     loadShopProducts(1)
   })
 
   $("#resetShopFilters").on("click", function () {
     $("#shopSearchInput").val("")
-    $("#filterReduced").prop("checked", false)
-    $("#filterInStock").prop("checked", false)
     $("#filterOnlineOnly").prop("checked", false)
     $("#filterMinPrice").val("")
     $("#filterMaxPrice").val("")
     $('#shopSortSelect').val("title_asc")
     $('input[name="shopProductType"][value=""]').prop("checked", true)
     $('input[name="shopBrand"][value=""]').prop("checked", true)
-    $('input[name="shopCategory"][value=""]').prop("checked", true)
 
     updateShopFilterCount()
     loadShopProducts(1)

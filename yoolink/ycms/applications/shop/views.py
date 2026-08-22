@@ -72,6 +72,18 @@ def parse_decimal(value, default="0.00"):
         return Decimal(default)
 
 
+def parse_optional_decimal(value):
+    """Parse an optional decimal value; blank input stays None."""
+    raw_value = str(value or "").strip()
+    if not raw_value:
+        return None
+
+    try:
+        return Decimal(raw_value.replace(",", "."))
+    except (InvalidOperation, TypeError, ValueError) as error:
+        raise ValueError("Invalid decimal value") from error
+
+
 def parse_json_list(value):
     """Parse a JSON encoded list safely."""
     if not value:
@@ -327,6 +339,7 @@ def serialize_product_for_search(product):
         "is_reduced": product.is_reduced,
         "showcase_only": getattr(product, "showcase_only", False),
         "show_price_when_showcase": getattr(product, "show_price_when_showcase", True),
+        "should_show_price_card": getattr(product, "should_show_price_card", False),
         "brand": product.brand.name if product.brand else "",
         "group": product.group.name if product.group else "",
         "categories": [category.name for category in product.categories.all()],
@@ -338,7 +351,7 @@ def serialize_product_for_search(product):
 def serialize_public_product(product):
     effective_price = getattr(product, "effective_price_value", None)
     if effective_price is None:
-        effective_price = product.discount_price if product.is_reduced and product.discount_price else product.price
+        effective_price = product.price
 
     return {
         "id": product.id,
@@ -353,6 +366,7 @@ def serialize_public_product(product):
         "effective_price": str(effective_price) if effective_price is not None else "",
         "showcase_only": getattr(product, "showcase_only", False),
         "show_price_when_showcase": getattr(product, "show_price_when_showcase", True),
+        "should_show_price_card": getattr(product, "should_show_price_card", False),
         "is_in_stock": product.is_in_stock,
         "online_sell": product.online_sell,
         "is_reduced": product.is_reduced,
@@ -484,7 +498,6 @@ def apply_product_form_data(request, product):
     """
     title = (request.POST.get("title") or "").strip()
     description = sanitize_html((request.POST.get("description") or "").strip())
-    sku = (request.POST.get("sku") or "").strip()[:64]
     price_note = (request.POST.get("priceNote") or "").strip()[:120]
     brand_name = (request.POST.get("hersteller") or "").strip()
     group_name = (request.POST.get("group") or "").strip()
@@ -494,15 +507,21 @@ def apply_product_form_data(request, product):
     gallery_id = request.POST.get("galeryId")
     uploaded_image = request.FILES.get("title_image")
 
-    price = parse_decimal(request.POST.get("price"), default="0.00")
-    weight = parse_decimal(request.POST.get("weight"), default="0.00")
-    reduced_price_raw = (request.POST.get("reducedPrice") or "").strip()
-    reduced_price = parse_decimal(reduced_price_raw, default="0.00") if reduced_price_raw else None
+    try:
+        price = parse_optional_decimal(request.POST.get("price"))
+    except ValueError:
+        return None, JsonResponse({"error": "Miete/Preis muss eine gueltige Zahl sein."}, status=400)
+
+    try:
+        weight = parse_optional_decimal(request.POST.get("weight")) or Decimal("0.00")
+    except ValueError:
+        return None, JsonResponse({"error": "Wohnflaeche muss eine gueltige Zahl sein."}, status=400)
 
     is_active = parse_bool(request.POST.get("isActive"))
-    is_in_stock = parse_bool(request.POST.get("isInStock"))
+    is_in_stock = True
     online_sell = parse_bool(request.POST.get("isOnlineAvailable"))
-    is_reduced = parse_bool(request.POST.get("isReduced"))
+    is_reduced = False
+    reduced_price = None
     showcase_only = parse_bool(request.POST.get("isShowcaseOnly"))
     show_price_when_showcase = parse_bool(request.POST.get("showPriceWhenShowcase"))
     featured = parse_bool(request.POST.get("isFeatured"))
@@ -510,8 +529,11 @@ def apply_product_form_data(request, product):
     if not title:
         return None, JsonResponse({"error": "Der Titel darf nicht leer sein."}, status=400)
 
-    if price <= 0:
+    if price is not None and price <= 0:
         return None, JsonResponse({"error": "Miete/Preis muss größer 0 sein."}, status=400)
+
+    if weight < 0:
+        return None, JsonResponse({"error": "Wohnflaeche darf nicht negativ sein."}, status=400)
 
     if is_reduced and reduced_price is None:
         return None, JsonResponse({"error": "Eine alternative Preisangabe braucht einen gültigen Wert."}, status=400)
@@ -549,7 +571,7 @@ def apply_product_form_data(request, product):
         with transaction.atomic():
             product.title = title
             product.description = description
-            product.sku = sku
+            product.sku = ""
             product.price_note = price_note
             product.featured = featured
             product.price = price
@@ -682,12 +704,9 @@ def get_filtered_products_queryset(request):
     elif product_type == "reduced":
         products = products.filter(is_reduced=True)
     elif product_type == "with_price":
-        products = products.filter(
-            Q(showcase_only=False)
-            | Q(showcase_only=True, show_price_when_showcase=True)
-        )
+        products = products.filter(price__isnull=False)
     elif product_type == "without_price":
-        products = products.filter(showcase_only=True, show_price_when_showcase=False)
+        products = products.filter(price__isnull=True)
 
     ordering_map = {
         "title_asc": "title",
@@ -968,11 +987,7 @@ def get_public_filtered_products_queryset(request):
         .select_related("brand")
         .prefetch_related("categories", "translations", "translations__categories")
         .annotate(
-            effective_price_value=Case(
-                When(is_reduced=True, discount_price__isnull=False, then=F("discount_price")),
-                default=F("price"),
-                output_field=DecimalField(max_digits=10, decimal_places=2),
-            )
+            effective_price_value=F("price")
         )
     )
 
@@ -1075,18 +1090,11 @@ def build_grouped_products_context(request):
 
     grouped = {}
     ungrouped = []
-    # Merkmale fuer die Filterleiste: aus den tatsaechlich gerenderten (lokalisierten)
-    # Objekten, damit die Slugs im Filter und an den Karten garantiert zusammenpassen.
-    filter_categories = {}
-
     for product in products:
         # Sections come from the root product's group; display data from the
         # localized variant.
         group = product.group
         localized = get_localized_product(product, language, require_active=True)
-
-        for category in localized.categories.all():
-            filter_categories[category.slug] = category
 
         if group is None:
             ungrouped.append(localized)
@@ -1104,7 +1112,7 @@ def build_grouped_products_context(request):
         "product_groups": sorted_groups,
         "ungrouped_products": ungrouped,
         "total_products": products.count(),
-        "filter_categories": sorted(filter_categories.values(), key=lambda c: c.name.lower()),
+        "filter_categories": [],
     }
 
 

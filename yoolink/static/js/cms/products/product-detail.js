@@ -167,6 +167,10 @@ function collectProductSpecifications() {
 }
 
 function appendSpecificationsToFormData(formData) {
+  formData.append("specifications", JSON.stringify([]));
+  return true;
+
+  /*
   const result = collectProductSpecifications();
 
   if (result.hasIncompleteRow) {
@@ -181,6 +185,7 @@ function appendSpecificationsToFormData(formData) {
 
   formData.append("specifications", JSON.stringify(result.specifications));
   return true;
+  */
 }
 
 function appendTaxonomyToFormData(formData) {
@@ -190,7 +195,7 @@ function appendTaxonomyToFormData(formData) {
 
   setFormDataValue(formData, "hersteller", taxonomy.brand);
   setFormDataValue(formData, "group", taxonomy.group);
-  setFormDataValue(formData, "selected_categories", JSON.stringify(taxonomy.categories));
+  setFormDataValue(formData, "selected_categories", JSON.stringify([]));
 }
 
 function quillImageHandler() {
@@ -521,7 +526,7 @@ $(document).ready(function () {
     syncDescriptionField();
 
     const files = $("#titleImgUpload").prop("files");
-    const requiredFields = ["#title", "#description", "#price"];
+    const requiredFields = ["#title", "#description"];
     const isValid = isFormValid(requiredFields);
 
     if (!isValid) {
@@ -533,16 +538,16 @@ $(document).ready(function () {
     setFormDataValue(formData, "title", $("#title").val());
     setFormDataValue(formData, "description", $("#description").val());
     setFormDataValue(formData, "isActive", $("#activeSwitch").is(":checked"));
-    setFormDataValue(formData, "isInStock", $("#stockSwitch").is(":checked"));
-    setFormDataValue(formData, "isReduced", $("#reducedSwitch").is(":checked"));
+    setFormDataValue(formData, "isInStock", true);
+    setFormDataValue(formData, "isReduced", false);
     setFormDataValue(formData, "price", $("#price").val());
     setFormDataValue(formData, "weight", $("#weight").val());
     setFormDataValue(formData, "isOnlineAvailable", $("#onlineSwitch").is(":checked"));
-    setFormDataValue(formData, "reducedPrice", $("#reducedPrice").val());
+    setFormDataValue(formData, "reducedPrice", "");
     setFormDataValue(formData, "isShowcaseOnly", $("#showcaseOnlySwitch").is(":checked"));
     setFormDataValue(formData, "showPriceWhenShowcase", $("#showPriceWhenShowcaseSwitch").is(":checked"));
     setFormDataValue(formData, "isFeatured", $("#featuredSwitch").is(":checked"));
-    setFormDataValue(formData, "sku", $("#sku").val() || "");
+    setFormDataValue(formData, "sku", "");
     setFormDataValue(formData, "priceNote", $("#priceNote").val() || "");
     appendTaxonomyToFormData(formData);
 
@@ -674,7 +679,7 @@ $(document).ready(function () {
       return;
     }
 
-    const requiredFields = ["#title", "#description", "#price"];
+    const requiredFields = ["#title", "#description"];
     const isValid = isFormValid(requiredFields);
 
     if (!isValid) {
@@ -688,16 +693,16 @@ $(document).ready(function () {
     setFormDataValue(formData, "title", $("#title").val());
     setFormDataValue(formData, "description", $("#description").val());
     setFormDataValue(formData, "isActive", $("#activeSwitch").is(":checked"));
-    setFormDataValue(formData, "isInStock", $("#stockSwitch").is(":checked"));
-    setFormDataValue(formData, "isReduced", $("#reducedSwitch").is(":checked"));
+    setFormDataValue(formData, "isInStock", true);
+    setFormDataValue(formData, "isReduced", false);
     setFormDataValue(formData, "price", $("#price").val());
     setFormDataValue(formData, "weight", $("#weight").val());
     setFormDataValue(formData, "isOnlineAvailable", $("#onlineSwitch").is(":checked"));
-    setFormDataValue(formData, "reducedPrice", $("#reducedPrice").val());
+    setFormDataValue(formData, "reducedPrice", "");
     setFormDataValue(formData, "isShowcaseOnly", $("#showcaseOnlySwitch").is(":checked"));
     setFormDataValue(formData, "showPriceWhenShowcase", $("#showPriceWhenShowcaseSwitch").is(":checked"));
     setFormDataValue(formData, "isFeatured", $("#featuredSwitch").is(":checked"));
-    setFormDataValue(formData, "sku", $("#sku").val() || "");
+    setFormDataValue(formData, "sku", "");
     setFormDataValue(formData, "priceNote", $("#priceNote").val() || "");
     appendTaxonomyToFormData(formData);
     formData.append("title_image", titleImage, "productTitleImage");

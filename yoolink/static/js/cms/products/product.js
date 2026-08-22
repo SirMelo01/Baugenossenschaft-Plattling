@@ -108,22 +108,12 @@ function buildSearchParams(page = 1) {
 function buildStatusBadges(product) {
   const badges = []
 
-  if (product.is_in_stock) {
-    badges.push('<span class="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700">Verf&uuml;gbar</span>')
-  } else {
-    badges.push('<span class="rounded-full bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700">Nicht verf&uuml;gbar</span>')
-  }
-
   if (product.online_sell) {
     badges.push('<span class="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">Anfrage</span>')
   }
 
   if (product.showcase_only) {
     badges.push('<span class="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700">Ausstellung</span>')
-  }
-
-  if (product.is_reduced) {
-    badges.push('<span class="rounded-full bg-orange-50 px-2.5 py-1 text-xs font-medium text-orange-700">Sonderhinweis</span>')
   }
 
   if (product.featured) {
@@ -134,11 +124,11 @@ function buildStatusBadges(product) {
 }
 
 function buildPriceBadge(product) {
-  if (product.showcase_only && !product.show_price_when_showcase) {
-    return '<span class="rounded-full bg-gray-900 px-3 py-1 text-xs font-semibold text-white">Ausstellung</span>'
+  if (!product.price) {
+    return '<span class="rounded-full bg-gray-900 px-3 py-1 text-xs font-semibold text-white">Keine Preisangabe</span>'
   }
 
-  if (product.is_reduced && product.discount_price) {
+  if (product.show_removed_discount_price && product.discount_price) {
     return `
       <span class="rounded-full bg-red-500 px-3 py-1 text-xs font-semibold text-white">${escapeHtml(product.discount_price)} €</span>
       <span class="rounded-full bg-white/95 px-3 py-1 text-xs font-semibold text-gray-500 line-through shadow-sm">${escapeHtml(product.price)} €</span>
@@ -267,10 +257,6 @@ function updateProductGrid(products) {
           </div>
 
           <p class="mt-4 min-h-[4.5rem] text-sm leading-6 text-gray-600">${description}</p>
-
-          <div class="mt-4 flex flex-wrap gap-2">
-            ${buildCategoryBadges(product.categories)}
-          </div>
 
           <div class="mt-5 flex items-center justify-between gap-3">
             <p class="text-xs text-gray-500">${updatedAt ? `Aktualisiert ${updatedAt}` : ""}</p>

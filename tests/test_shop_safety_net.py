@@ -112,7 +112,7 @@ def test_product_model_enforces_discount_and_showcase_rules():
     # showcase_only und online_sell ("Lieferung möglich") sind bewusst entkoppelt:
     # ein Showcase-Produkt darf weiterhin als lieferbar markiert sein.
     assert product.online_sell is True
-    assert product.effective_price == Decimal("39.90")
+    assert product.effective_price == Decimal("49.90")
     assert product.should_show_purchase_controls is False
 
     product.discount_price = Decimal("59.90")
@@ -158,11 +158,8 @@ def test_cms_product_create_search_update_and_delete(logged_in_client):
     product = Product.objects.get()
     assert product.slug == "test-produkt"
     assert product.brand.name == "YooLink"
-    assert set(product.categories.values_list("name", flat=True)) == {"CMS", "Hosting"}
-    assert list(ProductSpecification.objects.values_list("key", "value")) == [
-        ("Material", "Code"),
-        ("Version", "1.0"),
-    ]
+    assert list(product.categories.values_list("name", flat=True)) == []
+    assert list(ProductSpecification.objects.values_list("key", "value")) == []
 
     search_response = logged_in_client.get(
         reverse("ycms:product_search"),
@@ -178,7 +175,8 @@ def test_cms_product_create_search_update_and_delete(logged_in_client):
     assert update_response.status_code == 200
     product.refresh_from_db()
     assert product.title == "Geändertes Produkt"
-    assert product.discount_price == Decimal("39.90")
+    assert product.is_reduced is False
+    assert product.discount_price is None
 
     delete_response = logged_in_client.post(
         reverse("ycms:product-detail-delete", args=[product.id, product.slug])
@@ -187,7 +185,7 @@ def test_cms_product_create_search_update_and_delete(logged_in_client):
     assert Product.objects.count() == 0
 
 
-def test_cms_product_create_saves_discount_price(logged_in_client):
+def test_cms_product_create_ignores_removed_discount_price(logged_in_client):
     response = logged_in_client.post(
         reverse("ycms:product-create-upload"),
         _product_payload(isReduced="true", reducedPrice="39.90"),
@@ -195,8 +193,8 @@ def test_cms_product_create_saves_discount_price(logged_in_client):
 
     assert response.status_code == 201
     product = Product.objects.get()
-    assert product.is_reduced is True
-    assert product.discount_price == Decimal("39.90")
+    assert product.is_reduced is False
+    assert product.discount_price is None
 
 
 def test_cms_product_create_ignores_reduced_price_when_switch_is_off(logged_in_client):
@@ -209,6 +207,18 @@ def test_cms_product_create_ignores_reduced_price_when_switch_is_off(logged_in_c
     product = Product.objects.get()
     assert product.is_reduced is False
     assert product.discount_price is None
+
+
+def test_cms_product_create_allows_blank_price_and_living_area(logged_in_client):
+    response = logged_in_client.post(
+        reverse("ycms:product-create-upload"),
+        _product_payload(price="", weight=""),
+    )
+
+    assert response.status_code == 201
+    product = Product.objects.get()
+    assert product.price is None
+    assert product.weight == Decimal("0.0000")
 
 
 @override_settings(YCMS_UPLOAD_LIMIT_BYTES={"image": 4})
@@ -243,15 +253,14 @@ def test_cms_product_update_can_disable_discount_with_stale_reduced_price(logged
     assert product.discount_price is None
 
 
-def test_cms_product_create_returns_discount_validation_message(logged_in_client):
+def test_cms_product_create_ignores_removed_discount_validation(logged_in_client):
     response = logged_in_client.post(
         reverse("ycms:product-create-upload"),
         _product_payload(isReduced="true", reducedPrice="59.90"),
     )
 
-    assert response.status_code == 400
-    assert response.json()["error"] == "Der reduzierte Preis muss kleiner als der Normalpreis sein."
-    assert Product.objects.count() == 0
+    assert response.status_code == 201
+    assert Product.objects.count() == 1
 
 
 def test_cms_product_detail_creates_language_variant(logged_in_client):
@@ -324,13 +333,11 @@ def test_public_product_search_stays_german_for_english_browser(client):
     assert response.json()["products"][0]["title"] == "Deutsches Produkt"
 
 
-def test_public_product_search_filters_by_effective_price():
+def test_public_product_search_filters_by_regular_price():
     _create_product(title="Teuer", price=Decimal("100.00"))
     _create_product(
-        title="Reduziert",
-        price=Decimal("80.00"),
-        is_reduced=True,
-        discount_price=Decimal("25.00"),
+        title="Guenstig",
+        price=Decimal("25.00"),
     )
 
     response = APIClient().get(
@@ -341,7 +348,7 @@ def test_public_product_search_filters_by_effective_price():
     assert response.status_code == 200
     payload = response.json()
     assert payload["pagination"]["total_count"] == 1
-    assert payload["products"][0]["title"] == "Reduziert"
+    assert payload["products"][0]["title"] == "Guenstig"
     assert payload["products"][0]["effective_price"] == "25.00"
 
 
@@ -411,8 +418,6 @@ def test_grouped_overview_ships_the_data_the_client_side_filter_needs(client):
     settings_obj.save(update_fields=["products_layout"])
 
     group = ProductGroup.objects.create(name="Wohnungen", slug="wohnungen", sort_order=1)
-    balkon = Category.objects.create(name="Balkon", slug="balkon")
-
     with_price = Product.objects.create(
         title="Drei-Zimmer-Wohnung",
         slug="drei-zimmer",
@@ -421,7 +426,6 @@ def test_grouped_overview_ships_the_data_the_client_side_filter_needs(client):
         group=group,
         description="Hell und ruhig.",
     )
-    with_price.categories.add(balkon)
 
     # Objekt ohne sichtbaren Preis: darf bei gesetztem Preisbereich nicht mitzaehlen.
     Product.objects.create(
@@ -438,10 +442,10 @@ def test_grouped_overview_ships_the_data_the_client_side_filter_needs(client):
     html = response.content.decode()
 
     assert response.status_code == 200
-    assert [category.slug for category in response.context["filter_categories"]] == ["balkon"]
+    assert response.context["filter_categories"] == []
 
     assert 'id="groupedSearchInput"' in html
-    assert 'data-filter-category="balkon"' in html
+    assert "data-filter-category" not in html
     assert 'id="groupedMinPrice"' in html
     assert 'id="groupedNoResults"' in html
     # Zaehler, die das Skript live nachfuehrt
@@ -454,7 +458,7 @@ def test_grouped_overview_ships_the_data_the_client_side_filter_needs(client):
     # Preis unlokalisiert - mit "750,00" wuerde parseFloat im Browser NaN liefern.
     assert 'data-price="750.00"' in html
     assert 'data-price=""' in html
-    assert 'data-categories="balkon "' in html
+    assert "data-categories=" not in html
 
 
 def test_grouped_overview_filter_bar_is_collapsible(client):
