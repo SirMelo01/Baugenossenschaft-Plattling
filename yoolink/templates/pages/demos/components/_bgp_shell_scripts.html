@@ -1,0 +1,77 @@
+{% load static %}
+<script src="{% static 'js/aos.js' %}"></script>
+<script>
+  if (window.AOS) {
+    AOS.init({ duration: 700, once: true, easing: 'ease-out', disable: 'phone' });
+  }
+
+  var bgpToggle = document.getElementById('bgpMenuToggle');
+  var bgpMenu = document.getElementById('bgpMobileMenu');
+  if (bgpToggle && bgpMenu) {
+    bgpToggle.addEventListener('click', function () {
+      var open = !bgpMenu.classList.contains('hidden');
+      bgpMenu.classList.toggle('hidden');
+      bgpToggle.setAttribute('aria-expanded', String(!open));
+    });
+    bgpMenu.querySelectorAll('a').forEach(function (link) {
+      link.addEventListener('click', function () {
+        bgpMenu.classList.add('hidden');
+        bgpToggle.setAttribute('aria-expanded', 'false');
+      });
+    });
+  }
+
+  var bgpToast = document.getElementById('bgpToast');
+  var bgpToastText = document.getElementById('bgpToastText');
+  var bgpToastTimer = null;
+
+  function bgpShowToast(message) {
+    if (!bgpToast || !bgpToastText) { return; }
+    bgpToastText.textContent = message;
+    bgpToast.classList.add('is-visible');
+    window.clearTimeout(bgpToastTimer);
+    bgpToastTimer = window.setTimeout(function () {
+      bgpToast.classList.remove('is-visible');
+    }, 3200);
+  }
+
+  document.querySelectorAll('[data-demo-hint]').forEach(function (el) {
+    el.addEventListener('click', function () {
+      bgpShowToast('"' + el.dataset.demoHint + '" ist in dieser Demo noch nicht hinterlegt.');
+    });
+  });
+
+  var bgpLastFocus = null;
+
+  function bgpOpenModal(modal) {
+    if (!modal) { return; }
+    bgpLastFocus = document.activeElement;
+    modal.classList.add('is-open');
+    document.body.style.overflow = 'hidden';
+    var closeBtn = modal.querySelector('[data-modal-close]');
+    if (closeBtn) { closeBtn.focus(); }
+  }
+
+  function bgpCloseModal(modal) {
+    if (!modal) { return; }
+    modal.classList.remove('is-open');
+    document.body.style.overflow = '';
+    if (bgpLastFocus) { bgpLastFocus.focus(); }
+  }
+
+  window.bgpOpenModal = bgpOpenModal;
+  window.bgpCloseModal = bgpCloseModal;
+
+  document.querySelectorAll('.bgp-modal').forEach(function (modal) {
+    modal.addEventListener('click', function (event) {
+      if (event.target === modal || event.target.closest('[data-modal-close]')) {
+        bgpCloseModal(modal);
+      }
+    });
+  });
+
+  document.addEventListener('keydown', function (event) {
+    if (event.key !== 'Escape') { return; }
+    document.querySelectorAll('.bgp-modal.is-open').forEach(bgpCloseModal);
+  });
+</script>

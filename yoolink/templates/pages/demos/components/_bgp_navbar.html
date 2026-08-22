@@ -1,0 +1,53 @@
+{% load static %}
+{% if bgp_is_public %}
+  {% url 'home' as bgp_home_url %}
+  {% url 'kontakt' as bgp_kontakt_url %}
+  {% url 'aktuelles' as bgp_aktuelles_url %}
+  {% url 'products' as bgp_immobilien_url %}
+{% else %}
+  {% url 'ycms:demo-detail' slug='baugenossenschaft-plattling' as bgp_home_url %}
+  {% url 'ycms:demo-subpage' slug='baugenossenschaft-plattling' subpage='kontakt' as bgp_kontakt_url %}
+  {% url 'ycms:demo-subpage' slug='baugenossenschaft-plattling' subpage='aktuelles' as bgp_aktuelles_url %}
+{% endif %}
+<header class="bgp-bg-navy-deep sticky top-0 z-50 shadow-lg">
+  <div class="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+    <a href="{{ bgp_home_url }}" class="bgp-focus flex min-w-0 items-center gap-3 rounded-lg" aria-label="Baugenossenschaft Plattling eG - Startseite">
+      <img src="{% static 'images/demos/bgp/logo-icon.png' %}" alt="Logo Baugenossenschaft Plattling eG" class="h-11 w-auto flex-shrink-0" />
+      <span class="flex min-w-0 flex-col leading-tight">
+        <span class="truncate text-base font-bold tracking-tight text-white sm:text-lg">Baugenossenschaft Plattling <span class="bgp-text-yellow">eG</span></span>
+        <span class="text-[11px] font-semibold uppercase tracking-[0.25em] text-white/50">seit 1921</span>
+      </span>
+    </a>
+
+    <nav class="hidden items-center gap-1 lg:flex" aria-label="Hauptnavigation">
+      <a href="{{ bgp_home_url }}#genossenschaft" class="bgp-nav-link bgp-focus rounded-lg px-3 py-2 text-sm font-medium">Unsere Genossenschaft</a>
+      <a href="{{ bgp_home_url }}#vermietung" class="bgp-nav-link bgp-focus rounded-lg px-3 py-2 text-sm font-medium">Vermietung</a>
+      <a href="{% if bgp_is_public %}{{ bgp_immobilien_url }}{% else %}{{ bgp_home_url }}#vermietung{% endif %}" class="bgp-nav-link bgp-focus rounded-lg px-3 py-2 text-sm font-medium{% if demo_page == 'immobilien' %} bgp-nav-link-active{% endif %}">Immobilien</a>
+      <a href="{{ bgp_aktuelles_url }}" class="bgp-nav-link bgp-focus rounded-lg px-3 py-2 text-sm font-medium{% if demo_page == 'aktuelles' %} bgp-nav-link-active{% endif %}">Aktuelles</a>
+      <a href="{{ bgp_kontakt_url }}" class="bgp-nav-link bgp-focus rounded-lg px-3 py-2 text-sm font-medium{% if demo_page == 'kontakt' %} bgp-nav-link-active{% endif %}">Kontakt</a>
+      {% if bgp_contact.tel %}
+      <a href="{{ bgp_contact.tel_href }}" class="bgp-btn-yellow bgp-focus ml-3 inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold shadow-sm transition">
+        <i class="bi bi-telephone-fill"></i> {{ bgp_contact.tel }}
+      </a>
+      {% endif %}
+    </nav>
+
+    <button id="bgpMenuToggle" class="bgp-focus rounded-lg p-2 text-white hover:bg-white/10 lg:hidden" aria-expanded="false" aria-controls="bgpMobileMenu" aria-label="Men&uuml; oeffnen">
+      <i class="bi bi-list text-2xl leading-none"></i>
+    </button>
+  </div>
+
+  <div id="bgpMobileMenu" class="hidden border-t border-white/10 px-4 pb-4 pt-2 lg:hidden">
+    <a href="{{ bgp_home_url }}#genossenschaft" class="bgp-nav-link block rounded-lg px-3 py-3 text-base font-medium">Unsere Genossenschaft</a>
+    <a href="{{ bgp_home_url }}#vermietung" class="bgp-nav-link block rounded-lg px-3 py-3 text-base font-medium">Vermietung</a>
+    <a href="{% if bgp_is_public %}{{ bgp_immobilien_url }}{% else %}{{ bgp_home_url }}#vermietung{% endif %}" class="bgp-nav-link block rounded-lg px-3 py-3 text-base font-medium{% if demo_page == 'immobilien' %} bgp-nav-link-active{% endif %}">Immobilien</a>
+    <a href="{{ bgp_aktuelles_url }}" class="bgp-nav-link block rounded-lg px-3 py-3 text-base font-medium{% if demo_page == 'aktuelles' %} bgp-nav-link-active{% endif %}">Aktuelles</a>
+    <a href="{{ bgp_kontakt_url }}" class="bgp-nav-link block rounded-lg px-3 py-3 text-base font-medium{% if demo_page == 'kontakt' %} bgp-nav-link-active{% endif %}">Kontakt</a>
+    {% if bgp_contact.tel %}
+    <a href="{{ bgp_contact.tel_href }}" class="bgp-btn-yellow mt-2 inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold">
+      <i class="bi bi-telephone-fill"></i> {{ bgp_contact.tel }}
+    </a>
+    {% endif %}
+  </div>
+  <div class="bgp-accent-bar"></div>
+</header>

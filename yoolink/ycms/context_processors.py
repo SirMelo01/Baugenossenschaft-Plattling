@@ -25,6 +25,35 @@ def user_settings_context(request):
         context['site_schema_jsonld'] = ""
     return context
 
+
+def bgp_shell_context(request):
+    """Shared shell data for templates that inherit base.html.
+
+    The Baugenossenschaft shell used to live only in the BGP demo base. Public
+    pages such as blog, impressum and datenschutz inherit base.html directly, so
+    they need the same BGP context without every view wiring it by hand.
+    """
+    path = getattr(request, "path_info", request.path)
+    is_demo_preview = path.startswith("/cms/demos/")
+
+    if path.startswith("/cms/") and not is_demo_preview:
+        return {}
+
+    admin_prefix = "/" + settings.ADMIN_URL.strip("/") + "/"
+    if (
+        path.startswith(admin_prefix)
+        or path.startswith("/api/")
+        or path.startswith("/auth-token/")
+    ):
+        return {}
+
+    from yoolink.ycms.applications.content.bgp_content import bgp_content_context
+
+    context = bgp_content_context()
+    context["bgp_is_public"] = not is_demo_preview
+    return context
+
+
 def cms_permissions_context(request):
     if not request.user.is_authenticated:
         return {}

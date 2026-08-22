@@ -1,22 +1,22 @@
 {% extends "base.html" %}
 {% load static i18n %}
 
-{% block title %}{{ block.super }} | Blog - Webdesign Tipps und News{% endblock title %}
-{% block meta_description %}Aktuelle YooLink Artikel zu Webdesign, CMS, SEO, Datenschutz und digitaler Sichtbarkeit.{% endblock %}
-{% block og_title %}YooLink Blog - Webdesign Tipps und News{% endblock %}
-{% block og_description %}Aktuelle Artikel zu Webdesign, CMS, SEO und digitaler Sichtbarkeit.{% endblock %}
-{% block twitter_title %}YooLink Blog - Webdesign Tipps und News{% endblock %}
-{% block twitter_description %}Aktuelle Artikel zu Webdesign, CMS, SEO und digitaler Sichtbarkeit.{% endblock %}
+{% block title %}{{ block.super }} | Aktuelles{% endblock title %}
+{% block meta_description %}Aktuelle Meldungen der Baugenossenschaft Plattling eG.{% endblock %}
+{% block og_title %}Aktuelles | Baugenossenschaft Plattling eG{% endblock %}
+{% block og_description %}Aktuelle Meldungen aus der Baugenossenschaft Plattling eG.{% endblock %}
+{% block twitter_title %}Aktuelles | Baugenossenschaft Plattling eG{% endblock %}
+{% block twitter_description %}Aktuelle Meldungen aus der Baugenossenschaft Plattling eG.{% endblock %}
 
 {% block content %}
 <main class="bg-white">
   <section class="border-b border-slate-200 bg-slate-50">
     <div class="mx-auto max-w-7xl px-4 py-12 md:py-16">
-      <p class="text-sm font-semibold uppercase tracking-wide text-blue-700">{{ blog_overview_hero.header|default:"YooLink Blog" }}</p>
+      <p class="text-sm font-semibold uppercase tracking-wide text-blue-700">{{ blog_overview_hero.header|default:"Aktuelles" }}</p>
       <div class="mt-3 max-w-3xl">
-        <h1 class="text-4xl font-extrabold leading-tight text-slate-950 md:text-5xl">{{ blog_overview_hero.title|default:"Webdesign, CMS und digitale Sichtbarkeit" }}</h1>
+        <h1 class="text-4xl font-extrabold leading-tight text-slate-950 md:text-5xl">{{ blog_overview_hero.title|default:"Neuigkeiten aus der Genossenschaft" }}</h1>
         <p class="mt-5 text-lg leading-8 text-slate-600">
-          {{ blog_overview_hero.description|default:"Praxisnahe Impulse, technische Einblicke und aktuelle Themen rund um moderne Websites." }}
+          {{ blog_overview_hero.description|default:"Meldungen aus dem Genossenschaftsleben, Hinweise fuer Mitglieder und Neuigkeiten rund um unsere Objekte." }}
         </p>
       </div>
     </div>
@@ -37,7 +37,7 @@
         <div class="flex flex-1 flex-col p-5">
           <div class="flex items-center gap-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
             <time datetime="{{ blog.last_updated|date:'Y-m-d' }}">{{ blog.last_updated|date:"d.m.Y" }}</time>
-            <span>Blog</span>
+            <span>Aktuelles</span>
           </div>
           <h2 class="mt-3 text-xl font-bold leading-snug text-slate-950">
             <a href="{% url 'blog:blog-detail' pk=blog.pk slug_title=blog.slug %}" class="hover:text-blue-700">{{ blog.title }}</a>
@@ -53,12 +53,12 @@
       </article>
       {% endif %}
       {% empty %}
-      <p class="text-slate-600">Aktuell sind keine Blogartikel veröffentlicht.</p>
+      <p class="text-slate-600">Aktuell sind keine Meldungen veroeffentlicht.</p>
       {% endfor %}
     </div>
 
     {% if is_paginated %}
-    <nav class="mt-10 mb-8 flex justify-center items-center gap-2" aria-label="Blog Seitennavigation">
+    <nav class="mt-10 mb-8 flex justify-center items-center gap-2" aria-label="Aktuelles Seitennavigation">
       {% if page_obj.has_previous %}
         <a href="?page=1" class="rounded border border-slate-300 px-3 py-2 hover:bg-slate-50">&laquo;</a>
         <a href="?page={{ page_obj.previous_page_number }}" class="rounded border border-slate-300 px-3 py-2 hover:bg-slate-50">Zurück</a>

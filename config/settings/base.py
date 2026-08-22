@@ -286,6 +286,7 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 "yoolink.users.context_processors.allauth_settings",
                 "yoolink.ycms.context_processors.user_settings_context",
+                "yoolink.ycms.context_processors.bgp_shell_context",
                 "yoolink.ycms.context_processors.cms_permissions_context",
                 "yoolink.ycms.context_processors.notifications_context",
                 "yoolink.ycms.context_processors.cms_language_context",
