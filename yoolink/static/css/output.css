@@ -673,16 +673,8 @@ body {
   bottom: -4rem;
 }
 
-.-bottom-4 {
-  bottom: -1rem;
-}
-
 .-left-10 {
   left: -2.5rem;
-}
-
-.-left-4 {
-  left: -1rem;
 }
 
 .-right-1 {
@@ -731,10 +723,6 @@ body {
 
 .-top-3\.5 {
   top: -0.875rem;
-}
-
-.-top-4 {
-  top: -1rem;
 }
 
 .bottom-0 {
@@ -2904,11 +2892,6 @@ body {
 
 .border-white\/50 {
   border-color: rgb(255 255 255 / 0.5);
-}
-
-.border-yellow-400 {
-  --tw-border-opacity: 1;
-  border-color: rgb(250 204 21 / var(--tw-border-opacity));
 }
 
 .border-t-blue-700 {

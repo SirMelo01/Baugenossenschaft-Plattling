@@ -40,8 +40,6 @@ BGP_DEFAULTS = {
         "title": "Büro- und Geschäftsgebäude der Baugenossenschaft Plattling eG",
         "description": "Unser Büro- und Geschäftsgebäude in der Schillerstraße 6b",
     },
-    "hero_badge_1": {"title": "100+", "description": "Jahre Erfahrung"},
-    "hero_badge_2": {"title": "3 %", "description": "Dividende 2025"},
 
     # ─────────── Startseite: Faktenleiste ───────────
     "fact_1": {"title": "1921", "description": "gegründet"},

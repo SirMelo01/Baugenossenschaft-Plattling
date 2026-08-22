@@ -6,17 +6,18 @@
 
 {% block demo_css %}
 <style>
-  /* Hero-Bild neigt sich zur Ecke, über der die Maus steht */
+  /* Hero-Bild neigt sich zur Ecke, über der die Maus steht.
+     Bewusst ohne translateZ und ohne dauerhaftes will-change: beides macht die
+     Bildunterschrift permanent unscharf (Hochskalieren der Ebene bzw. Verlust
+     der Subpixel-Glättung). will-change wird nur beim Neigen gebraucht. */
   .bgp-tilt-scene { perspective: 1100px; }
   .bgp-tilt {
-    transform-style: preserve-3d;
     transition: transform .45s cubic-bezier(.2,.8,.25,1);
+  }
+  .bgp-tilt.is-tilting {
+    transition: transform .1s linear;
     will-change: transform;
   }
-  .bgp-tilt.is-tilting { transition: transform .1s linear; }
-  /* Die Info-Kacheln schweben über dem Bild und bekommen dadurch Parallaxe */
-  .bgp-tilt-badge { transform: translateZ(60px); }
-  .bgp-tilt-figure { transform: translateZ(15px); }
   .bgp-tilt-glare {
     position: absolute;
     inset: 0;
@@ -139,7 +140,7 @@
 
     <div class="bgp-tilt-scene relative" data-aos="fade-left">
       <div id="bgpHeroVisual" class="bgp-tilt relative">
-        <figure class="bgp-tilt-figure relative overflow-hidden rounded-3xl shadow-2xl ring-1 ring-white/20">
+        <figure class="relative overflow-hidden rounded-3xl shadow-2xl ring-1 ring-white/20">
           <img src="{% if bgp_hero_image %}{{ bgp_hero_image.file.url }}{% else %}{% static 'images/demos/bgp/gebaeude.jpg' %}{% endif %}"
                alt="{{ bgp_hero_bild.title }}"
                class="h-full w-full object-cover" />
@@ -148,14 +149,6 @@
           </figcaption>
           <span id="bgpHeroGlare" class="bgp-tilt-glare" aria-hidden="true"></span>
         </figure>
-        <div class="bgp-tilt-badge absolute -left-4 -top-4 hidden rounded-2xl bg-white px-5 py-3 shadow-xl sm:block">
-          <p class="bgp-text-navy-dark text-2xl font-bold leading-none">{{ bgp_hero_badge_1.title }}</p>
-          <p class="mt-1 text-xs font-semibold uppercase tracking-wider text-gray-500">{{ bgp_hero_badge_1.description }}</p>
-        </div>
-        <div class="bgp-tilt-badge bgp-bg-yellow absolute -bottom-4 -right-2 hidden rounded-2xl px-5 py-3 shadow-xl sm:block">
-          <p class="bgp-text-navy-dark text-2xl font-bold leading-none">{{ bgp_hero_badge_2.title }}</p>
-          <p class="bgp-text-navy-dark mt-1 text-xs font-semibold uppercase tracking-wider">{{ bgp_hero_badge_2.description }}</p>
-        </div>
       </div>
     </div>
   </div>
@@ -505,10 +498,12 @@
         var y = Math.max(-1, Math.min(1, (py - 0.5) * 2));
 
         visual.classList.add('is-tilting');
+        // Nur drehen, nicht zusaetzlich vergroessern: eine Skalierung tastet die
+        // Bildunterschrift beim Zusammensetzen noch einmal neu ab und macht sie
+        // waehrend der Mausbewegung unscharf.
         visual.style.transform =
           'rotateY(' + (x * MAX_TILT).toFixed(2) + 'deg) ' +
-          'rotateX(' + (-y * MAX_TILT).toFixed(2) + 'deg) ' +
-          'scale(1.02)';
+          'rotateX(' + (-y * MAX_TILT).toFixed(2) + 'deg)';
         glare.style.background =
           'radial-gradient(circle at ' + (px * 100).toFixed(1) + '% ' + (py * 100).toFixed(1) + '%, ' +
           'rgba(255,255,255,.5), rgba(255,255,255,0) 55%)';
