@@ -152,6 +152,25 @@ $(document).ready(function () {
         });
         requestData.buttons = JSON.stringify(buttons);
 
+        /* ---------- Dateieinstellungen der Kontaktformulare ---------- */
+        /* Gehen ueber denselben Knopf raus wie alles andere - eine Seite, ein
+           Speichern. Die Karten tragen ihren Stand in data-Attributen. */
+        const formSettings = [];
+        $('.content-formsettings').each(function () {
+            const $card = $(this);
+            const key = $card.attr('data-key');
+            if (!key) return;
+            formSettings.push({
+                key: key,
+                document_id: ($card.attr('data-document-id') || '').trim(),
+                uploads_enabled: $card.find('[data-setting="uploads_enabled"]').is(':checked'),
+                allow_images: $card.find('[data-setting="allow_images"]').is(':checked'),
+                allow_documents: $card.find('[data-setting="allow_documents"]').is(':checked'),
+                max_uploads: $card.find('[data-setting="max_uploads"]').val()
+            });
+        });
+        requestData.formSettings = JSON.stringify(formSettings);
+
         setSaveTextLoading($btn, true);
 
         $.ajax({

@@ -3930,13 +3930,25 @@ def anyfile_update_view(request, id):
 
 def anyfiles_all(request):
     files = AnyFile.objects.order_by('-uploaded_at')
-    data = [{
-        "id": f.id,
-        "url": f.file.url,
-        "title": f.title or os.path.basename(f.file.name),
-        "ext": os.path.splitext(f.file.name)[1].lower()
-    } for f in files]
-    return JsonResponse({"files": data})
+
+    def entry(f):
+        # Groesse und Datum braucht der Datei-Dialog, um eine Datei erkennbar zu
+        # machen - ein Dateiname allein reicht dafuer oft nicht.
+        try:
+            size = f.file.size
+        except (OSError, ValueError):
+            size = 0
+        return {
+            "id": f.id,
+            "url": f.file.url,
+            "title": f.title or os.path.basename(f.file.name),
+            "filename": os.path.basename(f.file.name),
+            "ext": os.path.splitext(f.file.name)[1].lower(),
+            "size": size,
+            "uploaded_at": f.uploaded_at.strftime("%d.%m.%Y") if f.uploaded_at else "",
+        }
+
+    return JsonResponse({"files": [entry(f) for f in files]})
 
 # Videos
 @login_required(login_url='login')

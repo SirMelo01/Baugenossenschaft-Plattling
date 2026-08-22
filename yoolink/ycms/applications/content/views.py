@@ -2,14 +2,13 @@ import json
 from decimal import Decimal, InvalidOperation
 
 from django.conf import settings
-from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError, transaction
 from django.db.models import Max
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import get_object_or_404, render
 from django.utils.translation import activate, get_language_from_request
-from django.views.decorators.http import require_http_methods, require_POST
+from django.views.decorators.http import require_http_methods
 
 from yoolink.ycms.models import FAQ, Button, Galerie, PageLink, PricingCard, TeamMember, UserSettings, VideoFile, WebsiteSettings, fileentry
 
@@ -552,41 +551,6 @@ def site_view_kontakt(request):
 
 
 @login_required(login_url="login")
-@require_POST
-def save_contact_form_settings(request):
-    """Dateieinstellungen der drei Kontaktformulare speichern.
-
-    Bewusst ein gewoehnliches Formular statt der JSON-Sammelspeicherung der
-    Textbausteine: hier haengen Verweise auf Dateien und Zahlen dran, keine
-    Freitexte, und ein fehlgeschlagenes Speichern soll sofort sichtbar sein.
-    """
-    from yoolink.ycms.models import AnyFile, ContactFormSettings
-
-    from .bgp_content import BGP_CONTACT_TABS
-
-    for key in BGP_CONTACT_TABS:
-        settings_obj = ContactFormSettings.for_form(key)
-
-        document_id = (request.POST.get(f"{key}_document") or "").strip()
-        settings_obj.document = AnyFile.objects.filter(pk=document_id).first() if document_id else None
-
-        settings_obj.uploads_enabled = request.POST.get(f"{key}_uploads_enabled") == "on"
-        settings_obj.allow_images = request.POST.get(f"{key}_allow_images") == "on"
-        settings_obj.allow_documents = request.POST.get(f"{key}_allow_documents") == "on"
-
-        try:
-            max_uploads = int(request.POST.get(f"{key}_max_uploads") or 3)
-        except ValueError:
-            max_uploads = 3
-        settings_obj.max_uploads = max(1, min(10, max_uploads))
-
-        settings_obj.save()
-
-    messages.success(request, "Die Dateieinstellungen der Kontaktformulare wurden gespeichert.")
-    return redirect("cms:site_kontakt")
-
-
-@login_required(login_url="login")
 def site_view_bgp_aktuelles(request):
     return render(request, "pages/cms/content/sites/BaugenossenschaftPlattlingAktuellesSite.html", _bgp_text_context())
 
@@ -604,6 +568,41 @@ def site_view_blog_overview(request):
     )
 
 
+def _assign_contact_form_settings(entries):
+    """Dateieinstellungen der Kontaktformulare uebernehmen.
+
+    Kommt aus demselben Speichervorgang wie Textbausteine, Bilder und Buttons -
+    die Kontaktseite hat damit nur einen Speichern-Knopf. Unbekannte Schluessel
+    werden ignoriert, damit ein manipulierter Aufruf keine neuen Datensaetze
+    anlegen kann.
+    """
+    from yoolink.ycms.models import AnyFile, ContactFormSettings
+
+    from .bgp_content import BGP_CONTACT_TABS
+
+    for entry in entries or []:
+        key = (entry or {}).get("key")
+        if key not in BGP_CONTACT_TABS:
+            continue
+
+        settings_obj = ContactFormSettings.for_form(key)
+
+        document_id = str(entry.get("document_id") or "").strip()
+        settings_obj.document = AnyFile.objects.filter(pk=document_id).first() if document_id.isdigit() else None
+
+        settings_obj.uploads_enabled = bool(entry.get("uploads_enabled"))
+        settings_obj.allow_images = bool(entry.get("allow_images"))
+        settings_obj.allow_documents = bool(entry.get("allow_documents"))
+
+        try:
+            max_uploads = int(entry.get("max_uploads") or 3)
+        except (TypeError, ValueError):
+            max_uploads = 3
+        settings_obj.max_uploads = max(1, min(10, max_uploads))
+
+        settings_obj.save()
+
+
 @login_required(login_url="login")
 def save_text_content(request):
     if request.method != "POST":
@@ -617,11 +616,13 @@ def save_text_content(request):
     galerien = json.loads(request.POST.get("galerien", "[]"))
     videos = json.loads(request.POST.get("videos", "[]"))
     buttons = json.loads(request.POST.get("buttons", "[]"))
+    form_settings = json.loads(request.POST.get("formSettings", "[]"))
 
     _assign_image_slots(images)
     _assign_gallery_slots(galerien)
     _assign_video_slots(videos)
     _assign_button_slots(buttons, lang)
+    _assign_contact_form_settings(form_settings)
 
     custom_keys = []
     for custom in custom_text:

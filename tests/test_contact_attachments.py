@@ -7,6 +7,7 @@ Angreifer nehmen würde, verschlossen sind.
 """
 
 import io
+import json
 import zlib
 
 import pytest
@@ -326,25 +327,45 @@ def test_cms_notification_shows_the_attachments(client, repair_settings):
 
 
 def test_cms_page_saves_the_document_and_upload_settings(client):
+    """Die Einstellungen gehen über denselben Speichern-Knopf wie die Texte."""
     from yoolink.ycms.models import AnyFile
 
     vorlage = AnyFile.objects.create(file=make_pdf("vorlage.pdf"), title="Selbstauskunft")
     client.force_login(UserFactory(is_staff=True, is_superuser=True))
 
     response = client.post(
-        reverse("cms:save_contact_form_settings"),
+        reverse("cms:save_text_content"),
         {
-            "mitgliedschaft_document": str(vorlage.pk),
-            "mitgliedschaft_uploads_enabled": "on",
-            "mitgliedschaft_allow_documents": "on",
-            "mitgliedschaft_max_uploads": "4",
-            "reparatur_uploads_enabled": "on",
-            "reparatur_allow_images": "on",
-            "reparatur_max_uploads": "99",
+            "name": "main_bgp_contact",
+            "customText": "[]",
+            "images": "[]",
+            "galerien": "[]",
+            "videos": "[]",
+            "buttons": "[]",
+            "formSettings": json.dumps([
+                {
+                    "key": "mitgliedschaft",
+                    "document_id": str(vorlage.pk),
+                    "uploads_enabled": True,
+                    "allow_images": False,
+                    "allow_documents": True,
+                    "max_uploads": "4",
+                },
+                {
+                    "key": "reparatur",
+                    "document_id": "",
+                    "uploads_enabled": True,
+                    "allow_images": True,
+                    "allow_documents": False,
+                    "max_uploads": "99",
+                },
+                # Unbekannter Schlüssel darf keinen neuen Datensatz anlegen.
+                {"key": "gibt-es-nicht", "uploads_enabled": True},
+            ]),
         },
     )
 
-    assert response.status_code == 302
+    assert response.status_code == 200
     mitgliedschaft = ContactFormSettings.for_form("mitgliedschaft")
     assert mitgliedschaft.document_id == vorlage.pk
     assert mitgliedschaft.uploads_enabled is True
@@ -354,8 +375,47 @@ def test_cms_page_saves_the_document_and_upload_settings(client):
 
     # Unsinnige Werte werden auf einen sinnvollen Bereich gestutzt.
     assert ContactFormSettings.for_form("reparatur").max_uploads == 10
-    # Ohne Häkchen bleibt das allgemeine Formular aus.
+    # Ohne Eintrag bleibt das allgemeine Formular unangetastet.
     assert ContactFormSettings.for_form("allgemein").uploads_enabled is False
+    assert not ContactFormSettings.objects.filter(form_key="gibt-es-nicht").exists()
+
+
+def test_cms_page_can_remove_a_configured_document(client):
+    from yoolink.ycms.models import AnyFile
+
+    vorlage = AnyFile.objects.create(file=make_pdf("vorlage.pdf"), title="Selbstauskunft")
+    settings_obj = ContactFormSettings.for_form("mitgliedschaft")
+    settings_obj.document = vorlage
+    settings_obj.save()
+    client.force_login(UserFactory(is_staff=True, is_superuser=True))
+
+    client.post(
+        reverse("cms:save_text_content"),
+        {
+            "name": "main_bgp_contact",
+            "customText": "[]", "images": "[]", "galerien": "[]", "videos": "[]", "buttons": "[]",
+            "formSettings": json.dumps([{"key": "mitgliedschaft", "document_id": "", "uploads_enabled": True,
+                                         "allow_images": True, "allow_documents": True, "max_uploads": "3"}]),
+        },
+    )
+
+    assert ContactFormSettings.for_form("mitgliedschaft").document_id is None
+
+
+def test_cms_page_uses_one_save_button_and_the_document_dialog(client):
+    """Ein Speichern-Knopf, kein zweites Formular, Auswahl über den Dialog."""
+    client.force_login(UserFactory(is_staff=True, is_superuser=True))
+
+    body = client.get(reverse("cms:site_kontakt")).content.decode()
+
+    assert body.count('id="saveTextData"') == 1
+    assert 'type="submit"' not in body
+    # Der Datei-Dialog ist eingebunden, die Karten hängen daran.
+    assert 'id="documentModal"' in body
+    assert body.count("content-formsettings") >= 3
+    assert "data-document-pick" in body
+    # Kein Auswahlfeld mehr für die Vorlage.
+    assert 'name="mitgliedschaft_document"' not in body
 
 
 def test_contact_page_offers_the_configured_document_for_download(client):

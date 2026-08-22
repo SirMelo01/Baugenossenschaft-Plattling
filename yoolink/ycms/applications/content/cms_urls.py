@@ -41,11 +41,6 @@ urlpatterns = [
     path("impressum/save/", pages_required(views.save_impressum), name="save_impressum"),
     path("cookies/", pages_required(views.site_view_cookies), name="site_cookies"),
     path("kontakt/", pages_required(views.site_view_kontakt), name="site_kontakt"),
-    path(
-        "kontakt/formular-dateien/",
-        pages_required(views.save_contact_form_settings),
-        name="save_contact_form_settings",
-    ),
     path("aktuelles/", pages_required(views.site_view_bgp_aktuelles), name="site_aktuelles"),
     path("blog-uebersicht/", pages_required(views.site_view_blog_overview), name="site_blog_overview"),
 ]
