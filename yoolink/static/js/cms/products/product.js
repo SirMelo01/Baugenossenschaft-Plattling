@@ -112,10 +112,6 @@ function buildStatusBadges(product) {
     badges.push('<span class="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">Anfrage</span>')
   }
 
-  if (product.showcase_only) {
-    badges.push('<span class="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700">Ausstellung</span>')
-  }
-
   if (product.featured) {
     badges.push('<span class="rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-medium text-indigo-700">Hervorgehoben</span>')
   }

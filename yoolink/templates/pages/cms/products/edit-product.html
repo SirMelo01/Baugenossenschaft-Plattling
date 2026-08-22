@@ -209,6 +209,20 @@
               </div>
 
               <div>
+                <label class="mb-2 block text-sm font-semibold text-gray-700" for="address">Adresse (optional)</label>
+                <input
+                  id="address"
+                  name="address"
+                  type="text"
+                  value="{{ product.address }}"
+                  maxlength="255"
+                  class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-800 focus:border-blue-500 focus:bg-white focus:outline-none"
+                  placeholder="z.B. Schillerstr. 6b, 94447 Plattling"
+                />
+                <p class="mt-2 text-xs text-gray-500">Wird fuer die Objektkarte und Routenlinks verwendet.</p>
+              </div>
+
+              <div>
                 <label class="mb-2 block text-sm font-semibold text-gray-700" for="descriptionEditor">Beschreibung</label>
                 <textarea id="description" name="description" class="hidden" aria-hidden="true">{{ product.description }}</textarea>
                 <div id="descriptionEditorWrap" class="overflow-hidden rounded-xl border border-gray-200 bg-white focus-within:border-blue-500">
@@ -398,22 +412,9 @@
                   id="weight"
                   name="weight"
                   type="text"
-                  value="{{ product.weight|default_if_none:'' }}"
+                  value="{% if product.weight %}{{ product.weight }}{% endif %}"
                   class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-800 focus:border-blue-500 focus:bg-white focus:outline-none"
                   placeholder="1,5"
-                />
-              </div>
-
-              <div>
-                <label class="mb-2 block text-sm font-semibold text-gray-700" for="priceNote">Preishinweis (optional)</label>
-                <input
-                  id="priceNote"
-                  name="priceNote"
-                  type="text"
-                  value="{{ product.price_note }}"
-                  maxlength="120"
-                  class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-800 focus:border-blue-500 focus:bg-white focus:outline-none"
-                  placeholder='z.B. "Kaltmiete" oder "auf Anfrage"'
                 />
               </div>
 
@@ -441,26 +442,6 @@
                     </div>
                   </label>
 
-                  <label class="hidden">
-                    <div class="flex items-start justify-between gap-3">
-                      <div>
-                        <p class="text-sm font-semibold text-gray-800">Verf&uuml;gbar</p>
-                        <p class="mt-1 text-xs text-gray-500">Objekt ist aktuell verf&uuml;gbar</p>
-                      </div>
-
-                      <span class="relative inline-flex h-6 w-11 shrink-0 items-center">
-                        <input {% if product.is_in_stock %}checked{% endif %}
-                          type="checkbox"
-                          role="switch"
-                          id="stockSwitch"
-                          class="peer sr-only"
-                        />
-                        <span class="absolute inset-0 rounded-full bg-gray-300 transition peer-checked:bg-blue-500"></span>
-                        <span class="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition peer-checked:translate-x-5"></span>
-                      </span>
-                    </div>
-                  </label>
-
                   <label class="rounded-2xl border border-gray-200 bg-gray-50 p-4 transition hover:border-blue-400 hover:bg-white cursor-pointer">
                     <div class="flex items-start justify-between gap-3">
                       <div>
@@ -473,66 +454,6 @@
                           type="checkbox"
                           role="switch"
                           id="onlineSwitch"
-                          class="peer sr-only"
-                        />
-                        <span class="absolute inset-0 rounded-full bg-gray-300 transition peer-checked:bg-blue-500"></span>
-                        <span class="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition peer-checked:translate-x-5"></span>
-                      </span>
-                    </div>
-                  </label>
-
-                  <label class="hidden">
-                    <div class="flex items-start justify-between gap-3">
-                      <div>
-                        <p class="text-sm font-semibold text-gray-800">Sonderhinweis</p>
-                        <p class="mt-1 text-xs text-gray-500">Alternative Kostenangabe hervorheben</p>
-                      </div>
-
-                      <span class="relative inline-flex h-6 w-11 shrink-0 items-center">
-                        <input {% if product.is_reduced %}checked{% endif %}
-                          type="checkbox"
-                          role="switch"
-                          id="reducedSwitch"
-                          class="peer sr-only"
-                        />
-                        <span class="absolute inset-0 rounded-full bg-gray-300 transition peer-checked:bg-blue-500"></span>
-                        <span class="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition peer-checked:translate-x-5"></span>
-                      </span>
-                    </div>
-                  </label>
-
-                  <label class="rounded-2xl border border-gray-200 bg-gray-50 p-4 transition hover:border-blue-400 hover:bg-white cursor-pointer">
-                    <div class="flex items-start justify-between gap-3">
-                      <div>
-                        <p class="text-sm font-semibold text-gray-800">Nur Ausstellung</p>
-                        <p class="mt-1 text-xs text-gray-500">Standard: Immobilien werden pr&auml;sentiert, kein Online-Kauf</p>
-                      </div>
-
-                      <span class="relative inline-flex h-6 w-11 shrink-0 items-center">
-                        <input {% if product.showcase_only %}checked disabled{% endif %}
-                          type="checkbox"
-                          role="switch"
-                          id="showcaseOnlySwitch"
-                          class="peer sr-only"
-                        />
-                        <span class="absolute inset-0 rounded-full bg-gray-300 transition peer-checked:bg-blue-500"></span>
-                        <span class="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition peer-checked:translate-x-5"></span>
-                      </span>
-                    </div>
-                  </label>
-
-                  <label class="rounded-2xl border border-gray-200 bg-gray-50 p-4 transition hover:border-blue-400 hover:bg-white cursor-pointer">
-                    <div class="flex items-start justify-between gap-3">
-                      <div>
-                        <p class="text-sm font-semibold text-gray-800">Miete/Preis anzeigen</p>
-                        <p class="mt-1 text-xs text-gray-500">Kostenangabe sichtbar lassen, aber ohne Kaufaktion</p>
-                      </div>
-
-                      <span class="relative inline-flex h-6 w-11 shrink-0 items-center">
-                        <input {% if product.show_price_when_showcase %}checked{% endif %}
-                          type="checkbox"
-                          role="switch"
-                          id="showPriceWhenShowcaseSwitch"
                           class="peer sr-only"
                         />
                         <span class="absolute inset-0 rounded-full bg-gray-300 transition peer-checked:bg-blue-500"></span>
@@ -606,12 +527,12 @@
                     class="selected-product-file flex items-center justify-between rounded-xl border border-gray-200 bg-gray-50 px-4 py-3"
                     data-file-id="{{ file.id }}"
                     data-file-url="{{ file.file.url }}"
-                    data-file-title="{{ file.title|default:file.file.name }}"
-                    data-file-ext="{{ file.file.name|lower }}"
+                    data-file-title="{{ file.display_name }}"
+                    data-file-ext="{{ file.file_extension }}"
                   >
                     <div class="min-w-0">
-                      <p class="truncate font-medium text-gray-900">{{ file.title|default:file.file.name }}</p>
-                      <p class="text-sm text-gray-500">{{ file.file.name }}</p>
+                      <p class="truncate font-medium text-gray-900">{{ file.display_name }}</p>
+                      <p class="text-sm text-gray-500">{{ file.file_extension|default:"Datei" }}</p>
                     </div>
                     <button
                       type="button"

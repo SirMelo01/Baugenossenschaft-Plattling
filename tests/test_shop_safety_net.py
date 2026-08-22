@@ -22,7 +22,13 @@ from yoolink.ycms.applications.shop.models import (
     ShippingAddress,
 )
 from yoolink.ycms.applications.notifications.models import Notification
-from yoolink.ycms.models import UserSettings
+from yoolink.ycms.models import (
+    AnyFile,
+    CMSRole,
+    CMSUserRole,
+    OWNER_PERMISSIONS,
+    UserSettings,
+)
 
 pytestmark = pytest.mark.django_db
 
@@ -39,6 +45,13 @@ def cms_user():
         company_name="YooLink Shop",
         tel_number="09999 123",
     )
+    role = CMSRole.objects.create(
+        name="Test Owner",
+        slug="test-owner",
+        permissions=OWNER_PERMISSIONS,
+        is_system=False,
+    )
+    CMSUserRole.objects.create(user=user, role=role)
     return user
 
 
@@ -54,6 +67,7 @@ def logged_in_client(cms_user):
 def _product_payload(**overrides):
     payload = {
         "title": "Test Produkt",
+        "address": "Schillerstr. 6b, 94447 Plattling",
         "description": "Ein Produkt für Tests",
         "hersteller": "YooLink",
         "selected_categories": json.dumps(["CMS", "Hosting"]),
@@ -157,6 +171,7 @@ def test_cms_product_create_search_update_and_delete(logged_in_client):
 
     product = Product.objects.get()
     assert product.slug == "test-produkt"
+    assert product.address == "Schillerstr. 6b, 94447 Plattling"
     assert product.brand.name == "YooLink"
     assert list(product.categories.values_list("name", flat=True)) == []
     assert list(ProductSpecification.objects.values_list("key", "value")) == []
@@ -167,6 +182,13 @@ def test_cms_product_create_search_update_and_delete(logged_in_client):
     )
     assert search_response.status_code == 200
     assert search_response.json()["pagination"]["total_count"] == 1
+
+    address_search_response = logged_in_client.get(
+        reverse("ycms:product_search"),
+        {"q": "Schillerstr"},
+    )
+    assert address_search_response.status_code == 200
+    assert address_search_response.json()["pagination"]["total_count"] == 1
 
     update_response = logged_in_client.post(
         reverse("ycms:product-detail-update", args=[product.id, product.slug]),
@@ -263,6 +285,7 @@ def test_cms_product_create_ignores_removed_discount_validation(logged_in_client
     assert Product.objects.count() == 1
 
 
+@override_settings(LANGUAGES=(("de", "Deutsch"), ("en", "Englisch")))
 def test_cms_product_detail_creates_language_variant(logged_in_client):
     product = _create_product(title="Deutsches Produkt")
 
@@ -331,6 +354,57 @@ def test_public_product_search_stays_german_for_english_browser(client):
 
     assert response.status_code == 200
     assert response.json()["products"][0]["title"] == "Deutsches Produkt"
+
+
+def test_public_shop_map_locations_use_active_product_addresses(client):
+    active = _create_product(
+        title="Wohnung mit Adresse",
+        address="Schillerstr. 6b, 94447 Plattling",
+        showcase_only=True,
+    )
+    _create_product(
+        title="Inaktive Wohnung",
+        address="Musterstr. 1, 94447 Plattling",
+        is_active=False,
+        showcase_only=True,
+    )
+    _create_product(title="Wohnung ohne Adresse", address="", showcase_only=True)
+
+    response = client.get(reverse("products"))
+    html = response.content.decode()
+
+    assert response.status_code == 200
+    assert 'id="immobilien-karte"' in html
+    assert response.context["product_map_locations"] == [
+        {
+            "id": active.id,
+            "title": "Wohnung mit Adresse",
+            "address": "Schillerstr. 6b, 94447 Plattling",
+            "brand": "YooLink",
+            "url": reverse(
+                "product-detail",
+                kwargs={"product_id": active.id, "slug": active.slug},
+            ),
+            "maps_url": active.maps_url,
+        }
+    ]
+    assert "Schillerstr. 6b, 94447 Plattling" in html
+    assert "Musterstr. 1, 94447 Plattling" not in html
+
+
+def test_public_product_detail_shows_file_display_name_not_storage_path(client):
+    document = AnyFile.objects.create(
+        title="Expose",
+        file=SimpleUploadedFile("dokumente-und-downloads.pdf", b"%PDF-1.4", content_type="application/pdf"),
+    )
+    product = _create_product(title="Wohnung mit Datei", showcase_only=True)
+    product.files.add(document)
+
+    response = client.get(reverse("product-detail", kwargs={"product_id": product.id, "slug": product.slug}))
+    html = response.content.decode()
+
+    assert response.status_code == 200
+    assert ">Expose.pdf<" in html
 
 
 def test_public_product_search_filters_by_regular_price():

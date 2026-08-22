@@ -27,8 +27,10 @@
       </div>
     </a>
     <nav class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2" aria-label="Rechtliches">
+      <a href="{{ bgp_home_url }}#vermietung" class="bgp-focus rounded transition hover:text-white">Vermietung</a>
       <a href="{{ bgp_aktuelles_url }}" class="bgp-focus rounded transition hover:text-white">Aktuelles</a>
       <a href="{% if bgp_is_public %}{{ bgp_immobilien_url }}{% else %}{{ bgp_home_url }}#vermietung{% endif %}" class="bgp-focus rounded transition hover:text-white">Immobilien</a>
+      <a href="{{ bgp_home_url }}#faq" class="bgp-focus rounded transition hover:text-white">FAQ</a>
       <a href="{{ bgp_kontakt_url }}" class="bgp-focus rounded transition hover:text-white">Kontakt</a>
       {% if bgp_is_public %}
       <a href="{{ bgp_impressum_url }}" class="bgp-focus rounded transition hover:text-white">Impressum</a>

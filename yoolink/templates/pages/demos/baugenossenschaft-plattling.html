@@ -106,6 +106,7 @@
 
 {% block content %}
 {% if bgp_is_public %}
+  {% url 'home' as bgp_home_url %}
   {% url 'kontakt' as bgp_kontakt_url %}
   {% url 'aktuelles' as bgp_aktuelles_url %}
   {% url 'products' as bgp_immobilien_url %}
@@ -272,6 +273,55 @@
   </div>
 </section>
 
+<!-- HISTORIE -->
+<section id="historie" class="bgp-bg-navy-deep px-4 py-20 text-white lg:py-28">
+  <div class="mx-auto max-w-6xl">
+    <div class="grid grid-cols-1 gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
+      <div data-aos="fade-right">
+        <p class="bgp-text-yellow mb-4 text-sm font-semibold uppercase tracking-widest">{{ bgp_historie.header }}</p>
+        <h2 class="mb-5 text-3xl font-bold tracking-tight sm:text-4xl">{{ bgp_historie.title }}</h2>
+        <p class="bgp-text-ice text-base leading-7 md:text-lg">{{ bgp_historie.description|linebreaksbr }}</p>
+      </div>
+
+      <div class="grid grid-cols-1 gap-4" data-aos="fade-left">
+        <div class="rounded-2xl bg-white/5 p-6 ring-1 ring-white/10">
+          <div class="flex gap-4">
+            <span class="bgp-bg-yellow inline-flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl">
+              <i class="bi bi-hourglass-top bgp-text-navy-dark text-xl"></i>
+            </span>
+            <div>
+              <h3 class="text-lg font-bold">{{ bgp_historie_1.title }}</h3>
+              <p class="bgp-text-ice mt-2 text-sm leading-6">{{ bgp_historie_1.description }}</p>
+            </div>
+          </div>
+        </div>
+        <div class="rounded-2xl bg-white/5 p-6 ring-1 ring-white/10">
+          <div class="flex gap-4">
+            <span class="bgp-bg-yellow inline-flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl">
+              <i class="bi bi-building-up bgp-text-navy-dark text-xl"></i>
+            </span>
+            <div>
+              <h3 class="text-lg font-bold">{{ bgp_historie_2.title }}</h3>
+              <p class="bgp-text-ice mt-2 text-sm leading-6">{{ bgp_historie_2.description }}</p>
+            </div>
+          </div>
+        </div>
+        <div class="rounded-2xl bg-white/5 p-6 ring-1 ring-white/10">
+          <div class="flex gap-4">
+            <span class="bgp-bg-yellow inline-flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl">
+              <i class="bi bi-tools bgp-text-navy-dark text-xl"></i>
+            </span>
+            <div>
+              <h3 class="text-lg font-bold">{{ bgp_historie_3.title }}</h3>
+              <p class="bgp-text-ice mt-2 text-sm leading-6">{{ bgp_historie_3.description }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- VERMIETUNG -->
 <section id="vermietung" class="bgp-bg-ice px-4 py-20 lg:py-28">
   <div class="mx-auto max-w-6xl">
@@ -284,40 +334,103 @@
     </div>
 
     <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-      <div class="bgp-card-hover rounded-2xl bg-white p-7 shadow-md" data-aos="fade-up" data-aos-delay="0">
+      <a href="{% if bgp_is_public %}{{ bgp_immobilien_url }}{% else %}{{ bgp_home_url }}#vermietung{% endif %}" class="bgp-card-hover bgp-focus block rounded-2xl bg-white p-7 shadow-md" data-aos="fade-up" data-aos-delay="0">
         <span class="bgp-bg-ice-deep bgp-text-navy inline-flex h-12 w-12 items-center justify-center rounded-xl">
           <i class="bi bi-house-door text-xl"></i>
         </span>
         <h3 class="bgp-text-navy-dark mb-2 mt-4 text-lg font-bold">{{ bgp_rental_angebote.title }}</h3>
         <p class="text-sm leading-6 text-gray-600">{{ bgp_rental_angebote.description }}</p>
-      </div>
-      <div class="bgp-card-hover rounded-2xl bg-white p-7 shadow-md" data-aos="fade-up" data-aos-delay="100">
+      </a>
+      <a href="{% if bgp_is_public %}{{ bgp_immobilien_url }}#immobilien-karte{% else %}{{ bgp_home_url }}#vermietung{% endif %}" class="bgp-card-hover bgp-focus block rounded-2xl bg-white p-7 shadow-md" data-aos="fade-up" data-aos-delay="100">
         <span class="bgp-bg-ice-deep bgp-text-navy inline-flex h-12 w-12 items-center justify-center rounded-xl">
           <i class="bi bi-buildings text-xl"></i>
         </span>
         <h3 class="bgp-text-navy-dark mb-2 mt-4 text-lg font-bold">{{ bgp_rental_objekte.title }}</h3>
         <p class="text-sm leading-6 text-gray-600">{{ bgp_rental_objekte.description }}</p>
-      </div>
-      <div class="bgp-card-hover rounded-2xl bg-white p-7 shadow-md" data-aos="fade-up" data-aos-delay="200">
+      </a>
+      <a href="{{ bgp_kontakt_url }}?formular=mitgliedschaft#kontaktformular" class="bgp-card-hover bgp-focus block rounded-2xl bg-white p-7 shadow-md" data-aos="fade-up" data-aos-delay="200">
         <span class="bgp-bg-ice-deep bgp-text-navy inline-flex h-12 w-12 items-center justify-center rounded-xl">
           <i class="bi bi-file-earmark-text text-xl"></i>
         </span>
         <h3 class="bgp-text-navy-dark mb-2 mt-4 text-lg font-bold">{{ bgp_rental_bewerbung.title }}</h3>
         <p class="text-sm leading-6 text-gray-600">{{ bgp_rental_bewerbung.description }}</p>
-      </div>
-      <div class="bgp-card-hover rounded-2xl bg-white p-7 shadow-md" data-aos="fade-up" data-aos-delay="300">
+      </a>
+      <a href="{{ bgp_home_url }}#faq" class="bgp-card-hover bgp-focus block rounded-2xl bg-white p-7 shadow-md" data-aos="fade-up" data-aos-delay="300">
         <span class="bgp-bg-ice-deep bgp-text-navy inline-flex h-12 w-12 items-center justify-center rounded-xl">
           <i class="bi bi-info-circle text-xl"></i>
         </span>
         <h3 class="bgp-text-navy-dark mb-2 mt-4 text-lg font-bold">{{ bgp_rental_infos.title }}</h3>
         <p class="text-sm leading-6 text-gray-600">{{ bgp_rental_infos.description }}</p>
-      </div>
+      </a>
     </div>
 
     <div class="mt-10 text-center" data-aos="fade-up">
       <a href="{{ bgp_kontakt_url }}" class="bgp-btn-navy bgp-focus inline-flex items-center gap-2 rounded-xl px-7 py-4 text-base font-bold shadow-lg transition-transform duration-300 hover:-translate-y-1">
         {{ bgp_vermietung.buttonText }} <i class="bi bi-arrow-right"></i>
       </a>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ / MIETERINFOS -->
+<section id="faq" class="bg-white px-4 py-20 lg:py-28">
+  <div class="mx-auto max-w-6xl">
+    <div class="mx-auto mb-14 max-w-2xl text-center" data-aos="fade-up">
+      <p class="bgp-text-navy mb-4 text-sm font-semibold uppercase tracking-widest">{{ bgp_faq.header }}</p>
+      <h2 class="bgp-text-navy-dark mb-4 text-3xl font-bold tracking-tight sm:text-4xl">{{ bgp_faq.title }}</h2>
+      <p class="text-base leading-7 text-gray-600 md:text-lg">{{ bgp_faq.description|linebreaksbr }}</p>
+    </div>
+
+    {% if FAQ %}
+    <div class="mx-auto max-w-4xl space-y-3" data-aos="fade-up">
+      {% for faq in FAQ %}
+      <details class="group rounded-2xl border border-[#C9DEE6] bg-white p-5 shadow-sm">
+        <summary class="bgp-focus flex cursor-pointer list-none items-center justify-between gap-4 rounded-lg text-left">
+          <span class="bgp-text-navy-dark text-base font-bold md:text-lg">{{ faq.question }}</span>
+          <span class="bgp-bg-ice-deep bgp-text-navy inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full transition group-open:rotate-45">
+            <i class="bi bi-plus-lg"></i>
+          </span>
+        </summary>
+        <div class="mt-4 border-t border-gray-100 pt-4 text-sm leading-7 text-gray-600 md:text-base">
+          {{ faq.answer|linebreaksbr }}
+        </div>
+      </details>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="mx-auto mt-10 max-w-4xl rounded-2xl bgp-bg-ice p-5 ring-1 ring-[#C9DEE6]" data-aos="fade-up">
+      <div class="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h3 class="bgp-text-navy-dark text-xl font-bold">{{ bgp_tenant_infos.title }}</h3>
+          <p class="mt-1 text-sm leading-6 text-gray-600">{{ bgp_tenant_infos.description }}</p>
+        </div>
+      </div>
+
+      {% if bgp_tenant_info_documents %}
+      <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        {% for document in bgp_tenant_info_documents %}
+        <a href="{{ document.file.url }}" target="_blank" rel="noopener" class="bgp-focus flex items-center justify-between gap-4 rounded-xl border border-white bg-white px-4 py-4 shadow-sm transition hover:-translate-y-0.5 hover:border-[#C9DEE6] hover:shadow-md">
+          <span class="flex min-w-0 items-center gap-3">
+            <span class="inline-flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-red-50 text-red-600">
+              <i class="bi bi-file-earmark-pdf-fill text-xl"></i>
+            </span>
+            <span class="min-w-0">
+              <span class="block truncate text-sm font-bold text-gray-900">{{ document.display_name }}</span>
+              <span class="mt-0.5 block text-xs font-semibold uppercase tracking-wider text-gray-400">{{ document.file_extension|default:".pdf" }}</span>
+            </span>
+          </span>
+          <span class="bgp-text-navy inline-flex flex-shrink-0 items-center gap-2 text-xs font-bold">
+            {{ bgp_tenant_infos.buttonText }} <i class="bi bi-box-arrow-up-right"></i>
+          </span>
+        </a>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="rounded-xl border border-dashed border-[#C9DEE6] bg-white px-4 py-6 text-sm leading-6 text-gray-500">
+        Sobald Mieterinformationen als PDF im Dateimodul hinterlegt sind, erscheinen sie hier.
+      </div>
+      {% endif %}
     </div>
   </div>
 </section>
@@ -453,6 +566,45 @@
         {% endif %}
       </div>
     </div>
+
+    {% if bgp_contact.address_inline %}
+    <div class="mt-10 overflow-hidden rounded-2xl bg-white/5 ring-1 ring-white/10" data-aos="fade-up">
+      <div class="relative min-h-[18rem] bg-white/5">
+        {% if bgp_is_public and google_maps_embed_api_key %}
+        <iframe
+          class="hidden h-80 w-full border-0"
+          title="Karte zur Baugenossenschaft Plattling eG"
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade"
+          allowfullscreen
+          data-cookie-src="https://www.google.com/maps/embed/v1/place?key={{ google_maps_embed_api_key }}&zoom=15&maptype=roadmap&q={{ bgp_contact.address_inline|urlencode }}"
+        ></iframe>
+        <div data-cookie-placeholder class="flex min-h-[18rem] flex-col items-center justify-center px-6 py-10 text-center">
+          <span class="bgp-bg-yellow mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl">
+            <i class="bi bi-map bgp-text-navy-dark text-xl"></i>
+          </span>
+          <p class="font-bold text-white">Karte anzeigen</p>
+          <p class="bgp-text-ice mt-2 max-w-md text-sm leading-6">Die Karte wird nach Ihrer Einwilligung für externe Medien geladen.</p>
+          <button type="button" data-consent-action="open-settings" class="bgp-btn-yellow bgp-focus mt-4 inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-bold">
+            Cookie-Auswahl öffnen
+          </button>
+        </div>
+        {% else %}
+        <div class="flex min-h-[18rem] flex-col items-center justify-center px-6 py-10 text-center">
+          <span class="bgp-bg-yellow mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl">
+            <i class="bi bi-map bgp-text-navy-dark text-xl"></i>
+          </span>
+          <p class="font-bold text-white">{{ bgp_contact.address_inline }}</p>
+          {% if bgp_contact.maps_url %}
+          <a href="{{ bgp_contact.maps_url }}" target="_blank" rel="noopener" class="bgp-btn-yellow bgp-focus mt-4 inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-bold">
+            <i class="bi bi-signpost-split"></i> Route
+          </a>
+          {% endif %}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
 
     <div class="mt-14 flex flex-col items-center gap-5 border-t border-white/10 pt-10 text-center" data-aos="fade-up">
       <p class="bgp-text-ice text-sm">{{ bgp_kontakt_cta.description }}</p>

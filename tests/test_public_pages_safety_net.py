@@ -1,12 +1,15 @@
 from datetime import time
 
 import pytest
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import override_settings
 from django.urls import reverse
 
 from yoolink.users.tests.factories import UserFactory
 from yoolink.ycms.applications.content.bgp_content import opening_hours_fact
 from yoolink.ycms.applications.content.models import TextContent
 from yoolink.ycms.models import (
+    AnyFile,
     Blog,
     FAQ,
     OpeningHours,
@@ -43,6 +46,27 @@ def test_home_page_renders_cms_managed_content(client):
     assert list(response.context["FAQ"]) == list(FAQ.objects.all())
     assert response.context["teamMembers"].count() == 1
     assert response.context["pricing_cards"].count() == 1
+
+
+def test_home_page_renders_faq_with_tenant_info_documents(client):
+    FAQ.objects.create(question="Wie melde ich einen Schaden?", answer="Bitte nehmen Sie Kontakt mit uns auf.")
+    AnyFile.objects.create(
+        title="Mieterinfo",
+        file=SimpleUploadedFile("mieterinfo.pdf", b"%PDF-1.4", content_type="application/pdf"),
+    )
+    AnyFile.objects.create(
+        title="Hausordnung",
+        file=SimpleUploadedFile("hausordnung.pdf", b"%PDF-1.4", content_type="application/pdf"),
+    )
+
+    response = client.get(reverse("home"))
+    html = response.content.decode()
+
+    assert response.status_code == 200
+    assert 'id="faq"' in html
+    assert "Wie melde ich einen Schaden?" in html
+    assert "Mieterinfo.pdf" in html
+    assert "Hausordnung.pdf" in html
 
 
 def test_static_content_pages_render_without_cms_data(client):
@@ -250,6 +274,22 @@ def test_kontakt_teaser_uses_website_settings_and_opening_hours(client):
     assert "09931 890073-9" in html
     assert 'href="mailto:info@bgp-test.de"' in html
     assert "Mo / Mi / Fr" in html
+
+
+@override_settings(GOOGLE_MAPS_EMBED_API_KEY="test-key")
+def test_kontakt_teaser_embeds_map_after_external_media_consent(client):
+    site = WebsiteSettings.get_solo()
+    site.company_name = "Baugenossenschaft Plattling eG"
+    site.address = "Schillerstr. 6b, 94447 Plattling"
+    site.save()
+
+    response = client.get(reverse("home"))
+    html = response.content.decode()
+
+    assert response.status_code == 200
+    assert 'data-cookie-src="https://www.google.com/maps/embed/v1/place?key=test-key' in html
+    assert "q=Schillerstr.%206b%2C%2094447%20Plattling" in html
+    assert 'data-consent-action="open-settings"' in html
 
 
 def _clear_website_contact_details():

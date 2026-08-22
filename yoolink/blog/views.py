@@ -158,6 +158,8 @@ class Load_Index_Blog(ListView):
                 .prefetch_related('translations'))
 
     def get_context_data(self, **kwargs):
+        from yoolink.views import get_bgp_context, get_opening_hours
+
         ctx = super().get_context_data(**kwargs)
         lang = getattr(self, '_lang', None)
         originals_on_page = ctx['object_list']
@@ -168,7 +170,9 @@ class Load_Index_Blog(ListView):
         ctx['object_list'] = mapped
         ctx['blogs'] = mapped
         ctx['blog_overview_hero'] = TextContent.objects.filter(name="main_blog_overview_hero").first()
-        return ctx
+        ctx["demo_page"] = "aktuelles"
+        ctx.update(get_opening_hours())
+        return get_bgp_context(ctx)
 
 
 class BlogDetailView(DetailView):
@@ -255,6 +259,8 @@ class BlogDetailView(DetailView):
         return related
 
     def get_context_data(self, **kwargs):
+        from yoolink.views import get_bgp_context, get_opening_hours
+
         context = super().get_context_data(**kwargs)
         blog = context["blog"]
         lang = get_active_language(self.request)
@@ -272,7 +278,9 @@ class BlogDetailView(DetailView):
         context["blog_image_caption"] = blog.title_image_caption
         context["canonical_url"] = self.request.build_absolute_uri(blog.get_absolute_url())
         context["related_blogs"] = self._related_blogs(blog, lang)
-        return context
+        context["demo_page"] = "aktuelles"
+        context.update(get_opening_hours())
+        return get_bgp_context(context)
 
     def get(self, request, *args, **kwargs):
         # Objekt laden

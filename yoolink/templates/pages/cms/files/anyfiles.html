@@ -128,10 +128,10 @@
             <div class="min-w-0 flex-1">
               <a href="{{ file.file.url }}" target="_blank" rel="noopener"
                  class="js-file-title block truncate text-sm font-semibold text-slate-950 transition hover:text-blue-600"
-                 title="{{ file.title|default:file.file.name }}">
-                <span class="js-file-title-text">{{ file.title|default:file.file.name }}</span>
+                 title="{{ file.display_name }}">
+                <span class="js-file-title-text">{{ file.display_name }}</span>
               </a>
-              <p class="mt-1 truncate text-xs text-slate-500">{{ file.file.name }}</p>
+              <p class="mt-1 truncate text-xs text-slate-500">{{ file.filename }}</p>
               <p class="mt-2 inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-1 text-[11px] font-medium text-slate-500">
                 <i class="bi bi-clock"></i> {{ file.uploaded_at|date:"d.m.Y H:i" }}
               </p>
@@ -146,7 +146,7 @@
             </a>
             <button type="button"
               class="edit-file inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-              data-id="{{ file.id }}" data-title="{{ file.title|default:file.file.name }}" title="Titel bearbeiten">
+              data-id="{{ file.id }}" data-title="{{ file.title|default:file.filename }}" title="Titel bearbeiten">
               <i class="bi bi-pencil"></i><span class="hidden sm:inline">Titel</span>
             </button>
             <button type="button"

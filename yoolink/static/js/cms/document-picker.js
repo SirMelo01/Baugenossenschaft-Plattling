@@ -97,12 +97,13 @@
     function renderSelection() {
         var file = state.selected;
         var meta = iconFor(file && file.ext);
+        var displayName = file ? (file.display_name || file.title || file.filename) : '';
 
         $('#documentSelectedIcon')
             .attr('class', 'grid h-11 w-11 flex-shrink-0 place-items-center rounded-lg bg-white text-xl ' + meta.tone)
             .html('<i class="bi ' + meta.icon + '" aria-hidden="true"></i>');
 
-        $('#documentSelectedName').text(file ? (file.title || file.filename) : 'Noch keine Datei gewählt');
+        $('#documentSelectedName').text(file ? displayName : 'Noch keine Datei gewählt');
         $('#documentSelectedMeta').text(
             file ? [file.ext ? file.ext.replace('.', '').toUpperCase() : '', sizeText(file.size), file.uploaded_at]
                 .filter(Boolean).join(' · ') : ' '
@@ -119,7 +120,7 @@
         var query = state.query.trim().toLowerCase();
         if (!query) return state.files;
         return state.files.filter(function (file) {
-            return ((file.title || '') + ' ' + (file.filename || '')).toLowerCase().indexOf(query) !== -1;
+            return ((file.display_name || '') + ' ' + (file.title || '') + ' ' + (file.filename || '')).toLowerCase().indexOf(query) !== -1;
         });
     }
 
@@ -131,6 +132,7 @@
             var meta = iconFor(file.ext);
             var active = state.selected && String(state.selected.id) === String(file.id);
             var details = [sizeText(file.size), file.uploaded_at].filter(Boolean).join(' · ');
+            var displayName = file.display_name || file.title || file.filename || 'Datei';
             return '' +
                 '<button type="button" data-document-id="' + escapeHtml(file.id) + '" tabindex="0"' +
                 ' class="document-tile flex w-full items-center gap-3 rounded-lg border bg-white p-3 text-left transition hover:shadow-md ' +
@@ -138,7 +140,7 @@
                 '<span class="grid h-10 w-10 flex-shrink-0 place-items-center rounded-lg bg-slate-100 text-lg ' + meta.tone + '">' +
                 '<i class="bi ' + meta.icon + '" aria-hidden="true"></i></span>' +
                 '<span class="min-w-0 flex-1">' +
-                '<span class="block truncate text-sm font-semibold text-slate-800">' + escapeHtml(file.title || file.filename) + '</span>' +
+                '<span class="block truncate text-sm font-semibold text-slate-800">' + escapeHtml(displayName) + '</span>' +
                 (details ? '<span class="mt-0.5 block text-xs text-slate-500">' + escapeHtml(details) + '</span>' : '') +
                 '</span>' +
                 (active ? '<i class="bi bi-check-circle-fill flex-shrink-0 text-blue-600" aria-hidden="true"></i>' : '') +

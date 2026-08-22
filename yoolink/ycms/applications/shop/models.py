@@ -1,5 +1,6 @@
 import uuid
 from decimal import Decimal, ROUND_HALF_EVEN
+from urllib.parse import urlencode
 
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -149,6 +150,7 @@ class Product(TimeStampedModel):
     title = models.CharField(max_length=255)
     slug = models.SlugField(max_length=255, unique=True, blank=True)
     description = models.TextField(blank=True)
+    address = models.CharField("Adresse", max_length=255, blank=True, default="")
     sku = models.CharField("Objektnummer", max_length=64, blank=True, default="")
     price_note = models.CharField(
         "Preishinweis",
@@ -291,6 +293,23 @@ class Product(TimeStampedModel):
     @property
     def should_show_purchase_controls(self):
         return not self.showcase_only
+
+    @property
+    def location_address(self):
+        address = (self.address or "").strip()
+        if address:
+            return address
+        if self.original_id:
+            return (getattr(self.original, "address", "") or "").strip()
+        return ""
+
+    @property
+    def maps_url(self):
+        if not self.location_address:
+            return ""
+        return "https://www.google.com/maps/search/?" + urlencode(
+            {"api": "1", "query": self.location_address}
+        )
 
     def get_absolute_url(self):
         return reverse(

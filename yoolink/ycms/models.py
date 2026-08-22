@@ -119,7 +119,26 @@ class AnyFile(models.Model):
     description = models.TextField(blank=True)
 
     def __str__(self):
-        return os.path.basename(self.file.name)
+        return self.filename
+
+    @property
+    def filename(self):
+        return os.path.basename(self.file.name or "")
+
+    @property
+    def file_extension(self):
+        return os.path.splitext(self.filename)[1].lower()
+
+    @property
+    def display_name(self):
+        title = (self.title or "").strip()
+        if not title:
+            return self.filename
+
+        ext = self.file_extension
+        if ext and not title.lower().endswith(ext):
+            return f"{title}{ext}"
+        return title
 
     def delete(self, *args, **kwargs):
         self.file.storage.delete(self.file.name)

@@ -10,7 +10,7 @@ unlocalize ist noetig, damit dort "500.00" und nicht "500,00" steht.
 <div
   class="product-item"
   data-product-id="{{ product.id }}"
-  data-search="{{ product.title }} {{ product.brand.name }} {{ product.description|plain_description|truncatechars:600 }}"
+  data-search="{{ product.title }} {{ product.brand.name }} {{ product.location_address }} {{ product.description|plain_description|truncatechars:600 }}"
   data-price="{% if product.should_show_price_card %}{{ product.effective_price|unlocalize }}{% endif %}"
 >
   {% include "pages/components/product_card.html" with product=product %}

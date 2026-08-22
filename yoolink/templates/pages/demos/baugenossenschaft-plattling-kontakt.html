@@ -348,10 +348,32 @@ wie die Seite selbst, damit die Google-Vorschau nicht veraltet.
       </div>
 
       <div class="overflow-hidden rounded-2xl border border-gray-200 shadow-sm">
-        <div class="bgp-map flex h-52 items-center justify-center">
-          <span class="bgp-map-pin bgp-bg-yellow inline-flex h-14 w-14 items-center justify-center rounded-full shadow-xl">
-            <i class="bi bi-geo-alt-fill bgp-text-navy-dark text-2xl"></i>
-          </span>
+        <div class="relative min-h-52 bgp-map">
+          {% if bgp_is_public and google_maps_embed_api_key and bgp_contact.address_inline %}
+          <iframe
+            class="hidden h-52 w-full border-0"
+            title="Karte zur Baugenossenschaft Plattling eG"
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+            allowfullscreen
+            data-cookie-src="https://www.google.com/maps/embed/v1/place?key={{ google_maps_embed_api_key }}&zoom=15&maptype=roadmap&q={{ bgp_contact.address_inline|urlencode }}"
+          ></iframe>
+          <div data-cookie-placeholder class="flex h-52 flex-col items-center justify-center px-5 text-center">
+            <span class="bgp-map-pin bgp-bg-yellow inline-flex h-14 w-14 items-center justify-center rounded-full shadow-xl">
+              <i class="bi bi-geo-alt-fill bgp-text-navy-dark text-2xl"></i>
+            </span>
+            <p class="mt-3 text-sm font-semibold text-white">Karte nach Cookie-Freigabe anzeigen</p>
+            <button type="button" data-consent-action="open-settings" class="bgp-btn-yellow bgp-focus mt-3 inline-flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold">
+              Cookie-Auswahl öffnen
+            </button>
+          </div>
+          {% else %}
+          <div class="flex h-52 items-center justify-center">
+            <span class="bgp-map-pin bgp-bg-yellow inline-flex h-14 w-14 items-center justify-center rounded-full shadow-xl">
+              <i class="bi bi-geo-alt-fill bgp-text-navy-dark text-2xl"></i>
+            </span>
+          </div>
+          {% endif %}
         </div>
         <div class="flex items-center justify-between gap-4 bg-white px-5 py-4">
           <div>

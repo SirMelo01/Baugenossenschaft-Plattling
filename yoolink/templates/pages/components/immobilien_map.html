@@ -1,0 +1,64 @@
+{{ product_map_locations|json_script:"product-map-locations" }}
+
+<section id="immobilien-karte" data-immobilien-map data-locations-script="product-map-locations" class="mb-8 overflow-hidden rounded-2xl border border-[#C9DEE6] bg-white shadow-sm">
+  <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1.4fr)_minmax(18rem,0.6fr)]">
+    <div class="relative min-h-[24rem] bg-[#EEF5F8]">
+      <div data-map-canvas class="hidden h-[24rem] w-full lg:h-full"></div>
+
+      <div data-map-placeholder class="flex min-h-[24rem] flex-col items-center justify-center px-6 py-10 text-center">
+        <span class="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-[#FFDC16] text-[#2E434C]">
+          <i class="bi bi-map text-xl"></i>
+        </span>
+        <p class="text-lg font-bold text-[#2E434C]">Objektkarte anzeigen</p>
+        <p class="mt-2 max-w-md text-sm leading-6 text-gray-600">Die Karte wird nach Ihrer Einwilligung für externe Medien geladen.</p>
+        <button type="button" data-consent-action="open-settings" class="bgp-btn-navy mt-4 inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-bold">
+          Cookie-Auswahl öffnen
+        </button>
+      </div>
+
+      <div data-map-empty class="hidden min-h-[24rem] flex-col items-center justify-center px-6 py-10 text-center">
+        <span class="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-white text-[#4B6671] shadow-sm">
+          <i class="bi bi-geo-alt text-xl"></i>
+        </span>
+        <p class="text-lg font-bold text-[#2E434C]">Noch keine Objektadressen hinterlegt</p>
+        <p class="mt-2 max-w-md text-sm leading-6 text-gray-600">Aktive Immobilien mit gepflegter Adresse erscheinen automatisch auf dieser Karte.</p>
+      </div>
+
+      <div data-map-error class="hidden min-h-[24rem] flex-col items-center justify-center px-6 py-10 text-center">
+        <span class="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-white text-[#4B6671] shadow-sm">
+          <i class="bi bi-exclamation-circle text-xl"></i>
+        </span>
+        <p class="text-lg font-bold text-[#2E434C]">Karte konnte nicht geladen werden</p>
+        <p class="mt-2 max-w-md text-sm leading-6 text-gray-600">Die Objektadressen bleiben darunter als Liste verfügbar.</p>
+      </div>
+    </div>
+
+    <div class="border-t border-[#C9DEE6] p-5 lg:border-l lg:border-t-0">
+      <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">Objektkarte</p>
+      <h2 class="mt-1 text-2xl font-bold tracking-tight text-[#2E434C]">Unsere Objekte in Plattling</h2>
+      <p class="mt-2 text-sm leading-6 text-gray-600">Alle aktiven Immobilien mit hinterlegter Adresse werden automatisch markiert.</p>
+
+      <div class="mt-5 max-h-[20rem] space-y-3 overflow-y-auto pr-1" data-map-list>
+        {% for location in product_map_locations %}
+        <div class="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
+          <a href="{{ location.url }}" class="block truncate text-sm font-bold text-gray-900 transition hover:text-[#4B6671]">{{ location.title }}</a>
+          <span class="mt-1 flex items-start gap-2 text-xs leading-5 text-gray-500">
+            <i class="bi bi-geo-alt mt-0.5 flex-shrink-0"></i>
+            <span>{{ location.address }}</span>
+          </span>
+          <span class="mt-2 flex flex-wrap gap-3 text-xs font-bold text-[#4B6671]">
+            <a href="{{ location.url }}" class="inline-flex items-center gap-1 transition hover:text-[#2E434C]">Details <i class="bi bi-arrow-right"></i></a>
+            {% if location.maps_url %}
+            <a href="{{ location.maps_url }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 transition hover:text-[#2E434C]">Route <i class="bi bi-box-arrow-up-right"></i></a>
+            {% endif %}
+          </span>
+        </div>
+        {% empty %}
+        <div class="rounded-xl border border-dashed border-gray-300 px-4 py-5 text-sm leading-6 text-gray-500">
+          Noch keine aktiven Objektadressen hinterlegt.
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</section>

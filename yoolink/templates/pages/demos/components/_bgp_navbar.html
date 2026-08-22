@@ -21,8 +21,10 @@
 
     <nav class="hidden items-center gap-1 lg:flex" aria-label="Hauptnavigation">
       <a href="{{ bgp_home_url }}#genossenschaft" class="bgp-nav-link bgp-focus rounded-lg px-3 py-2 text-sm font-medium">Unsere Genossenschaft</a>
+      <a href="{{ bgp_home_url }}#historie" class="bgp-nav-link bgp-focus rounded-lg px-3 py-2 text-sm font-medium">Historie</a>
       <a href="{{ bgp_home_url }}#vermietung" class="bgp-nav-link bgp-focus rounded-lg px-3 py-2 text-sm font-medium">Vermietung</a>
       <a href="{% if bgp_is_public %}{{ bgp_immobilien_url }}{% else %}{{ bgp_home_url }}#vermietung{% endif %}" class="bgp-nav-link bgp-focus rounded-lg px-3 py-2 text-sm font-medium{% if demo_page == 'immobilien' %} bgp-nav-link-active{% endif %}">Immobilien</a>
+      <a href="{{ bgp_home_url }}#faq" class="bgp-nav-link bgp-focus rounded-lg px-3 py-2 text-sm font-medium">FAQ</a>
       <a href="{{ bgp_aktuelles_url }}" class="bgp-nav-link bgp-focus rounded-lg px-3 py-2 text-sm font-medium{% if demo_page == 'aktuelles' %} bgp-nav-link-active{% endif %}">Aktuelles</a>
       <a href="{{ bgp_kontakt_url }}" class="bgp-nav-link bgp-focus rounded-lg px-3 py-2 text-sm font-medium{% if demo_page == 'kontakt' %} bgp-nav-link-active{% endif %}">Kontakt</a>
       {% if bgp_contact.tel %}
@@ -39,8 +41,10 @@
 
   <div id="bgpMobileMenu" class="hidden border-t border-white/10 px-4 pb-4 pt-2 lg:hidden">
     <a href="{{ bgp_home_url }}#genossenschaft" class="bgp-nav-link block rounded-lg px-3 py-3 text-base font-medium">Unsere Genossenschaft</a>
+    <a href="{{ bgp_home_url }}#historie" class="bgp-nav-link block rounded-lg px-3 py-3 text-base font-medium">Historie</a>
     <a href="{{ bgp_home_url }}#vermietung" class="bgp-nav-link block rounded-lg px-3 py-3 text-base font-medium">Vermietung</a>
     <a href="{% if bgp_is_public %}{{ bgp_immobilien_url }}{% else %}{{ bgp_home_url }}#vermietung{% endif %}" class="bgp-nav-link block rounded-lg px-3 py-3 text-base font-medium{% if demo_page == 'immobilien' %} bgp-nav-link-active{% endif %}">Immobilien</a>
+    <a href="{{ bgp_home_url }}#faq" class="bgp-nav-link block rounded-lg px-3 py-3 text-base font-medium">FAQ</a>
     <a href="{{ bgp_aktuelles_url }}" class="bgp-nav-link block rounded-lg px-3 py-3 text-base font-medium{% if demo_page == 'aktuelles' %} bgp-nav-link-active{% endif %}">Aktuelles</a>
     <a href="{{ bgp_kontakt_url }}" class="bgp-nav-link block rounded-lg px-3 py-3 text-base font-medium{% if demo_page == 'kontakt' %} bgp-nav-link-active{% endif %}">Kontakt</a>
     {% if bgp_contact.tel %}

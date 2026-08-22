@@ -448,18 +448,11 @@ function syncDescriptionField() {
 }
 
 function syncShowcaseState() {
-  const $showcaseSwitch = $("#showcaseOnlySwitch");
-  const isShowcaseOnly = $showcaseSwitch.is(":checked");
-  const $showPriceSwitch = $("#showPriceWhenShowcaseSwitch");
+  return;
 
   // Showcase ist aktuell Standard: solange aktiv, lässt es sich nicht
   // deaktivieren. Nur falls es (z.B. durch einen Bug) aus ist, kann es
   // wieder eingeschaltet werden.
-  $showcaseSwitch.prop("disabled", isShowcaseOnly);
-  $showcaseSwitch.closest("label").toggleClass("cursor-not-allowed", isShowcaseOnly);
-
-  $showPriceSwitch.prop("disabled", !isShowcaseOnly);
-  $showPriceSwitch.closest("label").toggleClass("opacity-60", !isShowcaseOnly);
 }
 
 $(document).ready(function () {
@@ -526,7 +519,7 @@ $(document).ready(function () {
     syncDescriptionField();
 
     const files = $("#titleImgUpload").prop("files");
-    const requiredFields = ["#title", "#description"];
+    const requiredFields = ["#title"];
     const isValid = isFormValid(requiredFields);
 
     if (!isValid) {
@@ -536,6 +529,7 @@ $(document).ready(function () {
 
     const formData = new FormData(this);
     setFormDataValue(formData, "title", $("#title").val());
+    setFormDataValue(formData, "address", $("#address").val() || "");
     setFormDataValue(formData, "description", $("#description").val());
     setFormDataValue(formData, "isActive", $("#activeSwitch").is(":checked"));
     setFormDataValue(formData, "isInStock", true);
@@ -544,11 +538,11 @@ $(document).ready(function () {
     setFormDataValue(formData, "weight", $("#weight").val());
     setFormDataValue(formData, "isOnlineAvailable", $("#onlineSwitch").is(":checked"));
     setFormDataValue(formData, "reducedPrice", "");
-    setFormDataValue(formData, "isShowcaseOnly", $("#showcaseOnlySwitch").is(":checked"));
-    setFormDataValue(formData, "showPriceWhenShowcase", $("#showPriceWhenShowcaseSwitch").is(":checked"));
+    setFormDataValue(formData, "isShowcaseOnly", true);
+    setFormDataValue(formData, "showPriceWhenShowcase", true);
     setFormDataValue(formData, "isFeatured", $("#featuredSwitch").is(":checked"));
     setFormDataValue(formData, "sku", "");
-    setFormDataValue(formData, "priceNote", $("#priceNote").val() || "");
+    setFormDataValue(formData, "priceNote", "");
     appendTaxonomyToFormData(formData);
 
     if (!appendSpecificationsToFormData(formData)) {
@@ -679,7 +673,7 @@ $(document).ready(function () {
       return;
     }
 
-    const requiredFields = ["#title", "#description"];
+    const requiredFields = ["#title"];
     const isValid = isFormValid(requiredFields);
 
     if (!isValid) {
@@ -691,6 +685,7 @@ $(document).ready(function () {
     const titleImage = files[0];
 
     setFormDataValue(formData, "title", $("#title").val());
+    setFormDataValue(formData, "address", $("#address").val() || "");
     setFormDataValue(formData, "description", $("#description").val());
     setFormDataValue(formData, "isActive", $("#activeSwitch").is(":checked"));
     setFormDataValue(formData, "isInStock", true);
@@ -699,11 +694,11 @@ $(document).ready(function () {
     setFormDataValue(formData, "weight", $("#weight").val());
     setFormDataValue(formData, "isOnlineAvailable", $("#onlineSwitch").is(":checked"));
     setFormDataValue(formData, "reducedPrice", "");
-    setFormDataValue(formData, "isShowcaseOnly", $("#showcaseOnlySwitch").is(":checked"));
-    setFormDataValue(formData, "showPriceWhenShowcase", $("#showPriceWhenShowcaseSwitch").is(":checked"));
+    setFormDataValue(formData, "isShowcaseOnly", true);
+    setFormDataValue(formData, "showPriceWhenShowcase", true);
     setFormDataValue(formData, "isFeatured", $("#featuredSwitch").is(":checked"));
     setFormDataValue(formData, "sku", "");
-    setFormDataValue(formData, "priceNote", $("#priceNote").val() || "");
+    setFormDataValue(formData, "priceNote", "");
     appendTaxonomyToFormData(formData);
     formData.append("title_image", titleImage, "productTitleImage");
 

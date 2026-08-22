@@ -124,6 +124,7 @@ def clone_product_translation(original_product, language):
     product = Product.objects.create(
         title=original_product.title,
         description=original_product.description,
+        address=original_product.address,
         sku=original_product.sku,
         price_note=original_product.price_note,
         featured=original_product.featured,
@@ -323,6 +324,7 @@ def serialize_product_for_search(product):
         "slug": product.slug,
         "title": product.title,
         "description": description_plain_text(product),
+        "address": product.location_address,
         "sku": product.sku or "",
         "price_note": product.price_note or "",
         "featured": product.featured,
@@ -358,6 +360,8 @@ def serialize_public_product(product):
         "slug": product.slug,
         "title": product.title,
         "description": description_plain_text(product, max_length=140),
+        "address": product.location_address,
+        "maps_url": product.maps_url,
         "price_note": product.price_note or "",
         "featured": product.featured,
         "image_url": product.title_image.url if product.title_image else "",
@@ -377,6 +381,42 @@ def serialize_public_product(product):
             kwargs={"product_id": product.id, "slug": product.slug},
         ),
     }
+
+
+def serialize_product_location(product):
+    address = product.location_address
+    if not address:
+        return None
+
+    return {
+        "id": product.id,
+        "title": product.title,
+        "address": address,
+        "brand": product.brand.name if product.brand else "",
+        "url": reverse(
+            "product-detail",
+            kwargs={"product_id": product.id, "slug": product.slug},
+        ),
+        "maps_url": product.maps_url,
+    }
+
+
+def get_active_product_map_locations(request):
+    language = get_active_product_language(request)
+    products = (
+        Product.objects.filter(is_active=True, original__isnull=True)
+        .select_related("brand")
+        .prefetch_related("translations", "translations__brand")
+        .order_by("-featured", "title")
+    )
+
+    locations = []
+    for product in products:
+        localized = get_localized_product(product, language, require_active=True)
+        entry = serialize_product_location(localized)
+        if entry:
+            locations.append(entry)
+    return locations
 
 def build_cart_items_payload(order):
     """Serialize cart items for frontend responses."""
@@ -498,12 +538,13 @@ def apply_product_form_data(request, product):
     """
     title = (request.POST.get("title") or "").strip()
     description = sanitize_html((request.POST.get("description") or "").strip())
-    price_note = (request.POST.get("priceNote") or "").strip()[:120]
+    address = (request.POST.get("address") or "").strip()[:255]
+    price_note = ""
     brand_name = (request.POST.get("hersteller") or "").strip()
     group_name = (request.POST.get("group") or "").strip()
-    selected_categories = parse_json_list(request.POST.get("selected_categories"))
+    selected_categories = []
     selected_file_ids = parse_json_list(request.POST.get("selected_file_ids"))
-    specifications_payload = request.POST.get("specifications")
+    specifications_payload = "[]"
     gallery_id = request.POST.get("galeryId")
     uploaded_image = request.FILES.get("title_image")
 
@@ -523,7 +564,7 @@ def apply_product_form_data(request, product):
     is_reduced = False
     reduced_price = None
     showcase_only = parse_bool(request.POST.get("isShowcaseOnly"))
-    show_price_when_showcase = parse_bool(request.POST.get("showPriceWhenShowcase"))
+    show_price_when_showcase = True
     featured = parse_bool(request.POST.get("isFeatured"))
 
     if not title:
@@ -534,15 +575,6 @@ def apply_product_form_data(request, product):
 
     if weight < 0:
         return None, JsonResponse({"error": "Wohnflaeche darf nicht negativ sein."}, status=400)
-
-    if is_reduced and reduced_price is None:
-        return None, JsonResponse({"error": "Eine alternative Preisangabe braucht einen gültigen Wert."}, status=400)
-
-    if is_reduced and reduced_price <= 0:
-        return None, JsonResponse({"error": "Die alternative Preisangabe muss größer 0 sein."}, status=400)
-
-    if is_reduced and reduced_price >= price:
-        return None, JsonResponse({"error": "Die alternative Preisangabe muss kleiner als der reguläre Preis sein."}, status=400)
 
     if uploaded_image:
         try:
@@ -571,6 +603,7 @@ def apply_product_form_data(request, product):
         with transaction.atomic():
             product.title = title
             product.description = description
+            product.address = address
             product.sku = ""
             product.price_note = price_note
             product.featured = featured
@@ -679,6 +712,7 @@ def get_filtered_products_queryset(request):
         products = products.filter(
             Q(title__icontains=query)
             | Q(description__icontains=query)
+            | Q(address__icontains=query)
             | Q(brand__name__icontains=query)
             | Q(categories__name__icontains=query)
         ).distinct()
@@ -995,6 +1029,7 @@ def get_public_filtered_products_queryset(request):
         products = products.filter(
             Q(title__icontains=query)
             | Q(description__icontains=query)
+            | Q(address__icontains=query)
             | Q(brand__name__icontains=query)
             | Q(categories__name__icontains=query)
         ).distinct()
@@ -1122,6 +1157,7 @@ def public_shop(request):
     if shop_settings.is_grouped_layout:
         context = get_bgp_context({"shop_settings": shop_settings, "demo_page": "immobilien"})
         context.update(build_grouped_products_context(request))
+        context["product_map_locations"] = get_active_product_map_locations(request)
         context.update(get_opening_hours())
         return render(request, "pages/shop_grouped.html", context)
 
@@ -1155,6 +1191,7 @@ def public_shop(request):
             "is_reduced": parse_bool(request.GET.get("is_reduced")) if request.GET.get("is_reduced") not in [None, ""] else False,
         },
         "demo_page": "immobilien",
+        "product_map_locations": get_active_product_map_locations(request),
     })
     context.update(get_opening_hours())
     return render(request, "pages/shop.html", context)
@@ -1162,7 +1199,7 @@ def public_shop(request):
 def detail(request, product_id, slug):
     product = get_object_or_404(
         Product.objects.select_related("brand", "gallery", "original")
-        .prefetch_related("categories", "translations", "specifications", "gallery__images"),
+        .prefetch_related("categories", "translations", "specifications", "gallery__images", "files"),
         id=product_id,
     )
     # Canonical Slug sicherstellen: alte oder bewusst geänderte Slugs per 301 auf
@@ -1174,7 +1211,7 @@ def detail(request, product_id, slug):
     last_url = request.META.get('HTTP_REFERER')
     if not product.is_active:
         return render(request, "pages/errors/error.html", {
-            "error": "Diese Immobilie ist nicht mehr verfügbar",
+            "error": "Diese Immobilie ist nicht mehr aktiv",
             "saveLink": last_url if last_url else '/'
         })
     localized_product = get_localized_product(product, get_active_product_language(request), require_active=True)

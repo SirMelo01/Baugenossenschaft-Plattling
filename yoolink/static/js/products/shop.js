@@ -73,7 +73,7 @@ function buildPublicProductCard(product) {
   const title = escapeHtml(product.title)
   const description = escapeHtml(product.description || "Keine Beschreibung vorhanden")
   const brand = escapeHtml(product.brand || "")
-  const priceNote = escapeHtml(product.price_note || "")
+  const address = escapeHtml(product.address || "")
   const showPriceCard = Boolean(product.should_show_price_card)
 
   const topBadges = []
@@ -91,10 +91,6 @@ function buildPublicProductCard(product) {
     priceHtml = '<span class="text-sm font-semibold text-gray-500">Mehr erfahren</span>'
   } else {
     priceHtml = `<span class="text-xl font-bold text-gray-900">${escapeHtml(product.effective_price || product.price)} &euro;</span>`
-  }
-
-  if (showPriceCard && priceNote) {
-    priceHtml += `<p class="mt-0.5 truncate text-xs text-gray-500">${priceNote}</p>`
   }
 
   const cardBorder = product.featured
@@ -118,6 +114,7 @@ function buildPublicProductCard(product) {
           <div class="min-w-0">
             ${brand ? `<p class="text-xs font-semibold uppercase tracking-wide text-gray-400">${brand}</p>` : ""}
             <h3 class="mt-1 text-lg font-bold leading-snug text-gray-900 group-hover:text-[#4B6671]">${title}</h3>
+            ${address ? `<p class="mt-2 flex items-start gap-2 text-xs font-medium leading-5 text-gray-500"><i class="bi bi-geo-alt mt-0.5 flex-shrink-0"></i><span class="line-clamp-2">${address}</span></p>` : ""}
           </div>
 
           <p class="mt-3 line-clamp-3 text-sm leading-6 text-slate-600">${description}</p>

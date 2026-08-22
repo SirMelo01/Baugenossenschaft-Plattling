@@ -46,6 +46,11 @@
                     Standort {{ product.brand.name }}
                   </span>
                 {% endif %}
+                {% if product.location_address %}
+                  <span class="inline-flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700 sm:text-sm">
+                    <i class="bi bi-geo-alt"></i> {{ product.location_address }}
+                  </span>
+                {% endif %}
 
               </div>
             </div>
@@ -117,9 +122,6 @@
               <div class="mb-5">
                 <div class="text-2xl font-bold text-gray-900 md:text-3xl">{{ product.effective_price|floatformat:2 }} &euro;</div>
 
-                {% if product.price_note %}
-                  <p class="mt-2 text-sm font-medium text-gray-600">{{ product.price_note }}</p>
-                {% endif %}
                 <p class="mt-2 text-sm text-gray-500">Kostenangaben dienen als Orientierung. Details erhalten Sie auf Anfrage.</p>
               </div>
 
@@ -134,6 +136,17 @@
                     {% endif %}
                   </p>
                 </div>
+                {% if product.location_address %}
+                <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                  <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Adresse</p>
+                  <p class="mt-2 text-sm font-semibold text-gray-900">{{ product.location_address }}</p>
+                  {% if product.maps_url %}
+                    <a href="{{ product.maps_url }}" target="_blank" rel="noopener" class="mt-2 inline-flex items-center gap-2 text-sm font-semibold text-[#4B6671] hover:text-[#2E434C]">
+                      <i class="bi bi-signpost-split"></i> Route anzeigen
+                    </a>
+                  {% endif %}
+                </div>
+                {% endif %}
               </div>
 
               <a
@@ -179,9 +192,18 @@
                     </div>
                   {% endif %}
 
-                  {% comment %}
-                  Kein "Gewicht" - siehe Objektinformationen weiter unten.
-                  {% endcomment %}
+                  {% if product.location_address %}
+                    <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4 sm:col-span-2">
+                      <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Adresse</p>
+                      <p class="mt-2 text-sm font-semibold text-gray-900">{{ product.location_address }}</p>
+                      {% if product.maps_url %}
+                        <a href="{{ product.maps_url }}" target="_blank" rel="noopener" class="mt-2 inline-flex items-center gap-2 text-sm font-semibold text-[#4B6671] hover:text-[#2E434C]">
+                          <i class="bi bi-signpost-split"></i> Route anzeigen
+                        </a>
+                      {% endif %}
+                    </div>
+                  {% endif %}
+
                 </div>
 
               </div>
@@ -456,7 +478,8 @@
                   class="flex items-center justify-between gap-4 rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 transition hover:border-blue-300 hover:bg-white"
                 >
                   <div class="min-w-0">
-                    <p class="truncate text-sm font-semibold text-gray-900 md:text-base">{{ file.title|default:file.file.name }}</p>
+                    <p class="truncate text-sm font-semibold text-gray-900 md:text-base">{{ file.display_name }}</p>
+                    <p class="mt-0.5 text-xs font-semibold uppercase tracking-wider text-gray-400">{{ file.file_extension|default:"Datei" }}</p>
                   </div>
 
                   <span class="shrink-0 rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 md:text-sm">

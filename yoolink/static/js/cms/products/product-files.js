@@ -112,6 +112,7 @@ $(document).ready(function () {
     files.forEach(function (file) {
       const fileId = String(file.id);
       const fileUrl = escapeHtml(file.url || "#");
+      const fileName = file.display_name || file.title || file.filename || "Datei";
       const isSelected = selectedProductFiles.has(fileId);
       const cardClass = isSelected
         ? "border-blue-500 bg-blue-50 ring-1 ring-blue-200"
@@ -127,7 +128,7 @@ $(document).ready(function () {
         <div class="anyfile-option cursor-pointer rounded-lg border p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${cardClass}" data-file-id="${fileId}">
           <div class="mb-4 flex items-start justify-between gap-3">
             <div class="min-w-0">
-              <p class="truncate text-sm font-semibold text-slate-950">${escapeHtml(file.title || "Datei")}</p>
+              <p class="truncate text-sm font-semibold text-slate-950">${escapeHtml(fileName)}</p>
               <p class="mt-1 truncate text-xs text-slate-500">${escapeHtml(file.ext || "Datei")}</p>
             </div>
             <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${iconClass}">
@@ -170,7 +171,7 @@ $(document).ready(function () {
       selectedProductFiles.set(fileId, {
         id: fileId,
         url: file.url || "",
-        title: file.title || "Datei",
+        title: file.display_name || file.title || file.filename || "Datei",
         ext: file.ext || "",
       });
     }

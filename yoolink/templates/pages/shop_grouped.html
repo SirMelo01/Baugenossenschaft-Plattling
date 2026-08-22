@@ -4,6 +4,11 @@
 {% block title %}{{ block.super }} | {{ shop_settings.products_title }}{% endblock title %}
 
 {% block content %}
+<style>
+  #groupedFilterBody > .bgp-hidden-category-filter {
+    display: none;
+  }
+</style>
 <div class="bgp-bg-ice min-h-screen">
 <div class="container mx-auto max-w-7xl px-3 py-8 lg:px-4">
 
@@ -24,6 +29,8 @@
       {% endif %}
     </div>
   </div>
+
+  {% include "pages/components/immobilien_map.html" %}
 
   {% comment %}
   Suche und Filter arbeiten rein im Browser auf den bereits gerenderten Karten -
@@ -83,7 +90,7 @@
 
     <div id="groupedFilterBody" class="mt-4 hidden grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_16rem]">
       {% if filter_categories %}
-        <div>
+        <div class="bgp-hidden-category-filter">
           <h2 class="mb-2 text-sm font-semibold text-gray-900">Merkmale</h2>
           <div class="flex flex-wrap gap-2">
             {% for category in filter_categories %}
@@ -286,6 +293,7 @@
 
 {% block javascriptend %}
 {{ block.super }}
+<script defer src="{% static 'js/products/immobilien-map.js' %}"></script>
 <script>
   (function () {
     var shop = document.getElementById("groupedShop");
@@ -302,7 +310,7 @@
     var minPriceInput = document.getElementById("groupedMinPrice");
     var maxPriceInput = document.getElementById("groupedMaxPrice");
     var resetButton = document.getElementById("groupedResetFilters");
-    var categoryBoxes = document.querySelectorAll("[data-filter-category]");
+    var categoryBoxes = [];
     var noResults = document.getElementById("groupedNoResults");
     var visibleCount = document.getElementById("visibleProductCount");
 
@@ -344,13 +352,7 @@
     }
 
     function selectedCategories() {
-      var slugs = [];
-      categoryBoxes.forEach(function (box) {
-        if (box.checked) {
-          slugs.push(box.getAttribute("data-filter-category"));
-        }
-      });
-      return slugs;
+      return [];
     }
 
     function parsePrice(input) {

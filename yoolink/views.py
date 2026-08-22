@@ -65,6 +65,7 @@ def get_bgp_context(extra=None):
     # sich auch der CMS-Editor speist. So kann kein Feld nur auf einer Seite existieren.
     context = {
         "bgp_is_public": True,
+        "google_maps_embed_api_key": settings.GOOGLE_MAPS_EMBED_API_KEY,
         "owner_data": WebsiteSettings.get_site_owner(),
     }
     context.update(bgp_content_context())

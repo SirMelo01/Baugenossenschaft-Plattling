@@ -3646,7 +3646,9 @@ def manage_features(request, pk):
 SITE_PAGE_SUGGESTIONS = [
     ("/", "Startseite"),
     ("/#genossenschaft", "Unsere Genossenschaft"),
+    ("/#historie", "Historie"),
     ("/#vermietung", "Vermietung"),
+    ("/#faq", "FAQ / Mieterinfos"),
     ("/immobilien/", "Immobilien"),
     ("/aktuelles", "Aktuelles"),
     ("/kontakt/", "Kontakt"),
@@ -3941,9 +3943,10 @@ def anyfiles_all(request):
         return {
             "id": f.id,
             "url": f.file.url,
-            "title": f.title or os.path.basename(f.file.name),
-            "filename": os.path.basename(f.file.name),
-            "ext": os.path.splitext(f.file.name)[1].lower(),
+            "title": f.title or f.filename,
+            "display_name": f.display_name,
+            "filename": f.filename,
+            "ext": f.file_extension,
             "size": size,
             "uploaded_at": f.uploaded_at.strftime("%d.%m.%Y") if f.uploaded_at else "",
         }

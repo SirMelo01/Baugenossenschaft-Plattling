@@ -37,7 +37,7 @@ $(document).ready(function () {
         $box.find('span').first()
             .attr('class', 'grid h-10 w-10 flex-shrink-0 place-items-center rounded-lg text-lg ' + meta.bg + ' ' + meta.tone)
             .html('<i class="bi ' + meta.icon + '" aria-hidden="true"></i>');
-        $box.find('[data-document-name]').text(file.title || file.filename || 'Datei');
+        $box.find('[data-document-name]').text(file.display_name || file.title || file.filename || 'Datei');
         $box.find('[data-document-link]').attr('href', file.url || '#');
         $box.removeClass('hidden');
         $pick.addClass('hidden');
