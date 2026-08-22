@@ -1,0 +1,13 @@
+{% include "pages/demos/kontakt/_feld.html" with field=form.geburtsdatum only %}
+{% include "pages/demos/kontakt/_feld.html" with field=form.haushalt only %}
+{% include "pages/demos/kontakt/_feld.html" with field=form.strasse span=1 only %}
+{% include "pages/demos/kontakt/_feld.html" with field=form.plz_ort span=1 only %}
+{% include "pages/demos/kontakt/_feld.html" with field=form.wohnungsgroesse only %}
+{% include "pages/demos/kontakt/_feld.html" with field=form.einzug hint="Ungefährer Wunschtermin genügt." only %}
+
+<div class="sm:col-span-2">
+  <label class="flex cursor-pointer items-start gap-3">
+    {{ form.ist_mitglied }}
+    <span class="text-sm leading-6 text-gray-600">{{ form.ist_mitglied.label }}</span>
+  </label>
+</div>

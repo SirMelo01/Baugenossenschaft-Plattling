@@ -6,7 +6,7 @@
 Anschrift und Zeiten in der Meta-Beschreibung kommen aus denselben Website-Daten
 wie die Seite selbst, damit die Google-Vorschau nicht veraltet.
 {% endcomment %}
-{% block meta_description %}Kontakt zur {% firstof bgp_contact.company_name "Baugenossenschaft Plattling eG" %}{% if bgp_contact.address_inline %}: {{ bgp_contact.address_inline }}{% endif %}. Schreiben Sie uns über das Kontaktformular{% if bgp_contact.tel %} oder rufen Sie uns an{% endif %}{% if bgp_opening_hours_summary %} - {{ bgp_opening_hours_summary }}{% endif %}.{% endblock %}
+{% block meta_description %}Kontakt zur {% firstof bgp_contact.company_name "Baugenossenschaft Plattling eG" %}{% if bgp_contact.address_inline %}: {{ bgp_contact.address_inline }}{% endif %}. Allgemeine Anfrage, Bewerbung um eine Mitgliedschaft oder Reparaturmeldung{% if bgp_contact.tel %} - oder rufen Sie uns an{% endif %}{% if bgp_opening_hours_summary %} - {{ bgp_opening_hours_summary }}{% endif %}.{% endblock %}
 
 {% block demo_css %}
 <style>
@@ -26,9 +26,13 @@ wie die Seite selbst, damit die Google-Vorschau nicht veraltet.
     border-color: #4B6671;
     box-shadow: 0 0 0 3px rgba(75,102,113,.15);
   }
-  .bgp-field[aria-invalid="true"] {
-    border-color: #DC2626;
-    box-shadow: 0 0 0 3px rgba(220,38,38,.12);
+  .bgp-checkbox {
+    margin-top: .25rem;
+    height: 1rem;
+    width: 1rem;
+    flex-shrink: 0;
+    border-radius: .25rem;
+    border: 1px solid #D1D5DB;
   }
   .bgp-label {
     margin-bottom: .375rem;
@@ -45,6 +49,113 @@ wie die Seite selbst, damit die Google-Vorschau nicht veraltet.
     color: #DC2626;
   }
   .bgp-error.is-visible { display: block; }
+
+  /* Fehlerhafte Felder: die Klasse setzt Django ueber ``error_css_class`` am
+     Block, das Skript der Seite bei der Prüfung im Browser. */
+  .bgp-form-field.has-error .bgp-field,
+  .bgp-form-field.has-error .bgp-checkbox {
+    border-color: #DC2626;
+    box-shadow: 0 0 0 3px rgba(220,38,38,.12);
+  }
+
+  .bgp-form-legend {
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: .625rem;
+    font-size: .75rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: #4B6671;
+  }
+  .bgp-form-legend::after {
+    content: "";
+    height: 1px;
+    flex: 1;
+    background-color: #E5EDF1;
+  }
+
+  /* Umschalter zwischen den drei Formularen */
+  .bgp-tab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+    border-radius: .875rem;
+    padding: .875rem 1rem;
+    font-size: .875rem;
+    font-weight: 700;
+    color: #4B6671;
+    text-align: center;
+    line-height: 1.25rem;
+    transition: background-color .2s ease, color .2s ease, box-shadow .2s ease;
+  }
+  .bgp-tab:hover { background-color: #F1F7F9; }
+  .bgp-tab[aria-selected="true"] {
+    background-color: #2E434C;
+    color: #ffffff;
+    box-shadow: 0 8px 20px -8px rgba(46,67,76,.6);
+  }
+  .bgp-tab[aria-selected="true"]:hover { background-color: #2E434C; }
+  .bgp-tab i { font-size: 1.125rem; }
+
+  /* Bereich fuer Vorlage und Anhaenge */
+  .bgp-upload {
+    border-radius: 1rem;
+    border: 1px dashed #C9DEE6;
+    background-color: #F6FAFC;
+    padding: 1.25rem;
+  }
+  .bgp-upload-title {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    font-size: .875rem;
+    font-weight: 700;
+    color: #2E434C;
+  }
+  .bgp-upload-hint {
+    margin-top: .5rem;
+    font-size: .8125rem;
+    line-height: 1.5rem;
+    color: #4B5563;
+  }
+  .bgp-upload input[type="file"] {
+    width: 100%;
+    border-radius: .75rem;
+    border: 1px solid #D8E3E8;
+    background-color: #ffffff;
+    padding: .625rem .75rem;
+    font-size: .875rem;
+    color: #374151;
+  }
+  .bgp-upload input[type="file"]::file-selector-button {
+    margin-right: .75rem;
+    cursor: pointer;
+    border: 0;
+    border-radius: .5rem;
+    background-color: #2E434C;
+    padding: .5rem .875rem;
+    font-size: .8125rem;
+    font-weight: 700;
+    color: #ffffff;
+  }
+  .bgp-upload-list {
+    margin-top: .625rem;
+    font-size: .75rem;
+    line-height: 1.5rem;
+    color: #2E434C;
+  }
+
+  /* Spam-Falle: fuer Menschen unsichtbar, aber im Markup vorhanden. */
+  .bgp-honeypot {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
 
   /* Karten-Platzhalter im Markenlook (in der Demo bewusst ohne externe Kartendienste) */
   .bgp-map {
@@ -144,94 +255,42 @@ wie die Seite selbst, damit die Google-Vorschau nicht veraltet.
   </div>
 </section>
 
-<!-- FORMULAR + INFOS -->
+<!-- FORMULARE + INFOS -->
 <section class="bg-white px-4 py-20 lg:py-24">
   <div class="mx-auto grid max-w-6xl gap-12 lg:grid-cols-5">
 
-    <!-- Formular -->
-    <div class="lg:col-span-3" data-aos="fade-right">
+    <!-- Formulare -->
+    <div class="lg:col-span-3" id="kontaktformular" data-aos="fade-right">
       <h2 class="bgp-text-navy-dark mb-3 text-3xl font-bold tracking-tight">{{ bgp_contact_form.title }}</h2>
       <p class="mb-8 text-base leading-7 text-gray-600">
         {{ bgp_contact_form.description|linebreaksbr }}
       </p>
 
-      <form id="bgpContactForm" method="post" action="{{ request.path }}" novalidate class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
-        {% csrf_token %}
-        <input type="hidden" name="bgp_contact_form" value="1" />
-        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
-          <div class="sm:col-span-2">
-            <label class="bgp-label" for="bgpAnrede">Anrede</label>
-            <select id="bgpAnrede" name="anrede" class="bgp-field">
-              <option value="">Bitte wählen</option>
-              <option>Frau</option>
-              <option>Herr</option>
-              <option>Divers</option>
-              <option>Keine Angabe</option>
-            </select>
-          </div>
+      <div class="bgp-ring-ice mb-6 grid grid-cols-1 gap-2 rounded-2xl bg-white p-2 shadow-sm ring-1 sm:grid-cols-3"
+           role="tablist" aria-label="Art der Anfrage wählen">
+        {% for entry in contact_forms %}
+        <button type="button" role="tab"
+                id="bgpTab-{{ entry.key }}"
+                class="bgp-tab bgp-focus"
+                data-bgp-tab="{{ entry.key }}"
+                aria-controls="bgpPanel-{{ entry.key }}"
+                aria-selected="{% if entry.is_active %}true{% else %}false{% endif %}"
+                tabindex="{% if entry.is_active %}0{% else %}-1{% endif %}">
+          <i class="bi {{ entry.icon }}"></i>
+          <span>{{ entry.label }}</span>
+        </button>
+        {% endfor %}
+      </div>
 
-          <div>
-            <label class="bgp-label" for="bgpName">Name <span class="text-red-600">*</span></label>
-            <input id="bgpName" name="name" type="text" class="bgp-field" placeholder="Vor- und Nachname" required
-                   aria-describedby="bgpNameError" />
-            <p id="bgpNameError" class="bgp-error">Bitte geben Sie Ihren Namen an.</p>
-          </div>
-
-          <div>
-            <label class="bgp-label" for="bgpEmail">E-Mail <span class="text-red-600">*</span></label>
-            <input id="bgpEmail" name="email" type="email" class="bgp-field" placeholder="name@beispiel.de" required
-                   aria-describedby="bgpEmailError" />
-            <p id="bgpEmailError" class="bgp-error">Bitte geben Sie eine gültige E-Mail-Adresse an.</p>
-          </div>
-
-          <div>
-            <label class="bgp-label" for="bgpPhone">Telefon</label>
-            <input id="bgpPhone" name="telefon" type="tel" class="bgp-field" placeholder="Optional - für Rückfragen" />
-          </div>
-
-          <div>
-            <label class="bgp-label" for="bgpBetreff">Ihr Anliegen <span class="text-red-600">*</span></label>
-            <select id="bgpBetreff" name="betreff" class="bgp-field" required aria-describedby="bgpBetreffError">
-              <option value="">Bitte wählen</option>
-              <option>Wohnungsanfrage / Interessentenliste</option>
-              <option>Mitgliedschaft &amp; Geschäftsanteile</option>
-              <option>Anliegen als Mieter</option>
-              <option>Schaden oder Reparatur melden</option>
-              <option>Sonstiges</option>
-            </select>
-            <p id="bgpBetreffError" class="bgp-error">Bitte wählen Sie ein Anliegen aus.</p>
-          </div>
-
-          <div class="sm:col-span-2">
-            <label class="bgp-label" for="bgpNachricht">Nachricht <span class="text-red-600">*</span></label>
-            <textarea id="bgpNachricht" name="nachricht" rows="6" class="bgp-field" required
-                      placeholder="Wie können wir Ihnen helfen?" aria-describedby="bgpNachrichtError"></textarea>
-            <p id="bgpNachrichtError" class="bgp-error">Bitte schreiben Sie uns ein paar Zeilen.</p>
-          </div>
-
-          <div class="sm:col-span-2">
-            <label class="flex cursor-pointer items-start gap-3">
-              <input id="bgpDatenschutz" name="datenschutz" type="checkbox" required
-                     class="bgp-focus mt-1 h-4 w-4 flex-shrink-0 rounded border-gray-300"
-                     aria-describedby="bgpDatenschutzError" />
-              <span class="text-sm leading-6 text-gray-600">
-                Ich habe die {% if bgp_is_public %}<a href="{{ bgp_datenschutz_url }}" class="bgp-text-navy font-semibold underline">Datenschutzerklärung</a>{% else %}<button type="button" data-demo-hint="Datenschutzerklärung" class="bgp-text-navy font-semibold underline">Datenschutzerklärung</button>{% endif %}
-                gelesen und bin mit der Verarbeitung meiner Daten zur Bearbeitung der Anfrage einverstanden.
-                <span class="text-red-600">*</span>
-              </span>
-            </label>
-            <p id="bgpDatenschutzError" class="bgp-error">Bitte bestätigen Sie die Datenschutzerklärung.</p>
-          </div>
-        </div>
-
-        <div class="mt-7 flex justify-end">
-          <button type="submit" id="bgpSubmit"
-                  class="bgp-btn-yellow bgp-focus inline-flex w-full flex-shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-xl px-12 py-4 text-base font-bold shadow-lg transition-transform duration-300 hover:-translate-y-0.5 sm:w-auto">
-            <span id="bgpSubmitLabel">Nachricht senden</span>
-            <i id="bgpSubmitIcon" class="bi bi-send"></i>
-          </button>
-        </div>
-      </form>
+      {% for entry in contact_forms %}
+      <div role="tabpanel"
+           id="bgpPanel-{{ entry.key }}"
+           data-bgp-panel="{{ entry.key }}"
+           aria-labelledby="bgpTab-{{ entry.key }}"
+           {% if not entry.is_active %}hidden{% endif %}>
+        {% include "pages/demos/kontakt/_formular.html" with entry=entry csrf_token=csrf_token bgp_is_public=bgp_is_public bgp_datenschutz_url=bgp_datenschutz_url only %}
+      </div>
+      {% endfor %}
     </div>
 
     <!-- Infos -->
@@ -267,6 +326,25 @@ wie die Seite selbst, damit die Google-Vorschau nicht veraltet.
           <a href="mailto:{{ bgp_contact.email }}" class="bgp-text-navy font-semibold underline-offset-2 hover:underline">{{ bgp_contact.email }}</a>
         </p>
         {% endif %}
+      </div>
+
+      <div class="bgp-ring-ice rounded-2xl bg-white p-7 ring-1">
+        <h3 class="bgp-text-navy-dark mb-1 text-lg font-bold">{{ bgp_contact_forms_help.title }}</h3>
+        <p class="mb-4 text-sm leading-6 text-gray-600">{{ bgp_contact_forms_help.description }}</p>
+        <ul class="flex flex-col gap-2">
+          {% for entry in contact_forms %}
+          <li>
+            <button type="button" data-bgp-tab-link="{{ entry.key }}"
+                    class="bgp-focus flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition hover:bg-gray-50">
+              <span class="bgp-bg-ice-deep bgp-text-navy inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg">
+                <i class="bi {{ entry.icon }}"></i>
+              </span>
+              <span class="bgp-text-navy-dark text-sm font-bold">{{ entry.label }}</span>
+              <i class="bi bi-chevron-right ml-auto text-xs text-gray-400"></i>
+            </button>
+          </li>
+          {% endfor %}
+        </ul>
       </div>
 
       <div class="overflow-hidden rounded-2xl border border-gray-200 shadow-sm">
@@ -359,17 +437,14 @@ wie die Seite selbst, damit die Google-Vorschau nicht veraltet.
         <i class="bi bi-check-lg bgp-text-navy-dark text-3xl"></i>
       </span>
       <h2 id="bgpSuccessTitle" class="bgp-text-navy-dark mb-3 text-2xl font-bold">{{ bgp_contact_success.title }}</h2>
+      {% if success_form_label %}
+      <p class="bgp-bg-ice bgp-text-navy mb-4 inline-block rounded-full px-4 py-1.5 text-xs font-bold uppercase tracking-wider">
+        {{ success_form_label }}
+      </p>
+      {% endif %}
       <p class="text-base leading-7 text-gray-600">
         {{ bgp_contact_success.description }}
-        Eine Bestätigung geht an <strong id="bgpSuccessEmail" class="text-gray-900">{{ request.POST.email }}</strong>.
-      </p>
-      <p class="mt-5 rounded-xl bg-gray-50 px-4 py-3 text-xs leading-5 text-gray-500">
-        {% if bgp_is_public %}
-        <i class="bi bi-info-circle"></i> Ihre Anfrage wurde im CMS gespeichert und kann dort weiterbearbeitet werden.
-        {% else %}
-        <i class="bi bi-info-circle"></i> Dies ist eine Demo-Ansicht: Es wurde keine E-Mail verschickt und
-        nichts gespeichert. Im echten CMS landet die Anfrage im Postfach und im Anfragen-Bereich.
-        {% endif %}
+        {% if success_email %}Eine Bestätigung geht an <strong class="text-gray-900">{{ success_email }}</strong>.{% endif %}
       </p>
     </div>
     <div class="flex items-center justify-center border-t border-gray-100 bg-gray-50 px-6 py-5">
@@ -384,84 +459,135 @@ wie die Seite selbst, damit die Google-Vorschau nicht veraltet.
 
 {% block demo_js %}
 <script>
-  /* Simuliertes Kontaktformular: clientseitige Validierung, Sende-Animation, Bestätigung */
+  /* Kontaktseite: Umschalter zwischen den drei Formularen und die Prüfung der
+     Eingaben im Browser. Geprüft wird trotzdem noch einmal auf dem Server -
+     hier geht es nur darum, Fehler zu zeigen, bevor die Seite neu lädt. */
   (function () {
-    var bgpIsPublic = {% if bgp_is_public %}true{% else %}false{% endif %};
-    var form = document.getElementById('bgpContactForm');
-    var successModal = document.getElementById('bgpSuccessModal');
-    var successEmail = document.getElementById('bgpSuccessEmail');
-    var submit = document.getElementById('bgpSubmit');
-    var submitLabel = document.getElementById('bgpSubmitLabel');
-    var submitIcon = document.getElementById('bgpSubmitIcon');
+    var tabs = Array.prototype.slice.call(document.querySelectorAll('[data-bgp-tab]'));
+    var panels = Array.prototype.slice.call(document.querySelectorAll('[data-bgp-panel]'));
+    if (!tabs.length) { return; }
 
-    var fields = [
-      { input: document.getElementById('bgpName'), error: document.getElementById('bgpNameError'), valid: function (el) { return el.value.trim().length > 1; } },
-      { input: document.getElementById('bgpEmail'), error: document.getElementById('bgpEmailError'), valid: function (el) { return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(el.value.trim()); } },
-      { input: document.getElementById('bgpBetreff'), error: document.getElementById('bgpBetreffError'), valid: function (el) { return el.value !== ''; } },
-      { input: document.getElementById('bgpNachricht'), error: document.getElementById('bgpNachrichtError'), valid: function (el) { return el.value.trim().length > 9; } },
-      { input: document.getElementById('bgpDatenschutz'), error: document.getElementById('bgpDatenschutzError'), valid: function (el) { return el.checked; } }
-    ];
+    /* ---------- Umschalter ---------- */
+
+    function activate(key, focusTab) {
+      var known = tabs.some(function (tab) { return tab.dataset.bgpTab === key; });
+      if (!known) { return; }
+
+      tabs.forEach(function (tab) {
+        var isActive = tab.dataset.bgpTab === key;
+        tab.setAttribute('aria-selected', String(isActive));
+        tab.tabIndex = isActive ? 0 : -1;
+        if (isActive && focusTab) { tab.focus(); }
+      });
+      panels.forEach(function (panel) {
+        panel.hidden = panel.dataset.bgpPanel !== key;
+      });
+
+      /* Adresse mitführen, damit ein Neuladen und geteilte Links denselben
+         Reiter öffnen - ohne einen Eintrag im Verlauf zu hinterlassen. */
+      var url = new URL(window.location.href);
+      url.searchParams.set('formular', key);
+      url.searchParams.delete('gesendet');
+      window.history.replaceState({}, '', url.pathname + url.search + '#kontaktformular');
+    }
+
+    tabs.forEach(function (tab, index) {
+      tab.addEventListener('click', function () { activate(tab.dataset.bgpTab, false); });
+      tab.addEventListener('keydown', function (event) {
+        var step = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0;
+        if (!step) { return; }
+        event.preventDefault();
+        var next = tabs[(index + step + tabs.length) % tabs.length];
+        activate(next.dataset.bgpTab, true);
+      });
+    });
+
+    document.querySelectorAll('[data-bgp-tab-link]').forEach(function (link) {
+      link.addEventListener('click', function () {
+        activate(link.dataset.bgpTabLink, false);
+        document.getElementById('kontaktformular').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+
+    /* ---------- Prüfung der Eingaben ---------- */
+
+    function fieldsOf(form) {
+      return Array.prototype.slice.call(form.querySelectorAll('.bgp-form-field')).map(function (block) {
+        return { block: block, input: block.querySelector('input, select, textarea'), error: block.querySelector('.bgp-error') };
+      }).filter(function (field) {
+        /* Anhänge sind immer freiwillig und werden erst auf dem Server geprüft. */
+        return field.input && field.error && field.input.type !== 'file';
+      });
+    }
 
     function check(field, showError) {
-      var ok = field.valid(field.input);
+      /* Gültigkeit meldet der Browser (required, type="email", type="date"),
+         der Wortlaut kommt aus dem Markup - so steht in beiden Fällen dieselbe
+         Meldung wie nach dem Absenden. */
+      var ok = field.input.checkValidity();
+      if (!ok) {
+        var missing = field.input.validity.valueMissing;
+        field.error.textContent = field.error.dataset[missing ? 'msgRequired' : 'msgInvalid'] || field.error.textContent;
+      }
       field.input.setAttribute('aria-invalid', String(!ok));
+      field.block.classList.toggle('has-error', !ok && showError);
       field.error.classList.toggle('is-visible', !ok && showError);
       return ok;
     }
 
-    fields.forEach(function (field) {
-      field.input.addEventListener('blur', function () { check(field, true); });
-      field.input.addEventListener('input', function () {
-        if (field.error.classList.contains('is-visible')) { check(field, true); }
-      });
-      field.input.addEventListener('change', function () {
-        if (field.error.classList.contains('is-visible')) { check(field, true); }
-      });
-    });
+    document.querySelectorAll('[data-bgp-form]').forEach(function (form) {
+      var fields = fieldsOf(form);
+      var submit = form.querySelector('button[type="submit"]');
 
-    form.addEventListener('submit', function (event) {
-      event.preventDefault();
+      /* Ausgewählte Dateien benennen: ein Dateifeld zeigt sonst nur "3 Dateien"
+         und der Absender weiß nicht, ob das Richtige dabei ist. */
+      var fileInput = form.querySelector('input[type="file"]');
+      var fileList = form.querySelector('[data-bgp-filelist]');
+      if (fileInput && fileList) {
+        fileInput.addEventListener('change', function () {
+          var names = Array.prototype.map.call(fileInput.files, function (file) {
+            return file.name + ' (' + Math.max(1, Math.round(file.size / 1024)) + ' KB)';
+          });
+          fileList.textContent = names.length ? 'Ausgewählt: ' + names.join(', ') : '';
+          fileList.hidden = !names.length;
+        });
+      }
 
-      var firstInvalid = null;
       fields.forEach(function (field) {
-        if (!check(field, true) && !firstInvalid) { firstInvalid = field.input; }
+        field.input.addEventListener('blur', function () { check(field, true); });
+        ['input', 'change'].forEach(function (event) {
+          field.input.addEventListener(event, function () {
+            if (field.error.classList.contains('is-visible')) { check(field, true); }
+          });
+        });
       });
 
-      if (firstInvalid) {
-        firstInvalid.focus();
-        firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        return;
-      }
-
-      submit.disabled = true;
-      submit.classList.add('cursor-wait', 'opacity-80');
-      submitLabel.textContent = 'Wird gesendet ...';
-      submitIcon.className = 'bi bi-arrow-repeat animate-spin';
-
-      if (bgpIsPublic) {
-        HTMLFormElement.prototype.submit.call(form);
-        return;
-      }
-
-      window.setTimeout(function () {
-        successEmail.textContent = document.getElementById('bgpEmail').value.trim();
-        bgpOpenModal(successModal);
-
-        form.reset();
+      form.addEventListener('submit', function (event) {
+        var firstInvalid = null;
         fields.forEach(function (field) {
-          field.input.removeAttribute('aria-invalid');
-          field.error.classList.remove('is-visible');
+          if (!check(field, true) && !firstInvalid) { firstInvalid = field.input; }
         });
 
-        submit.disabled = false;
-        submit.classList.remove('cursor-wait', 'opacity-80');
-        submitLabel.textContent = 'Nachricht senden';
-        submitIcon.className = 'bi bi-send';
-      }, 1100);
+        if (firstInvalid) {
+          event.preventDefault();
+          firstInvalid.focus();
+          firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          return;
+        }
+
+        /* Absenden läuft ganz normal über den Server; der Knopf zeigt nur an,
+           dass etwas passiert, und schützt vor einem zweiten Klick. */
+        if (submit) {
+          submit.disabled = true;
+          submit.classList.add('cursor-wait', 'opacity-80');
+          submit.querySelector('.js-submit-label').textContent = 'Wird gesendet ...';
+          submit.querySelector('.js-submit-icon').className = 'js-submit-icon bi bi-arrow-repeat animate-spin';
+        }
+      });
     });
 
     {% if success %}
-    bgpOpenModal(successModal);
+    bgpOpenModal(document.getElementById('bgpSuccessModal'));
     {% endif %}
   })();
 </script>

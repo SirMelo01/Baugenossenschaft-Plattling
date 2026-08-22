@@ -1,0 +1,8 @@
+<span class="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-semibold {{ cls }}
+      {% if notification.category_meta.tone == 'emerald' %}bg-emerald-100 text-emerald-700
+      {% elif notification.category_meta.tone == 'amber' %}bg-amber-100 text-amber-700
+      {% elif notification.category_meta.tone == 'violet' %}bg-violet-100 text-violet-700
+      {% elif notification.category_meta.tone == 'slate' %}bg-slate-100 text-slate-600
+      {% else %}bg-blue-100 text-blue-700{% endif %}">
+  <i class="bi {{ notification.category_meta.icon }}"></i> {{ notification.category_meta.short }}
+</span>

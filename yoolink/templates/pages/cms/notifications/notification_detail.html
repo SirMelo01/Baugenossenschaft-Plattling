@@ -18,17 +18,12 @@
   <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
     {# ---------- Kopf ---------- #}
     <div class="flex items-start gap-4 border-b border-slate-100 p-5 sm:p-6">
-      {% if notification.priority == 'high' %}
-        {% include "pages/cms/components/_icon_chip.html" with tone="rose" icon="bi-exclamation-triangle-fill" cls="h-12 w-12 shrink-0 text-xl" %}
-      {% elif notification.priority == 'low' %}
-        {% include "pages/cms/components/_icon_chip.html" with tone="slate" icon="bi-info-circle" cls="h-12 w-12 shrink-0 text-xl" %}
-      {% else %}
-        {% include "pages/cms/components/_icon_chip.html" with tone="blue" icon="bi-bell-fill" cls="h-12 w-12 shrink-0 text-xl" %}
-      {% endif %}
+      {% include "pages/cms/components/_icon_chip.html" with tone=notification.category_meta.tone icon=notification.category_meta.icon cls="h-12 w-12 shrink-0 text-xl" %}
 
       <div class="min-w-0 flex-1">
         <div class="flex flex-wrap items-center gap-2">
           <h1 class="text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl">{{ notification.title }}</h1>
+          {% include "pages/cms/notifications/_category_tag.html" with notification=notification cls="px-2.5 text-xs" %}
           <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold
                 {% if notification.priority == 'high' %}bg-rose-100 text-rose-700
                 {% elif notification.priority == 'low' %}bg-slate-100 text-slate-600
@@ -60,7 +55,7 @@
       <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
         <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div class="inline-flex items-center gap-2 text-sm font-semibold text-slate-900">
-            <i class="bi bi-envelope-open text-blue-600"></i> Kontaktanfrage
+            <i class="bi {{ notification.category_meta.icon }} text-blue-600"></i> {{ notification.message.get_category_display }}
           </div>
           <span class="text-xs text-slate-500">eingegangen am {{ notification.message.date|date:"d.m.Y" }}</span>
         </div>
@@ -75,6 +70,13 @@
             <a href="mailto:{{ notification.message.email }}" class="mt-1 block truncate font-medium text-blue-600 hover:underline">{{ notification.message.email }}</a>
           </div>
 
+          {% if notification.message.phone %}
+          <div class="rounded-xl border border-slate-200 bg-white p-3">
+            <div class="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Telefon</div>
+            <a href="tel:{{ notification.message.phone }}" class="mt-1 block truncate font-medium text-blue-600 hover:underline">{{ notification.message.phone }}</a>
+          </div>
+          {% endif %}
+
           {% if notification.message.title %}
           <div class="rounded-xl border border-slate-200 bg-white p-3 sm:col-span-2">
             <div class="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Betreff</div>
@@ -82,10 +84,23 @@
           </div>
           {% endif %}
 
+          {% for row in notification.message.detail_rows %}
+          <div class="rounded-xl border border-slate-200 bg-white p-3">
+            <div class="text-[11px] font-semibold uppercase tracking-wide text-slate-400">{{ row.label }}</div>
+            <div class="mt-1 font-medium text-slate-900">{{ row.value }}</div>
+          </div>
+          {% endfor %}
+
           <div class="sm:col-span-2">
             <div class="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">Nachricht</div>
             <div class="whitespace-pre-line rounded-xl border border-slate-200 bg-white p-4 text-sm leading-7 text-slate-800">{{ notification.message.message|linebreaksbr }}</div>
           </div>
+
+          {% with attachments=notification.message.attachments.all %}
+          {% if attachments %}
+          {% include "pages/cms/notifications/_attachments.html" with attachments=attachments %}
+          {% endif %}
+          {% endwith %}
         </div>
 
         <div class="mt-5 flex flex-wrap items-center gap-2">

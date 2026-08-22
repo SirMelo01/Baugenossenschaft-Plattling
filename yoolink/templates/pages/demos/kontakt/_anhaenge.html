@@ -1,0 +1,31 @@
+<div class="bgp-upload sm:col-span-2">
+  <p class="bgp-upload-title">
+    <i class="bi bi-paperclip"></i> {{ entry.upload_title }}
+  </p>
+
+  {% if entry.upload_hint %}
+  <p class="bgp-upload-hint">{{ entry.upload_hint|linebreaksbr }}</p>
+  {% endif %}
+
+  {% if entry.document %}
+  <a href="{{ entry.document.file.url }}" download
+     class="bgp-btn-navy bgp-focus mt-4 inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-bold transition">
+    <i class="bi bi-file-earmark-arrow-down"></i>
+    {{ entry.download_label }}
+  </a>
+  {% endif %}
+
+  {% if entry.form.anhaenge %}
+  <div class="bgp-form-field {{ entry.form.anhaenge.css_classes }} mt-5">
+    <label class="bgp-label" for="{{ entry.form.anhaenge.id_for_label }}">{{ entry.form.anhaenge.label }}</label>
+    {{ entry.form.anhaenge }}
+    {% if entry.upload_note %}
+    <p class="mt-1.5 text-xs leading-5 text-gray-500">{{ entry.upload_note }}</p>
+    {% endif %}
+    <p class="bgp-upload-list" data-bgp-filelist hidden></p>
+    <p class="bgp-error{% if entry.form.anhaenge.errors %} is-visible{% endif %}"
+       data-msg-required="Bitte wählen Sie eine Datei aus."
+       data-msg-invalid="Bitte wählen Sie eine gültige Datei aus.">{% if entry.form.anhaenge.errors %}{{ entry.form.anhaenge.errors.0 }}{% endif %}</p>
+  </div>
+  {% endif %}
+</div>

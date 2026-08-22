@@ -234,6 +234,16 @@ BGP_DEFAULTS = {
     "contact_tile_2": {"title": "E-Mail"},
     "contact_tile_3": {"title": "Bürozeiten"},
     "contact_form": {"title": "Schreiben Sie uns"},
+    # Wegweiser neben den Formularen. Die Beschriftungen der drei Reiter selbst
+    # gehoeren zur Seitenfuehrung und stehen in ``BGP_CONTACT_TABS``
+    # (yoolink/views.py) - hier steht nur der Text drumherum.
+    "contact_forms_help": {
+        "title": "Welches Formular passt?",
+        "description": (
+            "Wählen Sie oben die Art Ihrer Anfrage - so landet sie direkt bei der "
+            "richtigen Ansprechpartnerin."
+        ),
+    },
     "contact_address": {"title": "Anschrift"},
     "contact_map": {
         "description": "Parkplätze direkt am Haus",
@@ -263,9 +273,104 @@ BGP_DEFAULTS = {
             "Werktagen bei Ihnen zurück."
         ),
     },
+
+    # ─────────── Kontaktseite: die drei Formulare ───────────
+    # Je Formular: ``title`` beschriftet den Reiter, ``description`` steht als
+    # Einleitung ueber dem Formular, ``header`` ueberschreibt den zweiten
+    # Feldblock und ``buttonText`` den Absende-Knopf. Welche Felder ein Formular
+    # hat, ist Programmlogik und steht in ``yoolink/forms.py``.
+    "contact_form_allgemein": {
+        "title": "Allgemeine Anfrage",
+        "description": (
+            "Fragen zur Genossenschaft, zu freien Wohnungen oder zu Ihrer Miete - "
+            "schreiben Sie uns einfach."
+        ),
+        "header": "Ihr Anliegen",
+        "buttonText": "Nachricht senden",
+    },
+    "contact_form_mitgliedschaft": {
+        "title": "Mitglied werden",
+        "description": (
+            "Bewerben Sie sich um eine Mitgliedschaft. Nach Eingang Ihrer Bewerbung "
+            "melden wir uns mit den Unterlagen zu den Geschäftsanteilen bei Ihnen."
+        ),
+        "header": "Angaben zur Mitgliedschaft",
+        "buttonText": "Bewerbung senden",
+    },
+    "contact_form_reparatur": {
+        "title": "Reparatur melden",
+        "description": (
+            "Für unsere Mitglieder: Schäden in der Wohnung oder am Objekt melden. "
+            "Bei akuten Notfällen rufen Sie uns bitte direkt an."
+        ),
+        "header": "Angaben zum Schaden",
+        "buttonText": "Reparatur melden",
+    },
+
+    # ─────────── Kontaktseite: Dateien je Formular ───────────
+    # Texte rund um Vorlage und Anhänge. Welche Vorlage hängt und ob Anhänge
+    # überhaupt möglich sind, steht in den Kontaktformular-Einstellungen
+    # (Seiten -> Kontakt), nicht hier. ``header`` ist der kleingedruckte Hinweis
+    # unter dem Auswahlfeld.
+    "contact_upload_allgemein": {
+        "title": "Dateien",
+        "description": "Sie können Ihrer Anfrage Dateien beilegen.",
+        "buttonText": "Vorlage herunterladen",
+        "header": "Freiwillig. JPG, PNG, WEBP oder PDF, höchstens 10 MB je Datei.",
+    },
+    "contact_upload_mitgliedschaft": {
+        "title": "Selbstauskunft",
+        "description": (
+            "Laden Sie die Selbstauskunft herunter, füllen Sie sie aus und unterschreiben Sie "
+            "sie. Sie können sie hier gleich wieder hochladen - oder zum Besichtigungstermin "
+            "mitbringen. Beides ist möglich, nichts davon ist Pflicht."
+        ),
+        "buttonText": "Selbstauskunft herunterladen",
+        "header": "Freiwillig. Eingescannt oder abfotografiert, JPG, PNG, WEBP oder PDF.",
+    },
+    "contact_upload_reparatur": {
+        "title": "Fotos vom Schaden",
+        "description": (
+            "Ein Foto sagt oft mehr als eine Beschreibung und hilft uns, den passenden "
+            "Handwerker zu schicken."
+        ),
+        "buttonText": "Vorlage herunterladen",
+        "header": "Freiwillig. JPG, PNG oder WEBP, höchstens 10 MB je Bild.",
+    },
 }
 
 BGP_TEXT_KEYS = list(BGP_DEFAULTS)
+
+# Aufbau der drei Kontaktformulare: Symbol des Reiters, Vorlage mit den
+# Zusatzfeldern und - nur fuer den CMS-Editor - eine kurze Auflistung dessen, was
+# das Formular abfragt. Die Felder selbst stehen in ``yoolink/forms.py``, die
+# Texte in den Bausteinen ``contact_form_<key>`` weiter oben. Die Reihenfolge
+# bestimmt die Reihenfolge der Reiter auf der Seite.
+BGP_CONTACT_TABS = {
+    "allgemein": {
+        "icon": "bi-chat-left-text",
+        "fields_template": "pages/demos/kontakt/_felder_allgemein.html",
+        "cms_fields": "Anrede, Name, E-Mail, Telefon, Anliegen, Nachricht",
+    },
+    "mitgliedschaft": {
+        "icon": "bi-person-plus",
+        "fields_template": "pages/demos/kontakt/_felder_mitgliedschaft.html",
+        "cms_fields": (
+            "Anrede, Name, Geburtsdatum, E-Mail, Telefon, Anschrift, "
+            "Haushaltsgröße, Wohnungsgröße, Einzugstermin, Nachricht"
+        ),
+    },
+    "reparatur": {
+        "icon": "bi-tools",
+        "fields_template": "pages/demos/kontakt/_felder_reparatur.html",
+        "cms_fields": (
+            "Anrede, Name, Mitgliedsnummer, E-Mail, Telefon, Objekt, "
+            "Lage der Wohnung, Art des Schadens, Dringlichkeit, "
+            "Erreichbarkeit, Beschreibung"
+        ),
+    },
+}
+
 
 # Bild-Slots: Kontextname -> ``place`` in der Mediathek.
 BGP_IMAGE_KEYS = {
@@ -526,6 +631,20 @@ def _merged(text_obj, defaults):
     return values
 
 
+def contact_form_settings():
+    """Einstellungen der drei Kontaktformulare, nach Schluessel."""
+    from yoolink.ycms.models import ContactFormSettings
+
+    return {key: ContactFormSettings.for_form(key) for key in BGP_CONTACT_TABS}
+
+
+def available_contact_documents():
+    """Dateien aus dem Modul "Dateien", die als Vorlage hinterlegt werden koennen."""
+    from yoolink.ycms.models import AnyFile
+
+    return list(AnyFile.objects.order_by("-uploaded_at")[:200])
+
+
 def bgp_content_context():
     """Alle Textbausteine und Bilder der Baugenossenschaft-Seiten (effektive Werte)."""
     # Lokal importieren, damit dieses Modul ohne geladene App-Registry importierbar bleibt.
@@ -563,6 +682,23 @@ def bgp_content_context():
 
     # Kontakt-Teaser: Anschrift/Telefon/E-Mail aus dem Unternehmensprofil.
     context["bgp_contact"] = contact_details()
+
+    # Die drei Kontaktformulare gebuendelt - der CMS-Editor listet sie damit
+    # nebeneinander, ohne die Key-Namen kennen zu muessen.
+    settings_by_key = contact_form_settings()
+    context["bgp_contact_form_blocks"] = [
+        {
+            "key": key,
+            "icon": tab["icon"],
+            "fields": tab["cms_fields"],
+            "text": context[f"bgp_contact_form_{key}"],
+            "upload_text": context[f"bgp_contact_upload_{key}"],
+            "settings": settings_by_key.get(key),
+        }
+        for key, tab in BGP_CONTACT_TABS.items()
+    ]
+    # Auswahlliste fuer die Vorlage: alle Dateien aus dem Modul "Dateien".
+    context["bgp_contact_documents"] = available_contact_documents()
 
     images = {img.place: img for img in fileentry.objects.filter(place__in=BGP_IMAGE_KEYS.values())}
     context.update({name: images.get(place) for name, place in BGP_IMAGE_KEYS.items()})

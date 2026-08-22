@@ -280,3 +280,6 @@ media
 .env
 .envs/*
 !.envs/.local/
+
+# Private Uploads (Anhaenge der Kontaktformulare) gehoeren nicht ins Repository.
+private-media/

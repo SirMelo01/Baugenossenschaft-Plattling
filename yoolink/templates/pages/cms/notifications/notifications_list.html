@@ -20,7 +20,7 @@
           <span class="js-page-count-text">{% if unread_count > 99 %}99+{% else %}{{ unread_count|default:0 }}{% endif %}</span>
         </span>
       </h1>
-      <p class="mt-1.5 text-slate-500">Anfragen, Bestellungen und Systemhinweise an einem Ort.</p>
+      <p class="mt-1.5 text-slate-500">Anfragen, Bestellungen und Systemhinweise an einem Ort - nach Art der Anfrage filterbar.</p>
     </div>
 
     <div class="flex flex-col gap-2 sm:flex-row">
@@ -67,9 +67,53 @@
     </div>
   </div>
 
+  <div class="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+    <a href="{% url 'cms:notifications-list' %}{% if category_querystring %}?{{ category_querystring }}{% endif %}"
+      class="flex flex-col justify-between gap-2 rounded-2xl border p-3.5 shadow-sm transition hover:shadow-md
+             {% if filter_category == 'all' %}border-blue-300 bg-blue-50{% else %}border-slate-200 bg-white hover:border-blue-200{% endif %}">
+      <span class="flex items-center gap-2 text-xs font-semibold text-slate-500">
+        <i class="bi bi-collection"></i> Alle
+      </span>
+      <span class="text-xl font-bold leading-none text-slate-900">{{ total_count|default:0 }}</span>
+    </a>
+
+    {% for cat in category_summary %}
+    <a href="?{% if category_querystring %}{{ category_querystring }}&{% endif %}category={{ cat.value }}"
+      class="flex flex-col justify-between gap-2 rounded-2xl border p-3.5 shadow-sm transition hover:shadow-md
+             {% if cat.is_active %}border-blue-300 bg-blue-50{% else %}border-slate-200 bg-white hover:border-blue-200{% endif %}"
+      title="{{ cat.label }}: {{ cat.count }} gesamt, {{ cat.unread }} ungelesen">
+      <span class="flex items-center gap-2 text-xs font-semibold text-slate-500">
+        <i class="bi {{ cat.icon }}"></i> <span class="truncate">{{ cat.short }}</span>
+      </span>
+      <span class="flex items-baseline gap-1.5">
+        <span class="text-xl font-bold leading-none text-slate-900">{{ cat.count }}</span>
+        {% if cat.unread %}
+        <span class="rounded-full bg-blue-100 px-1.5 py-0.5 text-[10px] font-bold leading-none text-blue-700">{{ cat.unread }} neu</span>
+        {% endif %}
+      </span>
+    </a>
+    {% endfor %}
+  </div>
+
   {# ---------- Filterleiste ---------- #}
   <form method="get" class="mb-6 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_auto]">
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_1fr_auto]">
+      <div>
+        <label for="filterCategory" class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">Art</label>
+        <div class="relative">
+          <select id="filterCategory" name="category"
+            class="w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 pr-11 text-sm font-medium text-slate-800 transition focus:border-blue-500 focus:bg-white focus:outline-none">
+            <option value="all" {% if filter_category == 'all' %}selected{% endif %}>Alle Arten</option>
+            {% for cat in category_summary %}
+            <option value="{{ cat.value }}" {% if cat.is_active %}selected{% endif %}>{{ cat.label }} ({{ cat.count }})</option>
+            {% endfor %}
+          </select>
+          <span class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400">
+            <i class="bi bi-chevron-down text-xs"></i>
+          </span>
+        </div>
+      </div>
+
       <div>
         <label for="filterStatus" class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">Status</label>
         <div class="relative">
@@ -132,6 +176,18 @@
   </form>
 
   {# ---------- Liste ---------- #}
+  {% if filter_category != 'all' %}
+  <div class="mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+    <i class="bi bi-funnel-fill"></i>
+    <span><span class="font-semibold">{{ filtered_count }}</span> Einträge der Art
+      {% for cat in category_summary %}{% if cat.is_active %}<span class="font-semibold">{{ cat.label }}</span>{% endif %}{% endfor %}</span>
+    <a href="{% url 'cms:notifications-list' %}{% if category_querystring %}?{{ category_querystring }}{% endif %}"
+      class="ml-auto inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-blue-700 shadow-sm transition hover:bg-blue-100">
+      <i class="bi bi-x-lg"></i> Filter aufheben
+    </a>
+  </div>
+  {% endif %}
+
   {% if notifications %}
   <div class="notif-list space-y-3">
     {% for n in notifications %}
@@ -144,19 +200,15 @@
 
       <div class="flex flex-col gap-4 p-4 pl-5 sm:flex-row sm:items-start sm:justify-between sm:p-5 sm:pl-6">
         <div class="flex min-w-0 gap-3">
-          {% if n.priority == 'high' %}
-            {% include "pages/cms/components/_icon_chip.html" with tone="rose" icon="bi-exclamation-triangle-fill" cls="h-10 w-10 shrink-0 text-lg" %}
-          {% elif n.priority == 'low' %}
-            {% include "pages/cms/components/_icon_chip.html" with tone="slate" icon="bi-info-circle" cls="h-10 w-10 shrink-0 text-lg" %}
-          {% else %}
-            {% include "pages/cms/components/_icon_chip.html" with tone="blue" icon="bi-bell-fill" cls="h-10 w-10 shrink-0 text-lg" %}
-          {% endif %}
+          {% include "pages/cms/components/_icon_chip.html" with tone=n.category_meta.tone icon=n.category_meta.icon cls="h-10 w-10 shrink-0 text-lg" %}
 
           <div class="min-w-0">
             <div class="flex flex-wrap items-center gap-2">
               <a href="{{ n.get_absolute_url }}" class="font-semibold text-slate-900 transition hover:text-blue-700">
                 {{ n.title }}
               </a>
+
+              {% include "pages/cms/notifications/_category_tag.html" with notification=n %}
 
               {% if not n.seen %}
               <span class="js-badge-new inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-[11px] font-bold text-blue-700">
@@ -176,9 +228,18 @@
             <p class="mt-1.5 text-sm leading-6 text-slate-600">{{ n.description|truncatewords:40 }}</p>
             {% endif %}
 
-            <div class="mt-2 flex items-center gap-1.5 text-xs text-slate-400">
-              <i class="bi bi-clock"></i>
-              {{ n.created_at|date:"d.m.Y · H:i" }} Uhr
+            <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-slate-400">
+              <span class="inline-flex items-center gap-1.5">
+                <i class="bi bi-clock"></i>
+                {{ n.created_at|date:"d.m.Y · H:i" }} Uhr
+              </span>
+              {% with anzahl=n.message.attachments.count %}
+              {% if anzahl %}
+              <span class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2 py-0.5 font-semibold text-slate-600">
+                <i class="bi bi-paperclip"></i> {{ anzahl }} {% if anzahl == 1 %}Anhang{% else %}Anhänge{% endif %}
+              </span>
+              {% endif %}
+              {% endwith %}
             </div>
 
             <div class="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -280,7 +341,14 @@
       <i class="bi bi-bell-slash text-2xl"></i>
     </span>
     <h3 class="mt-4 text-lg font-semibold text-slate-900">Keine Benachrichtigungen</h3>
+    {% if filter_category != 'all' or filter_status != 'all' or filter_priority != 'all' %}
+    <p class="mt-1 text-sm text-slate-500">Zu diesem Filter liegt nichts vor.</p>
+    <a href="{% url 'cms:notifications-list' %}" class="mt-4 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700">
+      <i class="bi bi-arrow-counterclockwise"></i> Filter zurücksetzen
+    </a>
+    {% else %}
     <p class="mt-1 text-sm text-slate-500">Hier erscheinen neue Anfragen, Bestellungen und Hinweise.</p>
+    {% endif %}
   </div>
   {% endif %}
 </div>

@@ -1,0 +1,39 @@
+<div class="sm:col-span-2">
+  <div class="mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+    <i class="bi bi-paperclip"></i>
+    Anhänge ({{ attachments|length }})
+  </div>
+
+  <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
+    {% for attachment in attachments %}
+    {% if attachment.is_image %}
+    <a href="{{ attachment.get_absolute_url }}" target="_blank" rel="noopener"
+       class="group relative block overflow-hidden rounded-xl border border-slate-200 bg-white transition hover:border-blue-300 hover:shadow-md"
+       title="{{ attachment.original_name }}">
+      <img src="{{ attachment.get_absolute_url }}" alt="{{ attachment.original_name }}"
+           loading="lazy" class="h-32 w-full bg-slate-50 object-cover" />
+      <span class="block truncate px-2.5 py-2 text-xs font-medium text-slate-600">
+        {{ attachment.original_name }}
+      </span>
+      <span class="absolute right-2 top-2 rounded-md bg-slate-900/70 px-1.5 py-0.5 text-[10px] font-semibold text-white opacity-0 transition group-hover:opacity-100">
+        {{ attachment.size_display }}
+      </span>
+    </a>
+    {% else %}
+    <a href="{{ attachment.get_absolute_url }}"
+       class="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 transition hover:border-blue-300 hover:shadow-md"
+       title="{{ attachment.original_name }}">
+      {% include "pages/cms/components/_icon_chip.html" with tone="rose" icon="bi-file-earmark-pdf-fill" cls="h-10 w-10 shrink-0 text-lg" %}
+      <span class="min-w-0">
+        <span class="block truncate text-sm font-semibold text-slate-800">{{ attachment.original_name }}</span>
+        <span class="block text-xs text-slate-500">{{ attachment.size_display }} · Download</span>
+      </span>
+    </a>
+    {% endif %}
+    {% endfor %}
+  </div>
+
+  <p class="mt-2 text-[11px] leading-5 text-slate-400">
+    Anhänge sind nur für angemeldete Personen abrufbar und werden mit der Anfrage gelöscht.
+  </p>
+</div>

@@ -191,9 +191,19 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # https://docs.djangoproject.com/en/dev/ref/settings/#media-url
 MEDIA_URL = "/media/"
 
+# Wurzel fuer Dateien, die nicht oeffentlich sein duerfen. Liegt bewusst NEBEN
+# MEDIA_ROOT: nginx liefert in Produktion /media/ direkt aus dem Dateisystem aus
+# (siehe compose/production/nginx/default.conf) und kaeme hier nicht heran.
+PRIVATE_MEDIA_ROOT = env("PRIVATE_MEDIA_ROOT", default=os.path.join(BASE_DIR, "private-media"))
+
 STORAGES = {
     "default": {
         "BACKEND": "config.settings.cdn.backends.MediaRootS3Boto3Storage",
+    },
+    # Anhaenge aus den Kontaktformularen. Getrennt vom Standard-Storage, weil der
+    # alles oeffentlich lesbar ablegt (ACL public-read, keine Signatur).
+    "private": {
+        "BACKEND": "config.settings.cdn.backends.PrivateMediaS3Boto3Storage",
     },
     "staticfiles": {
         "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",

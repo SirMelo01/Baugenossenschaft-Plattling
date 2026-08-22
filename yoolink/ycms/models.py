@@ -13,6 +13,7 @@ from django.utils.text import slugify
 from django.utils import timezone
 from django.urls import reverse
 from django.core.exceptions import ValidationError
+from django.dispatch import receiver
 from django.utils.translation import get_language, gettext_lazy as _
 from .upload_validation import (
     validate_anyfile_upload,
@@ -353,12 +354,213 @@ Messages
 """
 
 class Message(models.Model):
+    """Eine Anfrage aus einem der oeffentlichen Kontaktformulare.
+
+    ``category`` sagt, aus welchem der drei Formulare die Anfrage stammt. Die
+    Formulare fragen unterschiedliche Dinge ab (eine Reparaturmeldung braucht die
+    Wohnung, eine Mitgliedsbewerbung die Haushaltsgroesse). Diese zusaetzlichen
+    Angaben liegen in ``details`` als geordnete Liste aus ``{"label", "value"}``
+    - so bekommt nicht jedes Formular eigene Spalten, und das CMS kann sie ohne
+    Kenntnis des Formulars anzeigen.
+    """
+
+    class Category(models.TextChoices):
+        GENERAL = "general", "Allgemeine Anfrage"
+        MEMBERSHIP = "membership", "Mitgliedschaft"
+        REPAIR = "repair", "Reparaturservice"
+
     name = models.CharField(max_length=70)
     title = models.CharField(max_length=100, null=True)
     email = models.EmailField(max_length=60)
     message = models.CharField(max_length=3000)
     date = models.DateField(auto_now_add=True, null=True)
     seen = models.BooleanField(default=False)
+    category = models.CharField(
+        max_length=20,
+        choices=Category.choices,
+        default=Category.GENERAL,
+        db_index=True,
+    )
+    phone = models.CharField(max_length=40, blank=True, default="")
+    details = models.JSONField(default=list, blank=True)
+
+    def __str__(self):
+        return f"[{self.get_category_display()}] {self.name} - {self.title or ''}".strip(" -")
+
+    @property
+    def detail_rows(self):
+        """Zusatzangaben als Liste von (Beschriftung, Wert) fuer die Anzeige."""
+        rows = []
+        for row in self.details or []:
+            if not isinstance(row, dict):
+                continue
+            value = (row.get("value") or "").strip()
+            if value:
+                rows.append({"label": row.get("label") or "", "value": value})
+        return rows
+
+
+# Beschriftung, Symbol und Farbton je Anfrageart. Liegt bewusst neben dem Modell,
+# damit CMS-Ansichten, E-Mail-Texte und Benachrichtigungen dieselbe Darstellung
+# benutzen und eine neue Anfrageart nur an einer Stelle nachgetragen wird.
+CONTACT_CATEGORY_META = {
+    Message.Category.GENERAL: {
+        "label": "Allgemeine Anfrage",
+        "short": "Allgemein",
+        "icon": "bi-chat-left-text-fill",
+        "tone": "blue",
+        "notification_title": "Neue Kontaktanfrage",
+    },
+    Message.Category.MEMBERSHIP: {
+        "label": "Mitgliedschaft",
+        "short": "Mitgliedschaft",
+        "icon": "bi-person-plus-fill",
+        "tone": "emerald",
+        "notification_title": "Neue Bewerbung um eine Mitgliedschaft",
+    },
+    Message.Category.REPAIR: {
+        "label": "Reparaturservice",
+        "short": "Reparatur",
+        "icon": "bi-tools",
+        "tone": "amber",
+        "notification_title": "Neue Reparaturanfrage",
+    },
+}
+
+
+def contact_category_meta(category):
+    """Darstellung einer Anfrageart; faellt auf die allgemeine Anfrage zurueck."""
+    return CONTACT_CATEGORY_META.get(category, CONTACT_CATEGORY_META[Message.Category.GENERAL])
+
+
+def private_attachment_storage():
+    """Ablage der Anhaenge - getrennt vom oeffentlichen Standard-Storage.
+
+    Als Funktion hinterlegt (nicht als Instanz), damit Migrationen nur den Verweis
+    festhalten und die Ablage je Umgebung aus den Settings kommt.
+    """
+    from django.core.files.storage import storages
+
+    return storages["private"]
+
+
+def upload_to_message_attachment(instance, filename):
+    # ``filename`` ist bereits der von contact_attachments erzeugte Zufallsname.
+    return f"anfragen/{instance.message_id}/{filename}"
+
+
+class MessageAttachment(models.Model):
+    """Eine Datei, die ein Besucher an eine Kontaktanfrage gehaengt hat.
+
+    Liegt bewusst in der privaten Ablage und wird nur ueber die angemeldete
+    CMS-Ansicht ausgeliefert: hier stecken ausgefuellte Selbstauskuenfte und Fotos
+    aus Wohnungen drin, die unter keinen Umstaenden oeffentlich abrufbar sein
+    duerfen.
+    """
+
+    class Kind(models.TextChoices):
+        IMAGE = "image", "Bild"
+        DOCUMENT = "document", "Dokument"
+
+    message = models.ForeignKey(Message, on_delete=models.CASCADE, related_name="attachments")
+    file = models.FileField(
+        upload_to=upload_to_message_attachment,
+        storage=private_attachment_storage,
+        max_length=255,
+    )
+    original_name = models.CharField(max_length=120, default="", blank=True)
+    content_type = models.CharField(max_length=100, default="", blank=True)
+    kind = models.CharField(max_length=20, choices=Kind.choices, default=Kind.DOCUMENT)
+    size = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["id"]
+
+    def __str__(self):
+        return self.original_name or os.path.basename(self.file.name or "")
+
+    @property
+    def is_image(self):
+        return self.kind == self.Kind.IMAGE
+
+    @property
+    def size_display(self):
+        if self.size >= 1024 * 1024:
+            return f"{self.size / (1024 * 1024):.1f} MB"
+        return f"{max(1, round(self.size / 1024))} KB"
+
+    def get_absolute_url(self):
+        from django.urls import reverse
+
+        return reverse("cms:message-attachment", args=[self.pk])
+
+
+@receiver(models.signals.post_delete, sender=MessageAttachment)
+def delete_message_attachment_file(sender, instance, **kwargs):
+    """Datei mitloeschen, wenn der Datensatz geht.
+
+    Django raeumt Dateien nicht von selbst auf. Da eine Anfrage geloescht wird,
+    wenn sie erledigt ist, muessen die Anhaenge mit verschwinden - sonst bleiben
+    personenbezogene Daten liegen, die niemand mehr sehen will.
+    """
+    if instance.file:
+        instance.file.storage.delete(instance.file.name)
+
+
+class ContactFormSettings(models.Model):
+    """Was ein Kontaktformular an Dateien anbietet und annimmt.
+
+    Redaktionell im CMS unter Seiten -> Kontakt pflegbar. Das Formular selbst
+    (welche Felder es hat) steht in ``yoolink/forms.py``; hier steht nur, ob und
+    wie Dateien dazugehoeren.
+    """
+
+    form_key = models.CharField(max_length=20, unique=True)
+    #: Vorlage zum Herunterladen, z.B. die Selbstauskunft als PDF. Kommt aus dem
+    #: Modul "Dateien", damit sie dort wie jede andere Datei gepflegt wird.
+    document = models.ForeignKey(
+        "ycms.AnyFile",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="contact_forms",
+    )
+    uploads_enabled = models.BooleanField(default=False)
+    max_uploads = models.PositiveSmallIntegerField(default=3)
+    allow_images = models.BooleanField(default=True)
+    allow_documents = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = "Kontaktformular-Einstellung"
+        verbose_name_plural = "Kontaktformular-Einstellungen"
+
+    def __str__(self):
+        return f"Kontaktformular {self.form_key}"
+
+    @property
+    def allowed_kinds(self):
+        kinds = []
+        if self.allow_images:
+            kinds.append(MessageAttachment.Kind.IMAGE.value)
+        if self.allow_documents:
+            kinds.append(MessageAttachment.Kind.DOCUMENT.value)
+        return tuple(kinds)
+
+    @property
+    def accept_attribute(self):
+        """Wert fuer ``accept`` im Dateifeld - nur eine Vorauswahl im Dateidialog."""
+        parts = []
+        if self.allow_images:
+            parts += ["image/jpeg", "image/png", "image/webp"]
+        if self.allow_documents:
+            parts.append("application/pdf")
+        return ",".join(parts)
+
+    @classmethod
+    def for_form(cls, form_key):
+        settings_obj, _created = cls.objects.get_or_create(form_key=form_key)
+        return settings_obj
 
 def upload_to_user_settings(instance, filename):
     return f"yoolink/settings/{instance.id}/{filename}"

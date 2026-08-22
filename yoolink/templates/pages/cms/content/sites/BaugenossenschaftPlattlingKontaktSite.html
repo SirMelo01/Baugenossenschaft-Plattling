@@ -120,12 +120,176 @@
           Seitenaufbau hinterlegt und hier noch nicht pflegbar.
         </p>
       </div>
+
+      <div class="text-content flex flex-col gap-3 border-t border-slate-200 bg-slate-50 p-6" key="main_bgp_contact_forms_help">
+        <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Kästchen neben dem Formular</p>
+        <div>
+          <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Überschrift</span>
+          <input inputType="title" type="text" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 font-bold" value="{{ bgp_contact_forms_help.title }}">
+        </div>
+        <div>
+          <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Text</span>
+          <textarea inputType="description" rows="2" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-sm">{{ bgp_contact_forms_help.description }}</textarea>
+        </div>
+        <p class="text-[10px] leading-4 text-gray-500">
+          Darunter erscheinen automatisch die drei Formulare mit den Beschriftungen aus dem nächsten Abschnitt.
+        </p>
+      </div>
+    </section>
+
+    <section class="overflow-hidden rounded-2xl ring-1 ring-slate-200">
+      <div class="bg-slate-100 px-6 py-3">
+        <p class="text-xs font-semibold uppercase tracking-wider text-slate-600">4 &middot; Die drei Formulare</p>
+      </div>
+      <div class="bg-white p-6">
+        <p class="mb-4 rounded-lg bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-800 ring-1 ring-amber-200">
+          <i class="bi bi-info-circle mr-1"></i>
+          Besucher wählen auf der Kontaktseite zwischen diesen drei Formularen. Welche Felder ein Formular
+          abfragt, gehört zum Seitenaufbau - hier pflegst du die Texte drumherum. Jede Anfrage kommt mit
+          ihrer Art unter
+          <a href="{% url 'cms:notifications-list' %}" class="font-semibold underline hover:no-underline">Benachrichtigungen</a>
+          an und lässt sich dort danach filtern.
+        </p>
+        <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
+          {% for block in bgp_contact_form_blocks %}
+          <div class="text-content flex flex-col gap-3 rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200" key="main_bgp_contact_form_{{ block.key }}">
+            <p class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500">
+              <i class="bi {{ block.icon }} text-base"></i> Formular {{ forloop.counter }}
+            </p>
+            <div>
+              <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Beschriftung des Reiters</span>
+              <input inputType="title" type="text" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 font-bold" value="{{ block.text.title }}">
+            </div>
+            <div>
+              <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Einleitung über dem Formular</span>
+              <textarea inputType="description" rows="4" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 text-sm">{{ block.text.description }}</textarea>
+            </div>
+            <div>
+              <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Überschrift des zweiten Feldblocks</span>
+              <input inputType="header" type="text" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 text-sm" value="{{ block.text.header }}">
+            </div>
+            <div>
+              <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Absende-Knopf</span>
+              <input inputType="buttonText" type="text" class="w-full rounded-lg bg-yellow-300 px-4 py-2.5 text-sm font-bold text-slate-900" value="{{ block.text.buttonText }}">
+            </div>
+            <p class="mt-auto text-[10px] leading-4 text-gray-500">Fragt ab: {{ block.fields }}</p>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+
+    <section class="overflow-hidden rounded-2xl ring-1 ring-slate-200">
+      <div class="bg-slate-100 px-6 py-3">
+        <p class="text-xs font-semibold uppercase tracking-wider text-slate-600">5 &middot; Vorlagen und Anhänge</p>
+      </div>
+      <div class="bg-white p-6">
+        <p class="mb-5 rounded-lg bg-blue-50 px-4 py-3 text-xs leading-5 text-blue-900 ring-1 ring-blue-200">
+          <i class="bi bi-info-circle mr-1"></i>
+          Lade eine PDF-Vorlage wie die Selbstauskunft zuerst unter
+          <a href="{% url 'cms:anyfile-list' %}" class="font-semibold underline hover:no-underline">Dateien</a>
+          hoch - danach kannst du sie hier auswählen. Besucher können sie herunterladen, ausfüllen und
+          ausgefüllt wieder anhängen. Anhänge sind immer freiwillig, liegen geschützt und sind nur für
+          angemeldete Personen abrufbar.
+        </p>
+
+        <form method="post" action="{% url 'cms:save_contact_form_settings' %}">
+          {% csrf_token %}
+          <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
+            {% for block in bgp_contact_form_blocks %}
+            <div class="flex flex-col gap-4 rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200">
+              <p class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500">
+                <i class="bi {{ block.icon }} text-base"></i> {{ block.text.title }}
+              </p>
+
+              <div>
+                <label for="{{ block.key }}_document" class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">
+                  Vorlage zum Herunterladen
+                </label>
+                <select id="{{ block.key }}_document" name="{{ block.key }}_document"
+                        class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 text-sm">
+                  <option value="">&mdash; keine Vorlage &mdash;</option>
+                  {% for datei in bgp_contact_documents %}
+                  <option value="{{ datei.pk }}" {% if block.settings.document_id == datei.pk %}selected{% endif %}>
+                    {{ datei.title|default:datei }}
+                  </option>
+                  {% endfor %}
+                </select>
+                {% if block.settings.document %}
+                <a href="{{ block.settings.document.file.url }}" target="_blank" rel="noopener"
+                   class="mt-1 inline-flex items-center gap-1 text-[11px] font-semibold text-blue-600 hover:underline">
+                  <i class="bi bi-box-arrow-up-right"></i> Aktuelle Vorlage ansehen
+                </a>
+                {% endif %}
+              </div>
+
+              <label class="flex cursor-pointer items-start gap-2.5">
+                <input type="checkbox" name="{{ block.key }}_uploads_enabled" class="mt-0.5 h-4 w-4 rounded border-gray-300"
+                       {% if block.settings.uploads_enabled %}checked{% endif %}>
+                <span class="text-sm font-semibold text-slate-700">Besucher dürfen Dateien anhängen</span>
+              </label>
+
+              <div class="flex flex-col gap-2 border-l-2 border-slate-200 pl-3">
+                <label class="flex cursor-pointer items-center gap-2.5">
+                  <input type="checkbox" name="{{ block.key }}_allow_images" class="h-4 w-4 rounded border-gray-300"
+                         {% if block.settings.allow_images %}checked{% endif %}>
+                  <span class="text-xs text-slate-600">Bilder (JPG, PNG, WEBP)</span>
+                </label>
+                <label class="flex cursor-pointer items-center gap-2.5">
+                  <input type="checkbox" name="{{ block.key }}_allow_documents" class="h-4 w-4 rounded border-gray-300"
+                         {% if block.settings.allow_documents %}checked{% endif %}>
+                  <span class="text-xs text-slate-600">PDF-Dokumente</span>
+                </label>
+                <div class="mt-1">
+                  <label for="{{ block.key }}_max_uploads" class="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-gray-500">
+                    Höchstens Dateien
+                  </label>
+                  <input id="{{ block.key }}_max_uploads" type="number" min="1" max="10"
+                         name="{{ block.key }}_max_uploads" value="{{ block.settings.max_uploads }}"
+                         class="w-20 rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm">
+                </div>
+              </div>
+
+              <div class="text-content mt-auto flex flex-col gap-2 border-t border-slate-200 pt-3" key="main_bgp_contact_upload_{{ block.key }}">
+                <div>
+                  <span class="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-gray-500">Überschrift des Bereichs</span>
+                  <input inputType="title" type="text" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-sm font-bold" value="{{ block.upload_text.title }}">
+                </div>
+                <div>
+                  <span class="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-gray-500">Erklärtext</span>
+                  <textarea inputType="description" rows="4" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-xs">{{ block.upload_text.description }}</textarea>
+                </div>
+                <div>
+                  <span class="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-gray-500">Download-Knopf</span>
+                  <input inputType="buttonText" type="text" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-xs font-bold" value="{{ block.upload_text.buttonText }}">
+                </div>
+                <div>
+                  <span class="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-gray-500">Kleingedrucktes unter dem Feld</span>
+                  <input inputType="header" type="text" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-1.5 text-xs" value="{{ block.upload_text.header }}">
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+
+          <div class="mt-5 flex items-center justify-between gap-4 rounded-xl bg-slate-50 px-4 py-3 ring-1 ring-slate-200">
+            <p class="text-xs leading-5 text-slate-500">
+              Vorlage, Anhänge und Höchstzahl speichert dieser Knopf. Die Texte darunter gehören zu den
+              Textbausteinen und werden oben mit <span class="font-semibold">Speichern</span> gesichert.
+            </p>
+            <button type="submit"
+                    class="inline-flex flex-shrink-0 items-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-blue-700">
+              <i class="bi bi-save"></i> Dateieinstellungen speichern
+            </button>
+          </div>
+        </form>
+      </div>
     </section>
 
     {# ─────────────── INFOKARTEN NEBEN DEM FORMULAR ─────────────── #}
     <section class="overflow-hidden rounded-2xl ring-1 ring-slate-200">
       <div class="bg-slate-100 px-6 py-3">
-        <p class="text-xs font-semibold uppercase tracking-wider text-slate-600">4 &middot; Karten neben dem Formular</p>
+        <p class="text-xs font-semibold uppercase tracking-wider text-slate-600">6 &middot; Karten neben dem Formular</p>
       </div>
       <div class="grid grid-cols-1 gap-4 bg-white p-6 lg:grid-cols-3">
         <div class="text-content rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200" key="main_bgp_contact_address">
@@ -193,7 +357,7 @@
     {# ─────────────── NOTFALL + BESTAETIGUNG ─────────────── #}
     <section class="overflow-hidden rounded-2xl ring-1 ring-slate-200">
       <div class="bg-slate-100 px-6 py-3">
-        <p class="text-xs font-semibold uppercase tracking-wider text-slate-600">5 &middot; Notfall-Hinweis und Bestätigung nach dem Absenden</p>
+        <p class="text-xs font-semibold uppercase tracking-wider text-slate-600">7 &middot; Notfall-Hinweis und Bestätigung nach dem Absenden</p>
       </div>
       <div class="grid grid-cols-1 gap-4 bg-white p-6 lg:grid-cols-2">
         <div class="text-content flex flex-col gap-3 rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200" key="main_bgp_contact_emergency">

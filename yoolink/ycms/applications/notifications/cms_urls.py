@@ -15,4 +15,9 @@ urlpatterns = [
     path("<int:pk>/mark-read/", notifications_required(views.notification_mark_read), name="notification-mark-read"),
     path("<int:pk>/", notifications_required(views.notification_detail), name="notification-detail"),
     path("<int:pk>/delete/", notifications_required(views.notification_delete), name="notification-delete"),
+    path(
+        "anhang/<int:pk>/",
+        notifications_required(views.message_attachment),
+        name="message-attachment",
+    ),
 ]

@@ -1,0 +1,66 @@
+<form class="bgp-contact-form rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8"
+      method="post" action="{{ request.path }}#kontaktformular" novalidate
+      enctype="multipart/form-data"
+      data-bgp-form="{{ entry.key }}">
+  {% csrf_token %}
+  <input type="hidden" name="formular" value="{{ entry.key }}" />
+
+  <div class="bgp-honeypot" aria-hidden="true">
+    <label for="{{ entry.form.website.id_for_label }}">{{ entry.form.website.label }}</label>
+    {{ entry.form.website }}
+  </div>
+
+  {% if entry.form.non_field_errors %}
+  <div class="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700" role="alert">
+    {% for error in entry.form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+  </div>
+  {% elif entry.form.errors %}
+  <div class="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700" role="alert">
+    Bitte prüfen Sie die rot markierten Felder - dann können wir Ihre Anfrage entgegennehmen.
+  </div>
+  {% endif %}
+
+  <p class="mb-6 text-sm leading-6 text-gray-600">{{ entry.hint }}</p>
+
+  <p class="bgp-form-legend">Ihre Kontaktdaten</p>
+  <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+    {% include "pages/demos/kontakt/_feld.html" with field=entry.form.anrede span=1 only %}
+    {% include "pages/demos/kontakt/_feld.html" with field=entry.form.name only %}
+    {% include "pages/demos/kontakt/_feld.html" with field=entry.form.email only %}
+    {% include "pages/demos/kontakt/_feld.html" with field=entry.form.telefon span=1 hint="Optional - hilft uns bei Rückfragen." only %}
+  </div>
+
+  <p class="bgp-form-legend mt-8">{{ entry.fields_title }}</p>
+  <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+    {% include entry.fields_template with form=entry.form only %}
+    {% include "pages/demos/kontakt/_feld.html" with field=entry.form.nachricht span=1 only %}
+    {% if entry.document or entry.form.anhaenge %}
+    {% include "pages/demos/kontakt/_anhaenge.html" with entry=entry only %}
+    {% endif %}
+  </div>
+
+  <div class="bgp-form-field {{ entry.form.datenschutz.css_classes }} mt-6">
+    <label class="flex cursor-pointer items-start gap-3">
+      {{ entry.form.datenschutz }}
+      <span class="text-sm leading-6 text-gray-600">
+        Ich habe die
+        {% if bgp_is_public %}<a href="{{ bgp_datenschutz_url }}" class="bgp-text-navy font-semibold underline">Datenschutzerklärung</a>{% else %}<span class="bgp-text-navy font-semibold underline">Datenschutzerklärung</span>{% endif %}
+        gelesen und bin mit der Verarbeitung meiner Daten zur Bearbeitung der Anfrage einverstanden.
+        <span class="text-red-600">*</span>
+      </span>
+    </label>
+    <p class="bgp-error{% if entry.form.datenschutz.errors %} is-visible{% endif %}"
+       data-msg-required="{{ entry.form.datenschutz.field.error_messages.required }}"
+       data-msg-invalid="{{ entry.form.datenschutz.field.error_messages.required }}">{% if entry.form.datenschutz.errors %}{{ entry.form.datenschutz.errors.0 }}{% else %}{{ entry.form.datenschutz.field.error_messages.required }}{% endif %}</p>
+  </div>
+
+  <div class="mt-7 flex flex-col-reverse items-center gap-4 sm:flex-row sm:justify-between">
+    <p class="text-xs leading-5 text-gray-500">Mit <span class="text-red-600">*</span> markierte Felder sind Pflichtfelder.</p>
+    <button type="submit"
+            class="bgp-btn-yellow bgp-focus inline-flex w-full flex-shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-xl px-10 py-4 text-base font-bold shadow-lg transition-transform duration-300 hover:-translate-y-0.5 sm:w-auto"
+            data-submit-label="{{ entry.submit_label }}">
+      <span class="js-submit-label">{{ entry.submit_label }}</span>
+      <i class="js-submit-icon bi bi-send"></i>
+    </button>
+  </div>
+</form>

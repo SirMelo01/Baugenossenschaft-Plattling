@@ -85,3 +85,14 @@ BASE_DIR = Path(__file__).resolve(strict=True).parent.parent.parent
 STORAGES["default"] = {"BACKEND": "django.core.files.storage.FileSystemStorage"}  # noqa F405
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
+
+# Anhaenge der Kontaktformulare liegen lokal im Dateisystem - aber ausserhalb von
+# MEDIA_ROOT und ohne ``base_url``. Ohne Basis-Adresse wirft ``.url()`` einen
+# Fehler statt eine oeffentliche Adresse zu liefern; ein versehentliches
+# Verlinken im Template faellt damit sofort auf, statt still Daten preiszugeben.
+PRIVATE_MEDIA_ROOT = os.path.join(BASE_DIR, "private-media")
+STORAGES["private"] = {  # noqa F405
+    "BACKEND": "config.settings.cdn.backends.PrivateFileSystemStorage",
+    "OPTIONS": {"location": PRIVATE_MEDIA_ROOT},
+}
+

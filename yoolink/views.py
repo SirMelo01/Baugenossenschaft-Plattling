@@ -1,13 +1,14 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from yoolink.ycms.applications.content.bgp_content import bgp_content_context
+from yoolink.ycms.applications.content.bgp_content import BGP_CONTACT_TABS, bgp_content_context
 from yoolink.ycms.applications.content.models import Customer, ImpressumBlock, PrivacyPolicy, ServiceLocation, TextContent
-from yoolink.ycms.models import FAQ, Message, PricingCard, TeamMember, fileentry, Galerie, OpeningHours, WebsiteSettings, Button
+from yoolink.ycms.models import FAQ, PricingCard, TeamMember, fileentry, Galerie, OpeningHours, WebsiteSettings, Button
 import datetime
 from django.http import Http404, HttpResponseRedirect
 from django.utils.translation import get_language_from_request, activate
 from django.conf import settings
-from django.core.exceptions import ValidationError
-from django.core.validators import validate_email
+from django.urls import reverse
+from yoolink.ycms.contact_mail import send_contact_message
+from yoolink.ycms.models import ContactFormSettings
 
 def get_opening_hours():
     opening_hours = {}
@@ -717,74 +718,111 @@ def cookies_view(request):
     return render(request, 'pages/cookies.html', context=context)
 
 
-from .forms import ContactForm
-def kontaktform(request):
-    success = False
-    if request.method == 'POST':
-        if request.POST.get("bgp_contact_form") == "1":
-            name = (request.POST.get("name") or "").strip()
-            email = (request.POST.get("email") or "").strip()
-            title = (request.POST.get("betreff") or "Kontaktanfrage").strip()
-            message = (request.POST.get("nachricht") or "").strip()
-            datenschutz = request.POST.get("datenschutz")
-            try:
-                validate_email(email)
-                email_is_valid = True
-            except ValidationError:
-                email_is_valid = False
-            if name and email_is_valid and title and message and datenschutz:
-                Message.objects.create(
-                    name=name,
-                    email=email,
-                    title=title,
-                    message=message,
-                )
-                success = True
-            form = ContactForm()
-        else:
-            form = ContactForm(request.POST)
-            if form.is_valid():
-                # Hier Nachricht verarbeiten und speichern
-                Message.objects.create(
-                    name=form.cleaned_data['name'],
-                    email=form.cleaned_data['email'],
-                    title=form.cleaned_data['title'],
-                    message=form.cleaned_data['message'],
-                )
-                success = True
-    else:
-        form = ContactForm()
+from .forms import BGP_CONTACT_FORMS, BGP_DEFAULT_CONTACT_FORM
 
-    def get_text(name: str):
-        return TextContent.objects.filter(name=name).first()
-
-    context = {
-        'form': form,
-        'success': success,
-        'recaptcha_public_key': settings.RECAPTCHA_PUBLIC_KEY,
-        'google_maps_embed_api_key': settings.GOOGLE_MAPS_EMBED_API_KEY,
-        'owner_data': WebsiteSettings.get_site_owner(),
+def _contact_tab_entry(key, form, text, upload_text, attachments, is_active):
+    """Ein Reiter der Kontaktseite: Aufbau plus die im CMS gepflegten Texte."""
+    tab = BGP_CONTACT_TABS[key]
+    # Die Vorlage zum Herunterladen (z.B. die Selbstauskunft) haengt an der
+    # Einstellung des Formulars und kommt aus dem Modul "Dateien".
+    document = attachments.document if attachments else None
+    return {
+        "key": key,
+        "form": form,
+        "is_active": is_active,
+        "icon": tab["icon"],
+        "fields_template": tab["fields_template"],
+        "label": text.get("title") or "Anfrage",
+        "hint": text.get("description") or "",
+        "fields_title": text.get("header") or "Ihr Anliegen",
+        "submit_label": text.get("buttonText") or "Absenden",
+        "attachments": attachments,
+        "document": document,
+        "upload_title": upload_text.get("title") or "",
+        "upload_hint": upload_text.get("description") or "",
+        "download_label": upload_text.get("buttonText") or "Vorlage herunterladen",
+        "upload_note": upload_text.get("header") or "",
     }
+
+
+def kontaktform(request):
+    """Kontaktseite mit drei Formularen (allgemein, Mitgliedschaft, Reparatur).
+
+    Welches Formular abgeschickt wurde, steht im Feld ``formular``. Nur dieses
+    wird gebunden und geprueft - die beiden anderen Reiter bleiben leer, damit
+    ein Fehler im einen Formular nicht in den anderen auftaucht.
+
+    Nach dem Speichern wird umgeleitet (Post/Redirect/Get), damit ein Neuladen
+    der Seite die Anfrage nicht ein zweites Mal abschickt.
+    """
+    bound_key = None
+    bound_form = None
+
+    # Je Formular: nimmt es Dateien an, welche, wie viele, und welche Vorlage
+    # steht zum Herunterladen bereit. Wird im CMS unter Seiten -> Kontakt gepflegt.
+    attachment_settings = {
+        key: ContactFormSettings.for_form(key) for key in BGP_CONTACT_FORMS
+    }
+
+    if request.method == "POST":
+        bound_key = request.POST.get("formular")
+        if bound_key not in BGP_CONTACT_FORMS:
+            bound_key = BGP_DEFAULT_CONTACT_FORM
+
+        bound_form = BGP_CONTACT_FORMS[bound_key](
+            request.POST,
+            request.FILES,
+            attachment_settings=attachment_settings[bound_key],
+        )
+        if bound_form.is_valid():
+            message = bound_form.save()
+            # Der Versand darf die Anfrage nicht gefaehrden: sie liegt bereits in
+            # der Datenbank und im CMS, ein Mailfehler wird nur protokolliert.
+            send_contact_message(message)
+
+            request.session["bgp_contact_success"] = {"key": bound_key, "email": message.email}
+            return redirect(f"{reverse('kontakt')}?gesendet={bound_key}#kontaktformular")
+
+    # Aktiver Reiter: nach einem Fehler das betroffene Formular, sonst der Wunsch
+    # aus der Adresszeile (z.B. Link "Reparatur melden" von einer anderen Seite).
+    active_key = bound_key or request.GET.get("formular")
+    if active_key not in BGP_CONTACT_FORMS:
+        active_key = BGP_DEFAULT_CONTACT_FORM
+
+    # Die Texte der Reiter stehen in denselben CMS-Bausteinen, aus denen sich auch
+    # der Rest der Seite speist - deshalb erst den Seiten-Kontext bauen.
+    context = get_bgp_context({"demo_page": "kontakt"})
+
+    contact_forms = [
+        _contact_tab_entry(
+            key,
+            bound_form if key == bound_key else form_class(attachment_settings=attachment_settings[key]),
+            context.get(f"bgp_contact_form_{key}", {}),
+            context.get(f"bgp_contact_upload_{key}", {}),
+            attachment_settings[key],
+            key == active_key,
+        )
+        for key, form_class in BGP_CONTACT_FORMS.items()
+    ]
+
+    # Erfolgsmeldung nach der Umleitung. Der Schluessel steht in der Adresse, die
+    # E-Mail-Adresse nur in der Sitzung - sie hat in der URL nichts verloren.
+    sent_key = request.GET.get("gesendet")
+    success = sent_key in BGP_CONTACT_FORMS
+    success_info = request.session.pop("bgp_contact_success", None) if success else None
+
+    context.update({
+        "contact_forms": contact_forms,
+        "active_form_key": active_key,
+        "success": success,
+        "success_form_label": context.get(f"bgp_contact_form_{sent_key}", {}).get("title", "") if success else "",
+        "success_email": (success_info or {}).get("email", ""),
+        "recaptcha_public_key": settings.RECAPTCHA_PUBLIC_KEY,
+        "google_maps_embed_api_key": settings.GOOGLE_MAPS_EMBED_API_KEY,
+        "owner_data": WebsiteSettings.get_site_owner(),
+    })
     context.update(get_opening_hours())
 
-    # Hero
-    context['textContent_hero'] = get_text('main_kontakt_hero')
-    # Info-Panel (links)
-    context['textContent_panel'] = get_text('main_kontakt_panel')
-    context['textContent_panel_labels'] = get_text('main_kontakt_panel_labels')
-    context['textContent_opening_hours'] = get_text('main_kontakt_opening_hours')
-    context['textContent_response'] = get_text('main_kontakt_response')
-    # Formular (rechts)
-    context['textContent_form'] = get_text('main_kontakt_form')
-    context['textContent_fields'] = get_text('main_kontakt_fields')
-    context['textContent_message_placeholder'] = get_text('main_kontakt_message_placeholder')
-    # Erfolgsmeldung
-    context['textContent_success'] = get_text('main_kontakt_success')
-
-    return render(
-        request,
-        "pages/demos/baugenossenschaft-plattling-kontakt.html",
-        get_bgp_context({**context, "demo_page": "kontakt"}),
-    )
+    return render(request, "pages/demos/baugenossenschaft-plattling-kontakt.html", context)
 
 # Authentication

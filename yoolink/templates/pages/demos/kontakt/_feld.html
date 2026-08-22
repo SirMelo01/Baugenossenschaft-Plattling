@@ -1,0 +1,10 @@
+<div class="bgp-form-field {{ field.css_classes }}{% if span %} sm:col-span-2{% endif %}">
+  <label class="bgp-label" for="{{ field.id_for_label }}">
+    {{ field.label }}{% if field.field.required %} <span class="text-red-600">*</span>{% endif %}
+  </label>
+  {{ field }}
+  {% if hint %}<p class="mt-1.5 text-xs leading-5 text-gray-500">{{ hint }}</p>{% endif %}
+  <p class="bgp-error{% if field.errors %} is-visible{% endif %}"
+     data-msg-required="{{ field.field.error_messages.required }}"
+     data-msg-invalid="{{ field.field.error_messages.invalid|default:field.field.error_messages.required }}">{% if field.errors %}{{ field.errors.0 }}{% else %}{{ field.field.error_messages.required }}{% endif %}</p>
+</div>
