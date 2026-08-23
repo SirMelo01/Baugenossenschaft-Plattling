@@ -9,8 +9,9 @@
   {% url 'ycms:demo-subpage' slug='baugenossenschaft-plattling' subpage='kontakt' as bgp_kontakt_url %}
   {% url 'ycms:demo-subpage' slug='baugenossenschaft-plattling' subpage='aktuelles' as bgp_aktuelles_url %}
 {% endif %}
+{% firstof bgp_immobilien_url bgp_home_url|add:"#vermietung" as bgp_immobilien_href %}
 <header class="bgp-bg-navy-deep sticky top-0 z-50 shadow-lg">
-  <div class="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+  <div class="mx-auto flex h-20 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
     <a href="{{ bgp_home_url }}" class="bgp-focus flex min-w-0 items-center gap-3 rounded-lg" aria-label="Baugenossenschaft Plattling eG - Startseite">
       <img src="{% static 'images/demos/bgp/logo-icon.png' %}" alt="Logo Baugenossenschaft Plattling eG" class="h-11 w-auto flex-shrink-0" />
       <span class="flex min-w-0 flex-col leading-tight">
@@ -19,37 +20,107 @@
       </span>
     </a>
 
-    <nav class="hidden items-center gap-1 lg:flex" aria-label="Hauptnavigation">
-      <a href="{{ bgp_home_url }}#genossenschaft" class="bgp-nav-link bgp-focus rounded-lg px-3 py-2 text-sm font-medium">Unsere Genossenschaft</a>
-      <a href="{{ bgp_home_url }}#historie" class="bgp-nav-link bgp-focus rounded-lg px-3 py-2 text-sm font-medium">Historie</a>
-      <a href="{{ bgp_home_url }}#vermietung" class="bgp-nav-link bgp-focus rounded-lg px-3 py-2 text-sm font-medium">Vermietung</a>
-      <a href="{% if bgp_is_public %}{{ bgp_immobilien_url }}{% else %}{{ bgp_home_url }}#vermietung{% endif %}" class="bgp-nav-link bgp-focus rounded-lg px-3 py-2 text-sm font-medium{% if demo_page == 'immobilien' %} bgp-nav-link-active{% endif %}">Immobilien</a>
-      <a href="{{ bgp_home_url }}#faq" class="bgp-nav-link bgp-focus rounded-lg px-3 py-2 text-sm font-medium">FAQ</a>
-      <a href="{{ bgp_aktuelles_url }}" class="bgp-nav-link bgp-focus rounded-lg px-3 py-2 text-sm font-medium{% if demo_page == 'aktuelles' %} bgp-nav-link-active{% endif %}">Aktuelles</a>
-      <a href="{{ bgp_kontakt_url }}" class="bgp-nav-link bgp-focus rounded-lg px-3 py-2 text-sm font-medium{% if demo_page == 'kontakt' %} bgp-nav-link-active{% endif %}">Kontakt</a>
+    <nav class="bgp-nav hidden lg:flex" aria-label="Hauptnavigation">
+      <div class="bgp-nav-item" data-nav-dropdown>
+        <button type="button" id="bgpNavGenossenschaftTrigger" class="bgp-nav-trigger bgp-focus" data-nav-trigger aria-expanded="false" aria-controls="bgpNavGenossenschaft">
+          Genossenschaft
+          <i class="bi bi-chevron-down bgp-nav-caret" aria-hidden="true"></i>
+        </button>
+        <div id="bgpNavGenossenschaft" class="bgp-nav-panel" aria-labelledby="bgpNavGenossenschaftTrigger">
+          <a href="{{ bgp_home_url }}#genossenschaft" class="bgp-nav-panel-link bgp-focus">
+            <span class="bgp-nav-panel-icon"><i class="bi bi-people-fill" aria-hidden="true"></i></span>
+            <span class="min-w-0">
+              <span class="bgp-nav-panel-title">Über uns</span>
+              <span class="bgp-nav-panel-desc">Wofür wir als Genossenschaft stehen</span>
+            </span>
+          </a>
+          <a href="{{ bgp_home_url }}#historie" class="bgp-nav-panel-link bgp-focus">
+            <span class="bgp-nav-panel-icon"><i class="bi bi-clock-history" aria-hidden="true"></i></span>
+            <span class="min-w-0">
+              <span class="bgp-nav-panel-title">Historie</span>
+              <span class="bgp-nav-panel-desc">Unser Weg seit 1921</span>
+            </span>
+          </a>
+        </div>
+      </div>
+
+      <div class="bgp-nav-item" data-nav-dropdown>
+        <button type="button" id="bgpNavWohnenTrigger" class="bgp-nav-trigger bgp-focus{% if demo_page == 'immobilien' %} is-active{% endif %}" data-nav-trigger aria-expanded="false" aria-controls="bgpNavWohnen">
+          Wohnen
+          <i class="bi bi-chevron-down bgp-nav-caret" aria-hidden="true"></i>
+        </button>
+        <div id="bgpNavWohnen" class="bgp-nav-panel" aria-labelledby="bgpNavWohnenTrigger">
+          <a href="{{ bgp_home_url }}#vermietung" class="bgp-nav-panel-link bgp-focus">
+            <span class="bgp-nav-panel-icon"><i class="bi bi-house-door-fill" aria-hidden="true"></i></span>
+            <span class="min-w-0">
+              <span class="bgp-nav-panel-title">Vermietung</span>
+              <span class="bgp-nav-panel-desc">So kommen Sie zu einer Wohnung</span>
+            </span>
+          </a>
+          <a href="{{ bgp_immobilien_href }}" class="bgp-nav-panel-link bgp-focus{% if demo_page == 'immobilien' %} is-active{% endif %}">
+            <span class="bgp-nav-panel-icon"><i class="bi bi-buildings-fill" aria-hidden="true"></i></span>
+            <span class="min-w-0">
+              <span class="bgp-nav-panel-title">Immobilien</span>
+              <span class="bgp-nav-panel-desc">Angebote und Objekte auf der Karte</span>
+            </span>
+          </a>
+          <a href="{{ bgp_home_url }}#faq" class="bgp-nav-panel-link bgp-focus">
+            <span class="bgp-nav-panel-icon"><i class="bi bi-info-circle-fill" aria-hidden="true"></i></span>
+            <span class="min-w-0">
+              <span class="bgp-nav-panel-title">FAQ &amp; Mieterinfos</span>
+              <span class="bgp-nav-panel-desc">Antworten und Unterlagen zum Download</span>
+            </span>
+          </a>
+        </div>
+      </div>
+
+      <a href="{{ bgp_aktuelles_url }}" class="bgp-nav-trigger bgp-focus{% if demo_page == 'aktuelles' %} is-active{% endif %}">Aktuelles</a>
+      <a href="{{ bgp_kontakt_url }}" class="bgp-nav-trigger bgp-focus{% if demo_page == 'kontakt' %} is-active{% endif %}">Kontakt</a>
+
       {% if bgp_contact.tel %}
-      <a href="{{ bgp_contact.tel_href }}" class="bgp-btn-yellow bgp-focus ml-3 inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold shadow-sm transition">
-        <i class="bi bi-telephone-fill"></i> {{ bgp_contact.tel }}
+      <span class="bgp-nav-divider" aria-hidden="true"></span>
+      <a href="{{ bgp_contact.tel_href }}" class="bgp-nav-phone bgp-btn-yellow bgp-focus" aria-label="Anrufen: {{ bgp_contact.tel }}" title="{{ bgp_contact.tel }}">
+        <i class="bi bi-telephone-fill" aria-hidden="true"></i>
+        <span class="bgp-nav-phone-label">{{ bgp_contact.tel }}</span>
       </a>
       {% endif %}
     </nav>
 
-    <button id="bgpMenuToggle" class="bgp-focus rounded-lg p-2 text-white hover:bg-white/10 lg:hidden" aria-expanded="false" aria-controls="bgpMobileMenu" aria-label="Men&uuml; oeffnen">
-      <i class="bi bi-list text-2xl leading-none"></i>
+    <button id="bgpMenuToggle" class="bgp-focus rounded-lg p-2 text-white hover:bg-white/10 lg:hidden" aria-expanded="false" aria-controls="bgpMobileMenu" aria-label="Menü öffnen">
+      <i class="bi bi-list text-2xl leading-none" aria-hidden="true"></i>
     </button>
   </div>
 
-  <div id="bgpMobileMenu" class="hidden border-t border-white/10 px-4 pb-4 pt-2 lg:hidden">
-    <a href="{{ bgp_home_url }}#genossenschaft" class="bgp-nav-link block rounded-lg px-3 py-3 text-base font-medium">Unsere Genossenschaft</a>
-    <a href="{{ bgp_home_url }}#historie" class="bgp-nav-link block rounded-lg px-3 py-3 text-base font-medium">Historie</a>
-    <a href="{{ bgp_home_url }}#vermietung" class="bgp-nav-link block rounded-lg px-3 py-3 text-base font-medium">Vermietung</a>
-    <a href="{% if bgp_is_public %}{{ bgp_immobilien_url }}{% else %}{{ bgp_home_url }}#vermietung{% endif %}" class="bgp-nav-link block rounded-lg px-3 py-3 text-base font-medium{% if demo_page == 'immobilien' %} bgp-nav-link-active{% endif %}">Immobilien</a>
-    <a href="{{ bgp_home_url }}#faq" class="bgp-nav-link block rounded-lg px-3 py-3 text-base font-medium">FAQ</a>
-    <a href="{{ bgp_aktuelles_url }}" class="bgp-nav-link block rounded-lg px-3 py-3 text-base font-medium{% if demo_page == 'aktuelles' %} bgp-nav-link-active{% endif %}">Aktuelles</a>
-    <a href="{{ bgp_kontakt_url }}" class="bgp-nav-link block rounded-lg px-3 py-3 text-base font-medium{% if demo_page == 'kontakt' %} bgp-nav-link-active{% endif %}">Kontakt</a>
+  <div id="bgpMobileMenu" class="bgp-mobile-menu">
+    <div class="bgp-mobile-group">
+      <button type="button" class="bgp-mobile-link bgp-focus" data-mobile-toggle aria-expanded="false" aria-controls="bgpMobileGenossenschaft">
+        Genossenschaft
+        <i class="bi bi-chevron-down bgp-mobile-caret" aria-hidden="true"></i>
+      </button>
+      <div id="bgpMobileGenossenschaft" class="bgp-mobile-sub">
+        <a href="{{ bgp_home_url }}#genossenschaft" class="bgp-mobile-sub-link bgp-focus"><i class="bi bi-people-fill" aria-hidden="true"></i> Über uns</a>
+        <a href="{{ bgp_home_url }}#historie" class="bgp-mobile-sub-link bgp-focus"><i class="bi bi-clock-history" aria-hidden="true"></i> Historie</a>
+      </div>
+    </div>
+
+    <div class="bgp-mobile-group">
+      <button type="button" class="bgp-mobile-link bgp-focus{% if demo_page == 'immobilien' %} is-active{% endif %}" data-mobile-toggle aria-expanded="false" aria-controls="bgpMobileWohnen">
+        Wohnen
+        <i class="bi bi-chevron-down bgp-mobile-caret" aria-hidden="true"></i>
+      </button>
+      <div id="bgpMobileWohnen" class="bgp-mobile-sub">
+        <a href="{{ bgp_home_url }}#vermietung" class="bgp-mobile-sub-link bgp-focus"><i class="bi bi-house-door-fill" aria-hidden="true"></i> Vermietung</a>
+        <a href="{{ bgp_immobilien_href }}" class="bgp-mobile-sub-link bgp-focus{% if demo_page == 'immobilien' %} is-active{% endif %}"><i class="bi bi-buildings-fill" aria-hidden="true"></i> Immobilien</a>
+        <a href="{{ bgp_home_url }}#faq" class="bgp-mobile-sub-link bgp-focus"><i class="bi bi-info-circle-fill" aria-hidden="true"></i> FAQ &amp; Mieterinfos</a>
+      </div>
+    </div>
+
+    <a href="{{ bgp_aktuelles_url }}" class="bgp-mobile-link bgp-focus{% if demo_page == 'aktuelles' %} is-active{% endif %}">Aktuelles</a>
+    <a href="{{ bgp_kontakt_url }}" class="bgp-mobile-link bgp-focus{% if demo_page == 'kontakt' %} is-active{% endif %}">Kontakt</a>
+
     {% if bgp_contact.tel %}
-    <a href="{{ bgp_contact.tel_href }}" class="bgp-btn-yellow mt-2 inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold">
-      <i class="bi bi-telephone-fill"></i> {{ bgp_contact.tel }}
+    <a href="{{ bgp_contact.tel_href }}" class="bgp-mobile-phone bgp-btn-yellow bgp-focus">
+      <i class="bi bi-telephone-fill" aria-hidden="true"></i> {{ bgp_contact.tel }}
     </a>
     {% endif %}
   </div>

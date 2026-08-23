@@ -5,18 +5,108 @@
     AOS.init({ duration: 700, once: true, easing: 'ease-out', disable: 'phone' });
   }
 
+  // Desktop-Navigation: Untermenues oeffnen per Hover, Klick und Tastatur.
+  // Immer nur eines offen; das Schliessen laeuft verzoegert, damit der Weg vom
+  // Menuepunkt zum Panel nicht abreisst.
+  var bgpDropdowns = Array.prototype.slice.call(document.querySelectorAll('[data-nav-dropdown]'));
+  var bgpDropdownTimer = null;
+
+  function bgpCloseDropdowns(except) {
+    bgpDropdowns.forEach(function (item) {
+      if (item === except) { return; }
+      item.classList.remove('is-open');
+      var trigger = item.querySelector('[data-nav-trigger]');
+      if (trigger) { trigger.setAttribute('aria-expanded', 'false'); }
+    });
+  }
+
+  function bgpOpenDropdown(item) {
+    window.clearTimeout(bgpDropdownTimer);
+    bgpCloseDropdowns(item);
+    item.classList.add('is-open');
+    var trigger = item.querySelector('[data-nav-trigger]');
+    if (trigger) { trigger.setAttribute('aria-expanded', 'true'); }
+  }
+
+  bgpDropdowns.forEach(function (item) {
+    var trigger = item.querySelector('[data-nav-trigger]');
+
+    item.addEventListener('mouseenter', function () { bgpOpenDropdown(item); });
+    item.addEventListener('mouseleave', function () {
+      window.clearTimeout(bgpDropdownTimer);
+      bgpDropdownTimer = window.setTimeout(function () { bgpCloseDropdowns(); }, 160);
+    });
+
+    if (trigger) {
+      trigger.addEventListener('click', function () {
+        if (item.classList.contains('is-open')) {
+          bgpCloseDropdowns();
+        } else {
+          bgpOpenDropdown(item);
+        }
+      });
+    }
+
+    item.addEventListener('focusout', function (event) {
+      if (!item.contains(event.relatedTarget)) { bgpCloseDropdowns(); }
+    });
+
+    item.querySelectorAll('a').forEach(function (link) {
+      link.addEventListener('click', function () { bgpCloseDropdowns(); });
+    });
+  });
+
+  if (bgpDropdowns.length) {
+    document.addEventListener('click', function (event) {
+      if (!event.target.closest('[data-nav-dropdown]')) { bgpCloseDropdowns(); }
+    });
+
+    document.addEventListener('keydown', function (event) {
+      if (event.key !== 'Escape') { return; }
+      var openItem = document.querySelector('[data-nav-dropdown].is-open');
+      if (!openItem) { return; }
+      bgpCloseDropdowns();
+      var trigger = openItem.querySelector('[data-nav-trigger]');
+      if (trigger) { trigger.focus(); }
+    });
+  }
+
+  // Mobiles Menue: Burger schaltet das Panel, die Gruppen klappen als Akkordeon auf.
   var bgpToggle = document.getElementById('bgpMenuToggle');
   var bgpMenu = document.getElementById('bgpMobileMenu');
   if (bgpToggle && bgpMenu) {
+    var bgpMenuIcon = bgpToggle.querySelector('i');
+
+    var bgpSetMobileMenu = function (open) {
+      bgpMenu.classList.toggle('is-open', open);
+      bgpToggle.setAttribute('aria-expanded', String(open));
+      bgpToggle.setAttribute('aria-label', open ? 'Menü schließen' : 'Menü öffnen');
+      if (bgpMenuIcon) {
+        bgpMenuIcon.className = 'bi text-2xl leading-none ' + (open ? 'bi-x-lg' : 'bi-list');
+      }
+    };
+
     bgpToggle.addEventListener('click', function () {
-      var open = !bgpMenu.classList.contains('hidden');
-      bgpMenu.classList.toggle('hidden');
-      bgpToggle.setAttribute('aria-expanded', String(!open));
+      bgpSetMobileMenu(!bgpMenu.classList.contains('is-open'));
     });
+
     bgpMenu.querySelectorAll('a').forEach(function (link) {
-      link.addEventListener('click', function () {
-        bgpMenu.classList.add('hidden');
-        bgpToggle.setAttribute('aria-expanded', 'false');
+      link.addEventListener('click', function () { bgpSetMobileMenu(false); });
+    });
+
+    bgpMenu.querySelectorAll('[data-mobile-toggle]').forEach(function (button) {
+      button.addEventListener('click', function () {
+        var group = button.closest('.bgp-mobile-group');
+        if (!group) { return; }
+        var open = !group.classList.contains('is-open');
+        bgpMenu.querySelectorAll('.bgp-mobile-group').forEach(function (other) {
+          if (other === group) { return; }
+          other.classList.remove('is-open');
+          var otherButton = other.querySelector('[data-mobile-toggle]');
+          if (otherButton) { otherButton.setAttribute('aria-expanded', 'false'); }
+        });
+        group.classList.toggle('is-open', open);
+        button.setAttribute('aria-expanded', String(open));
       });
     });
   }
