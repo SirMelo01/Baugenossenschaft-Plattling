@@ -80,7 +80,16 @@
   </head>
 
   <body class="{% block body_class %}bg-white overflow-x-hidden{% endblock body_class %}">
-    {% block site_banner %}{% endblock site_banner %}
+    {% block site_banner %}
+      {% if owner_data and owner_data.is_vacation_banner_active %}
+        <div class="bgp-vacation-banner" role="status" aria-live="polite">
+          <div class="bgp-vacation-banner-inner">
+            <i class="bi bi-info-circle-fill bgp-vacation-banner-icon" aria-hidden="true"></i>
+            <span class="bgp-vacation-banner-text">{{ owner_data.vacationText|default:"Wir sind aktuell im Urlaub."|linebreaksbr }}</span>
+          </div>
+        </div>
+      {% endif %}
+    {% endblock site_banner %}
 
     {% block navbar %}
       {% include "pages/demos/components/_bgp_navbar.html" %}

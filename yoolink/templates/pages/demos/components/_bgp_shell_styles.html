@@ -50,6 +50,39 @@
     background: linear-gradient(90deg, rgba(255,220,22,0.35) 0%, #FFDC16 50%, rgba(255,220,22,0.35) 100%);
   }
 
+  .bgp-vacation-banner {
+    border-bottom: 1px solid rgba(46,67,76,.14);
+    background-color: #FFDC16;
+    color: #2E434C;
+    font-size: .875rem;
+    font-weight: 600;
+    line-height: 1.45;
+  }
+  .bgp-vacation-banner-inner {
+    display: flex;
+    min-height: 2.5rem;
+    max-width: 80rem;
+    align-items: center;
+    justify-content: center;
+    gap: .625rem;
+    margin: 0 auto;
+    padding: .5rem 1rem;
+    text-align: center;
+  }
+  .bgp-vacation-banner-icon {
+    flex: 0 0 auto;
+    font-size: 1rem;
+  }
+  .bgp-vacation-banner-text {
+    min-width: 0;
+  }
+  @media (min-width: 640px) {
+    .bgp-vacation-banner-inner {
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+    }
+  }
+
   .bgp-card-hover { transition: transform .3s ease, box-shadow .3s ease; }
   .bgp-card-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 40px -18px rgba(46,67,76,0.35); }
 

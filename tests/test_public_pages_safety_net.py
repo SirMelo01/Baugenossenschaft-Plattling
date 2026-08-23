@@ -69,6 +69,23 @@ def test_home_page_renders_faq_with_tenant_info_documents(client):
     assert "Hausordnung.pdf" in html
 
 
+def test_public_shell_renders_vacation_banner_above_navbar(client):
+    site = WebsiteSettings.get_solo()
+    site.vacation = True
+    site.vacationText = "Wir sind vom 01.09. bis 10.09. im Urlaub."
+    site.save()
+
+    for url_name in ("home", "kontakt", "aktuelles"):
+        response = client.get(reverse(url_name))
+        html = response.content.decode()
+        banner_markup = '<div class="bgp-vacation-banner" role="status"'
+
+        assert response.status_code == 200
+        assert banner_markup in html
+        assert "Wir sind vom 01.09. bis 10.09. im Urlaub." in html
+        assert html.index(banner_markup) < html.index("bgp-bg-navy-deep sticky")
+
+
 def test_static_content_pages_render_without_cms_data(client):
     for url_name in [
         "kontakt",
