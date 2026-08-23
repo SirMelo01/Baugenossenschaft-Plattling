@@ -171,13 +171,8 @@ BGP_DEFAULTS = {
             "Hier finden Sie die wichtigsten Informationen für Mieterinnen und Mieter "
             "sowie Antworten auf häufige Fragen rund um die Genossenschaft."
         ),
-    },
-    "tenant_infos": {
-        "title": "Dokumente für Mieter",
-        "description": (
-            "Die wichtigsten Unterlagen stehen hier direkt als PDF zum Herunterladen bereit."
-        ),
-        "buttonText": "PDF öffnen",
+        # Beschriftung auf den Anhaengen einer Frage (Hausordnung, Nebenkosten, ...).
+        "buttonText": "Öffnen",
     },
 
     "home_aktuelles": {
@@ -691,32 +686,6 @@ def available_contact_documents():
     return list(AnyFile.objects.order_by("-uploaded_at")[:200])
 
 
-def tenant_info_documents(limit=2):
-    """Bis zu zwei passende PDF-Unterlagen fuer den FAQ/Mieterinfo-Block."""
-    from yoolink.ycms.models import AnyFile
-
-    docs = list(AnyFile.objects.filter(file__iendswith=".pdf").order_by("-uploaded_at")[:50])
-    if not docs:
-        return []
-
-    keywords = (
-        "mieter",
-        "miet",
-        "hausordnung",
-        "nebenkosten",
-        "betriebskosten",
-        "info",
-        "information",
-    )
-
-    def score(file_obj):
-        text = f"{file_obj.title} {file_obj.filename}".lower()
-        return 0 if any(keyword in text for keyword in keywords) else 1
-
-    ranked = sorted(enumerate(docs), key=lambda item: (score(item[1]), item[0]))
-    return [file_obj for _, file_obj in ranked[:limit]]
-
-
 def bgp_content_context():
     """Alle Textbausteine und Bilder der Baugenossenschaft-Seiten (effektive Werte)."""
     # Lokal importieren, damit dieses Modul ohne geladene App-Registry importierbar bleibt.
@@ -771,7 +740,6 @@ def bgp_content_context():
     ]
     # Auswahlliste fuer die Vorlage: alle Dateien aus dem Modul "Dateien".
     context["bgp_contact_documents"] = available_contact_documents()
-    context["bgp_tenant_info_documents"] = tenant_info_documents()
 
     images = {img.place: img for img in fileentry.objects.filter(place__in=BGP_IMAGE_KEYS.values())}
     context.update({name: images.get(place) for name, place in BGP_IMAGE_KEYS.items()})

@@ -133,7 +133,8 @@ def load_kunde_detail(request, slug):
     return render(request, "pages/kunde_detail.html", context=context)
 
 def load_index(request):
-    faq = FAQ.objects.all()
+    # prefetch_related: sonst holt das Template die Anhaenge je Frage einzeln.
+    faq = FAQ.objects.prefetch_related("files")
 
     context = {
         'FAQ': faq,

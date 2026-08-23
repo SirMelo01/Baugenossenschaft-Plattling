@@ -394,44 +394,30 @@
         <div class="mt-4 border-t border-gray-100 pt-4 text-sm leading-7 text-gray-600 md:text-base">
           {{ faq.answer|linebreaksbr }}
         </div>
+        {% if faq.files.all %}
+        <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {% for document in faq.files.all %}
+          <a href="{{ document.file.url }}" target="_blank" rel="noopener" class="bgp-focus flex items-center justify-between gap-4 rounded-xl border border-[#C9DEE6] bgp-bg-ice px-4 py-3 transition hover:-translate-y-0.5 hover:bg-white hover:shadow-md">
+            <span class="flex min-w-0 items-center gap-3">
+              <span class="inline-flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-white bgp-text-navy">
+                <i class="bi {{ document.icon_class }} text-xl"></i>
+              </span>
+              <span class="min-w-0">
+                <span class="block truncate text-sm font-bold text-gray-900">{{ document.display_name }}</span>
+                <span class="mt-0.5 block text-xs font-semibold uppercase tracking-wider text-gray-400">{{ document.file_extension }}</span>
+              </span>
+            </span>
+            <span class="bgp-text-navy inline-flex flex-shrink-0 items-center gap-2 text-xs font-bold">
+              {{ bgp_faq.buttonText }} <i class="bi bi-box-arrow-up-right"></i>
+            </span>
+          </a>
+          {% endfor %}
+        </div>
+        {% endif %}
       </details>
       {% endfor %}
     </div>
     {% endif %}
-
-    <div class="mx-auto mt-10 max-w-4xl rounded-2xl bgp-bg-ice p-5 ring-1 ring-[#C9DEE6]" data-aos="fade-up">
-      <div class="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h3 class="bgp-text-navy-dark text-xl font-bold">{{ bgp_tenant_infos.title }}</h3>
-          <p class="mt-1 text-sm leading-6 text-gray-600">{{ bgp_tenant_infos.description }}</p>
-        </div>
-      </div>
-
-      {% if bgp_tenant_info_documents %}
-      <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        {% for document in bgp_tenant_info_documents %}
-        <a href="{{ document.file.url }}" target="_blank" rel="noopener" class="bgp-focus flex items-center justify-between gap-4 rounded-xl border border-white bg-white px-4 py-4 shadow-sm transition hover:-translate-y-0.5 hover:border-[#C9DEE6] hover:shadow-md">
-          <span class="flex min-w-0 items-center gap-3">
-            <span class="inline-flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-red-50 text-red-600">
-              <i class="bi bi-file-earmark-pdf-fill text-xl"></i>
-            </span>
-            <span class="min-w-0">
-              <span class="block truncate text-sm font-bold text-gray-900">{{ document.display_name }}</span>
-              <span class="mt-0.5 block text-xs font-semibold uppercase tracking-wider text-gray-400">{{ document.file_extension|default:".pdf" }}</span>
-            </span>
-          </span>
-          <span class="bgp-text-navy inline-flex flex-shrink-0 items-center gap-2 text-xs font-bold">
-            {{ bgp_tenant_infos.buttonText }} <i class="bi bi-box-arrow-up-right"></i>
-          </span>
-        </a>
-        {% endfor %}
-      </div>
-      {% else %}
-      <div class="rounded-xl border border-dashed border-[#C9DEE6] bg-white px-4 py-6 text-sm leading-6 text-gray-500">
-        Sobald Mieterinformationen als PDF im Dateimodul hinterlegt sind, erscheinen sie hier.
-      </div>
-      {% endif %}
-    </div>
   </div>
 </section>
 

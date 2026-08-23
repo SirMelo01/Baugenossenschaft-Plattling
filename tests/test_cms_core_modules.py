@@ -11,9 +11,11 @@ from django.utils import timezone
 from PIL import Image
 
 from yoolink.users.tests.factories import UserFactory
+from yoolink.ycms.permissions import ensure_system_roles
 from yoolink.ycms.models import (
     FAQ,
     AnyFile,
+    CMSUserRole,
     Button,
     Galerie,
     Message,
@@ -43,6 +45,9 @@ def cms_user():
         full_name="Owner User",
         company_name="YooLink Test",
     )
+    # Ohne CMS-Rolle laesst cms_permission_required jeden Aufruf auf /cms/ zurueck-
+    # laufen. Die Tests hier pruefen die Module selbst, nicht die Rechtevergabe.
+    CMSUserRole.objects.create(user=user, role=ensure_system_roles()["owner"])
     return user
 
 
@@ -155,6 +160,46 @@ def test_faq_create_update_reorder_and_delete(logged_in_client):
     delete_response = logged_in_client.post(reverse("ycms:faq-update", args=[faq_id]))
     assert delete_response.status_code == 200
     assert not FAQ.objects.filter(id=faq_id).exists()
+
+
+def test_faq_attachments_are_saved_and_can_be_cleared(logged_in_client):
+    faq = FAQ.objects.create(question="Wo finde ich die Hausordnung?", answer="Als PDF.")
+    hausordnung = AnyFile.objects.create(
+        title="Hausordnung",
+        file=SimpleUploadedFile("hausordnung.pdf", b"%PDF-1.4", content_type="application/pdf"),
+    )
+    nebenkosten = AnyFile.objects.create(
+        title="Nebenkosten",
+        file=SimpleUploadedFile("nebenkosten.pdf", b"%PDF-1.4", content_type="application/pdf"),
+    )
+
+    payload = [{"id": faq.id, "question": faq.question, "answer": faq.answer,
+                "files": [hausordnung.id, nebenkosten.id, 999999]}]
+    response = logged_in_client.post(reverse("ycms:faq-sort"), {"faqs": json.dumps(payload)})
+
+    assert response.status_code == 200
+    # Die unbekannte Id faellt raus, statt das Speichern scheitern zu lassen.
+    assert set(faq.files.values_list("id", flat=True)) == {hausordnung.id, nebenkosten.id}
+
+    payload[0]["files"] = []
+    logged_in_client.post(reverse("ycms:faq-sort"), {"faqs": json.dumps(payload)})
+    assert faq.files.count() == 0
+
+
+def test_faq_sort_without_files_key_keeps_attachments(logged_in_client):
+    """Sortieren aus einem alten Tab darf keine Unterlagen abhaengen."""
+    faq = FAQ.objects.create(question="Frage", answer="Antwort")
+    document = AnyFile.objects.create(
+        title="Hausordnung",
+        file=SimpleUploadedFile("hausordnung.pdf", b"%PDF-1.4", content_type="application/pdf"),
+    )
+    faq.files.add(document)
+
+    payload = [{"id": faq.id, "question": faq.question, "answer": faq.answer}]
+    response = logged_in_client.post(reverse("ycms:faq-sort"), {"faqs": json.dumps(payload)})
+
+    assert response.status_code == 200
+    assert list(faq.files.values_list("id", flat=True)) == [document.id]
 
 
 def test_text_content_save_assigns_media_and_gallery_slots(logged_in_client):

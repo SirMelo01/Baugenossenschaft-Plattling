@@ -47,7 +47,7 @@
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div>
         <h1 class="text-xl font-semibold text-gray-900 sm:text-2xl">FAQ verwalten</h1>
-        <p class="mt-0.5 text-sm text-gray-500">Fragen &amp; Antworten pflegen und per Drag &amp; Drop sortieren.</p>
+        <p class="mt-0.5 text-sm text-gray-500">Fragen, Antworten und Anhänge pflegen, per Drag &amp; Drop sortieren.</p>
       </div>
       <div class="flex gap-2">
         <button id="add-btn" class="inline-flex items-center justify-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm font-semibold text-blue-700 transition hover:bg-blue-100">
@@ -65,28 +65,48 @@
     {% csrf_token %}
     {% for faq in faqs %}
     <div class="list-group-item" data-id="{{ faq.id }}">
-      <div class="group flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-slate-300 hover:shadow lg:flex-row lg:items-center">
-        <span class="handle grid h-9 w-9 flex-shrink-0 cursor-grab place-items-center rounded-lg text-slate-300 transition hover:bg-slate-100 hover:text-slate-500 active:cursor-grabbing" title="Zum Sortieren ziehen">
-          <i class="bi bi-grip-vertical text-xl"></i>
-        </span>
-        <div class="grid flex-1 gap-3 sm:grid-cols-2">
-          <div>
-            <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">Frage</label>
-            <input type="text" value="{{ faq.question }}" placeholder="Deine Frage"
-              class="question w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
+      <div class="group rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-slate-300 hover:shadow">
+        <div class="flex flex-col gap-3 lg:flex-row lg:items-center">
+          <span class="handle grid h-9 w-9 flex-shrink-0 cursor-grab place-items-center rounded-lg text-slate-300 transition hover:bg-slate-100 hover:text-slate-500 active:cursor-grabbing" title="Zum Sortieren ziehen">
+            <i class="bi bi-grip-vertical text-xl"></i>
+          </span>
+          <div class="grid flex-1 gap-3 sm:grid-cols-2">
+            <div>
+              <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">Frage</label>
+              <input type="text" value="{{ faq.question }}" placeholder="Deine Frage"
+                class="question w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
+            </div>
+            <div>
+              <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">Antwort</label>
+              <input type="text" value="{{ faq.answer }}" placeholder="Deine Antwort"
+                class="answer w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
+            </div>
           </div>
-          <div>
-            <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">Antwort</label>
-            <input type="text" value="{{ faq.answer }}" placeholder="Deine Antwort"
-              class="answer w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
+          <div class="flex flex-shrink-0 items-center gap-2 lg:self-end">
+            <button type="button" class="edit-faq inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 lg:flex-none">
+              <i class="bi bi-arrows-angle-expand"></i> Anzeigen
+            </button>
+            <button type="button" title="Löschen" aria-label="Löschen" class="delete inline-flex h-[38px] w-[38px] flex-shrink-0 items-center justify-center rounded-xl border border-rose-200 bg-rose-50 text-rose-600 transition hover:bg-rose-100">
+              <i class="bi bi-trash"></i>
+            </button>
           </div>
         </div>
-        <div class="flex flex-shrink-0 items-center gap-2 lg:self-end">
-          <button type="button" class="edit-faq inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 lg:flex-none">
-            <i class="bi bi-arrows-angle-expand"></i> Anzeigen
-          </button>
-          <button type="button" title="Löschen" aria-label="Löschen" class="delete inline-flex h-[38px] w-[38px] flex-shrink-0 items-center justify-center rounded-xl border border-rose-200 bg-rose-50 text-rose-600 transition hover:bg-rose-100">
-            <i class="bi bi-trash"></i>
+
+        <div class="mt-3 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3">
+          <span class="text-xs font-semibold uppercase tracking-wide text-slate-400">Anhänge</span>
+          <div class="faq-files flex flex-wrap items-center gap-2">
+            {% for document in faq.files.all %}
+            <span class="faq-file inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 py-1.5 pl-2.5 pr-1.5" data-file-id="{{ document.id }}">
+              <i class="bi {{ document.icon_class }} text-slate-500"></i>
+              <a href="{{ document.file.url }}" target="_blank" rel="noopener" class="max-w-[16rem] truncate text-sm font-medium text-slate-700 hover:text-blue-700">{{ document.display_name }}</a>
+              <button type="button" class="faq-file-remove grid h-6 w-6 place-items-center rounded-lg text-slate-400 transition hover:bg-rose-50 hover:text-rose-600" title="Anhang entfernen" aria-label="Anhang entfernen">
+                <i class="bi bi-x-lg text-xs"></i>
+              </button>
+            </span>
+            {% endfor %}
+          </div>
+          <button type="button" class="faq-file-add inline-flex items-center gap-2 rounded-xl border border-dashed border-slate-300 px-3 py-1.5 text-sm font-semibold text-slate-600 transition hover:border-blue-400 hover:text-blue-700">
+            <i class="bi bi-paperclip"></i> Datei anhängen
           </button>
         </div>
       </div>
@@ -100,7 +120,15 @@
     {% endfor %}
   </div>
 
+  <p class="mt-6 rounded-xl bg-blue-50 px-4 py-3 text-sm leading-6 text-blue-900 ring-1 ring-blue-200">
+    <i class="bi bi-info-circle mr-1"></i>
+    Angehängte Dateien stehen auf der Startseite aufgeklappt unter der Antwort. Neue Anhänge und
+    Änderungen an Fragen werden erst mit <strong>Speichern</strong> übernommen.
+  </p>
+
 </div>
+
+{% include "pages/cms/components/DocumentSelectModal.html" %}
 
 {% endblock %}
 

@@ -48,15 +48,22 @@ def test_home_page_renders_cms_managed_content(client):
     assert response.context["pricing_cards"].count() == 1
 
 
-def test_home_page_renders_faq_with_tenant_info_documents(client):
-    FAQ.objects.create(question="Wie melde ich einen Schaden?", answer="Bitte nehmen Sie Kontakt mit uns auf.")
-    AnyFile.objects.create(
-        title="Mieterinfo",
-        file=SimpleUploadedFile("mieterinfo.pdf", b"%PDF-1.4", content_type="application/pdf"),
+def test_home_page_renders_faq_attachments(client):
+    """Angehaengte Dateien stehen bei ihrer Frage - nicht mehr in einem geratenen Kasten."""
+    faq = FAQ.objects.create(
+        question="Wo finde ich die Hausordnung?",
+        answer="Die Hausordnung gilt für alle Objekte.",
     )
-    AnyFile.objects.create(
+    hausordnung = AnyFile.objects.create(
         title="Hausordnung",
         file=SimpleUploadedFile("hausordnung.pdf", b"%PDF-1.4", content_type="application/pdf"),
+    )
+    faq.files.add(hausordnung)
+    FAQ.objects.create(question="Wie melde ich einen Schaden?", answer="Bitte melden Sie sich bei uns.")
+    # Datei ohne Zuordnung: darf nirgends auftauchen, sonst waere wieder geraten.
+    AnyFile.objects.create(
+        title="Nebenkosten",
+        file=SimpleUploadedFile("nebenkosten.pdf", b"%PDF-1.4", content_type="application/pdf"),
     )
 
     response = client.get(reverse("home"))
@@ -64,9 +71,11 @@ def test_home_page_renders_faq_with_tenant_info_documents(client):
 
     assert response.status_code == 200
     assert 'id="faq"' in html
+    assert "Wo finde ich die Hausordnung?" in html
     assert "Wie melde ich einen Schaden?" in html
-    assert "Mieterinfo.pdf" in html
     assert "Hausordnung.pdf" in html
+    assert hausordnung.file.url in html
+    assert "Nebenkosten.pdf" not in html
 
 
 def test_public_shell_renders_vacation_banner_above_navbar(client):

@@ -339,28 +339,18 @@ wo landet. Jeder sichtbare Text der Seite hat hier ein Eingabefeld.
             <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Einleitungstext</span>
             <textarea inputType="description" rows="3" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-base leading-relaxed">{{ bgp_faq.description }}</textarea>
           </div>
+          <div>
+            <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Beschriftung auf angehaengten Dateien</span>
+            <input inputType="buttonText" type="text" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-sm font-bold" value="{{ bgp_faq.buttonText }}">
+          </div>
         </div>
 
         <div class="mt-5 rounded-xl bg-blue-50 px-4 py-3 text-sm leading-6 text-blue-900 ring-1 ring-blue-200">
           <i class="bi bi-info-circle mr-1"></i>
-          Fragen und Antworten werden weiterhin im
+          Fragen, Antworten und die zugehoerigen PDFs werden im
           <a href="{% url 'cms:faq-view' %}" class="font-semibold underline hover:no-underline">FAQ-Modul</a>
-          gepflegt. Die PDF-Karten darunter kommen automatisch aus dem Modul Dateien.
-        </div>
-
-        <div class="text-content mt-6 flex flex-col gap-3 rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200" key="main_bgp_tenant_infos">
-          <div>
-            <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Ueberschrift der PDF-Karten</span>
-            <input inputType="title" type="text" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 font-bold" value="{{ bgp_tenant_infos.title }}">
-          </div>
-          <div>
-            <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Text darunter</span>
-            <textarea inputType="description" rows="2" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 text-sm">{{ bgp_tenant_infos.description }}</textarea>
-          </div>
-          <div>
-            <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">Buttontext je PDF</span>
-            <input inputType="buttonText" type="text" class="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-3 py-2 text-sm font-bold" value="{{ bgp_tenant_infos.buttonText }}">
-          </div>
+          gepflegt. Dort haengt man jeder Frage ihre Unterlagen an - auf der Startseite stehen sie
+          aufgeklappt unter der Antwort.
         </div>
       </div>
     </section>

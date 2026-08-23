@@ -1,4 +1,74 @@
+// Icons je Dateiendung - gleiche Zuordnung wie AnyFile.ICON_BY_EXTENSION, damit
+// ein frisch angehaengter Anhang genauso aussieht wie nach dem Neuladen.
+var FAQ_FILE_ICONS = {
+    '.pdf': 'bi-file-earmark-pdf-fill',
+    '.doc': 'bi-file-earmark-word-fill',
+    '.docx': 'bi-file-earmark-word-fill',
+    '.xls': 'bi-file-earmark-excel-fill',
+    '.xlsx': 'bi-file-earmark-excel-fill',
+    '.ppt': 'bi-file-earmark-ppt-fill',
+    '.pptx': 'bi-file-earmark-ppt-fill',
+    '.zip': 'bi-file-earmark-zip-fill',
+    '.txt': 'bi-file-earmark-text-fill'
+};
+
+function faqFileIcon(ext) {
+    return FAQ_FILE_ICONS[(ext || '').toLowerCase()] || 'bi-file-earmark-fill';
+}
+
+function faqFileChip(file) {
+    var $chip = $('<span>')
+        .addClass('faq-file inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 py-1.5 pl-2.5 pr-1.5')
+        .attr('data-file-id', file.id);
+    $chip.append($('<i>').addClass('bi ' + faqFileIcon(file.ext) + ' text-slate-500'));
+    $chip.append($('<a>')
+        .addClass('max-w-[16rem] truncate text-sm font-medium text-slate-700 hover:text-blue-700')
+        .attr({ href: file.url || '#', target: '_blank', rel: 'noopener' })
+        .text(file.display_name || file.title || file.filename || 'Datei'));
+    $chip.append($('<button>')
+        .addClass('faq-file-remove grid h-6 w-6 place-items-center rounded-lg text-slate-400 transition hover:bg-rose-50 hover:text-rose-600')
+        .attr({ type: 'button', title: 'Anhang entfernen', 'aria-label': 'Anhang entfernen' })
+        .html('<i class="bi bi-x-lg text-xs"></i>'));
+    return $chip;
+}
+
+function faqFileIds($listItem) {
+    return $listItem.find('.faq-file').map(function () {
+        return $(this).attr('data-file-id');
+    }).get();
+}
+
 $(document).ready(function () {
+    // Datei anhaengen: der zentrale Datei-Dialog kann auch gleich hochladen, damit
+    // man die FAQ-Seite zum Nachliefern einer PDF nicht verlassen muss.
+    $(document).on('click', '.faq-file-add', function () {
+        var $listItem = $(this).closest('.list-group-item');
+        var $files = $listItem.find('.faq-files');
+
+        if (!window.CmsDocumentPicker) {
+            sendNotif('Der Datei-Dialog konnte nicht geladen werden', 'error');
+            return;
+        }
+
+        window.CmsDocumentPicker.open({
+            title: 'Datei anhängen',
+            subtitle: 'Die Datei steht danach unter der Antwort zum Download.',
+            applyLabel: 'Anhängen',
+            onApply: function (file) {
+                if (!file) { return; }
+                if ($files.find('[data-file-id="' + file.id + '"]').length) {
+                    sendNotif('Diese Datei hängt bereits an der Frage', 'info');
+                    return;
+                }
+                $files.append(faqFileChip(file));
+            }
+        });
+    });
+
+    $(document).on('click', '.faq-file-remove', function () {
+        $(this).closest('.faq-file').remove();
+    });
+
     // Create Sortable FAQ List
     Sortable.create(simpleList, {
         animation: 150,
@@ -41,6 +111,7 @@ $(document).ready(function () {
                 'answer': answer,
                 'question': question,
                 'faq_id': id,
+                'files': JSON.stringify(faqFileIds($listItem)),
                 csrfmiddlewaretoken: csrftoken,
             },
             dataType: 'json',
@@ -62,7 +133,8 @@ $(document).ready(function () {
             faqs.push({
                 id: id,
                 question: question,
-                answer: answer
+                answer: answer,
+                files: faqFileIds($(this))
             })
         });
 
@@ -163,10 +235,11 @@ function createFaq(id, answer, question) {
 
     // create the element
     var faqElement = $('<div>').addClass('list-group-item').attr('data-id', id);
-    var innerElement = $('<div>').addClass('group flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-slate-300 hover:shadow lg:flex-row lg:items-center');
+    var innerElement = $('<div>').addClass('group rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-slate-300 hover:shadow');
+    var headRow = $('<div>').addClass('flex flex-col gap-3 lg:flex-row lg:items-center');
 
     // Drag-Handle
-    innerElement.append($('<span class="handle grid h-9 w-9 flex-shrink-0 cursor-grab place-items-center rounded-lg text-slate-300 transition hover:bg-slate-100 hover:text-slate-500 active:cursor-grabbing" title="Zum Sortieren ziehen"><i class="bi bi-grip-vertical text-xl"></i></span>'));
+    headRow.append($('<span class="handle grid h-9 w-9 flex-shrink-0 cursor-grab place-items-center rounded-lg text-slate-300 transition hover:bg-slate-100 hover:text-slate-500 active:cursor-grabbing" title="Zum Sortieren ziehen"><i class="bi bi-grip-vertical text-xl"></i></span>'));
 
     // Eingaben (Frage / Antwort)
     var fieldsWrap = $('<div>').addClass('grid flex-1 gap-3 sm:grid-cols-2');
@@ -212,7 +285,18 @@ function createFaq(id, answer, question) {
     var deleteButton = $('<button>').addClass('delete inline-flex h-[38px] w-[38px] flex-shrink-0 items-center justify-center rounded-xl border border-rose-200 bg-rose-50 text-rose-600 transition hover:bg-rose-100').attr('type', 'button').attr('title', 'Löschen').attr('aria-label', 'Löschen').html('<i class="bi bi-trash"></i>');
     buttonElement.append(updateButton, deleteButton);
 
-    innerElement.append(fieldsWrap, buttonElement);
+    headRow.append(fieldsWrap, buttonElement);
+
+    // Anhang-Leiste wie im Template - neue FAQs koennen sofort Dateien bekommen.
+    var filesRow = $('<div>').addClass('mt-3 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3');
+    filesRow.append($('<span>').addClass('text-xs font-semibold uppercase tracking-wide text-slate-400').text('Anhänge'));
+    filesRow.append($('<div>').addClass('faq-files flex flex-wrap items-center gap-2'));
+    filesRow.append($('<button>')
+        .addClass('faq-file-add inline-flex items-center gap-2 rounded-xl border border-dashed border-slate-300 px-3 py-1.5 text-sm font-semibold text-slate-600 transition hover:border-blue-400 hover:text-blue-700')
+        .attr('type', 'button')
+        .html('<i class="bi bi-paperclip"></i> Datei anhängen'));
+
+    innerElement.append(headRow, filesRow);
     faqElement.append(innerElement);
     $('#simpleList').append(faqElement)
 }

@@ -28,6 +28,12 @@ class FAQ(models.Model):
     question = models.CharField(max_length=255, default="")
     answer = models.TextField(default="")
     order = models.PositiveIntegerField(default=0)
+    # Unterlagen zur Frage (Hausordnung, Nebenkostenblatt, ...). Sie kommen aus dem
+    # Modul "Dateien", damit dieselbe PDF an mehreren Fragen haengen kann und beim
+    # Austauschen nur einmal hochgeladen werden muss. Auf der Seite stehen sie
+    # aufgeklappt unter der Antwort - deshalb gibt es keinen separaten
+    # Downloadkasten mehr, der die Dateien erraten muss.
+    files = models.ManyToManyField("AnyFile", blank=True, related_name="faqs")
 
     class Meta:
         ordering = ['order']
@@ -128,6 +134,24 @@ class AnyFile(models.Model):
     @property
     def file_extension(self):
         return os.path.splitext(self.filename)[1].lower()
+
+    # Bootstrap-Icon je Dateiendung, damit CMS-Liste und oeffentliche Seite
+    # dieselben Symbole zeigen wie der Datei-Dialog (document-picker.js).
+    ICON_BY_EXTENSION = {
+        ".pdf": "bi-file-earmark-pdf-fill",
+        ".doc": "bi-file-earmark-word-fill",
+        ".docx": "bi-file-earmark-word-fill",
+        ".xls": "bi-file-earmark-excel-fill",
+        ".xlsx": "bi-file-earmark-excel-fill",
+        ".ppt": "bi-file-earmark-ppt-fill",
+        ".pptx": "bi-file-earmark-ppt-fill",
+        ".zip": "bi-file-earmark-zip-fill",
+        ".txt": "bi-file-earmark-text-fill",
+    }
+
+    @property
+    def icon_class(self):
+        return self.ICON_BY_EXTENSION.get(self.file_extension, "bi-file-earmark-fill")
 
     @property
     def display_name(self):

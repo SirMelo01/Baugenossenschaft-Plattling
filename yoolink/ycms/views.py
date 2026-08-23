@@ -1151,13 +1151,32 @@ def image_optimization_metadata(original, desktop_image, mobile_image=None, skip
 from django.utils.translation import get_language_from_request, activate
 
 # --------------- [FAQ] ---------------
+def _faq_documents(raw_ids):
+    """Aus den Ids des Formulars die tatsaechlich vorhandenen Dateien machen.
+
+    Der Browser schickt die Auswahl des Datei-Dialogs als Id-Liste. Unbekannte
+    oder geloeschte Ids fallen hier raus, statt beim Speichern einen Fehler zu
+    werfen - eine zwischenzeitlich geloeschte Datei soll nicht verhindern, dass
+    die uebrigen Aenderungen ankommen.
+    """
+    ids = []
+    for value in raw_ids or []:
+        try:
+            ids.append(int(value))
+        except (TypeError, ValueError):
+            continue
+    if not ids:
+        return []
+    return list(AnyFile.objects.filter(id__in=ids))
+
+
 @login_required(login_url='login')
 @cms_permission_required("faq.edit")
 def faq_view(request):
     lang = get_active_language(request)
     activate(lang)
     data = {
-        "faqs":  FAQ.objects.all(),
+        "faqs":  FAQ.objects.prefetch_related("files"),
         "selected_language": lang
     }
     return render(request, "pages/cms/faq.html", data)
@@ -1183,6 +1202,13 @@ def update_faq(request):
             faq.question = question
             faq.answer = answer
         faq.save()
+        # Als JSON-Liste, damit auch "keine Anhaenge mehr" ankommt - ein leeres
+        # Formularfeld wuerde der Browser gar nicht erst mitschicken.
+        if 'files' in request.POST:
+            try:
+                faq.files.set(_faq_documents(json.loads(request.POST['files'])))
+            except (TypeError, ValueError):
+                return JsonResponse({'success': False}, status=400)
 
         return JsonResponse({'success': True})
 
@@ -1231,6 +1257,11 @@ def update_faq_order(request):
             realFaq.question = faq['question']
             realFaq.answer = faq['answer']
             realFaq.save()
+            # Die Anhaenge kommen nur mit, wenn die Seite sie auch geschickt hat.
+            # Sonst wuerde ein alter Browser-Tab ohne das Feld beim Sortieren
+            # saemtliche Unterlagen abhaengen.
+            if 'files' in faq:
+                realFaq.files.set(_faq_documents(faq.get('files')))
         return JsonResponse({'success': True})
 
     return JsonResponse({'error': True})
