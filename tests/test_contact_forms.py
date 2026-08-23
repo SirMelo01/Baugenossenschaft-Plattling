@@ -115,6 +115,67 @@ def test_unknown_form_key_falls_back_to_the_default(client):
     assert response.context["active_form_key"] == "allgemein"
 
 
+def _immobilie(**overrides):
+    from decimal import Decimal
+
+    from yoolink.ycms.applications.shop.models import Brand, Product
+
+    brand, _ = Brand.objects.get_or_create(name="Schillerstr. 6b, 94447 Plattling")
+    fields = {
+        "title": "3-Zimmer-Wohnung",
+        "address": brand.name,
+        "brand": brand,
+        "price": Decimal("495.00"),
+        "is_active": True,
+        "showcase_only": True,
+    }
+    fields.update(overrides)
+    return Product.objects.create(**fields)
+
+
+def test_property_link_prefills_the_general_form(client):
+    """"Immobilie anfragen" bringt Anliegen und Objekt schon ausgefuellt mit."""
+    product = _immobilie()
+
+    response = client.get(reverse("kontakt"), {"formular": "allgemein", "immobilie": product.id})
+    form = next(entry["form"] for entry in response.context["contact_forms"] if entry["key"] == "allgemein")
+
+    assert response.context["active_form_key"] == "allgemein"
+    assert form["betreff"].value() == "Wohnungsanfrage / Interessentenliste"
+    assert "3-Zimmer-Wohnung" in form["nachricht"].value()
+    assert "Schillerstr. 6b, 94447 Plattling" in form["nachricht"].value()
+
+
+@pytest.mark.parametrize("value", ["999999", "keine-zahl", ""])
+def test_unknown_property_leaves_the_form_empty(client, value):
+    response = client.get(reverse("kontakt"), {"immobilie": value})
+    form = next(entry["form"] for entry in response.context["contact_forms"] if entry["key"] == "allgemein")
+
+    assert response.status_code == 200
+    assert not form["nachricht"].value()
+
+
+def test_inactive_property_leaves_the_form_empty(client):
+    product = _immobilie(is_active=False)
+
+    response = client.get(reverse("kontakt"), {"immobilie": product.id})
+    form = next(entry["form"] for entry in response.context["contact_forms"] if entry["key"] == "allgemein")
+
+    assert not form["nachricht"].value()
+
+
+def test_submitted_form_wins_over_the_property_prefill(client):
+    """Nach einem Fehler steht im Formular das Getippte, nicht die Vorbelegung."""
+    product = _immobilie()
+    payload = dict(ALLGEMEIN, nachricht="Meine eigene Nachricht.", email="keine-mail")
+
+    response = client.post(f'{reverse("kontakt")}?immobilie={product.id}', payload)
+    form = next(entry["form"] for entry in response.context["contact_forms"] if entry["key"] == "allgemein")
+
+    assert response.status_code == 200
+    assert form["nachricht"].value() == "Meine eigene Nachricht."
+
+
 @pytest.mark.parametrize(
     "payload,category,expected_title",
     [

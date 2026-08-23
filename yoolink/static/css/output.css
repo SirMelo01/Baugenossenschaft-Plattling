@@ -1544,6 +1544,10 @@ body {
   height: 200px;
 }
 
+.h-\[24rem\] {
+  height: 24rem;
+}
+
 .h-\[3\.3rem\] {
   height: 3.3rem;
 }
@@ -1619,6 +1623,10 @@ body {
 
 .max-h-\[15rem\] {
   max-height: 15rem;
+}
+
+.max-h-\[20rem\] {
+  max-height: 20rem;
 }
 
 .max-h-\[55vh\] {
@@ -1699,6 +1707,10 @@ body {
 
 .min-h-\[22rem\] {
   min-height: 22rem;
+}
+
+.min-h-\[24rem\] {
+  min-height: 24rem;
 }
 
 .min-h-\[4\.5rem\] {
@@ -1962,6 +1974,10 @@ body {
   max-width: 1500px;
 }
 
+.max-w-\[16rem\] {
+  max-width: 16rem;
+}
+
 .max-w-\[400px\] {
   max-width: 400px;
 }
@@ -2194,6 +2210,10 @@ body {
 
 .list-disc {
   list-style-type: disc;
+}
+
+.list-none {
+  list-style-type: none;
 }
 
 .appearance-none {
@@ -2632,6 +2652,10 @@ body {
 
 .border {
   border-width: 1px;
+}
+
+.border-0 {
+  border-width: 0px;
 }
 
 .border-2 {
@@ -3193,19 +3217,9 @@ body {
   background-color: rgb(79 70 229 / var(--tw-bg-opacity));
 }
 
-.bg-orange-100 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(255 237 213 / var(--tw-bg-opacity));
-}
-
 .bg-orange-400 {
   --tw-bg-opacity: 1;
   background-color: rgb(251 146 60 / var(--tw-bg-opacity));
-}
-
-.bg-orange-50 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(255 247 237 / var(--tw-bg-opacity));
 }
 
 .bg-orange-500 {
@@ -3895,14 +3909,6 @@ body {
   padding-bottom: 100px;
 }
 
-.pb-0 {
-  padding-bottom: 0px;
-}
-
-.pb-0\.5 {
-  padding-bottom: 0.125rem;
-}
-
 .pb-1 {
   padding-bottom: 0.25rem;
 }
@@ -3989,6 +3995,14 @@ body {
 
 .pl-16 {
   padding-left: 4rem;
+}
+
+.pl-2 {
+  padding-left: 0.5rem;
+}
+
+.pl-2\.5 {
+  padding-left: 0.625rem;
 }
 
 .pl-3 {
@@ -4616,11 +4630,6 @@ body {
 .text-orange-600 {
   --tw-text-opacity: 1;
   color: rgb(234 88 12 / var(--tw-text-opacity));
-}
-
-.text-orange-700 {
-  --tw-text-opacity: 1;
-  color: rgb(194 65 12 / var(--tw-text-opacity));
 }
 
 .text-pink-600 {
@@ -6269,6 +6278,11 @@ body {
   color: rgb(46 67 76 / var(--tw-text-opacity));
 }
 
+.hover\:text-\[\#4B6671\]:hover {
+  --tw-text-opacity: 1;
+  color: rgb(75 102 113 / var(--tw-text-opacity));
+}
+
 .hover\:text-amber-600:hover {
   --tw-text-opacity: 1;
   color: rgb(217 119 6 / var(--tw-text-opacity));
@@ -6342,6 +6356,11 @@ body {
 .hover\:text-red-800:hover {
   --tw-text-opacity: 1;
   color: rgb(153 27 27 / var(--tw-text-opacity));
+}
+
+.hover\:text-rose-600:hover {
+  --tw-text-opacity: 1;
+  color: rgb(225 29 72 / var(--tw-text-opacity));
 }
 
 .hover\:text-slate-500:hover {
@@ -6695,6 +6714,11 @@ body {
 
 .group[open] .group-open\:rotate-180 {
   --tw-rotate: 180deg;
+  transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+}
+
+.group[open] .group-open\:rotate-45 {
+  --tw-rotate: 45deg;
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
 }
 
@@ -7927,6 +7951,10 @@ body {
     height: auto;
   }
 
+  .lg\:h-full {
+    height: 100%;
+  }
+
   .lg\:min-h-\[360px\] {
     min-height: 360px;
   }
@@ -8053,6 +8081,10 @@ body {
     grid-template-columns: repeat(6, minmax(0, 1fr));
   }
 
+  .lg\:grid-cols-\[0\.9fr_1\.1fr\] {
+    grid-template-columns: 0.9fr 1.1fr;
+  }
+
   .lg\:grid-cols-\[160px\2c minmax\(0\2c 1fr\)\] {
     grid-template-columns: 160px minmax(0,1fr);
   }
@@ -8083,6 +8115,10 @@ body {
 
   .lg\:grid-cols-\[3fr_2fr\] {
     grid-template-columns: 3fr 2fr;
+  }
+
+  .lg\:grid-cols-\[minmax\(0\2c 1\.4fr\)_minmax\(18rem\2c 0\.6fr\)\] {
+    grid-template-columns: minmax(0,1.4fr) minmax(18rem,0.6fr);
   }
 
   .lg\:grid-cols-\[minmax\(0\2c 1fr\)\2c auto\] {
@@ -8380,15 +8416,6 @@ body {
     font-size: 4.5rem;
     line-height: 1;
   }
-
-  .lg\:text-\[14px\] {
-    font-size: 14px;
-  }
-
-  .lg\:text-base {
-    font-size: 1rem;
-    line-height: 1.5rem;
-  }
 }
 
 @media (min-width: 1440px) {
@@ -8424,28 +8451,12 @@ body {
     margin-left: 2.5rem;
   }
 
-  .xl\:block {
-    display: block;
-  }
-
-  .xl\:hidden {
-    display: none;
-  }
-
-  .xl\:h-full {
-    height: 100%;
-  }
-
   .xl\:max-h-\[21rem\] {
     max-height: 21rem;
   }
 
   .xl\:min-h-\[22rem\] {
     min-height: 22rem;
-  }
-
-  .xl\:max-w-sm {
-    max-width: 24rem;
   }
 
   .xl\:grid-cols-12 {

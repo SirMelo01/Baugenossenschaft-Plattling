@@ -97,6 +97,11 @@ def _clean_attribute(tag, name, value):
     return name, value
 
 
+# Geschuetztes Leerzeichen (U+00A0) - als Escape geschrieben, weil es im
+# Quelltext sonst wie ein normales Leerzeichen aussieht.
+NBSP = "\u00a0"
+
+
 class _SanitizingParser(HTMLParser):
     def __init__(self):
         super().__init__(convert_charrefs=True)
@@ -171,7 +176,13 @@ class _SanitizingParser(HTMLParser):
     def handle_data(self, data):
         if self.drop_depth:
             return
-        self.parts.append(escape(data))
+        # Aus Word oder von Webseiten eingefuegter Text bringt oft geschuetzte
+        # Leerzeichen zwischen ganz normalen Woertern mit. Der Browser sieht
+        # den Absatz dann als ein einziges langes Wort und zerlegt ihn in einer
+        # schmalen Spalte mitten im Wort ("attrakti / ve"). Absichtlich gesetzte
+        # geschuetzte Leerzeichen gibt es hier nicht, deshalb werden sie zu
+        # gewoehnlichen Leerzeichen.
+        self.parts.append(escape(data.replace(NBSP, " ")))
 
     def get_html(self):
         while self.open_tags:

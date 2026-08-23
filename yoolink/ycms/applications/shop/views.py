@@ -1,6 +1,7 @@
 import json
 from datetime import timedelta
 from decimal import Decimal, InvalidOperation
+from urllib.parse import urlencode
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
@@ -538,7 +539,6 @@ def apply_product_form_data(request, product):
     """
     title = (request.POST.get("title") or "").strip()
     description = sanitize_html((request.POST.get("description") or "").strip())
-    address = (request.POST.get("address") or "").strip()[:255]
     price_note = ""
     brand_name = (request.POST.get("hersteller") or "").strip()
     group_name = (request.POST.get("group") or "").strip()
@@ -601,9 +601,16 @@ def apply_product_form_data(request, product):
 
     try:
         with transaction.atomic():
+            brand = get_or_create_brand(brand_name)
+            # Die Anschrift wird nicht mehr getrennt getippt, sondern ist der
+            # Standort. Vorher gab es zwei Felder, die dasselbe meinten - auf der
+            # Immobilienseite standen dann zwei Adressen untereinander. Der
+            # Standort bleibt die Quelle, "address" traegt ihn nur mit, weil
+            # Objektkarte, Routenlink und Suche daran haengen.
             product.title = title
             product.description = description
-            product.address = address
+            product.brand = brand
+            product.address = (brand.name if brand else "")[:255]
             product.sku = ""
             product.price_note = price_note
             product.featured = featured
@@ -616,7 +623,6 @@ def apply_product_form_data(request, product):
             product.is_reduced = is_reduced
             product.showcase_only = showcase_only
             product.show_price_when_showcase = show_price_when_showcase
-            product.brand = get_or_create_brand(brand_name)
             product.group = get_or_create_group(group_name)
 
             if gallery_instance:
@@ -1219,7 +1225,16 @@ def detail(request, product_id, slug):
         return redirect(localized_product.get_absolute_url())
     product = localized_product
     product.showcase_only = True
-    context=get_bgp_context({"product": product, "demo_page": "immobilien"})
+    # "Immobilie anfragen" springt direkt in das allgemeine Kontaktformular und
+    # nimmt die Objekt-Id mit. Die Kontaktseite fuellt daraus Anliegen und
+    # Nachricht vor - der Interessent muss die Anschrift nicht abtippen und wir
+    # wissen bei jeder Anfrage, um welches Objekt es geht.
+    inquiry_query = urlencode({"formular": "allgemein", "immobilie": product.pk})
+    context = get_bgp_context({
+        "product": product,
+        "demo_page": "immobilien",
+        "product_inquiry_url": f"{reverse('kontakt')}?{inquiry_query}#kontaktformular",
+    })
     context.update(get_opening_hours())
     return render(request, 'pages/detail.html', context)
 

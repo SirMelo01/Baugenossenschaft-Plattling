@@ -747,6 +747,36 @@ def _contact_tab_entry(key, form, text, upload_text, attachments, is_active):
     }
 
 
+def _property_inquiry_initial(product_id):
+    """Vorbelegung des allgemeinen Formulars fuer "Immobilie anfragen".
+
+    Die Immobilienseite haengt nur die Id an den Link, nicht den fertigen Text -
+    so steht in der Anfrage garantiert die Bezeichnung, die aktuell im CMS
+    gepflegt ist, und aus der Adresszeile laesst sich kein fremder Text in die
+    Nachricht schmuggeln. Ist die Immobilie inzwischen weg oder abgeschaltet,
+    bleibt das Formular einfach leer.
+    """
+    from yoolink.ycms.applications.shop.models import Product
+
+    try:
+        product = Product.objects.filter(pk=int(product_id), is_active=True).first()
+    except (TypeError, ValueError):
+        return None
+    if product is None:
+        return None
+
+    address = product.location_address
+    nachricht = f"Ich interessiere mich für die Immobilie „{product.title}“"
+    if address:
+        nachricht += f" ({address})"
+    nachricht += " und bitte um weitere Informationen.\n\n"
+
+    return {
+        "betreff": "Wohnungsanfrage / Interessentenliste",
+        "nachricht": nachricht,
+    }
+
+
 def kontaktform(request):
     """Kontaktseite mit drei Formularen (allgemein, Mitgliedschaft, Reparatur).
 
@@ -791,6 +821,16 @@ def kontaktform(request):
     if active_key not in BGP_CONTACT_FORMS:
         active_key = BGP_DEFAULT_CONTACT_FORM
 
+    # Kommt der Besucher ueber "Immobilie anfragen", steht das Objekt schon im
+    # Formular. Nach einem Absenden mit Fehlern gilt das Getippte, nicht die
+    # Vorbelegung - deshalb nur bei ungebundenen Formularen.
+    initial_by_key = {}
+    if bound_key is None and request.GET.get("immobilie"):
+        inquiry_initial = _property_inquiry_initial(request.GET["immobilie"])
+        if inquiry_initial:
+            initial_by_key[BGP_DEFAULT_CONTACT_FORM] = inquiry_initial
+            active_key = BGP_DEFAULT_CONTACT_FORM
+
     # Die Texte der Reiter stehen in denselben CMS-Bausteinen, aus denen sich auch
     # der Rest der Seite speist - deshalb erst den Seiten-Kontext bauen.
     context = get_bgp_context({"demo_page": "kontakt"})
@@ -798,7 +838,10 @@ def kontaktform(request):
     contact_forms = [
         _contact_tab_entry(
             key,
-            bound_form if key == bound_key else form_class(attachment_settings=attachment_settings[key]),
+            bound_form if key == bound_key else form_class(
+                initial=initial_by_key.get(key),
+                attachment_settings=attachment_settings[key],
+            ),
             context.get(f"bgp_contact_form_{key}", {}),
             context.get(f"bgp_contact_upload_{key}", {}),
             attachment_settings[key],

@@ -529,7 +529,6 @@ $(document).ready(function () {
 
     const formData = new FormData(this);
     setFormDataValue(formData, "title", $("#title").val());
-    setFormDataValue(formData, "address", $("#address").val() || "");
     setFormDataValue(formData, "description", $("#description").val());
     setFormDataValue(formData, "isActive", $("#activeSwitch").is(":checked"));
     setFormDataValue(formData, "isInStock", true);
@@ -685,7 +684,6 @@ $(document).ready(function () {
     const titleImage = files[0];
 
     setFormDataValue(formData, "title", $("#title").val());
-    setFormDataValue(formData, "address", $("#address").val() || "");
     setFormDataValue(formData, "description", $("#description").val());
     setFormDataValue(formData, "isActive", $("#activeSwitch").is(":checked"));
     setFormDataValue(formData, "isInStock", true);

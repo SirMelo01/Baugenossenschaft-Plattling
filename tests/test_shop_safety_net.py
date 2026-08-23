@@ -1,4 +1,5 @@
 import json
+import re
 from decimal import Decimal
 
 import pytest
@@ -7,6 +8,7 @@ from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import override_settings
 from django.urls import reverse
+from django.utils.html import escape
 from rest_framework.test import APIClient
 
 from yoolink.users.tests.factories import UserFactory
@@ -67,9 +69,8 @@ def logged_in_client(cms_user):
 def _product_payload(**overrides):
     payload = {
         "title": "Test Produkt",
-        "address": "Schillerstr. 6b, 94447 Plattling",
         "description": "Ein Produkt für Tests",
-        "hersteller": "YooLink",
+        "hersteller": "Schillerstr. 6b, 94447 Plattling",
         "selected_categories": json.dumps(["CMS", "Hosting"]),
         "selected_file_ids": "[]",
         "specifications": json.dumps(
@@ -171,8 +172,9 @@ def test_cms_product_create_search_update_and_delete(logged_in_client):
 
     product = Product.objects.get()
     assert product.slug == "test-produkt"
+    # Die Anschrift kommt aus dem Standort, ein zweites Adressfeld gibt es nicht mehr.
+    assert product.brand.name == "Schillerstr. 6b, 94447 Plattling"
     assert product.address == "Schillerstr. 6b, 94447 Plattling"
-    assert product.brand.name == "YooLink"
     assert list(product.categories.values_list("name", flat=True)) == []
     assert list(ProductSpecification.objects.values_list("key", "value")) == []
 
@@ -405,6 +407,42 @@ def test_public_product_detail_shows_file_display_name_not_storage_path(client):
 
     assert response.status_code == 200
     assert ">Expose.pdf<" in html
+
+
+def test_public_product_detail_shows_address_once_and_links_to_inquiry(client):
+    product = _create_product(
+        title="Wohnung mit Adresse",
+        address="Schillerstr. 6b, 94447 Plattling",
+        showcase_only=True,
+    )
+
+    response = client.get(reverse("product-detail", kwargs={"product_id": product.id, "slug": product.slug}))
+    html = response.content.decode()
+
+    assert response.status_code == 200
+    # Frueher stand die Anschrift zweimal auf der Seite: als Chip unter dem Titel
+    # und noch einmal als Kachel neben dem Preis.
+    assert html.count("Schillerstr. 6b, 94447 Plattling") == 1
+    assert "bi bi-geo-alt" in html
+    assert escape(product.maps_url) in html
+    assert f'{reverse("kontakt")}?formular=allgemein&amp;immobilie={product.id}#kontaktformular' in html
+
+
+def test_public_product_detail_breaks_pasted_nonbreaking_spaces(client):
+    """Aus Word eingefuegter Text darf in der schmalen Spalte nicht mitten im Wort umbrechen."""
+    product = _create_product(title="Wohnung mit Fliesstext", showcase_only=True)
+    # Geschuetzte Leerzeichen als Escape: im Quelltext waeren sie nicht zu sehen.
+    product.description = "<p>Diese\u00a0gepflegte\u00a0Immobilie\u00a0mit\u00a0attraktiver\u00a0Lage.</p>"
+    product.save()
+
+    response = client.get(reverse("product-detail", kwargs={"product_id": product.id, "slug": product.slug}))
+    html = response.content.decode()
+    description = re.search(r'<div class="rich-text.*?</div>', html, re.S).group(0)
+
+    assert response.status_code == 200
+    assert "Diese gepflegte Immobilie mit attraktiver Lage." in description
+    assert "\u00a0" not in description
+    assert "&nbsp;" not in description
 
 
 def test_public_product_search_filters_by_regular_price():
