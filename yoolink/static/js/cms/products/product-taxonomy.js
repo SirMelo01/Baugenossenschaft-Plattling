@@ -1,10 +1,14 @@
 /**
- * Zuordnung (Rubrik / Standort / Merkmale) für Immobilien.
+ * Zuordnung (Rubrik / Merkmale) für Immobilien.
  *
  * Statt Freitext-Eingaben öffnet sich ein Modal, in dem aus bestehenden
  * Einträgen gewählt oder ein neuer Eintrag angelegt werden kann.
  * Gruppen können zusätzlich sortiert und gelöscht werden, da ihre
  * Reihenfolge die Abschnitte der öffentlichen Immobilienseite bestimmt.
+ *
+ * Die Adresse gehört bewusst nicht hierher: sie wird pro Immobilie frei
+ * eingetippt, weil dieselbe Anschrift an mehreren Objekten stehen darf und
+ * niemand dafür eine gemeinsame Liste pflegen soll.
  */
 (function () {
   const formConfig = document.getElementById("productFormConfig");
@@ -16,7 +20,6 @@
 
   const endpoints = {
     category: formConfig.dataset.categoriesUrl,
-    brand: formConfig.dataset.brandsUrl,
     group: formConfig.dataset.groupsUrl
   };
   const groupCreateUrl = formConfig.dataset.groupCreateUrl;
@@ -32,14 +35,6 @@
       multi: false,
       manageOrder: true
     },
-    brand: {
-      title: "Standort wählen",
-      subtitle: "Wähle den Standort der Immobilie oder lege einen neuen an.",
-      createLabel: "Neuen Standort anlegen",
-      chipContainer: "selectedBrandChips",
-      multi: false,
-      manageOrder: false
-    },
     category: {
       title: "Merkmale wählen",
       subtitle: "Merkmale dienen als Filter-Schlagworte. Mehrfachauswahl möglich.",
@@ -52,7 +47,6 @@
 
   const state = {
     group: [],
-    brand: [],
     category: []
   };
 
@@ -344,7 +338,7 @@
       return;
     }
 
-    // Kategorien und Hersteller werden beim Speichern des Produkts angelegt.
+    // Merkmale werden beim Speichern des Produkts angelegt.
     input.value = "";
     items.push({ id: null, name: name, product_count: 0 });
     items.sort((a, b) => a.name.localeCompare(b.name, "de"));
@@ -407,7 +401,6 @@
   window.getProductTaxonomy = function () {
     return {
       group: state.group[0] || "",
-      brand: state.brand[0] || "",
       categories: state.category.slice()
     };
   };

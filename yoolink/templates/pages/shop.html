@@ -157,27 +157,6 @@
         </div>
 
         <div class="border-t border-gray-100 pt-6">
-          <h3 class="mb-3 text-sm font-semibold text-gray-900">Standort</h3>
-          <div class="max-h-56 space-y-2 overflow-y-auto pr-1">
-            <label class="block cursor-pointer">
-              <input type="radio" name="shopBrand" value="" class="peer sr-only" {% if not filters.brand %}checked{% endif %}>
-              <span class="block rounded-2xl border border-gray-200 px-3 py-2 text-sm text-gray-700 transition peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700">
-                Alle Standorte
-              </span>
-            </label>
-
-            {% for brand in brands %}
-              <label class="block cursor-pointer">
-                <input type="radio" name="shopBrand" value="{{ brand.slug }}" class="peer sr-only" {% if filters.brand == brand.slug %}checked{% endif %}>
-                <span class="block rounded-2xl border border-gray-200 px-3 py-2 text-sm text-gray-700 transition peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700">
-                  {{ brand.name }}
-                </span>
-              </label>
-            {% endfor %}
-          </div>
-        </div>
-
-        <div class="border-t border-gray-100 pt-6">
           <h3 class="mb-3 text-sm font-semibold text-gray-900">Merkmale</h3>
           <div class="max-h-64 space-y-2 overflow-y-auto pr-1">
             <label class="block cursor-pointer">

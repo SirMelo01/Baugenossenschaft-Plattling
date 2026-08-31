@@ -18,7 +18,6 @@ urlpatterns = [
     path("products/create/", products_required(views.product_create_view), name="product-create"),
     path("products/create/upload", products_required(views.product_create), name="product-create-upload"),
     path("products/get_categories/", products_required(views.get_categories), name="get-categories"),
-    path("products/get_brands/", products_required(views.get_brands), name="get-brands"),
     path("products/get_groups/", products_required(views.get_groups), name="get-groups"),
     path("products/groups/create/", products_required(views.group_create), name="group-create"),
     path("products/groups/<int:group_id>/move/", products_required(views.group_move), name="group-move"),

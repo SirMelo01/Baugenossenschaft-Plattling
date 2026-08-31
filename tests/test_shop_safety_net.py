@@ -15,7 +15,6 @@ from yoolink.users.tests.factories import UserFactory
 from yoolink.ycms.applications.shop.models import (
     ProductGroup,
     ShopSettings,
-    Brand,
     Category,
     Order,
     OrderItem,
@@ -70,7 +69,7 @@ def _product_payload(**overrides):
     payload = {
         "title": "Test Produkt",
         "description": "Ein Produkt für Tests",
-        "hersteller": "Schillerstr. 6b, 94447 Plattling",
+        "address": "Schillerstr. 6b, 94447 Plattling",
         "selected_categories": json.dumps(["CMS", "Hosting"]),
         "selected_file_ids": "[]",
         "specifications": json.dumps(
@@ -93,14 +92,12 @@ def _product_payload(**overrides):
 
 
 def _create_product(**overrides):
-    brand, _ = Brand.objects.get_or_create(name=overrides.pop("brand_name", "YooLink"))
     category, _ = Category.objects.get_or_create(name=overrides.pop("category_name", "CMS"))
     product = Product.objects.create(
         title=overrides.pop("title", "Test Produkt"),
         description=overrides.pop("description", "Beschreibung"),
         price=overrides.pop("price", Decimal("49.90")),
         weight=overrides.pop("weight", Decimal("1.5000")),
-        brand=brand,
         is_active=overrides.pop("is_active", True),
         is_in_stock=overrides.pop("is_in_stock", True),
         online_sell=overrides.pop("online_sell", True),
@@ -172,8 +169,7 @@ def test_cms_product_create_search_update_and_delete(logged_in_client):
 
     product = Product.objects.get()
     assert product.slug == "test-produkt"
-    # Die Anschrift kommt aus dem Standort, ein zweites Adressfeld gibt es nicht mehr.
-    assert product.brand.name == "Schillerstr. 6b, 94447 Plattling"
+    # Die Anschrift wird frei eingetippt und steht direkt an der Immobilie.
     assert product.address == "Schillerstr. 6b, 94447 Plattling"
     assert list(product.categories.values_list("name", flat=True)) == []
     assert list(ProductSpecification.objects.values_list("key", "value")) == []
@@ -315,7 +311,6 @@ def test_public_product_search_uses_active_language_variant(client):
         description="English description",
         price=product.price,
         weight=product.weight,
-        brand=product.brand,
         is_active=True,
         is_in_stock=True,
         online_sell=True,
@@ -343,7 +338,6 @@ def test_public_product_search_stays_german_for_english_browser(client):
         description="English description",
         price=product.price,
         weight=product.weight,
-        brand=product.brand,
         is_active=True,
         is_in_stock=True,
         online_sell=True,
@@ -382,7 +376,8 @@ def test_public_shop_map_locations_use_active_product_addresses(client):
             "id": active.id,
             "title": "Wohnung mit Adresse",
             "address": "Schillerstr. 6b, 94447 Plattling",
-            "brand": "YooLink",
+            "lat": None,
+            "lng": None,
             "url": reverse(
                 "product-detail",
                 kwargs={"product_id": active.id, "slug": active.slug},
@@ -392,6 +387,80 @@ def test_public_shop_map_locations_use_active_product_addresses(client):
     ]
     assert "Schillerstr. 6b, 94447 Plattling" in html
     assert "Musterstr. 1, 94447 Plattling" not in html
+
+
+@override_settings(GOOGLE_MAPS_JS_API_KEY="test-key")
+def test_public_shop_map_hands_google_maps_the_stored_coordinates(client):
+    """Die Karte bekommt fertige Koordinaten - im Browser wird nichts nachgeschlagen."""
+    first = _create_product(
+        title="Wohnung A",
+        address="Schillerstr. 6b, 94447 Plattling",
+        showcase_only=True,
+    )
+    second = _create_product(
+        title="Wohnung B",
+        address="Schillerstr. 6b, 94447 Plattling",
+        showcase_only=True,
+    )
+    Product.objects.filter(pk__in=[first.pk, second.pk]).update(latitude=48.7772, longitude=12.8763)
+
+    response = client.get(reverse("products"))
+    html = response.content.decode()
+
+    assert response.status_code == 200
+    assert 'data-map-api-key="test-key"' in html
+    # Dieselbe Anschrift an zwei Objekten ist erlaubt und ergibt zwei Marker.
+    assert [
+        (entry["title"], entry["lat"], entry["lng"])
+        for entry in response.context["product_map_locations"]
+    ] == [
+        ("Wohnung A", 48.7772, 12.8763),
+        ("Wohnung B", 48.7772, 12.8763),
+    ]
+
+
+def test_cms_product_form_saves_typed_address_and_locates_it(logged_in_client, monkeypatch):
+    """Die Anschrift wird frei eingetippt, die Koordinaten kommen beim Speichern dazu."""
+    lookups = []
+
+    def fake_geocode(address):
+        lookups.append(address)
+        return 48.7772, 12.8763
+
+    monkeypatch.setattr(
+        "yoolink.ycms.applications.shop.geocoding.geocode_address", fake_geocode
+    )
+
+    first = logged_in_client.post(
+        reverse("ycms:product-create-upload"),
+        _product_payload(title="Wohnung A"),
+    )
+    assert first.status_code == 201
+
+    product = Product.objects.get(title="Wohnung A")
+    assert product.address == "Schillerstr. 6b, 94447 Plattling"
+    assert (product.latitude, product.longitude) == (48.7772, 12.8763)
+
+    second = logged_in_client.post(
+        reverse("ycms:product-create-upload"),
+        _product_payload(title="Wohnung B"),
+    )
+    assert second.status_code == 201
+
+    twin = Product.objects.get(title="Wohnung B")
+    assert (twin.latitude, twin.longitude) == (48.7772, 12.8763)
+    # Eine bereits verortete Anschrift wird kein zweites Mal nachgeschlagen.
+    assert lookups == ["Schillerstr. 6b, 94447 Plattling"]
+
+    cleared = logged_in_client.post(
+        reverse("ycms:product-detail-update", args=[product.id, product.slug]),
+        _product_payload(title="Wohnung A", address=""),
+    )
+    assert cleared.status_code == 200
+
+    product.refresh_from_db()
+    assert product.address == ""
+    assert product.latitude is None and product.longitude is None
 
 
 def test_public_product_detail_shows_file_display_name_not_storage_path(client):

@@ -1,10 +1,19 @@
+/**
+ * Objektkarte auf der Immobilienseite (Google Maps).
+ *
+ * Die Koordinaten stehen bereits im Seitenquelltext: sie werden beim Speichern
+ * im CMS aus der Adresse bestimmt und am Objekt gespeichert. Hier wird deshalb
+ * nichts mehr umgerechnet - die Karte setzt nur noch Marker.
+ *
+ * Google Maps ist ein externes Medium, die Karte laedt daher erst nach der
+ * Cookie-Einwilligung. Bis dahin (und wenn das Laden scheitert) bleibt die
+ * Adressliste daneben stehen.
+ */
 (function () {
   "use strict";
 
-  var LEAFLET_CSS = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
-  var LEAFLET_JS = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
-  var CACHE_PREFIX = "bgp_geocode_v1:";
-  var leafletPromise = null;
+  var MAPS_CALLBACK = "yoolinkGoogleMapsReady";
+  var mapsPromise = null;
 
   function escapeHtml(value) {
     var div = document.createElement("div");
@@ -44,131 +53,121 @@
     }
   }
 
-  function loadLeaflet() {
-    if (window.L) {
-      return Promise.resolve(window.L);
+  function loadGoogleMaps(apiKey) {
+    if (window.google && window.google.maps) {
+      return Promise.resolve(window.google.maps);
     }
 
-    if (leafletPromise) {
-      return leafletPromise;
+    if (mapsPromise) {
+      return mapsPromise;
     }
 
-    leafletPromise = new Promise(function (resolve, reject) {
-      if (!document.querySelector('link[data-map-lib="leaflet"]')) {
-        var link = document.createElement("link");
-        link.rel = "stylesheet";
-        link.href = LEAFLET_CSS;
-        link.dataset.mapLib = "leaflet";
-        document.head.appendChild(link);
-      }
-
-      var existing = document.querySelector('script[data-map-lib="leaflet"]');
+    mapsPromise = new Promise(function (resolve, reject) {
+      var existing = document.querySelector('script[data-map-lib="google-maps"]');
       if (existing) {
-        existing.addEventListener("load", function () { resolve(window.L); });
         existing.addEventListener("error", reject);
         return;
       }
 
+      window[MAPS_CALLBACK] = function () {
+        resolve(window.google.maps);
+      };
+
       var script = document.createElement("script");
-      script.src = LEAFLET_JS;
-      script.defer = true;
-      script.dataset.mapLib = "leaflet";
-      script.onload = function () { resolve(window.L); };
+      script.src = "https://maps.googleapis.com/maps/api/js"
+        + "?key=" + encodeURIComponent(apiKey)
+        + "&language=de&region=DE&loading=async&callback=" + MAPS_CALLBACK;
+      script.async = true;
+      script.dataset.mapLib = "google-maps";
       script.onerror = reject;
       document.head.appendChild(script);
     });
 
-    return leafletPromise;
+    return mapsPromise;
   }
 
-  function cacheKey(address) {
-    return CACHE_PREFIX + address.trim().toLowerCase();
+  function popupHtml(entry) {
+    var html = '<div style="min-width:12rem">'
+      + '<strong>' + escapeHtml(entry.title) + '</strong>'
+      + '<br><span>' + escapeHtml(entry.address) + '</span>'
+      + '<br><a href="' + escapeHtml(entry.url) + '">Details ansehen</a>';
+    if (entry.maps_url) {
+      html += ' &middot; <a href="' + escapeHtml(entry.maps_url) + '" target="_blank" rel="noopener">Route</a>';
+    }
+    return html + "</div>";
   }
 
-  function readCached(address) {
-    try {
-      var raw = window.localStorage.getItem(cacheKey(address));
-      if (!raw) {
-        return null;
+  function hasCoordinates(entry) {
+    return typeof entry.lat === "number" && typeof entry.lng === "number";
+  }
+
+  /**
+   * "Auf Karte zeigen" neben jeder Adresse aktivieren.
+   *
+   * Der Knopf steht erst zur Verfuegung, wenn die Karte wirklich da ist - ohne
+   * Einwilligung oder nach einem Ladefehler wuerde er ins Leere fuehren.
+   */
+  function connectList(root, markers, showEntry) {
+    root.querySelectorAll("[data-map-focus]").forEach(function (button) {
+      var entryId = button.dataset.mapFocus;
+      if (!markers[entryId]) {
+        return;
       }
-      var parsed = JSON.parse(raw);
-      if (Number.isFinite(parsed.lat) && Number.isFinite(parsed.lon)) {
-        return parsed;
-      }
-    } catch (error) {
-      return null;
-    }
-    return null;
-  }
 
-  function writeCached(address, coords) {
-    try {
-      window.localStorage.setItem(cacheKey(address), JSON.stringify(coords));
-    } catch (error) {
-      // Cache is optional.
-    }
-  }
-
-  function geocode(location) {
-    var cached = readCached(location.address);
-    if (cached) {
-      return Promise.resolve(Object.assign({}, location, cached));
-    }
-
-    var params = new URLSearchParams({
-      format: "json",
-      limit: "1",
-      countrycodes: "de",
-      q: location.address,
-    });
-
-    return window.fetch("https://nominatim.openstreetmap.org/search?" + params.toString(), {
-      headers: { Accept: "application/json" },
-    })
-      .then(function (response) {
-        if (!response.ok) {
-          throw new Error("Geocoding failed");
-        }
-        return response.json();
-      })
-      .then(function (result) {
-        var first = Array.isArray(result) ? result[0] : null;
-        if (!first) {
-          return null;
-        }
-
-        var coords = {
-          lat: parseFloat(first.lat),
-          lon: parseFloat(first.lon),
-        };
-        if (!Number.isFinite(coords.lat) || !Number.isFinite(coords.lon)) {
-          return null;
-        }
-        writeCached(location.address, coords);
-        return Object.assign({}, location, coords);
-      })
-      .catch(function () {
-        return null;
+      button.classList.remove("hidden");
+      button.classList.add("inline-flex");
+      button.addEventListener("click", function () {
+        showEntry(entryId);
       });
+    });
   }
 
-  function geocodeAll(locations) {
-    var chain = Promise.resolve([]);
-    locations.forEach(function (location, index) {
-      chain = chain.then(function (results) {
-        return new Promise(function (resolve) {
-          window.setTimeout(function () {
-            geocode(location).then(function (entry) {
-              if (entry) {
-                results.push(entry);
-              }
-              resolve(results);
-            });
-          }, index === 0 ? 0 : 300);
+  function buildMap(root, canvas, entries) {
+    return loadGoogleMaps(root.dataset.mapApiKey).then(function (maps) {
+      var map = new maps.Map(canvas, {
+        mapTypeControl: false,
+        streetViewControl: false,
+        fullscreenControl: true,
+        // Ohne "cooperative" zoomt das Mausrad die Karte statt die Seite zu scrollen.
+        gestureHandling: "cooperative",
+      });
+
+      var infoWindow = new maps.InfoWindow();
+      var bounds = new maps.LatLngBounds();
+      var markers = {};
+      var entriesById = {};
+
+      entries.forEach(function (entry) {
+        var position = { lat: entry.lat, lng: entry.lng };
+        var marker = new maps.Marker({ map: map, position: position, title: entry.title });
+
+        marker.addListener("click", function () {
+          infoWindow.setContent(popupHtml(entry));
+          infoWindow.open({ anchor: marker, map: map });
         });
+
+        markers[entry.id] = marker;
+        entriesById[entry.id] = entry;
+        bounds.extend(position);
       });
+
+      if (entries.length === 1) {
+        map.setCenter({ lat: entries[0].lat, lng: entries[0].lng });
+        map.setZoom(15);
+      } else {
+        map.fitBounds(bounds, 48);
+      }
+
+      connectList(root, markers, function (entryId) {
+        var marker = markers[entryId];
+        map.panTo(marker.getPosition());
+        infoWindow.setContent(popupHtml(entriesById[entryId]));
+        infoWindow.open({ anchor: marker, map: map });
+        canvas.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+
+      root.dataset.mapReady = "true";
     });
-    return chain;
   }
 
   function renderMap(root, locations) {
@@ -176,12 +175,23 @@
     var placeholder = root.querySelector("[data-map-placeholder]");
     var empty = root.querySelector("[data-map-empty]");
     var error = root.querySelector("[data-map-error]");
+    var entries = locations.filter(hasCoordinates);
 
     if (!locations.length) {
       setVisible(canvas, false);
       setVisible(placeholder, false, true);
       setVisible(error, false, true);
       setVisible(empty, true, true);
+      return;
+    }
+
+    // Ohne API-Key oder ohne eine einzige gefundene Adresse gibt es nichts zu
+    // zeigen - die Liste daneben bleibt aber vollstaendig.
+    if (!root.dataset.mapApiKey || !entries.length) {
+      setVisible(canvas, false);
+      setVisible(placeholder, false, true);
+      setVisible(empty, false, true);
+      setVisible(error, true, true);
       return;
     }
 
@@ -198,56 +208,18 @@
     setVisible(error, false, true);
     setVisible(canvas, true);
 
-    if (root.dataset.mapReady === "true") {
+    // "loading" verhindert, dass eine zweite Einwilligungsmeldung waehrend des
+    // Ladens eine zweite Karte in dieselbe Flaeche baut.
+    if (root.dataset.mapReady) {
       return;
     }
+    root.dataset.mapReady = "loading";
 
-    loadLeaflet()
-      .then(function (L) {
-        return geocodeAll(locations).then(function (entries) {
-          if (!entries.length) {
-            throw new Error("No coordinates found");
-          }
-
-          var map = L.map(canvas, {
-            scrollWheelZoom: false,
-          });
-
-          L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-            maxZoom: 19,
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-          }).addTo(map);
-
-          var bounds = [];
-          entries.forEach(function (entry) {
-            var latLng = [entry.lat, entry.lon];
-            bounds.push(latLng);
-            var popup = ""
-              + '<strong>' + escapeHtml(entry.title) + '</strong>'
-              + '<br><span>' + escapeHtml(entry.address) + '</span>'
-              + '<br><a href="' + escapeHtml(entry.url) + '">Details ansehen</a>';
-            if (entry.maps_url) {
-              popup += ' · <a href="' + escapeHtml(entry.maps_url) + '" target="_blank" rel="noopener">Route</a>';
-            }
-            L.marker(latLng).addTo(map).bindPopup(popup);
-          });
-
-          if (bounds.length === 1) {
-            map.setView(bounds[0], 15);
-          } else {
-            map.fitBounds(bounds, { padding: [28, 28] });
-          }
-
-          root.dataset.mapReady = "true";
-          window.setTimeout(function () {
-            map.invalidateSize();
-          }, 100);
-        });
-      })
-      .catch(function () {
-        setVisible(canvas, false);
-        setVisible(error, true, true);
-      });
+    buildMap(root, canvas, entries).catch(function () {
+      root.dataset.mapReady = "";
+      setVisible(canvas, false);
+      setVisible(error, true, true);
+    });
   }
 
   function init() {
@@ -255,6 +227,19 @@
       renderMap(root, parseLocations(root));
     });
   }
+
+  /**
+   * Einen abgelehnten API-Key meldet Google nicht ueber das Skript, sondern nur
+   * ueber diesen globalen Rueckruf. Ohne ihn bliebe eine graue Flaeche stehen -
+   * so tritt stattdessen der Hinweis mit der Adressliste an ihre Stelle.
+   */
+  window.gm_authFailure = function () {
+    document.querySelectorAll("[data-immobilien-map]").forEach(function (root) {
+      root.dataset.mapReady = "";
+      setVisible(root.querySelector("[data-map-canvas]"), false);
+      setVisible(root.querySelector("[data-map-error]"), true, true);
+    });
+  };
 
   document.addEventListener("DOMContentLoaded", init);
   document.addEventListener("yoolink:consentChanged", init);

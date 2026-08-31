@@ -17,7 +17,6 @@ function getCurrentShopFilters() {
     max_price: $("#filterMaxPrice").val().trim(),
     online_only: $("#filterOnlineOnly").is(":checked"),
     type: getCheckedRadioValue("shopProductType"),
-    brand: getCheckedRadioValue("shopBrand"),
     ordering: $("#shopSortSelect").val() || "title_asc",
   }
 }
@@ -31,7 +30,6 @@ function getActiveShopFilterCount() {
   if (filters.max_price) count += 1
   if (filters.online_only) count += 1
   if (filters.type) count += 1
-  if (filters.brand) count += 1
   if (filters.ordering && filters.ordering !== "title_asc") count += 1
 
   return count
@@ -60,7 +58,6 @@ function buildShopSearchParams(page = 1) {
   if (filters.max_price) params.set("max_price", filters.max_price)
   if (filters.online_only) params.set("online_only", "true")
   if (filters.type) params.set("type", filters.type)
-  if (filters.brand) params.set("brand", filters.brand)
   if (filters.ordering) params.set("ordering", filters.ordering)
 
   params.set("page", page)
@@ -72,7 +69,6 @@ function buildPublicProductCard(product) {
   const imageUrl = product.image_url || placeholderImage
   const title = escapeHtml(product.title)
   const description = escapeHtml(product.description || "Keine Beschreibung vorhanden")
-  const brand = escapeHtml(product.brand || "")
   const address = escapeHtml(product.address || "")
   const showPriceCard = Boolean(product.should_show_price_card)
 
@@ -112,8 +108,7 @@ function buildPublicProductCard(product) {
 
         <div class="flex flex-1 flex-col p-5">
           <div class="min-w-0">
-            ${brand ? `<p class="text-xs font-semibold uppercase tracking-wide text-gray-400">${brand}</p>` : ""}
-            <h3 class="mt-1 text-lg font-bold leading-snug text-gray-900 group-hover:text-[#4B6671]">${title}</h3>
+            <h3 class="text-lg font-bold leading-snug text-gray-900 group-hover:text-[#4B6671]">${title}</h3>
             ${address ? `<p class="mt-2 flex items-start gap-2 text-xs font-medium leading-5 text-gray-500"><i class="bi bi-geo-alt mt-0.5 flex-shrink-0"></i><span class="line-clamp-2">${address}</span></p>` : ""}
           </div>
 
@@ -336,7 +331,7 @@ $(document).ready(function () {
     loadShopProducts(1)
   })
 
-  $('input[name="shopProductType"], input[name="shopBrand"]').on("change", function () {
+  $('input[name="shopProductType"]').on("change", function () {
     updateShopFilterCount()
     loadShopProducts(1)
   })
@@ -348,7 +343,6 @@ $(document).ready(function () {
     $("#filterMaxPrice").val("")
     $('#shopSortSelect').val("title_asc")
     $('input[name="shopProductType"][value=""]').prop("checked", true)
-    $('input[name="shopBrand"][value=""]').prop("checked", true)
 
     updateShopFilterCount()
     loadShopProducts(1)

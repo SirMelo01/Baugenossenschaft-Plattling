@@ -212,8 +212,8 @@
           <div class="flex items-start justify-between gap-3">
             <div class="min-w-0">
               <h2 class="truncate text-lg font-semibold text-gray-900">{{ product.title }}</h2>
-              {% if product.brand %}
-                <p class="mt-1 text-sm text-gray-500">{{ product.brand.name }}</p>
+              {% if product.location_address %}
+                <p class="mt-1 text-sm text-gray-500">{{ product.location_address }}</p>
               {% endif %}
             </div>
 

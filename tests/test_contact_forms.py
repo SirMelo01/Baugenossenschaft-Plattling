@@ -118,13 +118,11 @@ def test_unknown_form_key_falls_back_to_the_default(client):
 def _immobilie(**overrides):
     from decimal import Decimal
 
-    from yoolink.ycms.applications.shop.models import Brand, Product
+    from yoolink.ycms.applications.shop.models import Product
 
-    brand, _ = Brand.objects.get_or_create(name="Schillerstr. 6b, 94447 Plattling")
     fields = {
         "title": "3-Zimmer-Wohnung",
-        "address": brand.name,
-        "brand": brand,
+        "address": "Schillerstr. 6b, 94447 Plattling",
         "price": Decimal("495.00"),
         "is_active": True,
         "showcase_only": True,

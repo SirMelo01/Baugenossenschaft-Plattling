@@ -25,6 +25,11 @@ PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
 # https://docs.djangoproject.com/en/dev/ref/settings/#email-backend
 EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 
+# GEOCODING
+# ------------------------------------------------------------------------------
+# Ein Testlauf darf keine Adressen bei Google oder OpenStreetMap nachschlagen.
+GEOCODING_ENABLED = False
+
 # DEBUGGING FOR TEMPLATES
 # ------------------------------------------------------------------------------
 TEMPLATES[0]["OPTIONS"]["debug"] = True  # type: ignore # noqa F405

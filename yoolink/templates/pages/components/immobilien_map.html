@@ -1,6 +1,6 @@
 {{ product_map_locations|json_script:"product-map-locations" }}
 
-<section id="immobilien-karte" data-immobilien-map data-locations-script="product-map-locations" class="mb-8 overflow-hidden rounded-2xl border border-[#C9DEE6] bg-white shadow-sm">
+<section id="immobilien-karte" data-immobilien-map data-locations-script="product-map-locations" data-map-api-key="{{ google_maps_js_api_key }}" class="mb-8 overflow-hidden rounded-2xl border border-[#C9DEE6] bg-white shadow-sm">
   <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1.4fr)_minmax(18rem,0.6fr)]">
     <div class="relative min-h-[24rem] bg-[#EEF5F8]">
       <div data-map-canvas class="hidden h-[24rem] w-full lg:h-full"></div>
@@ -10,7 +10,7 @@
           <i class="bi bi-map text-xl"></i>
         </span>
         <p class="text-lg font-bold text-[#2E434C]">Objektkarte anzeigen</p>
-        <p class="mt-2 max-w-md text-sm leading-6 text-gray-600">Die Karte wird nach Ihrer Einwilligung für externe Medien geladen.</p>
+        <p class="mt-2 max-w-md text-sm leading-6 text-gray-600">Google Maps wird nach Ihrer Einwilligung für externe Medien geladen.</p>
         <button type="button" data-consent-action="open-settings" class="bgp-btn-navy mt-4 inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-bold">
           Cookie-Auswahl öffnen
         </button>
@@ -48,6 +48,9 @@
           </span>
           <span class="mt-2 flex flex-wrap gap-3 text-xs font-bold text-[#4B6671]">
             <a href="{{ location.url }}" class="inline-flex items-center gap-1 transition hover:text-[#2E434C]">Details <i class="bi bi-arrow-right"></i></a>
+            {% if location.lat %}
+            <button type="button" data-map-focus="{{ location.id }}" class="hidden items-center gap-1 transition hover:text-[#2E434C]">Auf Karte zeigen <i class="bi bi-geo"></i></button>
+            {% endif %}
             {% if location.maps_url %}
             <a href="{{ location.maps_url }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 transition hover:text-[#2E434C]">Route <i class="bi bi-box-arrow-up-right"></i></a>
             {% endif %}
@@ -62,3 +65,15 @@
     </div>
   </div>
 </section>
+
+<style>
+  /* Google Maps vergibt seinen Panes, Info-Fenstern und Controls hohe z-index-Werte
+     und oeffnet dafuer keinen eigenen Stacking-Context - die Karte legt sich sonst
+     beim Scrollen ueber die Sticky-Navbar (z-50). Ein eigener Stacking-Context auf
+     dem Kartenblock haelt alle Kartenebenen zusammen und damit unterhalb der
+     Navigation. */
+  [data-immobilien-map] {
+    position: relative;
+    z-index: 0;
+  }
+</style>

@@ -19,10 +19,7 @@
 
     <div class="flex flex-1 flex-col p-5">
       <div class="min-w-0">
-        {% if product.brand %}
-          <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">{{ product.brand.name }}</p>
-        {% endif %}
-        <h3 class="mt-1 text-lg font-bold leading-snug text-gray-900 group-hover:text-[#4B6671]">
+        <h3 class="text-lg font-bold leading-snug text-gray-900 group-hover:text-[#4B6671]">
           {{ product.title }}
         </h3>
         {% if product.location_address %}

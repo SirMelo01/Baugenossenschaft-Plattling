@@ -36,10 +36,10 @@ from yoolink.ycms.views import (
     scale_image,
 )
 
+from .geocoding import coordinates_for_address
 from .serializers import OrderItemSerializer, OrderSerializer
 from ...views import send_mail
 from .models import (
-    Brand,
     Category,
     Order,
     OrderItem,
@@ -126,6 +126,8 @@ def clone_product_translation(original_product, language):
         title=original_product.title,
         description=original_product.description,
         address=original_product.address,
+        latitude=original_product.latitude,
+        longitude=original_product.longitude,
         sku=original_product.sku,
         price_note=original_product.price_note,
         featured=original_product.featured,
@@ -257,18 +259,6 @@ def process_product_image(uploaded_file):
     return compress_image(scaled_image)
 
 
-def get_or_create_brand(brand_name):
-    """Create or return an existing brand."""
-    if not brand_name:
-        return None
-
-    brand, _ = Brand.objects.get_or_create(
-        name=brand_name.strip(),
-        defaults={"website": ""},
-    )
-    return brand
-
-
 def get_or_create_group(group_name):
     """Create or return an existing product group."""
     group_name = (group_name or "").strip()
@@ -343,7 +333,6 @@ def serialize_product_for_search(product):
         "showcase_only": getattr(product, "showcase_only", False),
         "show_price_when_showcase": getattr(product, "show_price_when_showcase", True),
         "should_show_price_card": getattr(product, "should_show_price_card", False),
-        "brand": product.brand.name if product.brand else "",
         "group": product.group.name if product.group else "",
         "categories": [category.name for category in product.categories.all()],
         "language": product.language,
@@ -375,7 +364,6 @@ def serialize_public_product(product):
         "is_in_stock": product.is_in_stock,
         "online_sell": product.online_sell,
         "is_reduced": product.is_reduced,
-        "brand": product.brand.name if product.brand else "",
         "categories": [category.name for category in product.categories.all()],
         "detail_url": reverse(
             "product-detail",
@@ -385,15 +373,25 @@ def serialize_public_product(product):
 
 
 def serialize_product_location(product):
+    """Ein Eintrag fuer die Objektkarte.
+
+    Die Koordinaten stehen an der Immobilie (beim Speichern im CMS ermittelt).
+    Fehlen sie, weil die Anschrift nicht gefunden wurde, bleibt der Eintrag
+    trotzdem erhalten: er erscheint dann in der Liste neben der Karte, nur ohne
+    Marker.
+    """
     address = product.location_address
     if not address:
         return None
+
+    position = product.map_position
 
     return {
         "id": product.id,
         "title": product.title,
         "address": address,
-        "brand": product.brand.name if product.brand else "",
+        "lat": position["lat"] if position else None,
+        "lng": position["lng"] if position else None,
         "url": reverse(
             "product-detail",
             kwargs={"product_id": product.id, "slug": product.slug},
@@ -406,8 +404,7 @@ def get_active_product_map_locations(request):
     language = get_active_product_language(request)
     products = (
         Product.objects.filter(is_active=True, original__isnull=True)
-        .select_related("brand")
-        .prefetch_related("translations", "translations__brand")
+        .prefetch_related("translations")
         .order_by("-featured", "title")
     )
 
@@ -540,7 +537,7 @@ def apply_product_form_data(request, product):
     title = (request.POST.get("title") or "").strip()
     description = sanitize_html((request.POST.get("description") or "").strip())
     price_note = ""
-    brand_name = (request.POST.get("hersteller") or "").strip()
+    address = (request.POST.get("address") or "").strip()[:255]
     group_name = (request.POST.get("group") or "").strip()
     selected_categories = []
     selected_file_ids = parse_json_list(request.POST.get("selected_file_ids"))
@@ -593,6 +590,10 @@ def apply_product_form_data(request, product):
     if gallery_id:
         gallery_instance = get_object_or_404(Galerie, id=int(gallery_id))
 
+    # Die Koordinaten werden vor der Transaktion geholt: die Anfrage an den
+    # Geocoder geht ins Netz und darf keine offene Datenbanktransaktion blockieren.
+    latitude, longitude = coordinates_for_address(address, exclude_pk=product.pk, previous=product)
+
     selected_files = AnyFile.objects.filter(id__in=selected_file_ids)
 
     parsed_specifications, specifications_error = parse_product_specifications(specifications_payload)
@@ -601,16 +602,15 @@ def apply_product_form_data(request, product):
 
     try:
         with transaction.atomic():
-            brand = get_or_create_brand(brand_name)
-            # Die Anschrift wird nicht mehr getrennt getippt, sondern ist der
-            # Standort. Vorher gab es zwei Felder, die dasselbe meinten - auf der
-            # Immobilienseite standen dann zwei Adressen untereinander. Der
-            # Standort bleibt die Quelle, "address" traegt ihn nur mit, weil
-            # Objektkarte, Routenlink und Suche daran haengen.
+            # Die Anschrift wird frei eingetippt und steht direkt an der Immobilie.
+            # Dieselbe Anschrift darf an mehreren Objekten stehen (Wohnanlage mit
+            # mehreren Einheiten), ohne dass dafuer ein gemeinsamer Eintrag gepflegt
+            # werden muss. Objektkarte, Routenlink und Suche haengen an diesem Feld.
             product.title = title
             product.description = description
-            product.brand = brand
-            product.address = (brand.name if brand else "")[:255]
+            product.address = address
+            product.latitude = latitude
+            product.longitude = longitude
             product.sku = ""
             product.price_note = price_note
             product.featured = featured
@@ -693,7 +693,7 @@ def product_create_view(request):
 def product_detail(request, product_id, slug):
     """Render the CMS product edit page."""
     product = get_object_or_404(
-        Product.objects.select_related("brand", "gallery", "original", "group")
+        Product.objects.select_related("gallery", "original", "group")
         .prefetch_related("categories", "files", "specifications", "translations"),
         id=product_id,
         slug=slug,
@@ -709,7 +709,7 @@ def get_filtered_products_queryset(request):
     ordering = (request.GET.get("ordering") or "title_asc").strip()
 
     products = (
-        Product.objects.select_related("brand", "gallery")
+        Product.objects.select_related("gallery")
         .prefetch_related("categories", "translations")
         .filter(original__isnull=True)
     )
@@ -719,7 +719,6 @@ def get_filtered_products_queryset(request):
             Q(title__icontains=query)
             | Q(description__icontains=query)
             | Q(address__icontains=query)
-            | Q(brand__name__icontains=query)
             | Q(categories__name__icontains=query)
         ).distinct()
 
@@ -903,21 +902,6 @@ def get_categories(request):
 
 
 @login_required(login_url="login")
-def get_brands(request):
-    """Return all brands (with product counts) for the CMS picker."""
-    brands = Brand.objects.annotate(product_count=Count("products", distinct=True)).order_by("name")
-    return JsonResponse(
-        {
-            "brands": [brand.name for brand in brands],
-            "items": [
-                {"id": brand.id, "name": brand.name, "product_count": brand.product_count}
-                for brand in brands
-            ],
-        }
-    )
-
-
-@login_required(login_url="login")
 def get_groups(request):
     """Return all product groups (with counts) ordered for the CMS picker."""
     groups = ProductGroup.objects.annotate(product_count=Count("products", distinct=True)).order_by("sort_order", "name")
@@ -1013,7 +997,6 @@ def get_public_filtered_products_queryset(request):
     query = (request.GET.get("q") or request.GET.get("name") or "").strip()
     min_price = (request.GET.get("min_price") or "").strip()
     max_price = (request.GET.get("max_price") or "").strip()
-    brand = (request.GET.get("brand") or request.GET.get("manufacturer") or "").strip()
     category = (request.GET.get("category") or "").strip()
     product_type = (request.GET.get("type") or "").strip()
     ordering = (request.GET.get("ordering") or "title_asc").strip()
@@ -1024,7 +1007,6 @@ def get_public_filtered_products_queryset(request):
 
     products = (
         Product.objects.filter(is_active=True, original__isnull=True)
-        .select_related("brand")
         .prefetch_related("categories", "translations", "translations__categories")
         .annotate(
             effective_price_value=F("price")
@@ -1036,7 +1018,6 @@ def get_public_filtered_products_queryset(request):
             Q(title__icontains=query)
             | Q(description__icontains=query)
             | Q(address__icontains=query)
-            | Q(brand__name__icontains=query)
             | Q(categories__name__icontains=query)
         ).distinct()
 
@@ -1049,9 +1030,6 @@ def get_public_filtered_products_queryset(request):
         max_price_value = parse_decimal(max_price)
         if max_price_value is not None:
             products = products.filter(effective_price_value__lte=max_price_value)
-
-    if brand:
-        products = products.filter(Q(brand__slug=brand) | Q(brand__name__icontains=brand))
 
     if category:
         products = products.filter(Q(categories__slug=category) | Q(categories__name__icontains=category)).distinct()
@@ -1124,7 +1102,7 @@ def build_grouped_products_context(request):
 
     products = (
         Product.objects.filter(is_active=True, original__isnull=True)
-        .select_related("brand", "group")
+        .select_related("group")
         .prefetch_related("categories", "translations", "translations__categories", "translations__group")
         .order_by("-featured", "title")
     )
@@ -1176,19 +1154,16 @@ def public_shop(request):
         for product in page_obj.object_list
     ]
 
-    brands = Brand.objects.filter(products__is_active=True).distinct().order_by("name")
     categories = Category.objects.filter(products__is_active=True).distinct().order_by("name")
 
     context = get_bgp_context({
         "shop_settings": shop_settings,
         "page_obj": page_obj,
-        "brands": brands,
         "categories": categories,
         "filters": {
             "q": request.GET.get("q", ""),
             "min_price": request.GET.get("min_price", ""),
             "max_price": request.GET.get("max_price", ""),
-            "brand": request.GET.get("brand", ""),
             "category": request.GET.get("category", ""),
             "type": request.GET.get("type", ""),
             "ordering": request.GET.get("ordering", "title_asc"),
@@ -1204,7 +1179,7 @@ def public_shop(request):
 
 def detail(request, product_id, slug):
     product = get_object_or_404(
-        Product.objects.select_related("brand", "gallery", "original")
+        Product.objects.select_related("gallery", "original")
         .prefetch_related("categories", "translations", "specifications", "gallery__images", "files"),
         id=product_id,
     )
@@ -1893,7 +1868,7 @@ def shop(request):
     )
 
     recent_products = list(
-        base_products.select_related("brand").order_by("-updated_at")[:5]
+        base_products.order_by("-updated_at")[:5]
     )
 
     data = {

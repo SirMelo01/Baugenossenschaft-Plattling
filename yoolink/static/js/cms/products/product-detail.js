@@ -191,9 +191,8 @@ function appendSpecificationsToFormData(formData) {
 function appendTaxonomyToFormData(formData) {
   const taxonomy = typeof window.getProductTaxonomy === "function"
     ? window.getProductTaxonomy()
-    : { group: "", brand: "", categories: [] };
+    : { group: "", categories: [] };
 
-  setFormDataValue(formData, "hersteller", taxonomy.brand);
   setFormDataValue(formData, "group", taxonomy.group);
   setFormDataValue(formData, "selected_categories", JSON.stringify([]));
 }
@@ -529,6 +528,7 @@ $(document).ready(function () {
 
     const formData = new FormData(this);
     setFormDataValue(formData, "title", $("#title").val());
+    setFormDataValue(formData, "address", $("#address").val());
     setFormDataValue(formData, "description", $("#description").val());
     setFormDataValue(formData, "isActive", $("#activeSwitch").is(":checked"));
     setFormDataValue(formData, "isInStock", true);
@@ -684,6 +684,7 @@ $(document).ready(function () {
     const titleImage = files[0];
 
     setFormDataValue(formData, "title", $("#title").val());
+    setFormDataValue(formData, "address", $("#address").val());
     setFormDataValue(formData, "description", $("#description").val());
     setFormDataValue(formData, "isActive", $("#activeSwitch").is(":checked"));
     setFormDataValue(formData, "isInStock", true);

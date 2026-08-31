@@ -66,6 +66,9 @@ def get_bgp_context(extra=None):
     context = {
         "bgp_is_public": True,
         "google_maps_embed_api_key": settings.GOOGLE_MAPS_EMBED_API_KEY,
+        # Die Objektkarte auf der Immobilienseite setzt mehrere Marker gleichzeitig
+        # und laeuft deshalb ueber die Maps JavaScript API, nicht ueber das Embed.
+        "google_maps_js_api_key": settings.GOOGLE_MAPS_JS_API_KEY,
         "owner_data": WebsiteSettings.get_site_owner(),
     }
     context.update(bgp_content_context())

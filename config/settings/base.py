@@ -243,6 +243,18 @@ RECOVERY_REMOTE_BACKUP_INCLUDE_MEDIA = env.bool("RECOVERY_REMOTE_BACKUP_INCLUDE_
 RECAPTCHA_PUBLIC_KEY = env("RECAPTCHA_PUBLIC_KEY", default="")
 RECAPTCHA_PRIVATE_KEY = env("RECAPTCHA_PRIVATE_KEY", default="")
 GOOGLE_MAPS_EMBED_API_KEY = env("GOOGLE_MAPS_EMBED_API_KEY", default="")
+# Die Objektkarte auf der Immobilienseite zeigt mehrere Marker gleichzeitig. Das
+# kann das Google-Maps-Embed nicht (es kennt nur einen Ort), deshalb laeuft sie
+# ueber die Maps JavaScript API; die Koordinaten zu den getippten Anschriften
+# kommen aus der Geocoding API. Google trennt Browser- und Server-Keys nach ihrer
+# Einschraenkung (HTTP-Referrer gegen IP-Adresse), darum zwei eigene Variablen.
+# Ohne eigenen Eintrag greift der bestehende Embed-Key, damit die Karte nicht
+# erst nach einer .env-Aenderung erscheint.
+GOOGLE_MAPS_JS_API_KEY = env("GOOGLE_MAPS_JS_API_KEY", default=GOOGLE_MAPS_EMBED_API_KEY)
+GOOGLE_MAPS_GEOCODING_API_KEY = env("GOOGLE_MAPS_GEOCODING_API_KEY", default=GOOGLE_MAPS_EMBED_API_KEY)
+# Schalter fuer das Ermitteln der Koordinaten beim Speichern einer Immobilie.
+# In den Tests aus, damit ein Testlauf keine fremden Dienste anfragt.
+GEOCODING_ENABLED = env.bool("GEOCODING_ENABLED", default=True)
 
 # Matomo (self-hosted analytics)
 # ------------------------------------------------------------------------------

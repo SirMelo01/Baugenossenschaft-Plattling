@@ -220,7 +220,7 @@ function updateProductGrid(products) {
     const imageUrl = product.image_url || placeholderImage
     const title = escapeHtml(product.title)
     const description = escapeHtml(product.description || "Keine Beschreibung vorhanden")
-    const brand = escapeHtml(product.brand || "")
+    const address = escapeHtml(product.address || "")
     const updatedAt = escapeHtml(product.updated_at || "")
     const activeBadge = product.is_active
       ? '<span class="rounded-full bg-green-100 px-2.5 py-1 text-xs font-semibold text-green-700">Aktiv</span>'
@@ -239,7 +239,7 @@ function updateProductGrid(products) {
           <div class="flex items-start justify-between gap-3">
             <div class="min-w-0">
               <h2 class="truncate text-lg font-semibold text-gray-900">${title}</h2>
-              ${brand ? `<p class="mt-1 text-sm text-gray-500">${brand}</p>` : ""}
+              ${address ? `<p class="mt-1 text-sm text-gray-500">${address}</p>` : ""}
             </div>
             ${activeBadge}
           </div>

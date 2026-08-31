@@ -150,7 +150,19 @@ class Product(TimeStampedModel):
     title = models.CharField(max_length=255)
     slug = models.SlugField(max_length=255, unique=True, blank=True)
     description = models.TextField(blank=True)
-    address = models.CharField("Adresse", max_length=255, blank=True, default="")
+    address = models.CharField(
+        "Adresse",
+        max_length=255,
+        blank=True,
+        default="",
+        help_text="Frei eingetippte Anschrift, z.B. \"Schillerstr. 6b, 94447 Plattling\". "
+        "Mehrere Immobilien duerfen dieselbe Anschrift tragen.",
+    )
+    # Koordinaten zur Anschrift, damit die Objektkarte Marker setzen kann. Sie
+    # werden beim Speichern im CMS aus der Adresse bestimmt (siehe geocoding.py)
+    # und nicht von Hand gepflegt - deshalb editable=False.
+    latitude = models.FloatField("Breitengrad", blank=True, null=True, editable=False)
+    longitude = models.FloatField("Laengengrad", blank=True, null=True, editable=False)
     sku = models.CharField("Objektnummer", max_length=64, blank=True, default="")
     price_note = models.CharField(
         "Preishinweis",
@@ -295,13 +307,33 @@ class Product(TimeStampedModel):
         return not self.showcase_only
 
     @property
-    def location_address(self):
-        address = (self.address or "").strip()
-        if address:
-            return address
+    def address_source(self):
+        """Objekt, an dem die Anschrift haengt.
+
+        Uebersetzungen erben Anschrift und Koordinaten vom Original, solange bei
+        ihnen selbst nichts eingetragen ist - eine Hausnummer ist in jeder Sprache
+        dieselbe.
+        """
+        if (self.address or "").strip():
+            return self
         if self.original_id:
-            return (getattr(self.original, "address", "") or "").strip()
-        return ""
+            return self.original
+        return self
+
+    @property
+    def location_address(self):
+        source = self.address_source
+        return (getattr(source, "address", "") or "").strip()
+
+    @property
+    def map_position(self):
+        """Koordinaten fuer die Objektkarte oder ``None``, wenn keine bekannt sind."""
+        source = self.address_source
+        latitude = getattr(source, "latitude", None)
+        longitude = getattr(source, "longitude", None)
+        if latitude is None or longitude is None:
+            return None
+        return {"lat": latitude, "lng": longitude}
 
     @property
     def maps_url(self):
