@@ -491,9 +491,9 @@
                data-aos="fade-up" data-aos-delay="{{ forloop.counter0|divisibleby:4|yesno:"0,100" }}">
         {% if member.image %}
         <img src="{{ member.image }}" alt="{{ member.full_name }}" loading="lazy"
-             class="aspect-[4/3] w-full object-cover" />
+             class="aspect-square w-full object-cover object-top" />
         {% else %}
-        <div class="bgp-bg-ice-deep flex aspect-[4/3] w-full items-center justify-center">
+        <div class="bgp-bg-ice-deep flex aspect-square w-full items-center justify-center">
           <i class="bi bi-person bgp-text-navy text-5xl"></i>
         </div>
         {% endif %}

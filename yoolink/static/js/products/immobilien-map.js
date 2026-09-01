@@ -86,19 +86,60 @@
     return mapsPromise;
   }
 
-  function popupHtml(entry) {
-    var html = '<div style="min-width:12rem">'
-      + '<strong>' + escapeHtml(entry.title) + '</strong>'
-      + '<br><span>' + escapeHtml(entry.address) + '</span>'
-      + '<br><a href="' + escapeHtml(entry.url) + '">Details ansehen</a>';
-    if (entry.maps_url) {
-      html += ' &middot; <a href="' + escapeHtml(entry.maps_url) + '" target="_blank" rel="noopener">Route</a>';
+  function popupHtml(group) {
+    var first = group.entries[0];
+    var html = '<div style="min-width:13rem">'
+      + '<strong>' + escapeHtml(first.address) + '</strong>';
+
+    if (group.entries.length > 1) {
+      html += '<br><span>' + group.entries.length + ' Objekte an dieser Adresse</span>';
+    }
+
+    html += '<ul style="margin:0.4rem 0 0;padding-left:1.1rem">';
+    group.entries.forEach(function (entry) {
+      html += '<li><a href="' + escapeHtml(entry.url) + '">' + escapeHtml(entry.title) + '</a></li>';
+    });
+    html += '</ul>';
+
+    if (first.maps_url) {
+      html += '<a href="' + escapeHtml(first.maps_url) + '" target="_blank" rel="noopener">Route</a>';
     }
     return html + "</div>";
   }
 
   function hasCoordinates(entry) {
     return typeof entry.lat === "number" && typeof entry.lng === "number";
+  }
+
+  /**
+   * Objekte an derselben Anschrift zu einem Marker zusammenfassen.
+   *
+   * Mehrere Wohnungen in einem Haus tragen dieselbe Adresse und damit dieselben
+   * Koordinaten. Ohne Gruppierung liegen ihre Marker exakt uebereinander - auf der
+   * Karte ist dann nur einer zu sehen und die anderen Objekte wirken, als fehlten
+   * sie. Ein Marker je Ort mit der Anzahl darin zeigt stattdessen, was dort steht.
+   */
+  function groupByPosition(entries) {
+    var groups = [];
+    var byKey = {};
+
+    entries.forEach(function (entry) {
+      var key = entry.lat.toFixed(5) + "," + entry.lng.toFixed(5);
+      if (!byKey[key]) {
+        byKey[key] = { lat: entry.lat, lng: entry.lng, entries: [] };
+        groups.push(byKey[key]);
+      }
+      byKey[key].entries.push(entry);
+    });
+
+    return groups;
+  }
+
+  function groupTitle(group) {
+    if (group.entries.length === 1) {
+      return group.entries[0].title;
+    }
+    return group.entries[0].address + " (" + group.entries.length + " Objekte)";
   }
 
   /**
@@ -134,25 +175,36 @@
 
       var infoWindow = new maps.InfoWindow();
       var bounds = new maps.LatLngBounds();
+      var groups = groupByPosition(entries);
       var markers = {};
-      var entriesById = {};
+      var groupsByEntry = {};
 
-      entries.forEach(function (entry) {
-        var position = { lat: entry.lat, lng: entry.lng };
-        var marker = new maps.Marker({ map: map, position: position, title: entry.title });
+      groups.forEach(function (group) {
+        var position = { lat: group.lat, lng: group.lng };
+        var options = { map: map, position: position, title: groupTitle(group) };
 
+        if (group.entries.length > 1) {
+          options.label = { text: String(group.entries.length), color: "#ffffff", fontWeight: "700" };
+        }
+
+        var marker = new maps.Marker(options);
         marker.addListener("click", function () {
-          infoWindow.setContent(popupHtml(entry));
+          infoWindow.setContent(popupHtml(group));
           infoWindow.open({ anchor: marker, map: map });
         });
 
-        markers[entry.id] = marker;
-        entriesById[entry.id] = entry;
+        // Jeder Listeneintrag zeigt auf den Marker seines Ortes - auch die
+        // Nachbarwohnungen, die sich denselben Marker teilen.
+        group.entries.forEach(function (entry) {
+          markers[entry.id] = marker;
+          groupsByEntry[entry.id] = group;
+        });
+
         bounds.extend(position);
       });
 
-      if (entries.length === 1) {
-        map.setCenter({ lat: entries[0].lat, lng: entries[0].lng });
+      if (groups.length === 1) {
+        map.setCenter({ lat: groups[0].lat, lng: groups[0].lng });
         map.setZoom(15);
       } else {
         map.fitBounds(bounds, 48);
@@ -161,7 +213,7 @@
       connectList(root, markers, function (entryId) {
         var marker = markers[entryId];
         map.panTo(marker.getPosition());
-        infoWindow.setContent(popupHtml(entriesById[entryId]));
+        infoWindow.setContent(popupHtml(groupsByEntry[entryId]));
         infoWindow.open({ anchor: marker, map: map });
         canvas.scrollIntoView({ behavior: "smooth", block: "center" });
       });

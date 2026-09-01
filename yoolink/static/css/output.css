@@ -1380,10 +1380,6 @@ body {
   aspect-ratio: 3/4;
 }
 
-.aspect-\[4\/3\] {
-  aspect-ratio: 4/3;
-}
-
 .aspect-\[4\/5\] {
   aspect-ratio: 4/5;
 }
@@ -3690,6 +3686,11 @@ body {
 .object-left {
   -o-object-position: left;
      object-position: left;
+}
+
+.object-top {
+  -o-object-position: top;
+     object-position: top;
 }
 
 .p-0 {

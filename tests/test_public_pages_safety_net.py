@@ -664,3 +664,20 @@ def test_home_team_headings_are_cms_editable(client):
 
     assert "Diese Menschen helfen weiter" in html
     assert "Kurze Wege, feste Ansprechpartner." in html
+
+
+def test_aktuelles_year_bar_appears_with_a_single_year(client):
+    """Die Leiste steht auch bei einem Jahrgang - sonst wirkt der Filter, als fehle er."""
+    author = UserFactory()
+    _news_post(author, 1, post_date=date(2026, 2, 10))
+
+    html = client.get("/aktuelles").content.decode()
+
+    assert "Jahrgang" in html
+    assert "?jahr=2026" in html
+
+
+def test_aktuelles_year_bar_is_absent_without_posts(client):
+    html = client.get("/aktuelles").content.decode()
+
+    assert "Jahrgang" not in html
