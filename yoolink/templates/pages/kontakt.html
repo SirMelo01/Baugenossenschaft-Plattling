@@ -220,7 +220,7 @@
           title="{% trans 'contact_map_iframe_title' %} {% if owner_data and owner_data.company_name %}{{ owner_data.company_name }}{% else %}YooLink{% endif %}"
           loading="lazy"
           allowfullscreen
-          referrerpolicy="no-referrer-when-downgrade"
+          referrerpolicy="strict-origin-when-cross-origin"
           data-cookie-src="https://www.google.com/maps/embed/v1/place?key={{ google_maps_embed_api_key }}&zoom=12&maptype=roadmap&q={% if owner_data and owner_data.address %}{{ owner_data.address|urlencode }}{% else %}Schanzenweg%2053%2C%20Deggendorf{% endif %}"
         ></iframe>
         {% else %}

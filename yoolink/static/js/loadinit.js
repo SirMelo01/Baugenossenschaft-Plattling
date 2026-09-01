@@ -142,13 +142,40 @@
     cleanupAnalyticsCookies();
   }
 
-  function hydrateExternalEmbeds() {
-    document.querySelectorAll("[data-cookie-src]").forEach((node) => {
-      if (!node.getAttribute("src")) {
-        node.setAttribute("src", node.dataset.cookieSrc);
-      }
+  // WebKit (und damit jeder Browser auf iOS) leitet den Referer eines bereits
+  // eingehaengten iframes von dessen aktuellem Dokument ab. Das ist hier
+  // about:blank -> unique origin -> leerer Referer. Google Maps lehnt den
+  // Request dann mit "empty referer" ab, obwohl der Key korrekt beschraenkt
+  // ist. Chromium/Gecko erben stattdessen den Referer des Elterndokuments,
+  // deshalb faellt es nur auf iOS auf. Loesung: frisches iframe-Element bauen
+  // und src erst setzen, bevor es im Dokument haengt.
+  function activateEmbed(node) {
+    if (node.getAttribute("src")) {
       node.classList.remove("hidden");
-    });
+      return;
+    }
+
+    const src = node.dataset.cookieSrc;
+    if (!src) return;
+
+    if (node.tagName !== "IFRAME") {
+      node.setAttribute("src", src);
+      node.classList.remove("hidden");
+      return;
+    }
+
+    const fresh = document.createElement("iframe");
+    Array.from(node.attributes).forEach((attr) => fresh.setAttribute(attr.name, attr.value));
+    fresh.classList.remove("hidden");
+    if (!fresh.getAttribute("referrerpolicy")) {
+      fresh.setAttribute("referrerpolicy", "strict-origin-when-cross-origin");
+    }
+    fresh.setAttribute("src", src);
+    node.replaceWith(fresh);
+  }
+
+  function hydrateExternalEmbeds() {
+    document.querySelectorAll("[data-cookie-src]").forEach(activateEmbed);
 
     document.querySelectorAll("[data-cookie-placeholder]").forEach((node) => {
       node.classList.add("hidden");
