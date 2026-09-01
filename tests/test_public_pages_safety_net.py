@@ -681,3 +681,44 @@ def test_aktuelles_year_bar_is_absent_without_posts(client):
     html = client.get("/aktuelles").content.decode()
 
     assert "Jahrgang" not in html
+
+
+def test_home_uses_the_cms_default_meta_description(client):
+    """"Standard Meta Description" aus den Website-Daten muss auf der Startseite ankommen.
+
+    Die Startseite hatte ihre Beschreibung fest im Template stehen und damit das
+    gepflegte Feld ueberschrieben - der Autor kam an, die Beschreibung nie.
+    """
+    site = WebsiteSettings.get_solo()
+    site.site_meta_description = "Im CMS gepflegte Standardbeschreibung."
+    site.site_meta_author = "Baugenossenschaft Plattling eG"
+    site.save()
+
+    html = client.get(reverse("home")).content.decode()
+
+    assert '<meta name="description" content="Im CMS gepflegte Standardbeschreibung.">' in html
+    assert '<meta name="author" content="Baugenossenschaft Plattling eG">' in html
+
+
+def test_home_keeps_its_own_meta_description_without_a_cms_value(client):
+    site = WebsiteSettings.get_solo()
+    site.site_meta_description = ""
+    site.save()
+
+    html = client.get(reverse("home")).content.decode()
+
+    assert "Die Baugenossenschaft Plattling eG bietet seit 1921" in html
+
+
+def test_pages_with_their_own_meta_description_are_not_overwritten(client):
+    """Seiten mit eigener, treffender Beschreibung behalten sie - so will es das Feld."""
+    site = WebsiteSettings.get_solo()
+    site.site_meta_description = "Im CMS gepflegte Standardbeschreibung."
+    site.save()
+
+    html = client.get(reverse("kontakt")).content.decode()
+
+    # Nur das Meta-Tag pruefen: in den strukturierten Daten (JSON-LD) beschreibt
+    # derselbe Text die Website als Ganzes und gehoert dort hin.
+    assert '<meta name="description" content="Im CMS gepflegte Standardbeschreibung.">' not in html
+    assert '<meta name="description" content="Kontakt zur' in html

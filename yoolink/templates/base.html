@@ -9,7 +9,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="{% block robots %}index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1{% endblock %}">
     <meta name="author" content="{% if owner_data and owner_data.site_meta_author %}{{ owner_data.site_meta_author }}{% elif owner_data and owner_data.company_name %}{{ owner_data.company_name }}{% else %}Baugenossenschaft Plattling eG{% endif %}">
-    <meta name="description" content="{% block meta_description %}{% if owner_data and owner_data.site_meta_description %}{{ owner_data.site_meta_description }}{% else %}Sicherer und bezahlbarer Wohnraum in Plattling - genossenschaftlich, fair und seit 1921.{% endif %}{% endblock %}">
+    <meta name="description" content="{% block meta_description %}{% if owner_data and owner_data.site_meta_description %}{{ owner_data.site_meta_description }}{% else %}{% block meta_description_default %}Sicherer und bezahlbarer Wohnraum in Plattling - genossenschaftlich, fair und seit 1921.{% endblock %}{% endif %}{% endblock %}">
 
     {% get_available_languages as SITE_LANGUAGES %}
     {% translate_url 'de' as de_url %}

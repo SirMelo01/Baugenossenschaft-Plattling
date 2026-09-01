@@ -13,6 +13,8 @@
   "use strict";
 
   var MAPS_CALLBACK = "yoolinkGoogleMapsReady";
+  // Startansicht: weit genug heraus, dass die Objekte im Ort verortet sind.
+  var INITIAL_ZOOM = 14;
   var mapsPromise = null;
 
   function escapeHtml(value) {
@@ -112,19 +114,24 @@
   }
 
   /**
-   * Objekte an derselben Anschrift zu einem Marker zusammenfassen.
+   * Objekte mit derselben Anschrift zu einem Marker zusammenfassen.
    *
    * Mehrere Wohnungen in einem Haus tragen dieselbe Adresse und damit dieselben
    * Koordinaten. Ohne Gruppierung liegen ihre Marker exakt uebereinander - auf der
    * Karte ist dann nur einer zu sehen und die anderen Objekte wirken, als fehlten
-   * sie. Ein Marker je Ort mit der Anzahl darin zeigt stattdessen, was dort steht.
+   * sie. Ein Marker je Anschrift mit der Anzahl darin zeigt stattdessen, was dort
+   * steht.
+   *
+   * Gruppiert wird ausschliesslich ueber die Anschrift, nicht ueber die Koordinaten:
+   * zwei Nachbarhaeuser liegen wenige Meter auseinander und wuerden sonst in einem
+   * Marker verschwinden, obwohl es zwei verschiedene Objekte an zwei Adressen sind.
    */
-  function groupByPosition(entries) {
+  function groupByAddress(entries) {
     var groups = [];
     var byKey = {};
 
     entries.forEach(function (entry) {
-      var key = entry.lat.toFixed(5) + "," + entry.lng.toFixed(5);
+      var key = (entry.address || "").trim().replace(/\s+/g, " ").toLowerCase();
       if (!byKey[key]) {
         byKey[key] = { lat: entry.lat, lng: entry.lng, entries: [] };
         groups.push(byKey[key]);
@@ -175,7 +182,7 @@
 
       var infoWindow = new maps.InfoWindow();
       var bounds = new maps.LatLngBounds();
-      var groups = groupByPosition(entries);
+      var groups = groupByAddress(entries);
       var markers = {};
       var groupsByEntry = {};
 
@@ -205,9 +212,18 @@
 
       if (groups.length === 1) {
         map.setCenter({ lat: groups[0].lat, lng: groups[0].lng });
-        map.setZoom(15);
+        map.setZoom(INITIAL_ZOOM);
       } else {
-        map.fitBounds(bounds, 48);
+        map.fitBounds(bounds, 80);
+        // fitBounds legt die Karte eng um die Marker. Liegen die Objekte dicht
+        // beieinander, steht man mitten in einer Strasse ohne zu sehen, wo in
+        // Plattling das ist. Der Deckel holt die Umgebung zurueck ins Bild -
+        // nur fuer die Startansicht, hineinzoomen bleibt moeglich.
+        maps.event.addListenerOnce(map, "idle", function () {
+          if (map.getZoom() > INITIAL_ZOOM) {
+            map.setZoom(INITIAL_ZOOM);
+          }
+        });
       }
 
       connectList(root, markers, function (entryId) {
