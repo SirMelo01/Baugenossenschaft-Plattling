@@ -22,6 +22,7 @@
     <link rel="alternate" hreflang="x-default" href="{% if owner_data and owner_data.website %}{{ owner_data.website }}{{ de_url }}{% else %}{{ site_base_url }}{{ de_url }}{% endif %}">
     {% endif %}
 
+    <link rel="icon" type="image/svg+xml" href="{% static 'favicon/Favicon.svg' %}" />
     <link rel="apple-touch-icon-precomposed" sizes="152x152" href="{% static 'favicon/apple-touch-icon-152x152.png' %}" />
     <link rel="icon" type="image/png" href="{% static 'favicon/favicon-196x196.png' %}" sizes="196x196" />
     <link rel="icon" type="image/png" href="{% static 'favicon/favicon-32x32.png' %}" sizes="32x32" />
