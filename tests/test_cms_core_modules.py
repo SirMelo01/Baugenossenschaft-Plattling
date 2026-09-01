@@ -1,7 +1,7 @@
 import json
 import random
 from io import BytesIO
-from datetime import time
+from datetime import date, time
 
 import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -15,6 +15,7 @@ from yoolink.ycms.permissions import ensure_system_roles
 from yoolink.ycms.models import (
     FAQ,
     AnyFile,
+    Blog,
     CMSUserRole,
     Button,
     Galerie,
@@ -624,3 +625,62 @@ def test_message_signal_creates_notifications_and_spam_flag():
     assert spam_notification.is_spam is True
     assert score_text_for_spam("FREE BONUS https://example.com") >= 4
     assert is_spam_message(spam_message) is True
+
+
+def _blog_payload(**overrides):
+    payload = {
+        "title": "Mitgliederversammlung 2019",
+        "description": "Bericht der ordentlichen Mitgliederversammlung.",
+        "content_source": "markdown",
+        "markdown": "## Bericht\n\nDie Versammlung fand im Pfarrheim statt.",
+        "active": "true",
+    }
+    payload.update(overrides)
+    return payload
+
+
+def test_cms_blog_form_stores_a_manually_entered_date(logged_in_client):
+    """Alte Meldungen werden mit ihrem urspruenglichen Datum uebernommen.
+
+    Vorher stand am Blog ``auto_now_add``: jeder eingetragene Wert wurde verworfen
+    und alle Altbeitraege trugen den Tag ihrer Erfassung.
+    """
+    created = logged_in_client.post(
+        reverse("ycms:blog-create"),
+        _blog_payload(date="2019-05-17"),
+    )
+    assert created.status_code == 201
+
+    blog = Blog.objects.get(title="Mitgliederversammlung 2019")
+    assert blog.date == date(2019, 5, 17)
+
+    updated = logged_in_client.post(
+        reverse("ycms:blog-update", args=[blog.id]),
+        _blog_payload(date="2020-06-02"),
+    )
+    assert updated.status_code == 201
+
+    blog.refresh_from_db()
+    assert blog.date == date(2020, 6, 2)
+
+
+def test_cms_blog_keeps_its_date_when_the_field_is_unreadable(logged_in_client):
+    """Ein Tippfehler im Datum darf das Speichern nicht verhindern."""
+    logged_in_client.post(reverse("ycms:blog-create"), _blog_payload(date="2019-05-17"))
+    blog = Blog.objects.get(title="Mitgliederversammlung 2019")
+
+    response = logged_in_client.post(
+        reverse("ycms:blog-update", args=[blog.id]),
+        _blog_payload(date="17.05.2019"),
+    )
+    assert response.status_code == 201
+
+    blog.refresh_from_db()
+    assert blog.date == date(2019, 5, 17)
+
+
+def test_cms_blog_without_a_date_falls_back_to_today(logged_in_client):
+    logged_in_client.post(reverse("ycms:blog-create"), _blog_payload(date=""))
+
+    blog = Blog.objects.get(title="Mitgliederversammlung 2019")
+    assert blog.date == timezone.localdate()

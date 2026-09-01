@@ -474,6 +474,51 @@
   </div>
 </section>
 
+{% if teamMembers %}
+<!-- TEAM -->
+<section id="team" class="bgp-bg-ice px-4 py-20 lg:py-28">
+  <div class="mx-auto max-w-6xl">
+    <div class="mx-auto mb-14 max-w-2xl text-center" data-aos="fade-up">
+      <p class="bgp-text-navy mb-4 text-sm font-semibold uppercase tracking-widest">{{ bgp_home_team.header }}</p>
+      <h2 class="bgp-text-navy-dark mb-4 text-3xl font-bold tracking-tight sm:text-4xl">{{ bgp_home_team.title }}</h2>
+      <p class="text-base leading-7 text-gray-600 md:text-lg">{{ bgp_home_team.description }}</p>
+    </div>
+
+    {% with total=teamMembers|length %}
+    <div class="mx-auto grid gap-6 {% if total == 1 %}max-w-sm grid-cols-1{% elif total == 2 %}max-w-3xl grid-cols-1 sm:grid-cols-2{% elif total == 3 %}max-w-5xl grid-cols-1 sm:grid-cols-2 lg:grid-cols-3{% else %}grid-cols-1 sm:grid-cols-2 lg:grid-cols-4{% endif %}">
+      {% for member in teamMembers %}
+      <article class="bgp-card-hover flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm"
+               data-aos="fade-up" data-aos-delay="{{ forloop.counter0|divisibleby:4|yesno:"0,100" }}">
+        {% if member.image %}
+        <img src="{{ member.image }}" alt="{{ member.full_name }}" loading="lazy"
+             class="aspect-[4/3] w-full object-cover" />
+        {% else %}
+        <div class="bgp-bg-ice-deep flex aspect-[4/3] w-full items-center justify-center">
+          <i class="bi bi-person bgp-text-navy text-5xl"></i>
+        </div>
+        {% endif %}
+
+        <div class="flex flex-1 flex-col p-6">
+          <h3 class="bgp-text-navy-dark text-lg font-bold leading-snug">{{ member.full_name }}</h3>
+          <p class="bgp-text-navy mt-1 text-sm font-semibold">{{ member.position }}</p>
+          {% if member.note %}
+          <p class="mt-3 flex-1 text-sm leading-6 text-gray-600">{{ member.note }}</p>
+          {% endif %}
+          {% if member.email %}
+          <a href="mailto:{{ member.email }}"
+             class="bgp-text-navy bgp-focus mt-4 inline-flex items-center gap-2 self-start rounded-lg text-sm font-bold transition hover:underline">
+            <i class="bi bi-envelope"></i> {{ member.email }}
+          </a>
+          {% endif %}
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+    {% endwith %}
+  </div>
+</section>
+{% endif %}
+
 <!-- KONTAKT (Teaser, Detail auf der Kontaktseite) -->
 <section id="kontakt" class="bgp-bg-navy-deep px-4 py-20 text-white lg:py-28">
   <div class="mx-auto max-w-6xl">

@@ -49,6 +49,28 @@ Im Seiten-Editor stehen nur noch Kopfbereich, Beschriftungen und Leertexte.
   </div>
 </section>
 
+{% if news_years|length > 1 %}
+<!-- JAHRESFILTER -->
+<section class="border-b border-gray-100 bg-white px-4 pt-10">
+  <div class="mx-auto max-w-6xl">
+    <div class="flex flex-wrap items-center gap-2" data-aos="fade-up">
+      <span class="mr-2 text-xs font-semibold uppercase tracking-widest text-gray-400">Jahrgang</span>
+      <a href="{% url 'aktuelles' %}"
+         class="bgp-focus rounded-xl border-2 px-4 py-2 text-sm font-bold transition {% if not news_selected_year %}bgp-bg-navy border-transparent text-white{% else %}bgp-text-navy border-gray-200 hover:border-gray-300 hover:bg-gray-50{% endif %}">
+        Alle
+      </a>
+      {% for entry in news_years %}
+      <a href="{% url 'aktuelles' %}?jahr={{ entry.year }}"
+         class="bgp-focus rounded-xl border-2 px-4 py-2 text-sm font-bold transition {% if news_selected_year == entry.year %}bgp-bg-navy border-transparent text-white{% else %}bgp-text-navy border-gray-200 hover:border-gray-300 hover:bg-gray-50{% endif %}">
+        {{ entry.year }}
+        <span class="{% if news_selected_year == entry.year %}text-white/60{% else %}text-gray-400{% endif %} font-semibold">{{ entry.total }}</span>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
 {% if news_lead %}
 <!-- TOP-MELDUNG -->
 <section class="bg-white px-4 pt-16 lg:pt-20">
@@ -93,8 +115,8 @@ Im Seiten-Editor stehen nur noch Kopfbereich, Beschriftungen und Leertexte.
 
     {% if news_page.object_list %}
       <div class="mb-10 flex flex-col gap-5 sm:flex-row sm:items-baseline sm:justify-between" data-aos="fade-up">
-        <h2 class="bgp-text-navy-dark text-2xl font-bold tracking-tight">{{ bgp_news_overview.title }}</h2>
-        <p class="text-sm font-medium text-gray-400">{{ news_total }} Meldung{{ news_total|pluralize:"en" }} insgesamt</p>
+        <h2 class="bgp-text-navy-dark text-2xl font-bold tracking-tight">{% if news_selected_year %}Meldungen aus {{ news_selected_year }}{% else %}{{ bgp_news_overview.title }}{% endif %}</h2>
+        <p class="text-sm font-medium text-gray-400">{{ news_total }} Meldung{{ news_total|pluralize:"en" }}{% if not news_selected_year %} insgesamt{% endif %}</p>
       </div>
 
       <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -120,14 +142,14 @@ Im Seiten-Editor stehen nur noch Kopfbereich, Beschriftungen und Leertexte.
       {% if news_page.has_other_pages %}
         <nav class="mt-12 flex items-center justify-center gap-3" aria-label="Seiten der Meldungen">
           {% if news_page.has_previous %}
-            <a href="?page={{ news_page.previous_page_number }}"
+            <a href="?page={{ news_page.previous_page_number }}{% if news_selected_year %}&amp;jahr={{ news_selected_year }}{% endif %}"
                class="bgp-text-navy bgp-focus inline-flex items-center gap-2 rounded-xl border-2 border-gray-200 px-4 py-2.5 text-sm font-bold transition hover:border-gray-300 hover:bg-gray-50">
               <i class="bi bi-arrow-left"></i> Neuere
             </a>
           {% endif %}
           <span class="text-sm font-medium text-gray-500">Seite {{ news_page.number }} von {{ news_page.paginator.num_pages }}</span>
           {% if news_page.has_next %}
-            <a href="?page={{ news_page.next_page_number }}"
+            <a href="?page={{ news_page.next_page_number }}{% if news_selected_year %}&amp;jahr={{ news_selected_year }}{% endif %}"
                class="bgp-text-navy bgp-focus inline-flex items-center gap-2 rounded-xl border-2 border-gray-200 px-4 py-2.5 text-sm font-bold transition hover:border-gray-300 hover:bg-gray-50">
               Ältere <i class="bi bi-arrow-right"></i>
             </a>

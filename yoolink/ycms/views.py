@@ -202,6 +202,7 @@ def get_or_create_translated_blog(request, id):
         markdown=original_blog.markdown,
         active=False,
         description=original_blog.description,
+        date=original_blog.date,
         language=lang,
         original=original_blog,
     )
@@ -1430,6 +1431,23 @@ def _blog_content_from_cms_request(request, title, description):
     }, None
 
 
+def parse_blog_date(raw, fallback):
+    """Das im CMS eingetippte Datum lesen.
+
+    Alte Meldungen werden mit ihrem tatsaechlichen Datum uebernommen, deshalb ist
+    das Feld frei setzbar. Steht dort nichts oder etwas Unlesbares, bleibt es beim
+    bisherigen Datum (beim Anlegen: heute) - ein Tippfehler soll das Speichern
+    nicht verhindern.
+    """
+    raw = (raw or "").strip()
+    if not raw:
+        return fallback
+    try:
+        return datetime.strptime(raw, "%Y-%m-%d").date()
+    except ValueError:
+        return fallback
+
+
 @login_required(login_url='login')
 @cms_permission_required("blog.edit")
 def create_blog(request):
@@ -1474,6 +1492,7 @@ def create_blog(request):
                 title_image_alt=title_image_alt,
                 title_image_title=title_image_title,
                 title_image_caption=title_image_caption,
+                date=parse_blog_date(request.POST.get('date'), timezone.localdate()),
             )
             if active == "true":
                 blog.active = True
@@ -1546,6 +1565,7 @@ def update_blog(request, id):
             blog.title_image_title = title_image_title
             blog.title_image_caption = title_image_caption
             blog.title = title
+            blog.date = parse_blog_date(request.POST.get('date'), blog.date)
             # Der Slug wird bewusst NICHT aus dem Titel neu gesetzt: er bleibt
             # ab der Erstellung stabil, damit sich die öffentliche URL bei einer
             # Titeländerung nicht ändert (verhindert Google-Weiterleitungen).
@@ -1607,6 +1627,7 @@ def blog_details(request, id):
                 markdown=original_blog.markdown,
                 active=False,
                 description=original_blog.description,
+                date=original_blog.date,
                 language=lang,
                 original=original_blog,
             )

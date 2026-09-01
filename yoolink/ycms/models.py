@@ -333,7 +333,11 @@ class Blog(models.Model):
     title_image_alt = models.CharField(max_length=255, default="", blank=True)
     title_image_title = models.CharField(max_length=255, default="", blank=True)
     title_image_caption = models.CharField(max_length=255, default="", blank=True)
-    date = models.DateField(auto_now_add=True)  # Automatically set on creation
+    # Frei setzbar, damit aeltere Meldungen (Versammlungen, Rundschreiben) mit
+    # ihrem tatsaechlichen Datum uebernommen werden koennen. Mit auto_now_add hat
+    # Django jeden eingetragenen Wert verworfen und immer den Tag der Erfassung
+    # gespeichert. Ohne Eingabe bleibt es beim heutigen Datum.
+    date = models.DateField("Datum", default=timezone.localdate)
     last_updated = models.DateField(auto_now=True)  # Automatically updated on save
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     body = models.TextField(default="This Blog is empty")

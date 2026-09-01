@@ -218,34 +218,66 @@ AKTUELLES_PER_PAGE = 9
 
 
 def aktuelles_view(request):
-    """Aktuelles-Uebersicht: Top-Meldung plus paginierte Liste, alles aus dem Blog."""
+    """Aktuelles-Uebersicht: Top-Meldung plus paginierte Liste, alles aus dem Blog.
+
+    Ueber ``?jahr=`` laesst sich ein Jahrgang herausgreifen. Das braucht die Seite,
+    seit auch aeltere Meldungen (Mitgliederversammlungen, Rundschreiben) mit ihrem
+    urspruenglichen Datum uebernommen werden - sonst muesste man sich durch alle
+    Seiten blaettern, um eine Versammlung von vor drei Jahren zu finden.
+    """
     from django.core.paginator import Paginator
+    from django.db.models import Count
 
     from yoolink.blog.views import get_active_language
     from yoolink.ycms.models import Blog
 
     language = get_active_language(request)
-    originals = (
-        Blog.objects.filter(original__isnull=True, active=True)
-        .order_by("-date")
-        .prefetch_related("translations")
-    )
+    published = Blog.objects.filter(original__isnull=True, active=True)
+
+    # Die Jahresleiste kommt aus den vorhandenen Meldungen, damit dort kein leeres
+    # Jahr steht. Uebersetzungen erben das Datum ihres Originals, deshalb reicht
+    # der Blick auf die Originale.
+    news_years = [
+        {"year": row["date__year"], "total": row["total"]}
+        for row in published.values("date__year").annotate(total=Count("id")).order_by("-date__year")
+    ]
+
+    raw_year = (request.GET.get("jahr") or "").strip()
+    selected_year = int(raw_year) if raw_year.isdigit() else None
+    if selected_year not in [row["year"] for row in news_years]:
+        selected_year = None
+
+    originals = published.order_by("-date").prefetch_related("translations")
+    if selected_year:
+        originals = originals.filter(date__year=selected_year)
 
     def localized(blog):
         variant = blog.translations.filter(language=language, active=True).first()
         return variant or blog
 
     posts = [localized(blog) for blog in originals]
-    # Die neueste Meldung steht als Top-Meldung ueber der Liste und darf dort
-    # nicht noch einmal auftauchen.
-    lead = posts[0] if posts else None
-    page_obj = Paginator(posts[1:], AKTUELLES_PER_PAGE).get_page(request.GET.get("page"))
+
+    if selected_year:
+        # Innerhalb eines Jahrgangs waere eine hervorgehobene "Top-Meldung"
+        # irrefuehrend - gesucht wird dann eine bestimmte Meldung, nicht die
+        # neueste. Es bleibt bei der reinen Liste.
+        lead = None
+        listed = posts
+    else:
+        # Die neueste Meldung steht als Top-Meldung ueber der Liste und darf dort
+        # nicht noch einmal auftauchen.
+        lead = posts[0] if posts else None
+        listed = posts[1:]
+
+    page_obj = Paginator(listed, AKTUELLES_PER_PAGE).get_page(request.GET.get("page"))
 
     context = {
         "demo_page": "aktuelles",
         "news_lead": lead,
         "news_page": page_obj,
         "news_total": len(posts),
+        "news_years": news_years,
+        "news_selected_year": selected_year,
     }
     context.update(get_opening_hours())
     return render(

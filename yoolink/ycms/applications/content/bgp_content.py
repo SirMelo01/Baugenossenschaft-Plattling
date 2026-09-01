@@ -190,6 +190,18 @@ BGP_DEFAULTS = {
         ),
     },
 
+    # ─────────── Startseite: Team ───────────
+    # Die Karten kommen aus dem CMS-Modul "Team"; hier stehen nur die Texte
+    # darueber. Ohne aktive Teammitglieder faellt der Abschnitt ganz weg.
+    "home_team": {
+        "header": "Ihre Ansprechpartner",
+        "title": "Wer für Sie da ist",
+        "description": (
+            "Bei uns sprechen Sie mit festen Ansprechpartnern - vom ersten Interesse an "
+            "einer Wohnung bis zur Reparaturmeldung."
+        ),
+    },
+
     # ─────────── Startseite: Kontakt-Teaser ───────────
     "kontakt_teaser": {
         "header": "Kontakt",

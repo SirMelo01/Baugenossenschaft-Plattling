@@ -1,4 +1,4 @@
-from datetime import time
+from datetime import date, time
 
 import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -461,8 +461,8 @@ def test_blog_list_and_detail_use_active_original_and_language_variant(client, s
     assert english_response.status_code in {200, 302}
 
 
-def _news_post(author, number, active=True):
-    return Blog.objects.create(
+def _news_post(author, number, active=True, post_date=None):
+    blog = Blog.objects.create(
         title=f"Meldung {number}",
         slug=f"meldung-{number}",
         author=author,
@@ -471,6 +471,10 @@ def _news_post(author, number, active=True):
         active=active,
         language="de",
     )
+    if post_date:
+        Blog.objects.filter(pk=blog.pk).update(date=post_date)
+        blog.refresh_from_db()
+    return blog
 
 
 def test_aktuelles_url_has_no_trailing_slash_and_old_one_redirects(client):
@@ -543,3 +547,120 @@ def test_aktuelles_detail_hides_unpublished_posts(client):
     hidden = _news_post(author, 1, active=False)
 
     assert client.get(hidden.get_absolute_url()).status_code == 404
+
+
+def test_aktuelles_can_be_filtered_by_year(client):
+    """Alte Versammlungsberichte muss man finden, ohne sich durchzublaettern."""
+    author = UserFactory()
+    alt = _news_post(author, 1, post_date=date(2019, 5, 17))
+    mittel = _news_post(author, 2, post_date=date(2019, 11, 3))
+    neu = _news_post(author, 3, post_date=date(2026, 2, 10))
+
+    response = client.get("/aktuelles")
+
+    assert response.status_code == 200
+    # Die Leiste zaehlt je Jahrgang und nennt nur Jahre, die es wirklich gibt.
+    assert response.context["news_years"] == [
+        {"year": 2026, "total": 1},
+        {"year": 2019, "total": 2},
+    ]
+    assert response.context["news_selected_year"] is None
+    assert response.context["news_lead"] == neu
+
+    filtered = client.get("/aktuelles", {"jahr": "2019"})
+    html = filtered.content.decode()
+
+    assert filtered.context["news_selected_year"] == 2019
+    assert filtered.context["news_total"] == 2
+    # Innerhalb eines Jahrgangs gibt es keine hervorgehobene Top-Meldung, alle
+    # Treffer stehen gleichrangig in der Liste.
+    assert filtered.context["news_lead"] is None
+    assert list(filtered.context["news_page"].object_list) == [mittel, alt]
+    assert neu.title not in html
+    assert "Meldungen aus 2019" in html
+
+
+def test_aktuelles_year_filter_ignores_an_unknown_year(client):
+    author = UserFactory()
+    _news_post(author, 1, post_date=date(2019, 5, 17))
+
+    response = client.get("/aktuelles", {"jahr": "1999"})
+
+    assert response.status_code == 200
+    assert response.context["news_selected_year"] is None
+    assert response.context["news_total"] == 1
+
+
+def test_aktuelles_year_filter_survives_pagination(client):
+    author = UserFactory()
+    for number in range(11):
+        _news_post(author, number, post_date=date(2019, 3, 1))
+    _news_post(author, 99, post_date=date(2026, 3, 1))
+
+    first = client.get("/aktuelles", {"jahr": "2019"})
+    second = client.get("/aktuelles", {"jahr": "2019", "page": "2"})
+
+    assert len(first.context["news_page"].object_list) == 9
+    assert len(second.context["news_page"].object_list) == 2
+    assert second.context["news_selected_year"] == 2019
+    # Der Blaetter-Link darf den Jahrgang nicht verlieren.
+    assert "?page=2&amp;jahr=2019" in first.content.decode()
+
+
+def test_home_shows_active_team_members(client):
+    TeamMember.objects.create(
+        full_name="Anna Beispiel",
+        position="Geschäftsführerin",
+        email="anna@example.org",
+        note="Mitgliedschaft und Vermietung",
+        image="/media/team/anna.jpg",
+        display_order=1,
+    )
+    TeamMember.objects.create(
+        full_name="Bernd Beispiel",
+        position="Technik",
+        email="bernd@example.org",
+        display_order=2,
+    )
+    TeamMember.objects.create(
+        full_name="Nicht Aktiv",
+        position="Ehemalig",
+        email="alt@example.org",
+        active=False,
+        display_order=3,
+    )
+
+    response = client.get(reverse("home"))
+    html = response.content.decode()
+
+    assert response.status_code == 200
+    assert 'id="team"' in html
+    assert "Anna Beispiel" in html
+    assert "Mitgliedschaft und Vermietung" in html
+    assert "mailto:anna@example.org" in html
+    assert "Bernd Beispiel" in html
+    assert "Nicht Aktiv" not in html
+    # Zwei Mitglieder ergeben zwei Spalten, nicht vier.
+    assert "max-w-3xl grid-cols-1 sm:grid-cols-2" in html
+
+
+def test_home_team_section_is_absent_without_members(client):
+    response = client.get(reverse("home"))
+
+    assert response.status_code == 200
+    assert 'id="team"' not in response.content.decode()
+
+
+def test_home_team_headings_are_cms_editable(client):
+    TeamMember.objects.create(full_name="Anna Beispiel", position="Vorstand", email="anna@example.org")
+    TextContent.objects.create(
+        name="main_bgp_home_team",
+        header="Unser Büro",
+        title="Diese Menschen helfen weiter",
+        description="Kurze Wege, feste Ansprechpartner.",
+    )
+
+    html = client.get(reverse("home")).content.decode()
+
+    assert "Diese Menschen helfen weiter" in html
+    assert "Kurze Wege, feste Ansprechpartner." in html
