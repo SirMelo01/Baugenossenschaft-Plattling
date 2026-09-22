@@ -78,16 +78,6 @@ von dort und muessen hier nicht noch einmal gebaut werden.
 <!-- BEITRAG -->
 <section class="bgp-article bg-white px-4 py-14 lg:py-20">
   <div class="mx-auto max-w-4xl">
-    {% if blog.title_image %}
-      <figure class="mb-10" data-aos="fade-up">
-        <img src="{{ blog.title_image.url }}" alt="{{ blog_image_alt }}" title="{{ blog_image_title }}"
-             class="w-full rounded-2xl object-cover shadow-lg" />
-        {% if blog_image_caption %}
-          <figcaption class="mt-3 text-center text-sm text-gray-500">{{ blog_image_caption }}</figcaption>
-        {% endif %}
-      </figure>
-    {% endif %}
-
     <div class="rich-text text-base leading-7 md:text-lg" data-aos="fade-up">
       {{ consent_safe_body|safe }}
     </div>

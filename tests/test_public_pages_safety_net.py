@@ -487,7 +487,7 @@ def test_aktuelles_url_has_no_trailing_slash_and_old_one_redirects(client):
     assert redirect["Location"] == "/aktuelles"
 
 
-def test_aktuelles_lists_blog_posts_with_lead_and_pagination(client):
+def test_aktuelles_lists_all_blog_posts_uniformly_with_pagination(client):
     author = UserFactory()
     for number in range(12):
         _news_post(author, number)
@@ -500,25 +500,24 @@ def test_aktuelles_lists_blog_posts_with_lead_and_pagination(client):
     assert response.context["news_total"] == 12
     assert hidden.title not in html
 
-    lead = response.context["news_lead"]
     page = response.context["news_page"]
-    assert lead is not None
-    # Die Top-Meldung darf nicht zusaetzlich als Kachel auftauchen.
-    assert lead not in page.object_list
-    assert len(page.object_list) == 9
-    assert lead.get_absolute_url() in html
+    assert len(page.object_list) == 10
     assert "Seite 1 von 2" in html
+    assert "news_lead" not in response.context
+    assert "bgp-news-lead" not in html
+    assert html.count("bgp-news-list-item") == 10
+    assert "grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3" not in html
 
     second = client.get("/aktuelles?page=2")
     assert len(second.context["news_page"].object_list) == 2
 
 
-def test_aktuelles_shows_empty_state_without_posts(client):
+def test_aktuelles_shows_no_empty_state_without_posts(client):
     response = client.get("/aktuelles")
 
     assert response.status_code == 200
-    assert response.context["news_lead"] is None
-    assert "Zurzeit nichts Aktuelles" in response.content.decode()
+    assert not response.context["news_page"].object_list
+    assert "Zurzeit nichts Aktuelles" not in response.content.decode()
 
 
 def test_aktuelles_detail_is_the_canonical_url_of_a_post(client):
@@ -540,6 +539,22 @@ def test_aktuelles_detail_is_the_canonical_url_of_a_post(client):
     old = client.get(f"/blog/{post.pk}-{post.slug}/")
     assert old.status_code == 301
     assert old["Location"] == post.get_absolute_url()
+
+
+def test_aktuelles_detail_does_not_render_the_preview_image(client):
+    author = UserFactory()
+    post = _news_post(author, 1)
+    post.title_image = "blogs/preview.jpg"
+    post.title_image_alt = "Nur fuer die Vorschau"
+    post.save(update_fields=["title_image", "title_image_alt"])
+
+    overview_html = client.get("/aktuelles").content.decode()
+    html = client.get(post.get_absolute_url()).content.decode()
+
+    # Das Bild darf weiter fuer Open Graph/strukturierte Daten verfuegbar sein,
+    # aber nicht als sichtbares Bild im Beitrag erscheinen.
+    assert f'<img src="{post.title_image.url}"' in overview_html
+    assert f'<img src="{post.title_image.url}"' not in html
 
 
 def test_aktuelles_detail_hides_unpublished_posts(client):
@@ -565,16 +580,14 @@ def test_aktuelles_can_be_filtered_by_year(client):
         {"year": 2019, "total": 2},
     ]
     assert response.context["news_selected_year"] is None
-    assert response.context["news_lead"] == neu
+    assert list(response.context["news_page"].object_list) == [neu, mittel, alt]
 
     filtered = client.get("/aktuelles", {"jahr": "2019"})
     html = filtered.content.decode()
 
     assert filtered.context["news_selected_year"] == 2019
     assert filtered.context["news_total"] == 2
-    # Innerhalb eines Jahrgangs gibt es keine hervorgehobene Top-Meldung, alle
-    # Treffer stehen gleichrangig in der Liste.
-    assert filtered.context["news_lead"] is None
+    # Gesamt- und Jahresansicht zeigen alle Treffer gleichrangig in der Liste.
     assert list(filtered.context["news_page"].object_list) == [mittel, alt]
     assert neu.title not in html
     assert "Meldungen aus 2019" in html
@@ -600,8 +613,8 @@ def test_aktuelles_year_filter_survives_pagination(client):
     first = client.get("/aktuelles", {"jahr": "2019"})
     second = client.get("/aktuelles", {"jahr": "2019", "page": "2"})
 
-    assert len(first.context["news_page"].object_list) == 9
-    assert len(second.context["news_page"].object_list) == 2
+    assert len(first.context["news_page"].object_list) == 10
+    assert len(second.context["news_page"].object_list) == 1
     assert second.context["news_selected_year"] == 2019
     # Der Blaetter-Link darf den Jahrgang nicht verlieren.
     assert "?page=2&amp;jahr=2019" in first.content.decode()

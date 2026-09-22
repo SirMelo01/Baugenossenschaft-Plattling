@@ -213,12 +213,12 @@ def load_index(request):
     return render(request, 'pages/demos/baugenossenschaft-plattling.html', get_bgp_context(context))
 
 
-# Meldungen pro Seite in der Aktuelles-Uebersicht (ohne die Top-Meldung).
-AKTUELLES_PER_PAGE = 9
+# Meldungen pro Seite in der Aktuelles-Uebersicht.
+AKTUELLES_PER_PAGE = 10
 
 
 def aktuelles_view(request):
-    """Aktuelles-Uebersicht: Top-Meldung plus paginierte Liste, alles aus dem Blog.
+    """Aktuelles-Uebersicht: paginierte Liste aller veroeffentlichten Blogs.
 
     Ueber ``?jahr=`` laesst sich ein Jahrgang herausgreifen. Das braucht die Seite,
     seit auch aeltere Meldungen (Mitgliederversammlungen, Rundschreiben) mit ihrem
@@ -257,23 +257,11 @@ def aktuelles_view(request):
 
     posts = [localized(blog) for blog in originals]
 
-    if selected_year:
-        # Innerhalb eines Jahrgangs waere eine hervorgehobene "Top-Meldung"
-        # irrefuehrend - gesucht wird dann eine bestimmte Meldung, nicht die
-        # neueste. Es bleibt bei der reinen Liste.
-        lead = None
-        listed = posts
-    else:
-        # Die neueste Meldung steht als Top-Meldung ueber der Liste und darf dort
-        # nicht noch einmal auftauchen.
-        lead = posts[0] if posts else None
-        listed = posts[1:]
-
-    page_obj = Paginator(listed, AKTUELLES_PER_PAGE).get_page(request.GET.get("page"))
+    # Gesamt- und Jahresansicht verwenden bewusst dieselbe gleichrangige Liste.
+    page_obj = Paginator(posts, AKTUELLES_PER_PAGE).get_page(request.GET.get("page"))
 
     context = {
         "demo_page": "aktuelles",
-        "news_lead": lead,
         "news_page": page_obj,
         "news_total": len(posts),
         "news_years": news_years,

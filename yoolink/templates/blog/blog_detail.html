@@ -100,15 +100,6 @@
         <p class="mt-4 text-lg leading-8 text-slate-600">{{ blog.description }}</p>
         {% endif %}
       </header>
-      {% if blog_image_url %}
-      <figure class="not-format">
-        <img src="{{ blog_image_url }}" alt="{{ blog_image_alt }}" title="{{ blog_image_title }}"
-             class="aspect-[16/9] w-full rounded-lg object-cover" fetchpriority="high" decoding="async">
-        {% if blog_image_caption %}
-        <figcaption class="mt-2 text-sm leading-6 text-slate-500">{{ blog_image_caption }}</figcaption>
-        {% endif %}
-      </figure>
-      {% endif %}
       {% if blog.active %}
         {{ consent_safe_body|safe }}
       {% else %}
