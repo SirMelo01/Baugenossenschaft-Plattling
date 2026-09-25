@@ -7674,6 +7674,10 @@ body {
     display: flex;
   }
 
+  .md\:aspect-\[16\/10\] {
+    aspect-ratio: 16/10;
+  }
+
   .md\:h-11 {
     height: 2.75rem;
   }
@@ -7768,6 +7772,11 @@ body {
 
   .md\:gap-12 {
     gap: 3rem;
+  }
+
+  .md\:object-cover {
+    -o-object-fit: cover;
+       object-fit: cover;
   }
 
   .md\:p-10 {

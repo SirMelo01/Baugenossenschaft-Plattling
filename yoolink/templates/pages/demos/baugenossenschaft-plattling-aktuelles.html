@@ -86,7 +86,7 @@ Im Seiten-Editor stehen nur noch Kopfbereich, Beschriftungen und Leertexte.
             {% if post.title_image %}
               <img src="{{ post.title_image.url }}" alt="{{ post.title_image_alt|default:post.title }}"
                    title="{{ post.title_image_title|default:post.title }}" loading="lazy" decoding="async"
-                   class="aspect-[16/10] w-full flex-none rounded-lg object-cover md:w-64" />
+                   class="h-auto w-full flex-none rounded-lg object-contain md:aspect-[16/10] md:w-64 md:object-cover" />
             {% endif %}
             <div class="min-w-0 flex-1">
               <time datetime="{{ post.date|date:'Y-m-d' }}" class="text-xs font-semibold text-gray-500">{{ post.date|date:"d.m.Y" }}</time>

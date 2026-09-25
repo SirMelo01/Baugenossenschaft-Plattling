@@ -34,6 +34,11 @@ von dort und muessen hier nicht noch einmal gebaut werden.
   /* Der Beitragstext kommt aus dem CMS - Links dort in Markenfarbe. */
   .bgp-article .rich-text a { color: #4B6671; }
   .bgp-article .rich-text a:hover { color: #2E434C; }
+  .bgp-article .rich-text img {
+    max-width: 100%;
+    height: auto !important;
+    object-fit: contain;
+  }
 </style>
 {% endblock demo_css %}
 

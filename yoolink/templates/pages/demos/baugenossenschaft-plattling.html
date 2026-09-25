@@ -131,7 +131,7 @@
       </p>
       <div class="flex flex-wrap gap-4">
         <a href="{% if bgp_is_public %}{{ bgp_immobilien_url }}{% else %}{{ bgp_home_url }}#vermietung{% endif %}" class="bgp-btn-yellow bgp-focus inline-flex items-center gap-2 rounded-xl px-7 py-4 text-base font-bold shadow-xl transition-transform duration-300 hover:-translate-y-1">
-          <i class="bi bi-house-heart"></i> {{ bgp_hero.buttonText }}
+          {{ bgp_hero.buttonText }} <i class="bi bi-arrow-right" aria-hidden="true"></i>
         </a>
         <a href="{{ bgp_kontakt_url }}" class="bgp-focus inline-flex items-center gap-2 rounded-xl border border-white/40 px-7 py-4 text-base font-bold text-white transition hover:-translate-y-1 hover:bg-white/10">
           {{ bgp_hero_secondary.buttonText }} <i class="bi bi-arrow-right"></i>
@@ -452,6 +452,11 @@
           <span class="text-xs font-bold uppercase tracking-wider text-white/80">{{ bgp_home_news_card.header }}</span>
           <span class="bgp-text-yellow text-xs font-bold">{{ post.date|date:"d.m.Y" }}</span>
         </div>
+        {% if post.title_image %}
+        <img src="{{ post.title_image.url }}" alt="{{ post.title_image_alt|default:post.title }}"
+             title="{{ post.title_image_title|default:post.title }}" loading="lazy" decoding="async"
+             class="h-auto w-full object-contain md:aspect-[16/10] md:object-cover" />
+        {% endif %}
         <div class="flex flex-1 flex-col p-6">
           <h3 class="bgp-text-navy-dark mb-3 text-lg font-bold leading-snug">{{ post.title }}</h3>
           <p class="flex-1 text-sm leading-6 text-gray-600">{{ post.description|truncatechars:200 }}</p>
