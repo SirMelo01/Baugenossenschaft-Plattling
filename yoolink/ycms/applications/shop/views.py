@@ -36,7 +36,7 @@ from yoolink.ycms.views import (
     scale_image,
 )
 
-from .geocoding import coordinates_for_address
+from .geocoding import coordinates_for_address, geocode_address, parse_manual_position
 from .serializers import OrderItemSerializer, OrderSerializer
 from ...views import send_mail
 from .models import (
@@ -128,12 +128,15 @@ def clone_product_translation(original_product, language):
         address=original_product.address,
         latitude=original_product.latitude,
         longitude=original_product.longitude,
+        position_manual=original_product.position_manual,
         sku=original_product.sku,
         price_note=original_product.price_note,
         featured=original_product.featured,
         price=original_product.price,
         discount_price=original_product.discount_price,
         title_image=original_product.title_image,
+        title_image_alt=original_product.title_image_alt,
+        title_image_title=original_product.title_image_title,
         gallery=original_product.gallery,
         is_reduced=original_product.is_reduced,
         is_active=False,
@@ -355,6 +358,8 @@ def serialize_public_product(product):
         "price_note": product.price_note or "",
         "featured": product.featured,
         "image_url": product.title_image.url if product.title_image else "",
+        "image_alt": product.title_image_alt_text,
+        "image_title": product.title_image_title_text,
         "price": str(product.price) if product.price is not None else "",
         "discount_price": str(product.discount_price) if product.discount_price is not None else "",
         "effective_price": str(effective_price) if effective_price is not None else "",
@@ -544,6 +549,8 @@ def apply_product_form_data(request, product):
     specifications_payload = "[]"
     gallery_id = request.POST.get("galeryId")
     uploaded_image = request.FILES.get("title_image")
+    title_image_alt = (request.POST.get("title_image_alt") or "").strip()[:255]
+    title_image_title = (request.POST.get("title_image_title") or "").strip()[:255]
 
     try:
         price = parse_optional_decimal(request.POST.get("price"))
@@ -590,9 +597,31 @@ def apply_product_form_data(request, product):
     if gallery_id:
         gallery_instance = get_object_or_404(Galerie, id=int(gallery_id))
 
-    # Die Koordinaten werden vor der Transaktion geholt: die Anfrage an den
-    # Geocoder geht ins Netz und darf keine offene Datenbanktransaktion blockieren.
-    latitude, longitude = coordinates_for_address(address, exclude_pk=product.pk, previous=product)
+    # Hat jemand den Marker im CMS verschoben, gilt diese Position. Sonst werden
+    # die Koordinaten vor der Transaktion geholt: die Anfrage an den Geocoder geht
+    # ins Netz und darf keine offene Datenbanktransaktion blockieren.
+    manual_position = None
+    reset_position = bool(address) and parse_bool(request.POST.get("position_reset"))
+    if address and not reset_position and parse_bool(request.POST.get("position_manual")):
+        manual_position = parse_manual_position(request.POST.get("latitude"), request.POST.get("longitude"))
+
+    # Eine frueher gesetzte Korrektur bleibt stehen, solange die Anschrift gleich
+    # bleibt - auch wenn das Formular (etwa ohne geladene Karte) nichts mitschickt.
+    keeps_manual_position = bool(
+        product.pk
+        and product.position_manual
+        and not reset_position
+        and (product.address or "").strip() == address
+    )
+
+    if manual_position:
+        latitude, longitude = manual_position
+    elif reset_position:
+        # "Automatisch bestimmen" fragt den Geocoder neu, statt die gespeicherte
+        # oder eine korrigierte Position aus dem Nachbarobjekt zu uebernehmen.
+        latitude, longitude = geocode_address(address) or (None, None)
+    else:
+        latitude, longitude = coordinates_for_address(address, exclude_pk=product.pk, previous=product)
 
     selected_files = AnyFile.objects.filter(id__in=selected_file_ids)
 
@@ -611,6 +640,7 @@ def apply_product_form_data(request, product):
             product.address = address
             product.latitude = latitude
             product.longitude = longitude
+            product.position_manual = manual_position is not None or keeps_manual_position
             product.sku = ""
             product.price_note = price_note
             product.featured = featured
@@ -628,7 +658,17 @@ def apply_product_form_data(request, product):
             if gallery_instance:
                 product.gallery = gallery_instance
 
+            product.title_image_alt = title_image_alt
+            product.title_image_title = title_image_title
             product.save()
+
+            # Wohnungen im selben Haus teilen sich einen Marker. Eine Korrektur an
+            # einer davon gilt deshalb fuer alle - sonst stuende der gemeinsame
+            # Marker je nach Reihenfolge mal an der alten, mal an der neuen Stelle.
+            if manual_position or (reset_position and latitude is not None):
+                Product.objects.filter(address__iexact=address).exclude(pk=product.pk).update(
+                    latitude=latitude, longitude=longitude, position_manual=bool(manual_position)
+                )
 
             product.categories.clear()
             for category in get_or_create_categories(selected_categories):
@@ -699,7 +739,15 @@ def product_detail(request, product_id, slug):
         slug=slug,
     )
     product = get_or_create_product_translation(product, get_active_product_language(request))
-    return render(request, "pages/cms/products/edit-product.html", {"product": product})
+    return render(
+        request,
+        "pages/cms/products/edit-product.html",
+        {
+            "product": product,
+            # Fuer den verschiebbaren Marker unter der Adresse (Position korrigieren).
+            "google_maps_js_api_key": settings.GOOGLE_MAPS_JS_API_KEY,
+        },
+    )
 
 def get_filtered_products_queryset(request):
     query = (request.GET.get("q") or "").strip()
@@ -827,6 +875,9 @@ def product_update(request, product_id, slug):
             "success": "Product successfully updated",
             "productId": product.id,
             "slug": product.slug,
+            "latitude": product.latitude,
+            "longitude": product.longitude,
+            "positionManual": product.position_manual,
         },
         status=200,
     )
@@ -848,9 +899,20 @@ def shop_settings_update(request):
     products_title = (request.POST.get("products_title") or "").strip()[:120]
     products_intro = (request.POST.get("products_intro") or "").strip()[:1000]
 
+    objects_document = None
+    document_id = (request.POST.get("objects_document_id") or "").strip()
+    if document_id:
+        if not document_id.isdigit():
+            return JsonResponse({"error": "Ungültige Datei für die Objektliste."}, status=400)
+        objects_document = AnyFile.objects.filter(pk=int(document_id)).first()
+        if objects_document is None:
+            return JsonResponse({"error": "Die gewählte Objektliste existiert nicht mehr."}, status=400)
+
     shop_settings.products_layout = layout
     shop_settings.products_title = products_title or "Immobilien"
     shop_settings.products_intro = products_intro
+    shop_settings.objects_document = objects_document
+    shop_settings.objects_document_title = (request.POST.get("objects_document_title") or "").strip()[:120]
     shop_settings.save()
 
     return JsonResponse({"success": "Die Immobilien-Darstellung wurde gespeichert."})

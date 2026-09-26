@@ -138,35 +138,6 @@
 {% compress js %}
 <script defer type="text/javascript" src="{% static 'js/cms/slick/slick.min.js' %}"></script>
 <script defer src="{% static 'js/prism/prism.js' %}" data-manual></script>
-<script>
-  document.addEventListener('DOMContentLoaded', function () {
-    var $ = window.jQuery;
-    if (!$) return;
-
-    $('.carousel').slick({
-      dots: true,
-      arrows: true,
-      infinite: true,
-      slidesToShow: 1,
-      slidesToScroll: 1,
-      autoplay: true,
-      autoplaySpeed: 3000
-    });
-
-    $('.next-button').on('click', function () {
-      var carousel = $(this).closest('.carousel-container').find('.carousel');
-      carousel.slick('slickNext');
-    });
-
-    $('.prev-button').on('click', function () {
-      var carousel = $(this).closest('.carousel-container').find('.carousel');
-      carousel.slick('slickPrev');
-    });
-
-    setTimeout(function () {
-      Prism.highlightAll();
-    }, 500);
-  });
-</script>
+<script defer src="{% static 'js/blog-public.js' %}"></script>
 {% endcompress js %}
 {% endblock javascriptend %}

@@ -2,8 +2,9 @@
  * Objektkarte auf der Immobilienseite (Google Maps).
  *
  * Die Koordinaten stehen bereits im Seitenquelltext: sie werden beim Speichern
- * im CMS aus der Adresse bestimmt und am Objekt gespeichert. Hier wird deshalb
- * nichts mehr umgerechnet - die Karte setzt nur noch Marker.
+ * im CMS aus der Adresse bestimmt (oder dort von Hand korrigiert) und am Objekt
+ * gespeichert. Hier wird deshalb nichts mehr umgerechnet - die Karte setzt nur
+ * noch Marker.
  *
  * Google Maps ist ein externes Medium, die Karte laedt daher erst nach der
  * Cookie-Einwilligung. Bis dahin (und wenn das Laden scheitert) bleibt die
@@ -15,6 +16,15 @@
   var MAPS_CALLBACK = "yoolinkGoogleMapsReady";
   // Startansicht: weit genug heraus, dass die Objekte im Ort verortet sind.
   var INITIAL_ZOOM = 14;
+  // Marker, die naeher als so viele Bildschirmpixel beieinander liegen, werden zu
+  // einem Buendel mit Anzahl zusammengefasst (der Pin-Kopf ist etwa 27 px breit).
+  var CLUSTER_RADIUS_PX = 34;
+  // Ab dieser Zoomstufe zoomt ein Klick auf ein Buendel nicht weiter hinein,
+  // sondern listet die Objekte - weiter aufloesen laesst sich dann nichts mehr.
+  var MAX_CLUSTER_ZOOM = 19;
+  // "Auf Karte zeigen" zoomt so nah heran, dass Nachbarhaeuser getrennt stehen.
+  var FOCUS_ZOOM = 18;
+  var BRAND_NAVY = "#2E434C";
   var mapsPromise = null;
 
   function escapeHtml(value) {
@@ -88,10 +98,9 @@
     return mapsPromise;
   }
 
-  function popupHtml(group) {
+  function groupPopupSection(group) {
     var first = group.entries[0];
-    var html = '<div style="min-width:13rem">'
-      + '<strong>' + escapeHtml(first.address) + '</strong>';
+    var html = '<strong>' + escapeHtml(first.address) + '</strong>';
 
     if (group.entries.length > 1) {
       html += '<br><span>' + group.entries.length + ' Objekte an dieser Adresse</span>';
@@ -106,7 +115,13 @@
     if (first.maps_url) {
       html += '<a href="' + escapeHtml(first.maps_url) + '" target="_blank" rel="noopener">Route</a>';
     }
-    return html + "</div>";
+    return html;
+  }
+
+  function popupHtml(groups) {
+    return '<div style="min-width:13rem;max-height:18rem;overflow-y:auto">'
+      + groups.map(groupPopupSection).join('<hr style="margin:0.6rem 0;border:0;border-top:1px solid #e5e7eb">')
+      + "</div>";
   }
 
   function hasCoordinates(entry) {
@@ -133,7 +148,7 @@
     entries.forEach(function (entry) {
       var key = (entry.address || "").trim().replace(/\s+/g, " ").toLowerCase();
       if (!byKey[key]) {
-        byKey[key] = { lat: entry.lat, lng: entry.lng, entries: [] };
+        byKey[key] = { lat: entry.lat, lng: entry.lng, entries: [], marker: null };
         groups.push(byKey[key]);
       }
       byKey[key].entries.push(entry);
@@ -149,16 +164,89 @@
     return group.entries[0].address + " (" + group.entries.length + " Objekte)";
   }
 
+  function countEntries(groups) {
+    return groups.reduce(function (sum, group) {
+      return sum + group.entries.length;
+    }, 0);
+  }
+
+  /**
+   * Position eines Punktes in Weltpixeln der Zoomstufe (Web-Mercator).
+   *
+   * Der Bildschirmabstand zweier Marker haengt nur von der Zoomstufe ab, nicht
+   * vom Kartenausschnitt - deshalb reicht diese Rechnung, und die Karte muss
+   * dafuer nicht erst fertig gezeichnet sein.
+   */
+  function worldPixel(lat, lng, zoom) {
+    var scale = 256 * Math.pow(2, zoom);
+    var sin = Math.min(Math.max(Math.sin(lat * Math.PI / 180), -0.9999), 0.9999);
+    return {
+      x: (lng + 180) / 360 * scale,
+      y: (0.5 - Math.log((1 + sin) / (1 - sin)) / (4 * Math.PI)) * scale,
+    };
+  }
+
+  /**
+   * Anschriften, deren Marker sich auf dem Bildschirm ueberdecken, zu Buendeln
+   * zusammenfassen.
+   *
+   * Nachbarhaeuser liegen oft nur 15-30 m auseinander. In der Startansicht sind
+   * das zwei, drei Pixel: die Pins liegen deckungsgleich uebereinander und es
+   * sieht aus, als stuende dort nur ein Objekt. Ein Buendel zeigt stattdessen die
+   * Anzahl und zoomt beim Anklicken hinein, bis die Haeuser getrennt stehen.
+   */
+  function clusterGroups(groups, zoom) {
+    var clusters = [];
+    var radiusSquared = CLUSTER_RADIUS_PX * CLUSTER_RADIUS_PX;
+
+    groups.forEach(function (group) {
+      var point = worldPixel(group.lat, group.lng, zoom);
+      var target = null;
+
+      for (var i = 0; i < clusters.length; i++) {
+        var dx = clusters[i].x - point.x;
+        var dy = clusters[i].y - point.y;
+        if (dx * dx + dy * dy <= radiusSquared) {
+          target = clusters[i];
+          break;
+        }
+      }
+
+      if (!target) {
+        clusters.push({ x: point.x, y: point.y, groups: [group] });
+        return;
+      }
+
+      // Mittelpunkt mitfuehren, damit das Buendel zwischen seinen Haeusern sitzt.
+      var size = target.groups.length;
+      target.x = (target.x * size + point.x) / (size + 1);
+      target.y = (target.y * size + point.y) / (size + 1);
+      target.groups.push(group);
+    });
+
+    return clusters;
+  }
+
+  function clusterCenter(groups) {
+    var lat = 0;
+    var lng = 0;
+    groups.forEach(function (group) {
+      lat += group.lat;
+      lng += group.lng;
+    });
+    return { lat: lat / groups.length, lng: lng / groups.length };
+  }
+
   /**
    * "Auf Karte zeigen" neben jeder Adresse aktivieren.
    *
    * Der Knopf steht erst zur Verfuegung, wenn die Karte wirklich da ist - ohne
    * Einwilligung oder nach einem Ladefehler wuerde er ins Leere fuehren.
    */
-  function connectList(root, markers, showEntry) {
+  function connectList(root, groupsByEntry, showEntry) {
     root.querySelectorAll("[data-map-focus]").forEach(function (button) {
       var entryId = button.dataset.mapFocus;
-      if (!markers[entryId]) {
+      if (!groupsByEntry[entryId]) {
         return;
       }
 
@@ -181,34 +269,125 @@
       });
 
       var infoWindow = new maps.InfoWindow();
+      var infoAnchor = null;
       var bounds = new maps.LatLngBounds();
       var groups = groupByAddress(entries);
-      var markers = {};
       var groupsByEntry = {};
+      var clusterMarkers = [];
+
+      function openInfo(anchor, popupGroups) {
+        infoAnchor = anchor;
+        infoWindow.setContent(popupHtml(popupGroups));
+        infoWindow.open({ anchor: anchor, map: map });
+      }
 
       groups.forEach(function (group) {
         var position = { lat: group.lat, lng: group.lng };
-        var options = { map: map, position: position, title: groupTitle(group) };
+        var options = { position: position, title: groupTitle(group) };
 
         if (group.entries.length > 1) {
           options.label = { text: String(group.entries.length), color: "#ffffff", fontWeight: "700" };
         }
 
-        var marker = new maps.Marker(options);
-        marker.addListener("click", function () {
-          infoWindow.setContent(popupHtml(group));
-          infoWindow.open({ anchor: marker, map: map });
+        group.marker = new maps.Marker(options);
+        group.marker.addListener("click", function () {
+          openInfo(group.marker, [group]);
         });
 
         // Jeder Listeneintrag zeigt auf den Marker seines Ortes - auch die
         // Nachbarwohnungen, die sich denselben Marker teilen.
         group.entries.forEach(function (entry) {
-          markers[entry.id] = marker;
           groupsByEntry[entry.id] = group;
         });
 
         bounds.extend(position);
       });
+
+      function buildClusterMarker(cluster) {
+        var total = countEntries(cluster.groups);
+        var marker = new maps.Marker({
+          map: map,
+          position: clusterCenter(cluster.groups),
+          title: total + " Objekte an " + cluster.groups.length + " Adressen - zum Vergrößern anklicken",
+          label: { text: String(total), color: "#ffffff", fontWeight: "700", fontSize: "13px" },
+          icon: {
+            path: maps.SymbolPath.CIRCLE,
+            scale: total > 9 ? 19 : 16,
+            fillColor: BRAND_NAVY,
+            fillOpacity: 0.95,
+            strokeColor: "#ffffff",
+            strokeWeight: 3,
+          },
+          zIndex: 1000 + total,
+        });
+
+        marker.addListener("click", function () {
+          if (map.getZoom() >= MAX_CLUSTER_ZOOM) {
+            openInfo(marker, cluster.groups);
+            return;
+          }
+
+          var clusterBounds = new maps.LatLngBounds();
+          cluster.groups.forEach(function (group) {
+            clusterBounds.extend({ lat: group.lat, lng: group.lng });
+          });
+          map.fitBounds(clusterBounds, 80);
+          // Liegen zwei Adressen (fast) auf demselben Punkt, wuerde fitBounds bis
+          // zum Anschlag hineinzoomen - dort sieht man nur noch ein Hausdach.
+          maps.event.addListenerOnce(map, "idle", function () {
+            if (map.getZoom() > MAX_CLUSTER_ZOOM) {
+              map.setZoom(MAX_CLUSTER_ZOOM);
+            }
+          });
+        });
+
+        cluster.marker = marker;
+        return marker;
+      }
+
+      var clusters = [];
+
+      function recluster() {
+        var zoom = map.getZoom();
+        if (typeof zoom !== "number") {
+          return;
+        }
+
+        clusterMarkers.forEach(function (marker) {
+          marker.setMap(null);
+        });
+        clusterMarkers = [];
+        clusters = clusterGroups(groups, zoom);
+
+        clusters.forEach(function (cluster) {
+          if (cluster.groups.length === 1) {
+            if (cluster.groups[0].marker.getMap() !== map) {
+              cluster.groups[0].marker.setMap(map);
+            }
+            return;
+          }
+
+          cluster.groups.forEach(function (group) {
+            group.marker.setMap(null);
+          });
+          clusterMarkers.push(buildClusterMarker(cluster));
+        });
+
+        // Ein Info-Fenster an einem Marker, der gerade in einem Buendel aufgegangen
+        // ist, haengt sonst an einer Stelle, an der nichts mehr zu sehen ist.
+        if (infoAnchor && !infoAnchor.getMap()) {
+          infoWindow.close();
+          infoAnchor = null;
+        }
+      }
+
+      function clusterOf(group) {
+        return clusters.filter(function (cluster) {
+          return cluster.groups.indexOf(group) !== -1;
+        })[0];
+      }
+
+      map.addListener("zoom_changed", recluster);
 
       if (groups.length === 1) {
         map.setCenter({ lat: groups[0].lat, lng: groups[0].lng });
@@ -225,12 +404,26 @@
           }
         });
       }
+      recluster();
 
-      connectList(root, markers, function (entryId) {
-        var marker = markers[entryId];
-        map.panTo(marker.getPosition());
-        infoWindow.setContent(popupHtml(groupsByEntry[entryId]));
-        infoWindow.open({ anchor: marker, map: map });
+      connectList(root, groupsByEntry, function (entryId) {
+        var group = groupsByEntry[entryId];
+        map.setCenter({ lat: group.lat, lng: group.lng });
+        if (map.getZoom() < FOCUS_ZOOM) {
+          map.setZoom(FOCUS_ZOOM);
+        }
+        recluster();
+
+        if (group.marker.getMap()) {
+          openInfo(group.marker, [group]);
+        } else {
+          // Selbst aus der Naehe nicht zu trennen (etwa zwei Hausnummern mit
+          // denselben Koordinaten) - dann das Buendel mit allen Objekten oeffnen.
+          var cluster = clusterOf(group);
+          if (cluster && cluster.marker) {
+            openInfo(cluster.marker, cluster.groups);
+          }
+        }
         canvas.scrollIntoView({ behavior: "smooth", block: "center" });
       });
 

@@ -220,6 +220,39 @@
                   placeholder="z.B. Schillerstr. 6b, 94447 Plattling"
                 />
                 <p class="mt-2 text-xs text-gray-500">Wird auf der Immobilienseite angezeigt und als Marker auf die Objektkarte gesetzt. Mehrere Objekte d&uuml;rfen dieselbe Adresse haben.</p>
+
+                <div
+                  id="productPosition"
+                  class="mt-4 overflow-hidden rounded-xl border border-gray-200 bg-gray-50"
+                  data-api-key="{{ google_maps_js_api_key }}"
+                >
+                  <input type="hidden" name="latitude" value="{{ product.latitude|default_if_none:''|stringformat:'s' }}" data-position-lat>
+                  <input type="hidden" name="longitude" value="{{ product.longitude|default_if_none:''|stringformat:'s' }}" data-position-lng>
+                  <input type="hidden" name="position_manual" value="{% if product.position_manual %}true{% else %}false{% endif %}" data-position-manual>
+                  <input type="hidden" name="position_reset" value="false" data-position-reset>
+
+                  <div class="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div class="min-w-0">
+                      <p class="text-sm font-semibold text-gray-700">Position auf der Objektkarte</p>
+                      <p class="mt-0.5 text-xs text-gray-500" data-position-status></p>
+                    </div>
+                    <div class="flex flex-shrink-0 flex-wrap gap-2">
+                      <button type="button" data-position-load
+                        class="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 transition hover:bg-gray-100">
+                        <i class="bi bi-geo-alt" aria-hidden="true"></i> Pin prüfen / verschieben
+                      </button>
+                      <button type="button" data-position-auto
+                        class="hidden items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 transition hover:bg-gray-100">
+                        <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> Automatisch bestimmen
+                      </button>
+                    </div>
+                  </div>
+
+                  <div data-position-map class="hidden h-80 w-full border-t border-gray-200"></div>
+                  <p data-position-hint class="hidden border-t border-gray-200 bg-white px-4 py-2 text-xs text-gray-500">
+                    Pin an die richtige Stelle ziehen oder in die Karte klicken - gilt nach dem Speichern f&uuml;r alle Objekte mit derselben Adresse.
+                  </p>
+                </div>
               </div>
 
               <div>
@@ -582,6 +615,31 @@
                   <img id="productImage" src="{% static 'images/placeholder-image.svg' %}" alt="Kein Bild" class="max-h-72 rounded-xl object-contain">
                 {% endif %}
               </div>
+              <div class="space-y-3">
+                <div>
+                  <label class="mb-2 block text-sm font-semibold text-gray-700" for="titleImageAlt">Alt-Text</label>
+                  <input
+                    id="titleImageAlt"
+                    type="text"
+                    maxlength="255"
+                    value="{{ product.title_image_alt }}"
+                    class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-800 focus:border-blue-500 focus:bg-white focus:outline-none"
+                    placeholder="Was ist auf dem Bild zu sehen? (Screenreader &amp; SEO)"
+                  />
+                </div>
+                <div>
+                  <label class="mb-2 block text-sm font-semibold text-gray-700" for="titleImageTitle">Bildtitel</label>
+                  <input
+                    id="titleImageTitle"
+                    type="text"
+                    maxlength="255"
+                    value="{{ product.title_image_title }}"
+                    class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-800 focus:border-blue-500 focus:bg-white focus:outline-none"
+                    placeholder="Erscheint beim Darüberfahren mit der Maus"
+                  />
+                </div>
+                <p class="text-xs text-gray-500">Leer gelassen wird jeweils die Objektbezeichnung verwendet.</p>
+              </div>
             </div>
           </div>
         </div>
@@ -751,6 +809,7 @@
 <script src="{% static 'js/libs/quill/quill.min.js' %}"></script>
 <script src="{% static 'js/cms/products/product-taxonomy.js' %}"></script>
 <script src="{% static 'js/cms/products/product-detail.js' %}"></script>
+<script src="{% static 'js/cms/products/product-position.js' %}"></script>
 <script src="{% static 'js/cms/products/product-galery.js' %}"></script>
 <script src="{% static 'js/cms/products/product-files.js' %}"></script>
 <script type="text/javascript" src="{% static 'js/cms/slick/slick.min.js' %}"></script>

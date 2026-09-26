@@ -839,7 +839,7 @@ function applyBlogCodeToBuilder(code) {
                     $('#youtubeWidth').val(width)
                     $('#youtubeURL').val($editYoutube.attr('src'))
                     $('#youtubeText').val($editYoutube.attr('title'))
-                    $('#youtubeModal').toggleClass("hidden");
+                    $('#youtubeModal').removeClass('hidden').addClass('flex');
                 });
                 $blogContent.append($container)
                 break;
@@ -1090,7 +1090,7 @@ $(document).ready(function () {
 
             $('#youtubeURL').val($editYoutube.attr('src'))
             $('#youtubeText').val($editYoutube.attr('title'))
-            $('#youtubeModal').toggleClass("hidden");
+            $('#youtubeModal').removeClass('hidden').addClass('flex');
         });
         // Append Container to Blog Builder
         $("#blogContent").append($container);
@@ -1164,7 +1164,7 @@ $(document).ready(function () {
 
     // Open File modal
     $('#addFile').click(function () {
-        $('#anyfileModal').removeClass('hidden');
+        $('#anyfileModal').removeClass('hidden').addClass('flex');
         selectedAnyfile = null;
         $('#selectAnyfile').prop('disabled', true);
         loadAnyfiles();
@@ -1290,10 +1290,10 @@ $(document).ready(function () {
         closeBlogImageModal()
     })
     $('#closeYoutubeModal').click(function () {
-        $('#youtubeModal').toggleClass("hidden")
+        $('#youtubeModal').addClass('hidden').removeClass('flex')
     })
     $('#closeAnyfileModal').click(function () {
-        $('#anyfileModal').addClass('hidden');
+        $('#anyfileModal').addClass('hidden').removeClass('flex');
     });
 
     /****************** AnyFile Logic *******************/
@@ -1375,7 +1375,7 @@ $(document).ready(function () {
     $('#selectAnyfile').click(function () {
         if (!selectedAnyfile) return;
         addAnyfileToContent(selectedAnyfile);
-        $('#anyfileModal').addClass('hidden');
+        $('#anyfileModal').addClass('hidden').removeClass('flex');
         sendNotif('Datei hinzugefügt', 'success');
         // Scroll nach unten (du hast schon scrollToBottom())
         if (typeof scrollToBottom === 'function') scrollToBottom();
@@ -1614,7 +1614,7 @@ $(document).ready(function () {
 
         $('#youtubeURL').val($editYoutube.attr('src'))
         $('#youtubeText').val($editYoutube.attr('title'))
-        $('#youtubeModal').toggleClass("hidden");
+        $('#youtubeModal').removeClass('hidden').addClass('flex');
 
     });
 

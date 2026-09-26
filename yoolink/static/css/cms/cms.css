@@ -112,6 +112,12 @@
     padding: 0.75rem;
 }
 
+.cms-content-shell .modal:not(.hidden) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .cms-content-shell .dropzone {
     border-radius: 1rem;
 }

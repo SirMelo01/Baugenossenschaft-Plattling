@@ -41,6 +41,8 @@ $(document).ready(function () {
       }
 
       $productImage.attr("src", imageSrc)
+      $productImage.attr("alt", $currentThumb.data("image-alt") || $currentThumb.find("img").attr("alt") || "")
+      $productImage.attr("title", $currentThumb.data("image-title") || "")
       setActiveThumb($currentThumb)
     })
   }

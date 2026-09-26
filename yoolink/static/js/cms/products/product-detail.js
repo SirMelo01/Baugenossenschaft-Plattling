@@ -529,6 +529,8 @@ $(document).ready(function () {
     const formData = new FormData(this);
     setFormDataValue(formData, "title", $("#title").val());
     setFormDataValue(formData, "address", $("#address").val());
+    setFormDataValue(formData, "title_image_alt", $("#titleImageAlt").val() || "");
+    setFormDataValue(formData, "title_image_title", $("#titleImageTitle").val() || "");
     setFormDataValue(formData, "description", $("#description").val());
     setFormDataValue(formData, "isActive", $("#activeSwitch").is(":checked"));
     setFormDataValue(formData, "isInStock", true);
@@ -579,6 +581,7 @@ $(document).ready(function () {
 
         if (response.success) {
           sendNotif("Die Immobilie wurde erfolgreich gespeichert.", "success");
+          $(document).trigger("cms:productSaved", [response]);
         } else {
           sendNotif(response.error || "Speichern fehlgeschlagen.", "error");
         }
@@ -685,6 +688,8 @@ $(document).ready(function () {
 
     setFormDataValue(formData, "title", $("#title").val());
     setFormDataValue(formData, "address", $("#address").val());
+    setFormDataValue(formData, "title_image_alt", $("#titleImageAlt").val() || "");
+    setFormDataValue(formData, "title_image_title", $("#titleImageTitle").val() || "");
     setFormDataValue(formData, "description", $("#description").val());
     setFormDataValue(formData, "isActive", $("#activeSwitch").is(":checked"));
     setFormDataValue(formData, "isInStock", true);

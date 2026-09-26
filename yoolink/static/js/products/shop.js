@@ -68,6 +68,8 @@ function buildPublicProductCard(product) {
   const detailUrl = product.detail_url || "#"
   const imageUrl = product.image_url || placeholderImage
   const title = escapeHtml(product.title)
+  const imageAlt = escapeHtml(product.image_alt || product.title)
+  const imageTitle = escapeHtml(product.image_title || product.title)
   const description = escapeHtml(product.description || "Keine Beschreibung vorhanden")
   const address = escapeHtml(product.address || "")
   const showPriceCard = Boolean(product.should_show_price_card)
@@ -98,7 +100,7 @@ function buildPublicProductCard(product) {
       <div class="flex h-full flex-col overflow-hidden rounded-3xl border bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg ${cardBorder}">
         <div class="relative">
           <div class="flex h-52 items-center justify-center bg-gray-50 p-4 sm:h-60">
-            <img src="${imageUrl}" alt="${title}" loading="lazy" class="max-h-full max-w-full object-contain">
+            <img src="${imageUrl}" alt="${imageAlt}" title="${imageTitle}" loading="lazy" class="max-h-full max-w-full object-contain">
           </div>
 
           <div class="absolute left-3 top-3 flex flex-wrap gap-2">

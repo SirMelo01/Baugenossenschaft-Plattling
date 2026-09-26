@@ -1564,6 +1564,10 @@ body {
   height: 420px;
 }
 
+.h-\[52rem\] {
+  height: 52rem;
+}
+
 .h-\[5px\] {
   height: 5px;
 }

@@ -1196,7 +1196,25 @@ def render_blog_code_to_html(code):
         elif name == "galery":
             rendered.append(_render_gallery(block, attrs))
         elif name == "file":
-            rendered.append(f"<a{attrs}>{escape(value)}</a>")
+            extension = str(attributes.get("data-ext") or "").lower().strip()
+            if not extension:
+                extension = str(attributes.get("href") or "").split("?", 1)[0].rsplit("/", 1)[-1].rsplit(".", 1)[-1].lower()
+            extension = extension.lstrip(".")
+            icon = {
+                "pdf": "bi-file-earmark-pdf-fill text-red-600",
+                "doc": "bi-file-earmark-word-fill text-blue-700",
+                "docx": "bi-file-earmark-word-fill text-blue-700",
+                "xls": "bi-file-earmark-excel-fill text-green-600",
+                "xlsx": "bi-file-earmark-excel-fill text-green-600",
+                "zip": "bi-file-earmark-zip-fill text-slate-600",
+                "rar": "bi-file-earmark-zip-fill text-slate-600",
+                "txt": "bi-file-earmark-text-fill text-slate-600",
+                "jpg": "bi-file-earmark-image-fill text-amber-600",
+                "jpeg": "bi-file-earmark-image-fill text-amber-600",
+                "png": "bi-file-earmark-image-fill text-amber-600",
+                "mp4": "bi-file-earmark-play-fill text-purple-600",
+            }.get(extension, "bi-file-earmark-fill text-slate-600")
+            rendered.append(f'<a{attrs}><i class="bi {icon}" aria-hidden="true"></i><span>{escape(value)}</span></a>')
         elif tag_name == "iframe":
             rendered.append(f"<iframe{attrs}></iframe>")
         else:

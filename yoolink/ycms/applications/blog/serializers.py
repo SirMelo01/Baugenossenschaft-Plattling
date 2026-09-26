@@ -217,6 +217,11 @@ class ExternalBlogSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(validation_error_message(exc)) from exc
         return value
 
+    def validate_description(self, value):
+        if len(value) > 400:
+            raise serializers.ValidationError("Die Beschreibung darf höchstens 400 Zeichen enthalten.")
+        return value
+
     def validate(self, attrs):
         attrs = super().validate(attrs)
         initial_data = getattr(self, "initial_data", {}) or {}

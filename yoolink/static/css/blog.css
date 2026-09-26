@@ -39,6 +39,45 @@ article {
     padding: 0.5rem;
 }
 
+article .carousel {
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
+}
+
+/* Keep gallery images in one row while the carousel script initializes. */
+article .carousel:not(.slick-initialized) {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+}
+
+article .carousel:not(.slick-initialized) > div {
+    flex: 0 0 100%;
+    min-width: 0;
+    scroll-snap-align: start;
+}
+
+article .carousel img {
+    display: block;
+    width: 100%;
+    max-height: 70vh;
+    object-fit: contain;
+}
+
+article a.file-attachment {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+}
+
+article a.file-attachment .bi {
+    flex: none;
+    font-size: 1.25rem;
+}
+
 /* Sehr lange Wörter / URLs umbrechen, statt aus dem Container zu laufen. */
 article,
 article p,

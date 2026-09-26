@@ -124,6 +124,18 @@ class ShopSettings(TimeStampedModel):
     )
     products_title = models.CharField(max_length=120, default="Immobilien")
     products_intro = models.TextField(blank=True)
+    # Bestandsliste "Unsere Objekte" als PDF aus der Dateiverwaltung. Sie wird
+    # ueber die Dateiverwaltung ausgetauscht, nicht als Tabelle im CMS gepflegt -
+    # die Genossenschaft fuehrt die Liste ohnehin als Tabellenkalkulation.
+    objects_document = models.ForeignKey(
+        "ycms.AnyFile",
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="+",
+        verbose_name="Objektliste (PDF)",
+    )
+    objects_document_title = models.CharField(max_length=120, blank=True, default="Unsere Objekte")
 
     class Meta:
         verbose_name = "Immobilien Einstellungen"
@@ -163,6 +175,11 @@ class Product(TimeStampedModel):
     # und nicht von Hand gepflegt - deshalb editable=False.
     latitude = models.FloatField("Breitengrad", blank=True, null=True, editable=False)
     longitude = models.FloatField("Laengengrad", blank=True, null=True, editable=False)
+    # Der Geocoder trifft das Gebaeude, aber nicht immer den Hauseingang - bei
+    # einem Block mit mehreren Hausnummern landet der Punkt etwa in der Mitte.
+    # Wer den Marker im CMS zurechtschiebt, setzt dieses Flag; solange die
+    # Anschrift gleich bleibt, ueberschreibt kein Geocoding die Korrektur mehr.
+    position_manual = models.BooleanField("Position von Hand gesetzt", default=False, editable=False)
     sku = models.CharField("Objektnummer", max_length=64, blank=True, default="")
     price_note = models.CharField(
         "Preishinweis",
@@ -204,6 +221,8 @@ class Product(TimeStampedModel):
     )
 
     title_image = models.ImageField(upload_to=upload_to_product_image, blank=True)
+    title_image_alt = models.CharField("Alt-Text Titelbild", max_length=255, blank=True, default="")
+    title_image_title = models.CharField("Bildtitel Titelbild", max_length=255, blank=True, default="")
     gallery = models.ForeignKey(
         "ycms.Galerie",
         on_delete=models.SET_NULL,
@@ -334,6 +353,14 @@ class Product(TimeStampedModel):
         if latitude is None or longitude is None:
             return None
         return {"lat": latitude, "lng": longitude}
+
+    @property
+    def title_image_alt_text(self):
+        return (self.title_image_alt or "").strip() or self.title
+
+    @property
+    def title_image_title_text(self):
+        return (self.title_image_title or "").strip() or self.title
 
     @property
     def maps_url(self):

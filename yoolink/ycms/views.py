@@ -1477,6 +1477,8 @@ def create_blog(request):
         if title:
             if not description:
                 return JsonResponse({'error': 'Die Beschreibung darf nicht leer sein!'}, status=400)
+            if len(description) > 400:
+                return JsonResponse({'error': 'Die Beschreibung darf höchstens 400 Zeichen enthalten.'}, status=400)
 
             content_data, error_response = _blog_content_from_cms_request(request, title, description)
             if error_response:
@@ -1554,6 +1556,8 @@ def update_blog(request, id):
         if title:
             if not description:
                 return JsonResponse({'error': 'Die Beschreibung darf nicht leer sein!'}, status=400)
+            if len(description) > 400:
+                return JsonResponse({'error': 'Die Beschreibung darf höchstens 400 Zeichen enthalten.'}, status=400)
 
             content_data, error_response = _blog_content_from_cms_request(request, title, description)
             if error_response:

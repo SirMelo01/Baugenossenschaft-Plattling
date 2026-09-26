@@ -155,9 +155,11 @@
       <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
         <label class="block text-sm font-semibold text-slate-900" for="blogDescription">Beschreibung</label>
         <p class="mt-1 mb-2 text-xs text-slate-500">Pflichtfeld für Blogkarten, Vorschau und SEO Meta Description.</p>
-        <textarea id="blogDescription" rows="4" maxlength="320"
+        <textarea id="blogDescription" rows="4" aria-describedby="blogDescriptionCount blogDescriptionNotice"
             class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
             placeholder="Kurze Zusammenfassung des Blogartikels"></textarea>
+        <p id="blogDescriptionCount" class="mt-1 text-right text-xs text-slate-500">0 / 400 Zeichen</p>
+        <p id="blogDescriptionNotice" role="status" aria-live="polite" class="mt-1 hidden text-xs text-amber-700"></p>
       </div>
 
       <!-- Titelbild -->
@@ -239,6 +241,7 @@
 <script defer src="{% static 'js/cms/blog/blog-markdown.js' %}"></script>
 <script defer src="{% static 'js/cms/blog/blog-richtext.js' %}"></script>
 <script defer src="{% static 'js/cms/blog/blog.js' %}"></script>
+<script defer src="{% static 'js/cms/blog/blog-description.js' %}"></script>
 <script defer src="{% static 'js/cms/unsaved-guard.js' %}"></script>
 <script type="text/javascript" src="{% static 'js/cms/slick/slick.min.js' %}"></script>
 {% endcompress js %}

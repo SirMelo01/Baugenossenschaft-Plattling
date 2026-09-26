@@ -162,6 +162,63 @@
       </div>
     </div>
 
+    <div id="objectsDocumentSettings" class="mt-5 rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200"
+      data-document-id="{{ shop_settings.objects_document_id|default_if_none:'' }}">
+      <div class="mb-3">
+        <h4 class="font-semibold text-slate-900">Objektliste als PDF</h4>
+        <p class="mt-1 text-sm text-slate-500">Erscheint unter der Objektkarte zum Ansehen und Herunterladen. Zum Aktualisieren einfach eine neue Fassung hochladen und hier auswählen.</p>
+      </div>
+
+      <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div>
+          <label for="objectsDocumentTitle" class="mb-2 block text-sm font-semibold text-slate-700">Überschrift</label>
+          <input
+            id="objectsDocumentTitle"
+            type="text"
+            maxlength="120"
+            value="{{ shop_settings.objects_document_title }}"
+            placeholder="Unsere Objekte"
+            class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-800 focus:border-blue-500 focus:outline-none"
+          />
+        </div>
+
+        <div>
+          <span class="mb-2 block text-sm font-semibold text-slate-700">PDF-Datei</span>
+          <div data-document-card
+            class="flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-3 {% if not shop_settings.objects_document %}hidden{% endif %}">
+            <span class="grid h-10 w-10 flex-shrink-0 place-items-center rounded-lg bg-rose-50 text-lg text-rose-600">
+              <i class="bi bi-file-earmark-pdf-fill" aria-hidden="true"></i>
+            </span>
+            <span class="min-w-0 flex-1">
+              <span data-document-name class="block truncate text-sm font-semibold text-slate-800">
+                {% if shop_settings.objects_document %}{{ shop_settings.objects_document.display_name }}{% endif %}
+              </span>
+              <a data-document-link target="_blank" rel="noopener"
+                href="{% if shop_settings.objects_document %}{{ shop_settings.objects_document.file.url }}{% else %}#{% endif %}"
+                class="mt-0.5 inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:underline">
+                <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i> ansehen
+              </a>
+            </span>
+            <span class="flex flex-shrink-0 gap-1">
+              <button type="button" data-document-change title="PDF ändern"
+                class="rounded-md border border-slate-300 px-2.5 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50">
+                <i class="bi bi-arrow-repeat" aria-hidden="true"></i>
+              </button>
+              <button type="button" data-document-clear title="PDF entfernen"
+                class="rounded-md border border-rose-200 px-2.5 py-1.5 text-xs font-semibold text-rose-600 transition hover:bg-rose-50">
+                <i class="bi bi-trash3" aria-hidden="true"></i>
+              </button>
+            </span>
+          </div>
+
+          <button type="button" data-document-pick
+            class="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-600 transition hover:border-blue-400 hover:text-blue-700 {% if shop_settings.objects_document %}hidden{% endif %}">
+            <i class="bi bi-file-earmark-arrow-up" aria-hidden="true"></i> PDF wählen oder hochladen
+          </button>
+        </div>
+      </div>
+    </div>
+
     <div class="mt-5 flex justify-end">
       <button
         id="saveShopSettings"
@@ -216,11 +273,58 @@
   </div>
 
 </div>
+
+{% if 'products.edit' in cms_permissions %}
+{% include "pages/cms/components/DocumentSelectModal.html" %}
+{% endif %}
 {% endblock content %}
 
 {% block javascriptend %}
 <script>
   $(document).ready(function () {
+    const $objectsDocument = $("#objectsDocumentSettings")
+
+    function applyObjectsDocument(file) {
+      const $card = $objectsDocument.find("[data-document-card]")
+      const $pick = $objectsDocument.find("[data-document-pick]")
+
+      $objectsDocument.attr("data-document-id", file ? file.id : "")
+      $card.toggleClass("hidden", !file)
+      $pick.toggleClass("hidden", !!file)
+
+      if (file) {
+        $card.find("[data-document-name]").text(file.display_name || file.title || file.filename || "Datei")
+        $card.find("[data-document-link]").attr("href", file.url || "#")
+      }
+    }
+
+    $objectsDocument
+      .on("click", "[data-document-pick], [data-document-change]", function () {
+        if (!window.CmsDocumentPicker) {
+          sendNotif("Der Datei-Dialog konnte nicht geladen werden", "error")
+          return
+        }
+
+        const current = $objectsDocument.attr("data-document-id") || null
+        window.CmsDocumentPicker.open({
+          title: "Objektliste wählen",
+          subtitle: "Das PDF erscheint auf der Immobilienseite unter der Objektkarte.",
+          applyLabel: "PDF übernehmen",
+          currentId: current,
+          onApply: function (file) {
+            if (file && (file.ext || "").toLowerCase() !== ".pdf") {
+              sendNotif("Bitte eine PDF-Datei wählen - andere Formate lassen sich nicht in die Seite einbetten.", "error")
+              return
+            }
+            applyObjectsDocument(file)
+          },
+          onRemove: current ? function () { applyObjectsDocument(null) } : null
+        })
+      })
+      .on("click", "[data-document-clear]", function () {
+        applyObjectsDocument(null)
+      })
+
     $("#saveShopSettings").on("click", function () {
       const $button = $(this)
       const updateUrl = $button.data("update-url")
@@ -234,6 +338,8 @@
           products_layout: $('input[name="productsLayout"]:checked').val() || "filter",
           products_title: $("#productsPageTitle").val(),
           products_intro: $("#productsPageIntro").val(),
+          objects_document_id: $("#objectsDocumentSettings").attr("data-document-id") || "",
+          objects_document_title: $("#objectsDocumentTitle").val(),
           csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val()
         },
         dataType: "json",

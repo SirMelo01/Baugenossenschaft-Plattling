@@ -463,6 +463,103 @@ def test_cms_product_form_saves_typed_address_and_locates_it(logged_in_client, m
     assert product.latitude is None and product.longitude is None
 
 
+def test_cms_pin_correction_sticks_and_moves_the_whole_house(logged_in_client, monkeypatch):
+    """Ein im CMS verschobener Pin gilt fuer alle Objekte derselben Anschrift."""
+    monkeypatch.setattr(
+        "yoolink.ycms.applications.shop.geocoding.geocode_address", lambda address: (48.7772, 12.8763)
+    )
+    monkeypatch.setattr(
+        "yoolink.ycms.applications.shop.views.geocode_address", lambda address: (48.7700, 12.8700)
+    )
+
+    for title in ("Wohnung A", "Wohnung B"):
+        assert logged_in_client.post(
+            reverse("ycms:product-create-upload"), _product_payload(title=title)
+        ).status_code == 201
+    first = Product.objects.get(title="Wohnung A")
+    update_url = reverse("ycms:product-detail-update", args=[first.id, first.slug])
+
+    moved = logged_in_client.post(
+        update_url,
+        _product_payload(title="Wohnung A", latitude="48.7781234", longitude="12.8755678", position_manual="true"),
+    )
+    assert moved.status_code == 200
+    assert moved.json()["positionManual"] is True
+
+    for product in Product.objects.filter(title__in=["Wohnung A", "Wohnung B"]):
+        assert (product.latitude, product.longitude) == (48.7781234, 12.8755678)
+        assert product.position_manual
+
+    # Ein spaeteres Speichern ohne Kartenfelder laesst die Korrektur stehen.
+    assert logged_in_client.post(update_url, _product_payload(title="Wohnung A")).status_code == 200
+    first.refresh_from_db()
+    assert (first.latitude, first.longitude, first.position_manual) == (48.7781234, 12.8755678, True)
+
+    # Ungueltige Werte fallen auf die gespeicherte Position zurueck.
+    logged_in_client.post(
+        update_url, _product_payload(title="Wohnung A", latitude="abc", longitude="", position_manual="true")
+    )
+    first.refresh_from_db()
+    assert (first.latitude, first.longitude) == (48.7781234, 12.8755678)
+
+    # "Automatisch bestimmen" fragt den Geocoder neu - fuer das ganze Haus.
+    reset = logged_in_client.post(update_url, _product_payload(title="Wohnung A", position_reset="true"))
+    assert reset.json()["positionManual"] is False
+    for product in Product.objects.filter(title__in=["Wohnung A", "Wohnung B"]):
+        assert (product.latitude, product.longitude, product.position_manual) == (48.77, 12.87, False)
+
+
+def test_title_image_alt_and_title_reach_the_public_pages(logged_in_client, client):
+    product = _create_product(title="Goethestraße 3", showcase_only=True)
+    update_url = reverse("ycms:product-detail-update", args=[product.id, product.slug])
+    response = logged_in_client.post(
+        update_url,
+        _product_payload(
+            title="Goethestraße 3",
+            title_image_alt="Wohnanlage Goethestraße 3 von der Straße aus",
+            title_image_title="Goethestraße 3",
+        ),
+    )
+    assert response.status_code == 200
+
+    product.refresh_from_db()
+    assert product.title_image_alt == "Wohnanlage Goethestraße 3 von der Straße aus"
+    assert product.title_image_alt_text == "Wohnanlage Goethestraße 3 von der Straße aus"
+
+    product.title_image_alt = ""
+    assert product.title_image_alt_text == "Goethestraße 3"
+
+
+def test_objects_pdf_is_chosen_in_the_cms_and_embedded_on_the_products_page(logged_in_client, client):
+    document = AnyFile.objects.create(
+        file=SimpleUploadedFile("objekte.pdf", b"%PDF-1.4 test", content_type="application/pdf"),
+        title="Unsere Objekte 2026",
+    )
+    response = logged_in_client.post(
+        reverse("cms:shop-settings-update"),
+        {
+            "products_layout": "grouped",
+            "products_title": "Immobilien",
+            "products_intro": "",
+            "objects_document_id": str(document.pk),
+            "objects_document_title": "Unsere Objekte",
+        },
+    )
+    assert response.status_code == 200
+    assert ShopSettings.get_solo().objects_document == document
+
+    page = client.get(reverse("products")).content.decode("utf-8")
+    assert 'id="objektliste"' in page
+    assert document.file.url in page
+
+    logged_in_client.post(
+        reverse("cms:shop-settings-update"),
+        {"products_layout": "grouped", "products_title": "Immobilien", "objects_document_id": ""},
+    )
+    assert ShopSettings.get_solo().objects_document is None
+    assert 'id="objektliste"' not in client.get(reverse("products")).content.decode("utf-8")
+
+
 def test_public_product_detail_shows_file_display_name_not_storage_path(client):
     document = AnyFile.objects.create(
         title="Expose",

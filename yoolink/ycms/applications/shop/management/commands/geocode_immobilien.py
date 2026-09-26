@@ -25,7 +25,8 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        products = Product.objects.exclude(address="").order_by("title")
+        # Von Hand im CMS korrigierte Positionen fasst auch --force nicht an.
+        products = Product.objects.exclude(address="").exclude(position_manual=True).order_by("title")
         if not options["force"]:
             products = products.filter(latitude__isnull=True) | products.filter(longitude__isnull=True)
 

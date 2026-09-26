@@ -1,0 +1,38 @@
+{% with document=shop_settings.objects_document %}
+{% if document %}
+<section id="objektliste" class="mb-8 overflow-hidden rounded-2xl border border-[#C9DEE6] bg-white shadow-sm">
+  <div class="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
+    <div class="flex min-w-0 items-start gap-3">
+      <span class="inline-flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-[#FFDC16] text-[#2E434C]">
+        <i class="bi bi-file-earmark-pdf text-xl" aria-hidden="true"></i>
+      </span>
+      <div class="min-w-0">
+        <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">Bestand</p>
+        <h2 class="mt-1 text-2xl font-bold tracking-tight text-[#2E434C]">{{ shop_settings.objects_document_title|default:"Unsere Objekte" }}</h2>
+        <p class="mt-1 text-sm leading-6 text-gray-600">Übersicht aller Wohnanlagen der Baugenossenschaft zum Ansehen und Herunterladen.</p>
+      </div>
+    </div>
+
+    <div class="flex flex-shrink-0 flex-wrap gap-2">
+      <a href="{{ document.file.url }}" target="_blank" rel="noopener"
+        class="bgp-btn-navy inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold">
+        <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i> PDF öffnen
+      </a>
+      <a href="{{ document.file.url }}" download="{{ document.display_name }}"
+        class="inline-flex items-center gap-2 rounded-xl border border-[#C9DEE6] bg-white px-4 py-2.5 text-sm font-bold text-[#2E434C] transition hover:bg-[#EEF5F8]">
+        <i class="bi bi-download" aria-hidden="true"></i> Herunterladen
+      </a>
+    </div>
+  </div>
+
+  <div class="hidden border-t border-[#C9DEE6] bg-[#EEF5F8] md:block">
+    <iframe
+      src="{{ document.file.url }}#view=FitH&amp;toolbar=0"
+      title="{{ shop_settings.objects_document_title|default:'Unsere Objekte' }} (PDF)"
+      loading="lazy"
+      class="block h-[52rem] w-full"
+    ></iframe>
+  </div>
+</section>
+{% endif %}
+{% endwith %}

@@ -97,6 +97,24 @@ def geocode_address(address):
     return None
 
 
+def parse_manual_position(latitude, longitude):
+    """Von Hand gesetzte Koordinaten aus dem CMS-Formular oder ``None``.
+
+    Akzeptiert werden nur Werte, die tatsaechlich auf der Erde liegen - ein
+    verrutschter oder leerer Wert soll auf das Geocoding zurueckfallen, statt
+    einen Marker in den Atlantik zu setzen.
+    """
+    try:
+        lat = float(str(latitude).replace(",", "."))
+        lng = float(str(longitude).replace(",", "."))
+    except (TypeError, ValueError):
+        return None
+
+    if not (-90 <= lat <= 90 and -180 <= lng <= 180) or (lat == 0 and lng == 0):
+        return None
+    return round(lat, 7), round(lng, 7)
+
+
 def coordinates_for_address(address, exclude_pk=None, previous=None):
     """Koordinaten fuer eine Anschrift, ohne unnoetige Anfragen.
 
@@ -116,9 +134,11 @@ def coordinates_for_address(address, exclude_pk=None, previous=None):
         if known_address == address and previous.latitude is not None and previous.longitude is not None:
             return previous.latitude, previous.longitude
 
+    # Eine von Hand korrigierte Position im selben Haus schlaegt jede berechnete.
     twin = (
         Product.objects.filter(address__iexact=address, latitude__isnull=False, longitude__isnull=False)
         .exclude(pk=exclude_pk)
+        .order_by("-position_manual", "pk")
         .values_list("latitude", "longitude")
         .first()
     )
