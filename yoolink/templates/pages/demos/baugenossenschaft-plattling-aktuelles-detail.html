@@ -23,6 +23,9 @@ von dort und muessen hier nicht noch einmal gebaut werden.
 {% block javascript %}
 {{ block.super }}
 <link rel="stylesheet" type="text/css" href="{% static 'css/rich-text.css' %}" />
+<link rel="stylesheet" href="{% static 'css/cms/slick/slick-carousel.css' %}" />
+<link rel="stylesheet" href="{% static 'css/cms/slick/slick-theme.css' %}" />
+<link rel="stylesheet" href="{% static 'css/blog.css' %}" />
 {% endblock javascript %}
 
 {% block demo_css %}
@@ -131,3 +134,8 @@ von dort und muessen hier nicht noch einmal gebaut werden.
 {% endif %}
 
 {% endblock content %}
+
+{% block javascriptend %}
+<script defer src="{% static 'js/cms/slick/slick.min.js' %}"></script>
+<script defer src="{% static 'js/blog-public.js' %}"></script>
+{% endblock javascriptend %}

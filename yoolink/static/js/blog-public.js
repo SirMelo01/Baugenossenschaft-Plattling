@@ -16,7 +16,7 @@
             png: 'bi-file-earmark-image-fill text-amber-600',
             mp4: 'bi-file-earmark-play-fill text-purple-600'
         };
-        document.querySelectorAll('article a[href]').forEach(function (link) {
+        document.querySelectorAll('article a[href], .bgp-article .rich-text a[href]').forEach(function (link) {
             const match = link.getAttribute('href').split(/[?#]/, 1)[0].match(/\.([a-z0-9]+)$/i);
             const extension = (link.getAttribute('data-ext') || (match && match[1]) || '').replace(/^\./, '').toLowerCase();
             if (!fileIcons[extension] && !link.classList.contains('file-attachment')) return;
@@ -30,7 +30,7 @@
 
         const $ = window.jQuery;
         if ($ && $.fn && $.fn.slick) {
-            $('article .carousel').each(function () {
+            $('article .carousel, .bgp-article .rich-text .carousel').each(function () {
                 const carousel = $(this);
                 if (carousel.hasClass('slick-initialized') || !carousel.children().length) return;
                 carousel.slick({

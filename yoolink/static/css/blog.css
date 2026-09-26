@@ -45,6 +45,41 @@ article .carousel {
     overflow: hidden;
 }
 
+.bgp-article .rich-text .carousel {
+    max-width: 100%;
+    min-width: 0;
+    height: auto !important;
+    overflow: hidden;
+}
+
+.bgp-article .rich-text .carousel:not(.slick-initialized) {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+}
+
+.bgp-article .rich-text .carousel:not(.slick-initialized) > div {
+    flex: 0 0 100%;
+    min-width: 0;
+    scroll-snap-align: start;
+}
+
+.bgp-article .rich-text .carousel img {
+    display: block;
+    width: 100%;
+    max-height: 70vh;
+    margin: 0;
+    object-fit: contain;
+}
+
+.bgp-article .rich-text a.file-attachment {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+}
+
 /* Keep gallery images in one row while the carousel script initializes. */
 article .carousel:not(.slick-initialized) {
     display: flex;
