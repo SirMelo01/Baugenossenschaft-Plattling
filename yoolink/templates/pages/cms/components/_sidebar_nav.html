@@ -32,6 +32,7 @@ Pure <a> links + group labels, no IDs, so it can be included twice safely.
     <div class="flex flex-col gap-1">
         <p class="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-gray-500">Immobilien</p>
         {% include "pages/cms/components/_nav_item.html" with url="/cms/shop/products/" match="/cms/shop/products" icon="bi-buildings" label="Immobilien" %}
+        {% include "pages/cms/components/_nav_item.html" with url="/cms/shop/" exact=True icon="bi-layout-text-window" label="Immobilienseite & PDF" %}
     </div>
     {% endif %}
 

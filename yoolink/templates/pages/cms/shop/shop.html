@@ -98,7 +98,7 @@
 
   <!-- Darstellung der öffentlichen Immobilienseite -->
   {% if 'products.edit' in cms_permissions %}
-  <h2 class="mb-3 mt-8 text-xs font-semibold uppercase tracking-wider text-slate-400">Darstellung der Immobilienseite</h2>
+  <h2 id="darstellung" class="mb-3 mt-8 scroll-mt-24 text-xs font-semibold uppercase tracking-wider text-slate-400">Darstellung der Immobilienseite</h2>
   <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
     {% csrf_token %}
     <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
