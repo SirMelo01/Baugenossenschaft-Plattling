@@ -378,6 +378,7 @@ def test_public_shop_map_locations_use_active_product_addresses(client):
             "address": "Schillerstr. 6b, 94447 Plattling",
             "lat": None,
             "lng": None,
+            "manual": False,
             "url": reverse(
                 "product-detail",
                 kwargs={"product_id": active.id, "slug": active.slug},
@@ -417,6 +418,72 @@ def test_public_shop_map_hands_google_maps_the_stored_coordinates(client):
         ("Wohnung A", 48.7772, 12.8763),
         ("Wohnung B", 48.7772, 12.8763),
     ]
+
+
+@override_settings(GOOGLE_MAPS_GEOCODING_API_KEY="test-key")
+def test_geocoding_skips_street_centers_and_wrong_house_numbers(monkeypatch):
+    from yoolink.ycms.applications.shop import geocoding
+
+    def component(kind, value):
+        return {"types": [kind], "long_name": value}
+
+    def result(number, latitude):
+        return {
+            "address_components": [
+                component("route", "Dr.-Kiefl-Straße"),
+                component("street_number", number),
+            ],
+            "geometry": {"location": {"lat": latitude, "lng": 12.87}},
+        }
+
+    monkeypatch.setattr(geocoding, "_fetch_json", lambda *args, **kwargs: {
+        "status": "OK",
+        "results": [
+            {"address_components": [component("route", "Dr.-Kiefl-Straße")],
+             "geometry": {"location": {"lat": 48.8, "lng": 12.87}}},
+            result("14", 48.79),
+            result("31", 48.78),
+        ],
+    })
+
+    assert geocoding._coordinates_from_google("Dr.-Kiefl-Straße 31, 94447 Plattling") == (48.78, 12.87)
+    assert geocoding._coordinates_from_google("Dr.-Kiefl-Straße 33, 94447 Plattling") is None
+
+
+def test_nominatim_requires_the_exact_house_number(monkeypatch):
+    from yoolink.ycms.applications.shop import geocoding
+
+    monkeypatch.setattr(geocoding, "_fetch_json", lambda *args, **kwargs: [
+        {"lat": "48.8", "lon": "12.87", "address": {"road": "Dr.-Kiefl-Straße"}},
+        {"lat": "48.78", "lon": "12.88", "address": {
+            "road": "Dr.-Kiefl-Straße", "house_number": "33"
+        }},
+    ])
+
+    assert geocoding._coordinates_from_nominatim("Dr.-Kiefl-Straße 33, 94447 Plattling") == (48.78, 12.88)
+    assert geocoding._coordinates_from_nominatim("Dr.-Kiefl-Straße 31, 94447 Plattling") is None
+
+
+def test_force_regeocoding_does_not_reuse_another_houses_old_pin(monkeypatch):
+    from django.core.management import call_command
+
+    first = _create_product(title="Haus 31", address="Dr.-Kiefl-Straße 31, 94447 Plattling")
+    second = _create_product(title="Haus 33", address="Dr.-Kiefl-Straße 33, 94447 Plattling")
+    Product.objects.filter(pk__in=[first.pk, second.pk]).update(latitude=48.8, longitude=12.87)
+
+    def exact_position(address):
+        return (48.77, 12.88) if " 31," in address else (48.78, 12.89)
+
+    monkeypatch.setattr(
+        "yoolink.ycms.applications.shop.management.commands.geocode_immobilien.geocode_address",
+        exact_position,
+    )
+    call_command("geocode_immobilien", "--force", "--address-contains", "Dr.-Kiefl-Straße")
+
+    first.refresh_from_db()
+    second.refresh_from_db()
+    assert (first.latitude, first.longitude) == (48.77, 12.88)
+    assert (second.latitude, second.longitude) == (48.78, 12.89)
 
 
 def test_cms_product_form_saves_typed_address_and_locates_it(logged_in_client, monkeypatch):

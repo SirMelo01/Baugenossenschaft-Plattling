@@ -28,15 +28,15 @@
         <span class="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-white text-[#4B6671] shadow-sm">
           <i class="bi bi-exclamation-circle text-xl"></i>
         </span>
-        <p class="text-lg font-bold text-[#2E434C]">Karte konnte nicht geladen werden</p>
-        <p class="mt-2 max-w-md text-sm leading-6 text-gray-600">Die Objektadressen bleiben darunter als Liste verfügbar.</p>
+        <p data-map-error-title class="text-lg font-bold text-[#2E434C]">Karte konnte nicht geladen werden</p>
+        <p data-map-error-message class="mt-2 max-w-md text-sm leading-6 text-gray-600">Die Objektadressen bleiben daneben als Liste verfügbar.</p>
       </div>
     </div>
 
     <div class="border-t border-[#C9DEE6] p-5 lg:border-l lg:border-t-0">
       <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">Objektkarte</p>
       <h2 class="mt-1 text-2xl font-bold tracking-tight text-[#2E434C]">Unsere Objekte in Plattling</h2>
-      <p class="mt-2 text-sm leading-6 text-gray-600">Alle aktiven Immobilien mit hinterlegter Adresse werden automatisch markiert.</p>
+      <p class="mt-2 text-sm leading-6 text-gray-600">Immobilien mit eindeutig ermittelter Position sind auf der Karte markiert.</p>
 
       <div class="mt-5 max-h-[20rem] space-y-3 overflow-y-auto pr-1" data-map-list>
         {% for location in product_map_locations %}

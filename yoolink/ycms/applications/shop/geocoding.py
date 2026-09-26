@@ -13,6 +13,8 @@ die Karte leer, obwohl alle Anschriften gepflegt sind.
 
 import json
 import logging
+import re
+import unicodedata
 from urllib.error import URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
@@ -26,6 +28,38 @@ NOMINATIM_GEOCODE_URL = "https://nominatim.openstreetmap.org/search"
 # Nominatim verlangt einen sprechenden User-Agent, sonst wird die Anfrage abgewiesen.
 NOMINATIM_USER_AGENT = "BaugenossenschaftPlattling/1.0 (+https://www.baugenossenschaft-plattling.de)"
 REQUEST_TIMEOUT_SECONDS = 6
+
+
+def _address_parts(address):
+    match = re.match(r"^\s*(.+?)\s+(\d+[a-zA-Z]?)\s*,", address or "")
+    if not match:
+        return None, None
+    return match.group(1), match.group(2).lower()
+
+
+def _street_key(value):
+    value = unicodedata.normalize("NFKD", (value or "").replace("ß", "ss").lower())
+    value = "".join(character for character in value if not unicodedata.combining(character))
+    value = re.sub(r"^dr\.?", "doktor", value)
+    value = re.sub(r"stra(?:sse|ße)|str\.?", "str", value)
+    return re.sub(r"[^a-z0-9]", "", value)
+
+
+def _matches_house(address, street, number):
+    expected_street, expected_number = _address_parts(address)
+    if expected_number is None:
+        return False
+    return (
+        (number or "").replace(" ", "").lower() == expected_number
+        and _street_key(street) == _street_key(expected_street)
+    )
+
+
+def _queries_for_address(address):
+    # Ortsteil-Zusaetze wie "Plattling-Hoehenrain" verschlechtern die Suche
+    # manchmal, obwohl die Postleitzahl und der Ort eindeutig sind.
+    simplified = re.sub(r"(\b\d{5}\s+[^,\-]+)-[^,]+", r"\1", address)
+    return [address] if simplified == address else [address, simplified]
 
 
 def _fetch_json(url, params, headers=None):
@@ -57,21 +91,29 @@ def _coordinates_from_google(address):
             )
         return None
 
-    location = payload["results"][0]["geometry"]["location"]
-    return float(location["lat"]), float(location["lng"])
+    for result in payload.get("results", []):
+        components = {kind: item.get("long_name", "") for item in result.get("address_components", [])
+                      for kind in item.get("types", [])}
+        if not _matches_house(address, components.get("route"), components.get("street_number")):
+            continue
+        location = result["geometry"]["location"]
+        return float(location["lat"]), float(location["lng"])
+    return None
 
 
 def _coordinates_from_nominatim(address):
     payload = _fetch_json(
         NOMINATIM_GEOCODE_URL,
-        {"q": address, "format": "json", "limit": "1", "countrycodes": "de"},
+        {"q": address, "format": "json", "limit": "5", "countrycodes": "de", "addressdetails": "1"},
         headers={"User-Agent": NOMINATIM_USER_AGENT, "Accept": "application/json"},
     )
 
-    if not payload:
-        return None
-
-    return float(payload[0]["lat"]), float(payload[0]["lon"])
+    for result in payload:
+        details = result.get("address") or {}
+        street = details.get("road") or details.get("pedestrian") or details.get("residential")
+        if _matches_house(address, street, details.get("house_number")):
+            return float(result["lat"]), float(result["lon"])
+    return None
 
 
 def geocode_address(address):
@@ -84,15 +126,16 @@ def geocode_address(address):
     if not address or not settings.GEOCODING_ENABLED:
         return None
 
-    for resolve in (_coordinates_from_google, _coordinates_from_nominatim):
-        try:
-            position = resolve(address)
-        except (URLError, OSError, ValueError, KeyError, IndexError, TypeError) as error:
-            logger.warning("Geocoding fuer %r fehlgeschlagen: %s", address, error)
-            continue
+    for query in _queries_for_address(address):
+        for resolve in (_coordinates_from_google, _coordinates_from_nominatim):
+            try:
+                position = resolve(query)
+            except (URLError, OSError, ValueError, KeyError, IndexError, TypeError) as error:
+                logger.warning("Geocoding fuer %r fehlgeschlagen: %s", query, error)
+                continue
 
-        if position is not None:
-            return position
+            if position is not None:
+                return position
 
     return None
 
@@ -129,21 +172,27 @@ def coordinates_for_address(address, exclude_pk=None, previous=None):
     if not address:
         return None, None
 
+    def collides_with_other_address(latitude, longitude):
+        return Product.objects.filter(latitude=latitude, longitude=longitude).exclude(
+            address__iexact=address
+        ).exists()
+
     if previous is not None:
         known_address = (previous.address or "").strip()
         if known_address == address and previous.latitude is not None and previous.longitude is not None:
-            return previous.latitude, previous.longitude
+            if previous.position_manual or not collides_with_other_address(previous.latitude, previous.longitude):
+                return previous.latitude, previous.longitude
 
     # Eine von Hand korrigierte Position im selben Haus schlaegt jede berechnete.
     twin = (
         Product.objects.filter(address__iexact=address, latitude__isnull=False, longitude__isnull=False)
         .exclude(pk=exclude_pk)
         .order_by("-position_manual", "pk")
-        .values_list("latitude", "longitude")
+        .values_list("latitude", "longitude", "position_manual")
         .first()
     )
-    if twin:
-        return twin
+    if twin and (twin[2] or not collides_with_other_address(twin[0], twin[1])):
+        return twin[0], twin[1]
 
     position = geocode_address(address)
     if position is None:

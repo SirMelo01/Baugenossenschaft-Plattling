@@ -10,7 +10,7 @@ das einmalig nach:
 
 from django.core.management.base import BaseCommand
 
-from yoolink.ycms.applications.shop.geocoding import coordinates_for_address
+from yoolink.ycms.applications.shop.geocoding import coordinates_for_address, geocode_address
 from yoolink.ycms.applications.shop.models import Product
 
 
@@ -23,24 +23,41 @@ class Command(BaseCommand):
             action="store_true",
             help="Auch Immobilien neu bestimmen, die bereits Koordinaten haben.",
         )
+        parser.add_argument(
+            "--address-contains",
+            default="",
+            help="Nur Anschriften mit diesem Straßennamen neu bestimmen.",
+        )
 
     def handle(self, *args, **options):
         # Von Hand im CMS korrigierte Positionen fasst auch --force nicht an.
         products = Product.objects.exclude(address="").exclude(position_manual=True).order_by("title")
+        if options["address_contains"]:
+            products = products.filter(address__icontains=options["address_contains"])
         if not options["force"]:
             products = products.filter(latitude__isnull=True) | products.filter(longitude__isnull=True)
 
         found = 0
         missed = 0
+        refreshed = {}
 
         for product in products.distinct():
-            previous = None if options["force"] else product
-            latitude, longitude = coordinates_for_address(
-                product.address, exclude_pk=product.pk, previous=previous
-            )
+            if options["force"]:
+                # Eine zweite Wohnung derselben Anschrift darf keine alte,
+                # falsche Position als vermeintlichen Treffer zurueckliefern.
+                key = product.address.strip().casefold()
+                if key not in refreshed:
+                    refreshed[key] = geocode_address(product.address) or (None, None)
+                latitude, longitude = refreshed[key]
+            else:
+                latitude, longitude = coordinates_for_address(
+                    product.address, exclude_pk=product.pk, previous=product
+                )
 
             if latitude is None or longitude is None:
                 missed += 1
+                if options["force"]:
+                    Product.objects.filter(pk=product.pk).update(latitude=None, longitude=None)
                 self.stdout.write(self.style.WARNING(f"Nicht gefunden: {product.title} - {product.address}"))
                 continue
 

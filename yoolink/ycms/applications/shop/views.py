@@ -397,6 +397,7 @@ def serialize_product_location(product):
         "address": address,
         "lat": position["lat"] if position else None,
         "lng": position["lng"] if position else None,
+        "manual": bool(product.address_source.position_manual),
         "url": reverse(
             "product-detail",
             kwargs={"product_id": product.id, "slug": product.slug},

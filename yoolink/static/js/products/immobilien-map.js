@@ -3,8 +3,8 @@
  *
  * Die Koordinaten stehen bereits im Seitenquelltext: sie werden beim Speichern
  * im CMS aus der Adresse bestimmt (oder dort von Hand korrigiert) und am Objekt
- * gespeichert. Hier wird deshalb nichts mehr umgerechnet - die Karte setzt nur
- * noch Marker.
+ * gespeichert. Bei verschiedenen Anschriften mit praktisch identischen
+ * automatischen Koordinaten wird der genaue Hausnummer-Treffer geprueft.
  *
  * Google Maps ist ein externes Medium, die Karte laedt daher erst nach der
  * Cookie-Einwilligung. Bis dahin (und wenn das Laden scheitert) bleibt die
@@ -126,6 +126,78 @@
 
   function hasCoordinates(entry) {
     return typeof entry.lat === "number" && typeof entry.lng === "number";
+  }
+
+  function streetKey(value) {
+    return String(value || "").toLowerCase().replace(/ß/g, "ss")
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/^dr\.?/, "doktor")
+      .replace(/stra(?:sse|ße)|str\.?/g, "str")
+      .replace(/[^a-z0-9]/g, "");
+  }
+
+  function exactAddressResult(address, result) {
+    var expected = address.match(/^\s*(.+?)\s+(\d+[a-zA-Z]?)\s*,/);
+    if (!expected || !result || result.partial_match) return false;
+    var components = {};
+    (result.address_components || []).forEach(function (component) {
+      (component.types || []).forEach(function (type) {
+        components[type] = component.long_name;
+      });
+    });
+    return streetKey(components.route) === streetKey(expected[1])
+      && String(components.street_number || "").replace(/\s/g, "").toLowerCase() === expected[2].toLowerCase();
+  }
+
+  function sameArea(a, b) {
+    var north = (a.lat - b.lat) * 111320;
+    var east = (a.lng - b.lng) * 111320 * Math.cos(a.lat * Math.PI / 180);
+    return north * north + east * east < 20 * 20;
+  }
+
+  function verifyCollidingAddresses(entries, maps) {
+    var suspects = entries.filter(function (entry) {
+      return !entry.manual && hasCoordinates(entry) && entries.some(function (other) {
+        return other !== entry && hasCoordinates(other)
+          && other.address.trim().toLowerCase() !== entry.address.trim().toLowerCase()
+          && sameArea(entry, other);
+      });
+    });
+    if (!suspects.length) return Promise.resolve();
+
+    var geocoder = new maps.Geocoder();
+    var checked = {};
+    var chain = Promise.resolve();
+    suspects.forEach(function (entry) {
+      var key = entry.address.trim().toLowerCase();
+      if (checked[key]) return;
+      checked[key] = true;
+      chain = chain.then(function () {
+        var simple = entry.address.replace(/(\b\d{5}\s+[^,\-]+)-[^,]+/, "$1");
+        var queries = simple === entry.address ? [entry.address] : [entry.address, simple];
+        function lookup(index) {
+          if (index >= queries.length) return Promise.resolve(null);
+          return new Promise(function (resolve) {
+            geocoder.geocode({ address: queries[index], componentRestrictions: { country: "DE" } }, function (results, status) {
+              var exact = status === "OK" && (results || []).find(function (result) {
+                return exactAddressResult(entry.address, result);
+              });
+              resolve(exact || null);
+            });
+          }).then(function (result) {
+            return result || lookup(index + 1);
+          });
+        }
+        return lookup(0).then(function (result) {
+          suspects.forEach(function (candidate) {
+            if (candidate.address.trim().toLowerCase() !== key) return;
+            candidate.lat = result ? result.geometry.location.lat() : null;
+            candidate.lng = result ? result.geometry.location.lng() : null;
+          });
+        });
+      });
+    });
+    return chain;
   }
 
   /**
@@ -260,6 +332,9 @@
 
   function buildMap(root, canvas, entries) {
     return loadGoogleMaps(root.dataset.mapApiKey).then(function (maps) {
+      return verifyCollidingAddresses(entries, maps).then(function () {
+      entries = entries.filter(hasCoordinates);
+      if (!entries.length) throw new Error("Keine exakt verortete Adresse gefunden.");
       var map = new maps.Map(canvas, {
         mapTypeControl: false,
         streetViewControl: false,
@@ -428,6 +503,7 @@
       });
 
       root.dataset.mapReady = "true";
+      });
     });
   }
 
@@ -476,9 +552,14 @@
     }
     root.dataset.mapReady = "loading";
 
-    buildMap(root, canvas, entries).catch(function () {
+    buildMap(root, canvas, entries).catch(function (failure) {
       root.dataset.mapReady = "";
       setVisible(canvas, false);
+      if (failure && failure.message === "Keine exakt verortete Adresse gefunden.") {
+        root.querySelector("[data-map-error-title]").textContent = "Keine genaue Position gefunden";
+        root.querySelector("[data-map-error-message]").textContent =
+          "Für diese Hausnummern liegt kein eindeutiger Kartentreffer vor. Die Adressen stehen weiterhin in der Liste.";
+      }
       setVisible(error, true, true);
     });
   }
