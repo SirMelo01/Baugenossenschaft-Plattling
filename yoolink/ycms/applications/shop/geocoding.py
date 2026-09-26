@@ -21,6 +21,8 @@ from urllib.request import Request, urlopen
 
 from django.conf import settings
 
+from .verified_locations import verified_position
+
 logger = logging.getLogger(__name__)
 
 GOOGLE_GEOCODE_URL = "https://maps.googleapis.com/maps/api/geocode/json"
@@ -123,6 +125,9 @@ def geocode_address(address):
     dann eben nur in der Liste neben der Karte und nicht als Marker darauf.
     """
     address = (address or "").strip()
+    verified = verified_position(address)
+    if verified:
+        return verified
     if not address or not settings.GEOCODING_ENABLED:
         return None
 
@@ -180,7 +185,7 @@ def coordinates_for_address(address, exclude_pk=None, previous=None):
     if previous is not None:
         known_address = (previous.address or "").strip()
         if known_address == address and previous.latitude is not None and previous.longitude is not None:
-            if previous.position_manual or not collides_with_other_address(previous.latitude, previous.longitude):
+            if previous.position_manual:
                 return previous.latitude, previous.longitude
 
     # Eine von Hand korrigierte Position im selben Haus schlaegt jede berechnete.
@@ -191,7 +196,18 @@ def coordinates_for_address(address, exclude_pk=None, previous=None):
         .values_list("latitude", "longitude", "position_manual")
         .first()
     )
-    if twin and (twin[2] or not collides_with_other_address(twin[0], twin[1])):
+    if twin and twin[2]:
+        return twin[0], twin[1]
+
+    verified = verified_position(address)
+    if verified:
+        return verified
+
+    if previous is not None and (previous.address or "").strip() == address:
+        if previous.latitude is not None and previous.longitude is not None:
+            if not collides_with_other_address(previous.latitude, previous.longitude):
+                return previous.latitude, previous.longitude
+    if twin and not collides_with_other_address(twin[0], twin[1]):
         return twin[0], twin[1]
 
     position = geocode_address(address)

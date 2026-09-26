@@ -486,6 +486,43 @@ def test_force_regeocoding_does_not_reuse_another_houses_old_pin(monkeypatch):
     assert (second.latitude, second.longitude) == (48.78, 12.89)
 
 
+def test_verified_buildings_replace_old_or_missing_automatic_positions(monkeypatch):
+    from yoolink.ycms.applications.shop import geocoding
+
+    def unexpected_network(*args, **kwargs):
+        raise AssertionError("Verified positions must not need a geocoding service")
+
+    monkeypatch.setattr(geocoding, "_fetch_json", unexpected_network)
+    positions = []
+    for number in ("31", "33", "33a", "33b"):
+        product = _create_product(title=f"Haus {number}", address=f"Dr.-Kiefl-Straße {number}, 94447 Plattling-Höhenrain")
+        product.latitude = None if number == "31" else 48.784648
+        product.longitude = None if number == "31" else 12.869245
+        expected = geocoding.geocode_address(product.address)
+        assert product.map_position == {"lat": expected[0], "lng": expected[1]}
+        assert geocoding.coordinates_for_address(product.address, previous=product, exclude_pk=product.pk) == expected
+        positions.append(expected)
+        product.position_manual = True
+        product.latitude, product.longitude = 48.78, 12.88
+        assert product.map_position == {"lat": 48.78, "lng": 12.88}
+        assert geocoding.coordinates_for_address(product.address, previous=product) == (48.78, 12.88)
+    assert len(set(positions)) == 4
+
+
+def test_force_geocoding_failure_preserves_existing_position(monkeypatch):
+    from django.core.management import call_command
+
+    product = _create_product(title="Known location", address="Andere Straße 1, 94447 Plattling")
+    Product.objects.filter(pk=product.pk).update(latitude=48.78, longitude=12.88)
+    monkeypatch.setattr(
+        "yoolink.ycms.applications.shop.management.commands.geocode_immobilien.geocode_address",
+        lambda address: None,
+    )
+    call_command("geocode_immobilien", "--force")
+    product.refresh_from_db()
+    assert (product.latitude, product.longitude) == (48.78, 12.88)
+
+
 def test_cms_product_form_saves_typed_address_and_locates_it(logged_in_client, monkeypatch):
     """Die Anschrift wird frei eingetippt, die Koordinaten kommen beim Speichern dazu."""
     lookups = []

@@ -56,8 +56,8 @@ class Command(BaseCommand):
 
             if latitude is None or longitude is None:
                 missed += 1
-                if options["force"]:
-                    Product.objects.filter(pk=product.pk).update(latitude=None, longitude=None)
+                # Ein nicht erreichbarer Dienst oder fehlender Treffer ist kein
+                # Grund, vorhandene Koordinaten unwiederbringlich zu löschen.
                 self.stdout.write(self.style.WARNING(f"Nicht gefunden: {product.title} - {product.address}"))
                 continue
 
