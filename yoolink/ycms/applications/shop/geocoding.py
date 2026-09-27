@@ -5,10 +5,9 @@ Das Umrechnen kostet pro Anfrage Geld und Zeit, deshalb passiert es serverseitig
 beim Speichern im CMS und das Ergebnis bleibt am Objekt stehen. Der Browser eines
 Besuchers geocodiert nichts - sonst zahlte jeder Seitenaufruf die Adressen erneut.
 
-Google ist die erste Wahl, weil die Karte ohnehin von Google kommt und dieselbe
-Schreibweise dort am zuverlaessigsten gefunden wird. Ist die Geocoding API fuer
-den Key nicht freigeschaltet, springt Nominatim (OpenStreetMap) ein: sonst bliebe
-die Karte leer, obwohl alle Anschriften gepflegt sind.
+Die Google Geocoding API wird mit einem eigenen Server-Key angesprochen.
+Konfigurationsfehler werden dem CMS gemeldet, statt unbemerkt auf einen anderen
+Dienst oder feste Adresszuordnungen zurueckzufallen.
 """
 
 import json
@@ -21,26 +20,33 @@ from urllib.request import Request, urlopen
 
 from django.conf import settings
 
-from .verified_locations import verified_position
-
 logger = logging.getLogger(__name__)
 
 GOOGLE_GEOCODE_URL = "https://maps.googleapis.com/maps/api/geocode/json"
-NOMINATIM_GEOCODE_URL = "https://nominatim.openstreetmap.org/search"
-# Nominatim verlangt einen sprechenden User-Agent, sonst wird die Anfrage abgewiesen.
-NOMINATIM_USER_AGENT = "BaugenossenschaftPlattling/1.0 (+https://www.baugenossenschaft-plattling.de)"
 REQUEST_TIMEOUT_SECONDS = 6
 
 
+class GeocodingError(Exception):
+    """Actionable service/configuration error; safe to show in the CMS."""
+
+    def __init__(self, code, message):
+        self.code = code
+        super().__init__(message)
+
+
 def _address_parts(address):
-    match = re.match(r"^\s*(.+?)\s+(\d+[a-zA-Z]?)\s*,", address or "")
+    # German street addresses, including suffixes, ranges and omitted commas.
+    match = re.match(
+        r"^\s*(.+?)\s+(\d+(?:\s*[a-zA-Z])?(?:\s*[-/]\s*\d+\s*[a-zA-Z]?)?)"
+        r"\s*(?:,|\s+(?=\d{5}\b)|$)", address or ""
+    )
     if not match:
         return None, None
-    return match.group(1), match.group(2).lower()
+    return match.group(1), re.sub(r"\s+", "", match.group(2)).lower()
 
 
 def _street_key(value):
-    value = unicodedata.normalize("NFKD", (value or "").replace("ß", "ss").lower())
+    value = unicodedata.normalize("NFKD", (value or "").casefold())
     value = "".join(character for character in value if not unicodedata.combining(character))
     value = re.sub(r"^dr\.?", "doktor", value)
     value = re.sub(r"stra(?:sse|ße)|str\.?", "str", value)
@@ -73,75 +79,74 @@ def _fetch_json(url, params, headers=None):
 def _coordinates_from_google(address):
     api_key = settings.GOOGLE_MAPS_GEOCODING_API_KEY
     if not api_key:
-        return None
+        raise GeocodingError("MISSING_KEY", "Der Server-Schlüssel GOOGLE_MAPS_GEOCODING_API_KEY fehlt. "
+                             "Bitte einen Schlüssel für die Google Geocoding API hinterlegen.")
 
     payload = _fetch_json(
         GOOGLE_GEOCODE_URL,
-        {"address": address, "key": api_key, "region": "de", "language": "de"},
+        {"address": address, "key": api_key, "region": "de", "language": "de", "components": "country:DE"},
     )
-
-    if payload.get("status") != "OK":
-        # ZERO_RESULTS heisst: Adresse unbekannt. Alles andere (REQUEST_DENIED bei
-        # nicht freigeschalteter API, OVER_QUERY_LIMIT) ist ein Konfigurations- oder
-        # Kontingentproblem und gehoert ins Log, damit es auffindbar bleibt.
-        if payload.get("status") != "ZERO_RESULTS":
-            logger.warning(
-                "Google-Geocoding fuer %r fehlgeschlagen: %s %s",
-                address,
-                payload.get("status"),
-                payload.get("error_message", ""),
-            )
+    status = payload.get("status")
+    if status == "ZERO_RESULTS":
         return None
+    if status != "OK":
+        messages = {
+            "REQUEST_DENIED": "Google lehnt die Adresssuche ab. Bitte Geocoding API, Abrechnung und "
+                              "Server-Schlüssel prüfen (Server-IP statt Website-Beschränkung).",
+            "OVER_DAILY_LIMIT": "Google meldet ein Abrechnungs-, Schlüssel- oder Tageslimitproblem bei der Adresssuche.",
+            "OVER_QUERY_LIMIT": "Das Google-Limit für die Adresssuche ist erreicht. Bitte später erneut versuchen.",
+        }
+        raise GeocodingError(status or "INVALID_RESPONSE", messages.get(
+            status, "Die Google-Adresssuche ist derzeit nicht verfügbar. Bitte später erneut versuchen."
+        ))
 
+    postcode = re.search(r"\b(\d{5})\b", address)
+    matches = []
     for result in payload.get("results", []):
         components = {kind: item.get("long_name", "") for item in result.get("address_components", [])
                       for kind in item.get("types", [])}
         if not _matches_house(address, components.get("route"), components.get("street_number")):
             continue
-        location = result["geometry"]["location"]
-        return float(location["lat"]), float(location["lng"])
-    return None
-
-
-def _coordinates_from_nominatim(address):
-    payload = _fetch_json(
-        NOMINATIM_GEOCODE_URL,
-        {"q": address, "format": "json", "limit": "5", "countrycodes": "de", "addressdetails": "1"},
-        headers={"User-Agent": NOMINATIM_USER_AGENT, "Accept": "application/json"},
-    )
-
-    for result in payload:
-        details = result.get("address") or {}
-        street = details.get("road") or details.get("pedestrian") or details.get("residential")
-        if _matches_house(address, street, details.get("house_number")):
-            return float(result["lat"]), float(result["lon"])
-    return None
+        if postcode and components.get("postal_code") != postcode.group(1):
+            continue
+        geometry = result.get("geometry") or {}
+        precision = geometry.get("location_type")
+        if precision not in ("ROOFTOP", "RANGE_INTERPOLATED"):
+            continue  # A street/city centre must never masquerade as a house.
+        location = geometry.get("location") or {}
+        position = parse_manual_position(location.get("lat"), location.get("lng"))
+        if position:
+            matches.append((precision != "ROOFTOP", position))
+    # Prefer an actual building point over an interpolated house-number position.
+    return sorted(matches)[0][1] if matches else None
 
 
 def geocode_address(address):
-    """Koordinaten zu einer Anschrift oder ``None``, wenn sie nicht gefunden wird.
+    """Resolve any supported address dynamically; None means no house match.
 
-    Ein Fehlschlag darf das Speichern im CMS nie verhindern - die Immobilie steht
-    dann eben nur in der Liste neben der Karte und nicht als Marker darauf.
+    Service/configuration failures raise GeocodingError so the CMS can distinguish
+    a disabled API from an address that Google does not know.
     """
     address = (address or "").strip()
-    verified = verified_position(address)
-    if verified:
-        return verified
-    if not address or not settings.GEOCODING_ENABLED:
+    if not address:
+        return None
+    if not settings.GEOCODING_ENABLED:
+        raise GeocodingError("DISABLED", "Die automatische Adresssuche ist deaktiviert (GEOCODING_ENABLED).")
+    if _address_parts(address)[1] is None:
         return None
 
     for query in _queries_for_address(address):
-        for resolve in (_coordinates_from_google, _coordinates_from_nominatim):
-            try:
-                position = resolve(query)
-            except (URLError, OSError, ValueError, KeyError, IndexError, TypeError) as error:
-                logger.warning("Geocoding fuer %r fehlgeschlagen: %s", query, error)
-                continue
-
-            if position is not None:
-                return position
-
+        try:
+            position = _coordinates_from_google(query)
+        except GeocodingError:
+            raise
+        except (URLError, OSError, ValueError, KeyError, IndexError, TypeError, AttributeError) as error:
+            # Never log request URLs or raw exception messages containing API keys.
+            logger.warning("Google-Geocoding fehlgeschlagen (%s)", type(error).__name__)
+            raise GeocodingError("SERVICE_UNAVAILABLE", "Die Google-Adresssuche konnte nicht erreicht werden "
+                                 "oder hat ungültige Daten geliefert. Bitte erneut versuchen.") from None
+        if position is not None:
+            return position
     return None
 
 
@@ -177,11 +182,6 @@ def coordinates_for_address(address, exclude_pk=None, previous=None):
     if not address:
         return None, None
 
-    def collides_with_other_address(latitude, longitude):
-        return Product.objects.filter(latitude=latitude, longitude=longitude).exclude(
-            address__iexact=address
-        ).exists()
-
     if previous is not None:
         known_address = (previous.address or "").strip()
         if known_address == address and previous.latitude is not None and previous.longitude is not None:
@@ -199,15 +199,10 @@ def coordinates_for_address(address, exclude_pk=None, previous=None):
     if twin and twin[2]:
         return twin[0], twin[1]
 
-    verified = verified_position(address)
-    if verified:
-        return verified
-
     if previous is not None and (previous.address or "").strip() == address:
         if previous.latitude is not None and previous.longitude is not None:
-            if not collides_with_other_address(previous.latitude, previous.longitude):
-                return previous.latitude, previous.longitude
-    if twin and not collides_with_other_address(twin[0], twin[1]):
+            return previous.latitude, previous.longitude
+    if twin:
         return twin[0], twin[1]
 
     position = geocode_address(address)

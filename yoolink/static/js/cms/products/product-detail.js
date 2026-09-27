@@ -581,6 +581,7 @@ $(document).ready(function () {
 
         if (response.success) {
           sendNotif("Die Immobilie wurde erfolgreich gespeichert.", "success");
+          if (response.locationWarning) sendNotif(response.locationWarning, "warning");
           $(document).trigger("cms:productSaved", [response]);
         } else {
           sendNotif(response.error || "Speichern fehlgeschlagen.", "error");
@@ -735,6 +736,7 @@ $(document).ready(function () {
       success: function (response) {
         if (response.success) {
           sendNotif("Die Immobilie wurde erfolgreich erstellt.", "success");
+          if (response.locationWarning) sendNotif(response.locationWarning, "warning");
           setTimeout(function () {
             window.location.href = buildProductDetailUrl(response.productId, response.slug);
             disableSpinner($("#createProduct"));

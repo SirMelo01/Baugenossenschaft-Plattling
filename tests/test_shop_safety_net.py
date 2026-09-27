@@ -432,8 +432,9 @@ def test_geocoding_skips_street_centers_and_wrong_house_numbers(monkeypatch):
             "address_components": [
                 component("route", "Dr.-Kiefl-Straße"),
                 component("street_number", number),
+                component("postal_code", "94447"),
             ],
-            "geometry": {"location": {"lat": latitude, "lng": 12.87}},
+            "geometry": {"location_type": "ROOFTOP", "location": {"lat": latitude, "lng": 12.87}},
         }
 
     monkeypatch.setattr(geocoding, "_fetch_json", lambda *args, **kwargs: {
@@ -448,20 +449,6 @@ def test_geocoding_skips_street_centers_and_wrong_house_numbers(monkeypatch):
 
     assert geocoding._coordinates_from_google("Dr.-Kiefl-Straße 31, 94447 Plattling") == (48.78, 12.87)
     assert geocoding._coordinates_from_google("Dr.-Kiefl-Straße 33, 94447 Plattling") is None
-
-
-def test_nominatim_requires_the_exact_house_number(monkeypatch):
-    from yoolink.ycms.applications.shop import geocoding
-
-    monkeypatch.setattr(geocoding, "_fetch_json", lambda *args, **kwargs: [
-        {"lat": "48.8", "lon": "12.87", "address": {"road": "Dr.-Kiefl-Straße"}},
-        {"lat": "48.78", "lon": "12.88", "address": {
-            "road": "Dr.-Kiefl-Straße", "house_number": "33"
-        }},
-    ])
-
-    assert geocoding._coordinates_from_nominatim("Dr.-Kiefl-Straße 33, 94447 Plattling") == (48.78, 12.88)
-    assert geocoding._coordinates_from_nominatim("Dr.-Kiefl-Straße 31, 94447 Plattling") is None
 
 
 def test_force_regeocoding_does_not_reuse_another_houses_old_pin(monkeypatch):
@@ -486,29 +473,6 @@ def test_force_regeocoding_does_not_reuse_another_houses_old_pin(monkeypatch):
     assert (second.latitude, second.longitude) == (48.78, 12.89)
 
 
-def test_verified_buildings_replace_old_or_missing_automatic_positions(monkeypatch):
-    from yoolink.ycms.applications.shop import geocoding
-
-    def unexpected_network(*args, **kwargs):
-        raise AssertionError("Verified positions must not need a geocoding service")
-
-    monkeypatch.setattr(geocoding, "_fetch_json", unexpected_network)
-    positions = []
-    for number in ("31", "33", "33a", "33b"):
-        product = _create_product(title=f"Haus {number}", address=f"Dr.-Kiefl-Straße {number}, 94447 Plattling-Höhenrain")
-        product.latitude = None if number == "31" else 48.784648
-        product.longitude = None if number == "31" else 12.869245
-        expected = geocoding.geocode_address(product.address)
-        assert product.map_position == {"lat": expected[0], "lng": expected[1]}
-        assert geocoding.coordinates_for_address(product.address, previous=product, exclude_pk=product.pk) == expected
-        positions.append(expected)
-        product.position_manual = True
-        product.latitude, product.longitude = 48.78, 12.88
-        assert product.map_position == {"lat": 48.78, "lng": 12.88}
-        assert geocoding.coordinates_for_address(product.address, previous=product) == (48.78, 12.88)
-    assert len(set(positions)) == 4
-
-
 def test_force_geocoding_failure_preserves_existing_position(monkeypatch):
     from django.core.management import call_command
 
@@ -521,6 +485,69 @@ def test_force_geocoding_failure_preserves_existing_position(monkeypatch):
     call_command("geocode_immobilien", "--force")
     product.refresh_from_db()
     assert (product.latitude, product.longitude) == (48.78, 12.88)
+
+
+def test_map_position_uses_saved_data_even_for_former_special_addresses():
+    product = _create_product(address="Dr.-Kiefl-Straße 31, 94447 Plattling", latitude=48.77, longitude=12.89)
+    assert product.map_position == {"lat": 48.77, "lng": 12.89}
+    product.latitude = product.longitude = None
+    assert product.map_position is None
+
+
+def test_check_address_does_not_modify_products(monkeypatch):
+    from django.core.management import call_command
+    from io import StringIO
+
+    product = _create_product(address="Neue Straße 12, 94447 Plattling", latitude=48.78, longitude=12.88)
+    monkeypatch.setattr(
+        "yoolink.ycms.applications.shop.management.commands.geocode_immobilien.geocode_address",
+        lambda address: (48.77, 12.89),
+    )
+    output = StringIO()
+    call_command("geocode_immobilien", "--check-address", product.address, stdout=output)
+    product.refresh_from_db()
+    assert (product.latitude, product.longitude) == (48.78, 12.88)
+    assert "nichts gespeichert" in output.getvalue()
+
+
+def test_cms_reports_geocoding_configuration_failure_after_creation(logged_in_client, monkeypatch):
+    from yoolink.ycms.applications.shop.geocoding import GeocodingError
+
+    def denied(address):
+        raise GeocodingError("REQUEST_DENIED", "Geocoding API oder Server-Schlüssel prüfen.")
+
+    monkeypatch.setattr("yoolink.ycms.applications.shop.geocoding.geocode_address", denied)
+    response = logged_in_client.post(reverse("ycms:product-create-upload"), _product_payload(
+        title="Neue Immobilie 35", address="Dr.-Kiefl-Straße 35, 94447 Plattling",
+    ))
+    assert response.status_code == 201
+    data = response.json()
+    assert "Geocoding API" in data["locationWarning"]
+    product = Product.objects.get(pk=data["productId"])
+    assert product.map_position is None
+    assert logged_in_client.session["product_location_warning"]["message"] == data["locationWarning"]
+
+
+def test_failed_reset_keeps_manual_position_but_changed_address_clears_old_pin(logged_in_client, monkeypatch):
+    from yoolink.ycms.applications.shop.geocoding import GeocodingError
+
+    product = _create_product(address="Neue Straße 12, 94447 Plattling", latitude=48.78, longitude=12.88, position_manual=True)
+    def denied(*args, **kwargs):
+        raise GeocodingError("REQUEST_DENIED", "Geocoding API prüfen.")
+    monkeypatch.setattr("yoolink.ycms.applications.shop.views.geocode_address", denied)
+    monkeypatch.setattr("yoolink.ycms.applications.shop.geocoding.geocode_address", denied)
+    url = reverse("ycms:product-detail-update", args=[product.pk, product.slug])
+    response = logged_in_client.post(url, _product_payload(address=product.address, position_reset="true"))
+    assert response.status_code == 200
+    product.refresh_from_db()
+    assert product.map_position == {"lat": 48.78, "lng": 12.88}
+    assert product.position_manual is True
+    assert "bisherige Position" in response.json()["locationWarning"]
+    response = logged_in_client.post(url, _product_payload(address="Andere Straße 37, 94447 Plattling"))
+    assert response.status_code == 200
+    product.refresh_from_db()
+    assert product.map_position is None
+    assert product.position_manual is False
 
 
 def test_cms_product_form_saves_typed_address_and_locates_it(logged_in_client, monkeypatch):

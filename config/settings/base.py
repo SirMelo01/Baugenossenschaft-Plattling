@@ -251,7 +251,8 @@ GOOGLE_MAPS_EMBED_API_KEY = env("GOOGLE_MAPS_EMBED_API_KEY", default="")
 # Ohne eigenen Eintrag greift der bestehende Embed-Key, damit die Karte nicht
 # erst nach einer .env-Aenderung erscheint.
 GOOGLE_MAPS_JS_API_KEY = env("GOOGLE_MAPS_JS_API_KEY", default=GOOGLE_MAPS_EMBED_API_KEY)
-GOOGLE_MAPS_GEOCODING_API_KEY = env("GOOGLE_MAPS_GEOCODING_API_KEY", default=GOOGLE_MAPS_EMBED_API_KEY)
+# Server requests cannot use the website/referrer restriction of the browser key.
+GOOGLE_MAPS_GEOCODING_API_KEY = env("GOOGLE_MAPS_GEOCODING_API_KEY", default="")
 # Schalter fuer das Ermitteln der Koordinaten beim Speichern einer Immobilie.
 # In den Tests aus, damit ein Testlauf keine fremden Dienste anfragt.
 GEOCODING_ENABLED = env.bool("GEOCODING_ENABLED", default=True)

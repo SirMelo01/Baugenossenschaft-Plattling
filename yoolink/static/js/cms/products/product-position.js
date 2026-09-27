@@ -72,6 +72,7 @@
     var $hint = $root.find("[data-position-hint]");
     var $address = $("#address");
     var savedAddress = ($address.val() || "").trim();
+    var locationWarning = $root.attr("data-location-warning") || "";
 
     var map = null;
     var marker = null;
@@ -96,7 +97,9 @@
     function renderStatus() {
       var addressChanged = ($address.val() || "").trim() !== savedAddress;
 
-      if ($reset.val() === "true") {
+      if (locationWarning) {
+        $status.text(locationWarning);
+      } else if ($reset.val() === "true") {
         $status.text("Wird beim Speichern neu aus der Adresse bestimmt.");
       } else if (addressChanged && !isManual()) {
         $status.text("Adresse geändert - die Position wird beim Speichern neu bestimmt.");
@@ -108,10 +111,11 @@
         $status.text("Automatisch aus der Adresse bestimmt.");
       }
 
-      setAutoVisible(isManual() && $reset.val() !== "true");
+      setAutoVisible(Boolean(($address.val() || "").trim()) && $reset.val() !== "true");
     }
 
     function placeManually(latLng) {
+      locationWarning = "";
       $lat.val(latLng.lat().toFixed(7));
       $lng.val(latLng.lng().toFixed(7));
       $manual.val("true");
@@ -180,12 +184,14 @@
     });
 
     $auto.on("click", function () {
+      locationWarning = "";
       $manual.val("false");
       $reset.val("true");
       renderStatus();
     });
 
     $address.on("input", function () {
+      locationWarning = "";
       // Neue Adresse, neuer Ort: eine alte Korrektur gehoert nicht mehr dazu.
       // Wer den Pin danach wieder zieht, setzt sie fuer die neue Adresse neu.
       if (($address.val() || "").trim() !== savedAddress) {
@@ -197,6 +203,7 @@
     // product-detail.js meldet ein erfolgreiches Speichern mit der Antwort des
     // Servers - dort steht die jetzt gueltige Position.
     $(document).on("cms:productSaved", function (event, response) {
+      locationWarning = response.locationWarning || "";
       savedAddress = ($address.val() || "").trim();
       $lat.val(response.latitude == null ? "" : response.latitude);
       $lng.val(response.longitude == null ? "" : response.longitude);

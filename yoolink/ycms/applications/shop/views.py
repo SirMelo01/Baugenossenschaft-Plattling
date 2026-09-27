@@ -36,7 +36,7 @@ from yoolink.ycms.views import (
     scale_image,
 )
 
-from .geocoding import coordinates_for_address, geocode_address, parse_manual_position
+from .geocoding import GeocodingError, coordinates_for_address, geocode_address, parse_manual_position
 from .serializers import OrderItemSerializer, OrderSerializer
 from ...views import send_mail
 from .models import (
@@ -615,14 +615,29 @@ def apply_product_form_data(request, product):
         and (product.address or "").strip() == address
     )
 
-    if manual_position:
-        latitude, longitude = manual_position
-    elif reset_position:
-        # "Automatisch bestimmen" fragt den Geocoder neu, statt die gespeicherte
-        # oder eine korrigierte Position aus dem Nachbarobjekt zu uebernehmen.
-        latitude, longitude = geocode_address(address) or (None, None)
-    else:
-        latitude, longitude = coordinates_for_address(address, exclude_pk=product.pk, previous=product)
+    location_warning = ""
+    try:
+        if manual_position:
+            latitude, longitude = manual_position
+        elif reset_position:
+            latitude, longitude = geocode_address(address) or (None, None)
+        else:
+            latitude, longitude = coordinates_for_address(address, exclude_pk=product.pk, previous=product)
+    except GeocodingError as error:
+        latitude, longitude = None, None
+        location_warning = str(error)
+
+    if address and (latitude is None or longitude is None):
+        location_warning = location_warning or (
+            "Google hat keinen passenden Hausnummerntreffer gefunden. Bitte Straße, Hausnummer, PLZ und Ort prüfen "
+            "oder die Position über 'Pin prüfen / verschieben' setzen."
+        )
+        # Failed lookups must not destroy a known position for the SAME address.
+        # After an address change, old coordinates belong to a different building.
+        if (product.address or "").strip() == address and product.map_position:
+            latitude, longitude = product.latitude, product.longitude
+            keeps_manual_position = product.position_manual
+            location_warning += " Die bisherige Position bleibt erhalten."
 
     selected_files = AnyFile.objects.filter(id__in=selected_file_ids)
 
@@ -663,10 +678,8 @@ def apply_product_form_data(request, product):
             product.title_image_title = title_image_title
             product.save()
 
-            # Wohnungen im selben Haus teilen sich einen Marker. Eine Korrektur an
-            # einer davon gilt deshalb fuer alle - sonst stuende der gemeinsame
-            # Marker je nach Reihenfolge mal an der alten, mal an der neuen Stelle.
-            if manual_position or (reset_position and latitude is not None):
+            # A successful correction applies to the other units at this address.
+            if manual_position or (reset_position and latitude is not None and not location_warning):
                 Product.objects.filter(address__iexact=address).exclude(pk=product.pk).update(
                     latitude=latitude, longitude=longitude, position_manual=bool(manual_position)
                 )
@@ -697,6 +710,11 @@ def apply_product_form_data(request, product):
     except ValidationError as error:
         return None, JsonResponse({"error": validation_error_to_message(error)}, status=400)
 
+    product.location_warning = location_warning
+    # Keep the warning visible after the redirect following creation, too.
+    request.session["product_location_warning"] = {
+        "id": product.pk, "address": product.address, "message": location_warning,
+    }
     return product, None
 
 
@@ -740,11 +758,15 @@ def product_detail(request, product_id, slug):
         slug=slug,
     )
     product = get_or_create_product_translation(product, get_active_product_language(request))
+    warning = request.session.get("product_location_warning", {})
     return render(
         request,
         "pages/cms/products/edit-product.html",
         {
             "product": product,
+            "location_warning": warning.get("message", "") if (
+                warning.get("id") == product.pk and warning.get("address") == product.address
+            ) else "",
             # Fuer den verschiebbaren Marker unter der Adresse (Position korrigieren).
             "google_maps_js_api_key": settings.GOOGLE_MAPS_JS_API_KEY,
         },
@@ -853,6 +875,7 @@ def product_create(request):
             "success": "Product successfully created",
             "productId": product.id,
             "slug": product.slug,
+            "locationWarning": product.location_warning,
         },
         status=201,
     )
@@ -879,6 +902,7 @@ def product_update(request, product_id, slug):
             "latitude": product.latitude,
             "longitude": product.longitude,
             "positionManual": product.position_manual,
+            "locationWarning": product.location_warning,
         },
         status=200,
     )

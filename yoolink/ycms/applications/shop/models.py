@@ -347,13 +347,7 @@ class Product(TimeStampedModel):
     @property
     def map_position(self):
         """Koordinaten fuer die Objektkarte oder ``None``, wenn keine bekannt sind."""
-        from .verified_locations import verified_position
-
         source = self.address_source
-        if not getattr(source, "position_manual", False):
-            verified = verified_position(self.location_address)
-            if verified:
-                return {"lat": verified[0], "lng": verified[1]}
         latitude = getattr(source, "latitude", None)
         longitude = getattr(source, "longitude", None)
         if latitude is None or longitude is None:

@@ -1,59 +1,97 @@
-# Gebäudepositionen der Objektkarte
+# Dynamische Adressen auf der Objektkarte
 
-Die öffentliche Karte verwendet gespeicherte bzw. lokal geprüfte Koordinaten.
-Sie benötigt die Maps JavaScript API, aber **keine Geocoding API im Browser**.
-Manuelle Positionen aus dem CMS haben Vorrang vor den lokalen Gebäudepositionen.
+Beim Anlegen oder Ändern einer Adresse im CMS ermittelt der Server die Position
+über die **Google Geocoding API**. Die Koordinaten werden am Objekt gespeichert.
+Die öffentliche Karte zeigt rote Standardmarker direkt an diesen Positionen;
+Überlappungen beim Herauszoomen sind erlaubt. Sie führt keine Adresssuchen aus.
+Es gibt keine fest hinterlegten Hausnummern oder Gebäudekoordinaten mehr.
 
-## Dr.-Kiefl-Straße 31, 33, 33a und 33b
+Der Link „Route“ übergibt dagegen eine Adresse an die Google-Maps-Website.
+Ein funktionierender Route-Link bestätigt deshalb weder die API-Freischaltung
+noch die Konfiguration des Server-Schlüssels.
 
-Am 27.09.2026 anhand der beschrifteten Gebäude in der amtlichen Parzellarkarte
-geprüft. Der bisherige automatische Punkt (48.784648, 12.869245) war ein
-Straßenpunkt, kein Treffer für diese Hausnummern. Nominatim lieferte für diese
-Anschriften nur Straßen ohne passende Hausnummer zurück.
+## Google Cloud und Serverkonfiguration
 
-Quelle: **Bayerische Vermessungsverwaltung**, [ALKIS-Parzellarkarte](https://www.ldbv.bayern.de/produkte/liegenschaftsinformationen/parzellarkarte.html),
-[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/deed.de).
-Die Koordinaten wurden aus der Karte abgeleitet (Änderung gegenüber der Quelle).
-Es sind Positionen innerhalb des jeweiligen beschrifteten Gebäudeteils, keine
-vermessenen Hauseingänge. Die Nachkommastellen bedeuten keine Zentimetergenauigkeit.
+1. Im richtigen Cloud-Projekt **Geocoding API** aktivieren. Das Projekt benötigt
+   eine aktive Abrechnung. Die **Geolocation API ist nicht erforderlich**.
+2. Den bisherigen Browser-Schlüssel mit Website-Beschränkung für
+   `https://bgsplattling.yoolink.de/*` und **Maps JavaScript API** beibehalten.
+   Eventuell zusätzlich benötigte Maps Embed API ebenfalls beibehalten.
+3. Einen separaten Server-Schlüssel erstellen:
+   - API-Beschränkung: **Geocoding API**.
+   - Anwendungsbeschränkung: **IP-Adressen**, öffentliche ausgehende IP des
+     Produktionsservers (bei NAT die nach außen sichtbare IP, keine Docker-IP).
+4. In `.envs/.production/.django` auf dem Server hinterlegen:
 
-| Hausnummer | Breitengrad | Längengrad | Referenzpixel x/y |
-| --- | --- | --- | --- |
-| 31 | 48.7836862 | 12.8686252 | 562 / 825 |
-| 33 | 48.7838371 | 12.8686297 | 563 / 774 |
-| 33a | 48.7843550 | 12.8683467 | 500 / 599 |
-| 33b | 48.7844882 | 12.8683287 | 496 / 554 |
+   ```dotenv
+   GOOGLE_MAPS_GEOCODING_API_KEY=<separater Server-Schlüssel>
+   GEOCODING_ENABLED=True
+   ```
 
-Reproduzierbare Referenz: WMS `https://geoservices.bayern.de/od/wms/alkis/v1/parzellarkarte`,
-`SERVICE=WMS`, `VERSION=1.1.1`, `REQUEST=GetMap`,
-`LAYERS=by_alkis_parzellarkarte_farbe`, `STYLES=`, `SRS=EPSG:3857`,
-`BBOX=1432247.800293882,6237949.349741135,1432797.800293882,6238649.349741135`,
-`WIDTH=1100`, `HEIGHT=1400`, `FORMAT=image/png`.
-Pixelkoordinaten ab links oben; Auflösung 0,5 projizierte Meter/Pixel.
-Umrechnung nach WGS84 mit inverser Web-Mercator-Projektion.
+   Schlüssel nicht committen. Nach Änderung der Umgebung den Django-Container
+   neu erstellen, damit er die neue Variable übernimmt; ein bloßer Prozessneustart
+   aktualisiert die Container-Umgebung nicht:
 
-Die Zuordnung gilt ausschließlich für diese Hausnummern, Straße und PLZ/Ort.
-Sie wird bei der öffentlichen Ausgabe auch für alte oder fehlende automatische
-Daten verwendet und beim nächsten Speichern übernommen. Ein erneutes Geocoding
-oder eine zusätzliche Google-Freischaltung ist dafür nicht erforderlich.
+   ```sh
+   docker compose -f production.yml up -d --build django
+   ```
 
-## Marker
+Ein mit Websites/HTTP-Referrern beschränkter Schlüssel funktioniert für diese
+REST-Anfragen vom Server nicht. Daher wird der Embed-Schlüssel nicht mehr als
+Ersatz für einen fehlenden Server-Schlüssel verwendet.
 
-Jedes Objekt hat einen klassischen roten Google-Marker direkt an seiner
-Gebäudeposition. Beim Herauszoomen dürfen sich die Marker überlappen. Es gibt
-keine Verschiebung, Verbindungslinien oder Cluster. Über „Auf Karte zeigen“ in
-der Liste lässt sich jedes Objekt gezielt öffnen, auch bei identischen Positionen.
+Quellen: [Google: API einrichten](https://developers.google.com/maps/documentation/geocoding/guides-v3/get-api-key),
+[Google: Schlüsselbeschränkungen](https://developers.google.com/maps/api-security-best-practices).
 
-## Prüfung
+## Prüfen und bestehende Immobilien neu ermitteln
 
-```text
-node --test tests/immobilien-map.test.cjs
-python -m unittest discover -s tests -p test_verified_locations.py
-python -m pytest tests/test_shop_safety_net.py -q
+Auf dem Produktionsserver zuerst eine bisher fehlende Adresse testen. Der
+Prüfbefehl verändert keine Immobilien:
+
+```sh
+docker compose -f production.yml exec django python manage.py geocode_immobilien --check-address "Dr.-Kiefl-Straße 35, 94447 Plattling"
 ```
 
-Die lokalen Regressionstests prüfen Koordinatenzuordnung, unveränderte Positionen beim Zoom und Auswahl
-mit simulierten Maps-Objekten ohne Geocoder. Sie ersetzen keinen Produktionstest:
-der Google-Key ist auf die Produktionsdomain beschränkt. Nach Veröffentlichung
-auf `/immobilien/` mit Einwilligung für externe Medien die vier Gebäude, Zoom,
-Listenfokus und Popups kontrollieren. Es darf keine Geocoding-Anfrage entstehen.
+Nach erfolgreicher Prüfung **beim Wechsel von der bisherigen festen Zuordnung**
+die vorhandenen automatischen Koordinaten einmal neu ermitteln:
+
+```sh
+docker compose -f production.yml exec django python manage.py geocode_immobilien --force
+```
+
+Das ist nötig, weil die bisherige Sonderzuordnung nur die öffentliche Ausgabe
+ersetzte und in der Datenbank noch alte oder fehlende Koordinaten stehen können.
+Manuell gesetzte Positionen werden auch mit `--force` nicht überschrieben.
+Ohne `--force` werden nur fehlende Koordinaten ergänzt. Mit `--address-contains`
+kann der Lauf auf einen Straßennamen eingegrenzt werden.
+
+Neue Immobilien brauchen danach keinen Befehl: Adresse eintragen und speichern.
+Im CMS erlaubt „Automatisch bestimmen“ jederzeit eine erneute Suche.
+
+## Treffer und Fehler
+
+Straße, Hausnummer (auch Buchstabenzusätze und Bereiche) und angegebene PLZ
+müssen zum Treffer passen. Google muss eine Gebäude- oder interpolierte
+Hausnummernposition liefern; bloße Straßen-/Ortsmittelpunkte werden verworfen.
+Gebäudepositionen werden bevorzugt. Bei einem Ortsteilzusatz wird bei Bedarf
+zusätzlich ohne diesen gesucht. Google kann trotzdem nicht jede Adresse exakt
+auflösen; für solche Fälle bleibt die manuelle Positionierung im CMS verfügbar.
+
+Fehlender Schlüssel, abgelehnte API-Anfragen, Limits und Netzwerkfehler werden
+im CMS konkret gemeldet. Die Immobilie lässt sich trotzdem speichern. Eine
+vorhandene Position derselben Adresse bleibt bei Fehlern erhalten; nach einem
+Adresswechsel werden keine alten Koordinaten für das neue Gebäude verwendet.
+Der Warntext bleibt nach der Weiterleitung im CMS für den speichernden Benutzer
+sichtbar. Ein erfolgreicher weiterer Speichervorgang ersetzt ihn.
+
+## Tests
+
+```sh
+python -m unittest discover -s tests -p test_geocoding.py
+python -m pytest tests/test_shop_safety_net.py -q
+node --test tests/immobilien-map.test.cjs
+```
+
+Die HTTP-Antworten in den Tests sind simuliert. Die echte Freischaltung wird mit
+`--check-address` vom freigegebenen Server aus geprüft. Die sichtbare Google-Karte
+wird auf der freigegebenen Domain geprüft; localhost ist dafür nicht autorisiert.

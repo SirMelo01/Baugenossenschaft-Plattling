@@ -3,7 +3,7 @@
  *
  * Die Koordinaten stehen bereits im Seitenquelltext: sie werden beim Speichern
  * im CMS aus der Adresse bestimmt (oder dort von Hand korrigiert) und am Objekt
- * gespeichert. Gepruefte Gebaeudepositionen werden serverseitig ausgegeben.
+ * gespeichert. Diese Gebaeudepositionen werden serverseitig ausgegeben.
  * Der Browser verwendet ausschliesslich die Maps JavaScript API.
  *
  * Google Maps ist ein externes Medium, die Karte laedt daher erst nach der

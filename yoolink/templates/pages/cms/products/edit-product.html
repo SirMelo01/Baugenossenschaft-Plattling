@@ -225,6 +225,7 @@
                   id="productPosition"
                   class="mt-4 overflow-hidden rounded-xl border border-gray-200 bg-gray-50"
                   data-api-key="{{ google_maps_js_api_key }}"
+                  data-location-warning="{{ location_warning }}"
                 >
                   <input type="hidden" name="latitude" value="{{ product.latitude|default_if_none:''|stringformat:'s' }}" data-position-lat>
                   <input type="hidden" name="longitude" value="{{ product.longitude|default_if_none:''|stringformat:'s' }}" data-position-lng>
@@ -234,7 +235,7 @@
                   <div class="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
                     <div class="min-w-0">
                       <p class="text-sm font-semibold text-gray-700">Position auf der Objektkarte</p>
-                      <p class="mt-0.5 text-xs text-gray-500" data-position-status></p>
+                      <p class="mt-0.5 text-xs text-gray-500" data-position-status role="status"></p>
                     </div>
                     <div class="flex flex-shrink-0 flex-wrap gap-2">
                       <button type="button" data-position-load
