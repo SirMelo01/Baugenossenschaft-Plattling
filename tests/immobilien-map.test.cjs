@@ -4,38 +4,10 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const path = require('node:path');
 const filename = path.join(__dirname, '../yoolink/static/js/products/immobilien-map.js');
-const { layoutMarkers, worldPixel, fromWorldPixel, hasCoordinates } = require(filename);
+const { hasCoordinates } = require(filename);
 
-function assertSeparated(layout) {
-  layout.forEach((a, i) => layout.slice(i + 1).forEach(b => {
-    assert.ok(Math.abs(a.pixel.x - b.pixel.x) >= 47.999
-      || Math.abs(a.pixel.y - b.pixel.y) >= 39.999, 'labels overlap');
-  }));
-}
-
-test('individual labels never overlap, including identical coordinates and fractional zoom', () => {
-  const entries = Array.from({ length: 80 }, (_, id) => ({
-    id, lat: 48.7836862 + (id % 3) * 0.00015, lng: 12.8686252,
-  }));
-  const original = JSON.stringify(entries);
-  for (const zoom of [5, 14, 16, 18, 19, 20.5, 22]) {
-    const result = layoutMarkers(entries, zoom);
-    assertSeparated(result);
-    assert.equal(result.length, entries.length);
-    assert.deepEqual(result, layoutMarkers(entries, zoom));
-  }
-  assert.equal(JSON.stringify(entries), original, 'building positions must stay unchanged');
-});
-
-test('isolated markers retain their true location and invalid coordinates are excluded', () => {
-  const entries = [{ lat: 48.7836862, lng: 12.8686252 }, { lat: 48.7844882, lng: 12.8683287 }];
-  layoutMarkers(entries, 19).forEach((result, i) => {
-    assert.equal(result.displaced, false);
-    assert.ok(Math.abs(result.position.lat - entries[i].lat) < 1e-9);
-    assert.ok(Math.abs(result.position.lng - entries[i].lng) < 1e-9);
-  });
-  const roundTrip = fromWorldPixel(worldPixel(entries[0], 16), 16);
-  assert.ok(Math.abs(roundTrip.lat - entries[0].lat) < 1e-9);
+test('invalid coordinates are excluded', () => {
+  assert.equal(hasCoordinates({ lat: 48.7836862, lng: 12.8686252 }), true);
   for (const lat of [null, undefined, NaN, Infinity, '48', 91]) {
     assert.equal(hasCoordinates({ lat, lng: 12 }), false);
   }
@@ -102,12 +74,20 @@ test('map renders and focuses every object without Geocoder, even at the same ad
   assert.equal(h.root.dataset.mapReady, 'true');
   const selectable = h.markers.filter(marker => marker.clickable !== false);
   assert.equal(selectable.length, 5);
-  assert.deepEqual(selectable.map(marker => marker.label.text), ['31', '33', '33a', '33b', '33b']);
+  assert.equal(h.markers.length, h.entries.length);
+  assert.equal(h.polylines.length, 0);
+  selectable.forEach(marker => {
+    assert.equal(marker.icon, undefined, 'use the standard red Google pin');
+    assert.equal(marker.label, undefined);
+  });
   const map = h.mapInstances[0];
   map.once();
   for (const zoom of [14, 16, 19, 21]) {
     map.setZoom(zoom);
-    assertSeparated(selectable.map(marker => ({ pixel: worldPixel(marker.position, zoom) })));
+    selectable.forEach((marker, id) => {
+      assert.equal(marker.position.lat, h.entries[id].lat);
+      assert.equal(marker.position.lng, h.entries[id].lng);
+    });
   }
   h.buttons.forEach((button, id) => {
     button.click();
@@ -116,11 +96,6 @@ test('map renders and focuses every object without Geocoder, even at the same ad
     assert.equal(map.center.lat, h.entries[id].lat);
     selectable[id].emit('click');
     assert.equal(h.popups[0].anchor, selectable[id]);
-  });
-  assert.ok(h.polylines.some(line => line.path.length === 2));
-  h.polylines.filter(line => line.path.length === 2).forEach(line => {
-    assert.equal(line.path[0].lat, h.entries[0].lat);
-    assert.equal(line.path[0].lng, h.entries[0].lng);
   });
 });
 

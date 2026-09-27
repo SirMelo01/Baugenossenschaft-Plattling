@@ -16,7 +16,6 @@
   var MAPS_CALLBACK = "yoolinkGoogleMapsReady";
   var INITIAL_ZOOM = 16;
   var FOCUS_ZOOM = 19;
-  var BRAND_NAVY = "#2E434C";
   var mapsPromise = null;
 
   function escapeHtml(value) {
@@ -103,70 +102,8 @@
       && Math.abs(entry.lat) <= 85.05112878 && Math.abs(entry.lng) <= 180;
   }
 
-  function worldPixel(position, zoom) {
-    var scale = 256 * Math.pow(2, zoom);
-    var sin = Math.sin(position.lat * Math.PI / 180);
-    return {
-      x: (position.lng + 180) / 360 * scale,
-      y: (0.5 - Math.log((1 + sin) / (1 - sin)) / (4 * Math.PI)) * scale,
-    };
-  }
-
-  function fromWorldPixel(point, zoom) {
-    var scale = 256 * Math.pow(2, zoom);
-    return {
-      lat: Math.atan(Math.sinh(Math.PI * (1 - 2 * point.y / scale))) * 180 / Math.PI,
-      lng: point.x / scale * 360 - 180,
-    };
-  }
-
-  // Fixed 40 x 32 px labels, with an 8 px gap. Coordinates remain immutable;
-  // only the label moves, with a leader line back to the building position.
-  function layoutMarkers(entries, zoom) {
-    var placed = [];
-    return entries.map(function (entry) {
-      var origin = worldPixel(entry, zoom);
-      var point = { x: origin.x, y: origin.y };
-      function overlaps(candidate) {
-        return placed.some(function (other) {
-          return Math.abs(candidate.x - other.x) < 48
-            && Math.abs(candidate.y - other.y) < 40;
-        });
-      }
-      // Expand a rectangular ring until a free label position exists. There is
-      // no fallback that piles remaining markers onto an occupied position.
-      for (var ring = 1; overlaps(point); ring++) {
-        var candidates = [];
-        for (var offset = -ring; offset <= ring; offset++) {
-          candidates.push({ x: origin.x + offset * 48, y: origin.y - ring * 40 });
-          candidates.push({ x: origin.x + offset * 48, y: origin.y + ring * 40 });
-          if (Math.abs(offset) !== ring) {
-            candidates.push({ x: origin.x - ring * 48, y: origin.y + offset * 40 });
-            candidates.push({ x: origin.x + ring * 48, y: origin.y + offset * 40 });
-          }
-        }
-        candidates.sort(function (a, b) {
-          return Math.hypot(a.x - origin.x, a.y - origin.y)
-            - Math.hypot(b.x - origin.x, b.y - origin.y);
-        });
-        var free = candidates.find(function (candidate) { return !overlaps(candidate); });
-        if (free) point = free;
-      }
-      placed.push(point);
-      return { position: fromWorldPixel(point, zoom), pixel: point,
-        displaced: point.x !== origin.x || point.y !== origin.y };
-    });
-  }
-
-  function markerLabel(entry, index) {
-    var match = String(entry.address || "").split(",")[0].match(/(\d+[a-zA-Z]?)\s*$/);
-    return match && match[1].length <= 4 ? match[1].toLowerCase() : String(index + 1);
-  }
-
-  // These pure functions can be checked without an API key or browser.
   if (typeof module !== "undefined" && module.exports) {
-    module.exports = { layoutMarkers: layoutMarkers, worldPixel: worldPixel,
-      fromWorldPixel: fromWorldPixel, hasCoordinates: hasCoordinates, markerLabel: markerLabel };
+    module.exports = { hasCoordinates: hasCoordinates };
     return;
   }
 
@@ -179,37 +116,17 @@
       var infoWindow = new maps.InfoWindow();
       var bounds = new maps.LatLngBounds();
       var byId = {};
-      // Stable ordering keeps displacement predictable when the list is sorted.
-      entries = entries.slice().sort(function (a, b) {
-        return String(a.id).localeCompare(String(b.id), "en", { numeric: true });
-      });
-      var records = entries.map(function (entry, index) {
+      entries.forEach(function (entry) {
         var position = { lat: entry.lat, lng: entry.lng };
+        // Google's standard red pin sits directly on the building coordinate.
+        // Pins may overlap when zoomed out; no offsets or connector lines.
         var marker = new maps.Marker({
           map: map, position: position, title: entry.title + " - " + entry.address,
-          optimized: false,
-          label: { text: markerLabel(entry, index), color: "#ffffff", fontWeight: "700", fontSize: "12px" },
-          icon: {
-            url: "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(
-              '<svg xmlns="http://www.w3.org/2000/svg" width="40" height="32" viewBox="0 0 40 32">'
-              + '<rect x="1" y="1" width="38" height="30" rx="10" fill="'
-              + BRAND_NAVY + '" stroke="white" stroke-width="2"/></svg>'),
-            scaledSize: new maps.Size(40, 32), anchor: new maps.Point(20, 16),
-            labelOrigin: new maps.Point(20, 16),
-          },
-          zIndex: 100 + index,
         });
-        var line = new maps.Polyline({ map: map, clickable: false,
-          strokeColor: BRAND_NAVY, strokeOpacity: 0.85, strokeWeight: 2, zIndex: 1 });
-        var anchor = new maps.Marker({ map: map, position: position, clickable: false,
-          visible: false, zIndex: 2,
-          icon: { path: maps.SymbolPath.CIRCLE, scale: 4, fillColor: BRAND_NAVY,
-            fillOpacity: 1, strokeColor: "#ffffff", strokeWeight: 1 } });
-        var record = { entry: entry, marker: marker, line: line, anchor: anchor };
+        var record = { entry: entry, marker: marker };
         marker.addListener("click", function () { openInfo(record); });
         byId[entry.id] = record;
         bounds.extend(position);
-        return record;
       });
 
       function openInfo(record) {
@@ -217,19 +134,6 @@
         infoWindow.open({ anchor: record.marker, map: map });
       }
 
-      function arrange() {
-        var zoom = map.getZoom();
-        if (!Number.isFinite(zoom)) return;
-        layoutMarkers(entries, zoom).forEach(function (layout, index) {
-          var record = records[index];
-          record.marker.setPosition(layout.position);
-          record.line.setPath(layout.displaced ? [
-            { lat: record.entry.lat, lng: record.entry.lng }, layout.position,
-          ] : []);
-          record.anchor.setVisible(layout.displaced);
-        });
-      }
-      map.addListener("zoom_changed", arrange);
       if (entries.length === 1) {
         map.setCenter({ lat: entries[0].lat, lng: entries[0].lng });
         map.setZoom(INITIAL_ZOOM);
@@ -237,10 +141,8 @@
         map.fitBounds(bounds, 100);
         maps.event.addListenerOnce(map, "idle", function () {
           if (map.getZoom() > INITIAL_ZOOM) map.setZoom(INITIAL_ZOOM);
-          arrange();
         });
       }
-      arrange();
 
       root.querySelectorAll("[data-map-focus]").forEach(function (button) {
         var record = byId[button.dataset.mapFocus];
@@ -250,7 +152,6 @@
         button.addEventListener("click", function () {
           map.setCenter({ lat: record.entry.lat, lng: record.entry.lng });
           if (map.getZoom() < FOCUS_ZOOM) map.setZoom(FOCUS_ZOOM);
-          arrange();
           openInfo(record);
           canvas.scrollIntoView({ behavior: "smooth", block: "center" });
         });

@@ -39,11 +39,10 @@ oder eine zusätzliche Google-Freischaltung ist dafür nicht erforderlich.
 
 ## Marker
 
-Jedes Objekt hat einen eigenen Marker. Hausnummern ersetzen Cluster-Zähler.
-Bei Überlappungen werden nur die Beschriftungen in Bildschirmpixeln auseinander
-gezogen; eine Linie und ein kleiner Punkt kennzeichnen den tatsächlichen Standort.
-Bei jedem Zoom wird die Trennung neu berechnet. Auch Objekte mit derselben
-Anschrift bleiben einzeln über Marker und Liste erreichbar.
+Jedes Objekt hat einen klassischen roten Google-Marker direkt an seiner
+Gebäudeposition. Beim Herauszoomen dürfen sich die Marker überlappen. Es gibt
+keine Verschiebung, Verbindungslinien oder Cluster. Über „Auf Karte zeigen“ in
+der Liste lässt sich jedes Objekt gezielt öffnen, auch bei identischen Positionen.
 
 ## Prüfung
 
@@ -53,7 +52,7 @@ python -m unittest discover -s tests -p test_verified_locations.py
 python -m pytest tests/test_shop_safety_net.py -q
 ```
 
-Die lokalen Regressionstests prüfen Koordinatenzuordnung, Trennung und Auswahl
+Die lokalen Regressionstests prüfen Koordinatenzuordnung, unveränderte Positionen beim Zoom und Auswahl
 mit simulierten Maps-Objekten ohne Geocoder. Sie ersetzen keinen Produktionstest:
 der Google-Key ist auf die Produktionsdomain beschränkt. Nach Veröffentlichung
 auf `/immobilien/` mit Einwilligung für externe Medien die vier Gebäude, Zoom,
