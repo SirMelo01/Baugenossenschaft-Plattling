@@ -640,6 +640,7 @@
 
 <div
   id="productFormConfig"
+  data-map-api-key="{{ google_maps_js_api_key }}"
   data-categories-url="{% url 'cms:get-categories' %}"
   data-groups-url="{% url 'cms:get-groups' %}"
   data-group-create-url="{% url 'cms:group-create' %}"
@@ -659,6 +660,7 @@
 {% compress js %}
 <script src="{% static 'js/libs/quill/quill.min.js' %}"></script>
 <script src="{% static 'js/cms/products/product-taxonomy.js' %}"></script>
+<script src="{% static 'js/cms/products/product-geocoding.js' %}"></script>
 <script src="{% static 'js/cms/products/product-detail.js' %}"></script>
 <script src="{% static 'js/cms/products/product-galery.js' %}"></script>
 <script src="{% static 'js/cms/products/product-files.js' %}"></script>

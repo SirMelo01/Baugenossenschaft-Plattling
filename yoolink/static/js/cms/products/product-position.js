@@ -1,52 +1,22 @@
 /**
  * Position der Immobilie auf der Objektkarte pruefen und von Hand korrigieren.
  *
- * Beim Speichern bestimmt der Server die Koordinaten aus der Adresse. Der
+ * Beim Speichern bestimmt der CMS-Browser die Koordinaten aus der Adresse. Der
  * Geocoder trifft dabei das Gebaeude, aber nicht immer den Eingang - bei einem
  * Block mit mehreren Hausnummern landet der Punkt etwa in dessen Mitte. Hier
  * laesst sich der Pin an die richtige Stelle ziehen. Die Werte stehen in
  * versteckten Feldern des Formulars und gehen mit "Speichern" zum Server.
  *
- * Google Maps laedt erst auf Knopfdruck, damit das Formular ohne Karte schnell
- * bleibt und keine Kartenaufrufe fuer Seiten entstehen, auf denen niemand den
- * Pin anschaut.
+ * Google Maps laedt erst zur Adresssuche oder auf Knopfdruck. Das Formular
+ * zeigt die Karte nur auf Wunsch an.
  */
 (function ($) {
   "use strict";
 
-  var MAPS_CALLBACK = "yoolinkCmsGoogleMapsReady";
   var PLATTLING = { lat: 48.7766, lng: 12.8707 };
-  var mapsPromise = null;
 
   function loadGoogleMaps(apiKey) {
-    if (window.google && window.google.maps) {
-      return Promise.resolve(window.google.maps);
-    }
-    if (mapsPromise) {
-      return mapsPromise;
-    }
-
-    mapsPromise = new Promise(function (resolve, reject) {
-      window[MAPS_CALLBACK] = function () {
-        resolve(window.google.maps);
-      };
-      window.gm_authFailure = function () {
-        reject(new Error("Google Maps hat den API-Key abgelehnt."));
-      };
-
-      var script = document.createElement("script");
-      script.src = "https://maps.googleapis.com/maps/api/js"
-        + "?key=" + encodeURIComponent(apiKey)
-        + "&language=de&region=DE&loading=async&callback=" + MAPS_CALLBACK;
-      script.async = true;
-      script.onerror = function () {
-        mapsPromise = null;
-        reject(new Error("Google Maps konnte nicht geladen werden."));
-      };
-      document.head.appendChild(script);
-    });
-
-    return mapsPromise;
+    return window.YooLinkProductGeocoding.loadMaps(apiKey);
   }
 
   function notify(message, type) {
@@ -65,6 +35,7 @@
     var $lng = $root.find("[data-position-lng]");
     var $manual = $root.find("[data-position-manual]");
     var $reset = $root.find("[data-position-reset]");
+    var $positionAddress = $root.find("[data-position-address]");
     var $status = $root.find("[data-position-status]");
     var $load = $root.find("[data-position-load]");
     var $auto = $root.find("[data-position-auto]");
@@ -119,6 +90,7 @@
       $lat.val(latLng.lat().toFixed(7));
       $lng.val(latLng.lng().toFixed(7));
       $manual.val("true");
+      $positionAddress.val(($address.val() || "").trim());
       $reset.val("false");
       renderStatus();
     }
@@ -204,7 +176,13 @@
     // Servers - dort steht die jetzt gueltige Position.
     $(document).on("cms:productSaved", function (event, response) {
       locationWarning = response.locationWarning || "";
-      savedAddress = ($address.val() || "").trim();
+      savedAddress = response.address;
+      // Edits made while the save request was in flight belong to the next save.
+      if (($address.val() || "").trim() !== savedAddress) {
+        renderStatus();
+        return;
+      }
+      $positionAddress.val(savedAddress);
       $lat.val(response.latitude == null ? "" : response.latitude);
       $lng.val(response.longitude == null ? "" : response.longitude);
       $manual.val(response.positionManual ? "true" : "false");

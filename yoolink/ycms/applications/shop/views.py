@@ -36,7 +36,7 @@ from yoolink.ycms.views import (
     scale_image,
 )
 
-from .geocoding import GeocodingError, coordinates_for_address, geocode_address, parse_manual_position
+from .geocoding import coordinates_for_address, parse_manual_position
 from .serializers import OrderItemSerializer, OrderSerializer
 from ...views import send_mail
 from .models import (
@@ -598,9 +598,8 @@ def apply_product_form_data(request, product):
     if gallery_id:
         gallery_instance = get_object_or_404(Galerie, id=int(gallery_id))
 
-    # Hat jemand den Marker im CMS verschoben, gilt diese Position. Sonst werden
-    # die Koordinaten vor der Transaktion geholt: die Anfrage an den Geocoder geht
-    # ins Netz und darf keine offene Datenbanktransaktion blockieren.
+    # The authenticated CMS geocodes in the browser using the website key.
+    # Coordinates (automatic or manual) are validated and bound to this address.
     manual_position = None
     reset_position = bool(address) and parse_bool(request.POST.get("position_reset"))
     if address and not reset_position and parse_bool(request.POST.get("position_manual")):
@@ -615,21 +614,35 @@ def apply_product_form_data(request, product):
         and (product.address or "").strip() == address
     )
 
+    browser_position = None
+    if address and parse_bool(request.POST.get("position_geocoded")):
+        browser_position = parse_manual_position(request.POST.get("latitude"), request.POST.get("longitude"))
+        if not browser_position or (request.POST.get("position_address") or "").strip() != address:
+            return None, JsonResponse({"error": "Die ermittelte Position passt nicht zur aktuellen Adresse. Bitte erneut speichern."}, status=400)
+
+    browser_error = request.POST.get("position_geocoding_error", "")
     location_warning = ""
-    try:
-        if manual_position:
-            latitude, longitude = manual_position
-        elif reset_position:
-            latitude, longitude = geocode_address(address) or (None, None)
-        else:
-            latitude, longitude = coordinates_for_address(address, exclude_pk=product.pk, previous=product)
-    except GeocodingError as error:
+    if manual_position:
+        latitude, longitude = manual_position
+    elif browser_position:
+        latitude, longitude = browser_position
+        keeps_manual_position = False
+    elif browser_error or reset_position:
         latitude, longitude = None, None
-        location_warning = str(error)
+        location_warning = {
+            "MISSING_KEY": "Für die Adresssuche ist kein Google-Maps-Schlüssel hinterlegt.",
+            "REQUEST_DENIED": "Google lehnt die Adresssuche ab. Bitte Geocoding API und Maps JavaScript API im Projekt und für den Website-Schlüssel freigeben sowie Domain-Beschränkung und Abrechnung prüfen.",
+            "OVER_QUERY_LIMIT": "Das Google-Limit für die Adresssuche ist erreicht. Bitte später erneut speichern.",
+            "NO_MATCH": "Google hat keinen passenden Hausnummerntreffer gefunden. Bitte Straße, Hausnummer, PLZ und Ort prüfen oder den Pin von Hand setzen.",
+        }.get(browser_error, "Die Google-Adresssuche konnte nicht abgeschlossen werden. Bitte erneut speichern.")
+    else:
+        latitude, longitude = coordinates_for_address(
+            address, exclude_pk=product.pk, previous=product, allow_geocoding=False,
+        )
 
     if address and (latitude is None or longitude is None):
         location_warning = location_warning or (
-            "Google hat keinen passenden Hausnummerntreffer gefunden. Bitte Straße, Hausnummer, PLZ und Ort prüfen "
+            "Es wurde keine Position aus der Adresssuche übertragen. Bitte die CMS-Seite neu laden und erneut speichern "
             "oder die Position über 'Pin prüfen / verschieben' setzen."
         )
         # Failed lookups must not destroy a known position for the SAME address.
@@ -745,7 +758,9 @@ def product_view(request):
 @login_required(login_url="login")
 def product_create_view(request):
     """Render the CMS product create page."""
-    return render(request, "pages/cms/products/create-product.html", {})
+    return render(request, "pages/cms/products/create-product.html", {
+        "google_maps_js_api_key": settings.GOOGLE_MAPS_JS_API_KEY,
+    })
 
 
 @login_required(login_url="login")
@@ -897,6 +912,7 @@ def product_update(request, product_id, slug):
     return JsonResponse(
         {
             "success": "Product successfully updated",
+            "address": product.address,
             "productId": product.id,
             "slug": product.slug,
             "latitude": product.latitude,

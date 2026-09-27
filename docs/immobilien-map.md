@@ -1,97 +1,71 @@
-# Dynamische Adressen auf der Objektkarte
+# Immobilienkarte mit dynamischer Adresssuche
 
-Beim Anlegen oder Ändern einer Adresse im CMS ermittelt der Server die Position
-über die **Google Geocoding API**. Die Koordinaten werden am Objekt gespeichert.
-Die öffentliche Karte zeigt rote Standardmarker direkt an diesen Positionen;
-Überlappungen beim Herauszoomen sind erlaubt. Sie führt keine Adresssuchen aus.
-Es gibt keine fest hinterlegten Hausnummern oder Gebäudekoordinaten mehr.
+## Ein Website-Schlüssel für Karte und Adresssuche
 
-Der Link „Route“ übergibt dagegen eine Adresse an die Google-Maps-Website.
-Ein funktionierender Route-Link bestätigt deshalb weder die API-Freischaltung
-noch die Konfiguration des Server-Schlüssels.
+Das CMS ermittelt die Koordinaten beim Speichern **im Browser** über
+`google.maps.Geocoder`. Dafür wird derselbe Website-Schlüssel verwendet wie für
+die Karte (`GOOGLE_MAPS_JS_API_KEY`, standardmäßig `GOOGLE_MAPS_EMBED_API_KEY`).
 
-## Google Cloud und Serverkonfiguration
+Im Google-Cloud-Projekt und bei den API-Beschränkungen dieses Schlüssels müssen
+**Maps JavaScript API** und **Geocoding API** freigegeben sein. Die Website-
+Beschränkung muss die Produktionsdomain einschließlich CMS zulassen, z. B.
+`https://bgsplattling.yoolink.de/*`. Das Projekt benötigt eine aktive Abrechnung.
+Eine Geolocation API, ein zweiter Schlüssel oder eine Server-IP-Freigabe sind
+für diesen Ablauf nicht erforderlich.
 
-1. Im richtigen Cloud-Projekt **Geocoding API** aktivieren. Das Projekt benötigt
-   eine aktive Abrechnung. Die **Geolocation API ist nicht erforderlich**.
-2. Den bisherigen Browser-Schlüssel mit Website-Beschränkung für
-   `https://bgsplattling.yoolink.de/*` und **Maps JavaScript API** beibehalten.
-   Eventuell zusätzlich benötigte Maps Embed API ebenfalls beibehalten.
-3. Einen separaten Server-Schlüssel erstellen:
-   - API-Beschränkung: **Geocoding API**.
-   - Anwendungsbeschränkung: **IP-Adressen**, öffentliche ausgehende IP des
-     Produktionsservers (bei NAT die nach außen sichtbare IP, keine Docker-IP).
-4. In `.envs/.production/.django` auf dem Server hinterlegen:
+Quelle: [Google: Geocoding im Browser](https://developers.google.com/maps/documentation/javascript/geocoding).
 
-   ```dotenv
-   GOOGLE_MAPS_GEOCODING_API_KEY=<separater Server-Schlüssel>
-   GEOCODING_ENABLED=True
-   ```
+## Ablauf im CMS
 
-   Schlüssel nicht committen. Nach Änderung der Umgebung den Django-Container
-   neu erstellen, damit er die neue Variable übernimmt; ein bloßer Prozessneustart
-   aktualisiert die Container-Umgebung nicht:
+1. Immobilie anlegen oder bearbeiten, vollständige Adresse eintragen und speichern.
+2. Das Formular wartet auf die Adresssuche. Straße, Hausnummer und angegebene PLZ
+   müssen zum Ergebnis passen. Bloße Straßen-/Ortsmittelpunkte werden abgelehnt;
+   Gebäude- und interpolierte Hausnummernpositionen sind zulässig, Gebäude bevorzugt.
+   Bei Bedarf wird zusätzlich ohne den Ortsteilzusatz gesucht.
+3. Der Browser übermittelt Koordinaten und die zugehörige Adresse mit dem Formular.
+   Der Server prüft Zahlenwerte, Wertebereiche und Adresszuordnung und speichert
+   die Position. Er führt bei CMS-Speichervorgängen keine Geocoding-Anfrage aus.
+4. Die öffentliche Karte liest die gespeicherten Koordinaten und zeigt die roten
+   Standardmarker. Überlappungen beim Herauszoomen sind erlaubt.
 
-   ```sh
-   docker compose -f production.yml up -d --build django
-   ```
+Pro geöffneter Formularseite werden erfolgreiche Suchen wiederverwendet. Nach
+einem erneuten Öffnen und Speichern wird eine automatische Position neu ermittelt.
+„Automatisch bestimmen“ erzwingt eine erneute Suche auch auf derselben Formularseite.
+Ein von Hand gesetzter Pin bleibt erhalten, solange seine Adresse gleich bleibt;
+„Automatisch bestimmen“ hebt diese Korrektur beim nächsten erfolgreichen Speichern auf.
 
-Ein mit Websites/HTTP-Referrern beschränkter Schlüssel funktioniert für diese
-REST-Anfragen vom Server nicht. Daher wird der Embed-Schlüssel nicht mehr als
-Ersatz für einen fehlenden Server-Schlüssel verwendet.
+**Bereits angelegte Immobilien ohne oder mit alten Koordinaten:** im CMS öffnen
+und speichern. Bei einer manuellen Position zunächst „Automatisch bestimmen“ wählen.
+Ein Server-Befehl ist dafür nicht nötig. Es gibt keine Sonderzuordnung für bestimmte
+Hausnummern und keine fest hinterlegten Gebäudekoordinaten.
 
-Quellen: [Google: API einrichten](https://developers.google.com/maps/documentation/geocoding/guides-v3/get-api-key),
-[Google: Schlüsselbeschränkungen](https://developers.google.com/maps/api-security-best-practices).
+## Fehler
 
-## Prüfen und bestehende Immobilien neu ermitteln
+Fehlt eine API-Freigabe oder gibt es keinen passenden Hausnummerntreffer, wird
+das im CMS angezeigt. Die Immobilie lässt sich trotzdem speichern. Eine bestehende
+Position derselben Adresse bleibt erhalten; nach einem Adresswechsel wird kein
+alter Pin für das neue Gebäude übernommen. Die Warnung bleibt nach der Weiterleitung
+für den speichernden Benutzer sichtbar. Bei nicht eindeutig ermittelbaren Adressen
+kann der Pin über „Pin prüfen / verschieben“ von Hand gesetzt werden.
 
-Auf dem Produktionsserver zuerst eine bisher fehlende Adresse testen. Der
-Prüfbefehl verändert keine Immobilien:
+„Route“ übergibt eine Adresse an die Google-Maps-Website. Ein funktionierender
+Route-Link allein bestätigt weder die Freischaltung noch die Treffer der Geocoding API.
 
-```sh
-docker compose -f production.yml exec django python manage.py geocode_immobilien --check-address "Dr.-Kiefl-Straße 35, 94447 Plattling"
-```
+## Optionaler Server-Befehl
 
-Nach erfolgreicher Prüfung **beim Wechsel von der bisherigen festen Zuordnung**
-die vorhandenen automatischen Koordinaten einmal neu ermitteln:
-
-```sh
-docker compose -f production.yml exec django python manage.py geocode_immobilien --force
-```
-
-Das ist nötig, weil die bisherige Sonderzuordnung nur die öffentliche Ausgabe
-ersetzte und in der Datenbank noch alte oder fehlende Koordinaten stehen können.
-Manuell gesetzte Positionen werden auch mit `--force` nicht überschrieben.
-Ohne `--force` werden nur fehlende Koordinaten ergänzt. Mit `--address-contains`
-kann der Lauf auf einen Straßennamen eingegrenzt werden.
-
-Neue Immobilien brauchen danach keinen Befehl: Adresse eintragen und speichern.
-Im CMS erlaubt „Automatisch bestimmen“ jederzeit eine erneute Suche.
-
-## Treffer und Fehler
-
-Straße, Hausnummer (auch Buchstabenzusätze und Bereiche) und angegebene PLZ
-müssen zum Treffer passen. Google muss eine Gebäude- oder interpolierte
-Hausnummernposition liefern; bloße Straßen-/Ortsmittelpunkte werden verworfen.
-Gebäudepositionen werden bevorzugt. Bei einem Ortsteilzusatz wird bei Bedarf
-zusätzlich ohne diesen gesucht. Google kann trotzdem nicht jede Adresse exakt
-auflösen; für solche Fälle bleibt die manuelle Positionierung im CMS verfügbar.
-
-Fehlender Schlüssel, abgelehnte API-Anfragen, Limits und Netzwerkfehler werden
-im CMS konkret gemeldet. Die Immobilie lässt sich trotzdem speichern. Eine
-vorhandene Position derselben Adresse bleibt bei Fehlern erhalten; nach einem
-Adresswechsel werden keine alten Koordinaten für das neue Gebäude verwendet.
-Der Warntext bleibt nach der Weiterleitung im CMS für den speichernden Benutzer
-sichtbar. Ein erfolgreicher weiterer Speichervorgang ersetzt ihn.
+Der bestehende Management-Befehl `geocode_immobilien` ist weiterhin für Betreiber
+verfügbar, die ausdrücklich Geocoding ohne Browser ausführen möchten. **Nur dieser
+optionale Befehl** benötigt `GOOGLE_MAPS_GEOCODING_API_KEY` mit passenden Server-
+Beschränkungen und `GEOCODING_ENABLED=True`. Er wird vom CMS nicht aufgerufen.
 
 ## Tests
 
 ```sh
-python -m unittest discover -s tests -p test_geocoding.py
-python -m pytest tests/test_shop_safety_net.py -q
-node --test tests/immobilien-map.test.cjs
+node --test tests/product-geocoding.test.cjs tests/immobilien-map.test.cjs
+python -m pytest tests/test_geocoding.py tests/test_shop_safety_net.py -q
 ```
 
-Die HTTP-Antworten in den Tests sind simuliert. Die echte Freischaltung wird mit
-`--check-address` vom freigegebenen Server aus geprüft. Die sichtbare Google-Karte
-wird auf der freigegebenen Domain geprüft; localhost ist dafür nicht autorisiert.
+Die Google-Antworten in den Tests sind simuliert. Die echte Kombination aus
+Website-Schlüssel, CMS-Suche, Speichern und öffentlichen Markern wird auf der
+freigegebenen Produktionsdomain geprüft. Localhost ist mit diesem Schlüssel
+nicht freigegeben.

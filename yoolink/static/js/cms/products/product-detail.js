@@ -25,6 +25,23 @@ function getCsrfToken() {
   return $('input[name="csrfmiddlewaretoken"]').val();
 }
 
+async function prepareProductLocation(form, formData, button) {
+  form.dataset.saving = "true";
+  try {
+    if (!window.YooLinkProductGeocoding) throw new Error("Die Adresssuche konnte nicht geladen werden. Bitte die Seite neu laden.");
+    await window.YooLinkProductGeocoding.prepare(formData, formConfig?.dataset.mapApiKey);
+    if (String($("#address").val() || "").trim() !== String(formData.get("address") || "").trim()) {
+      throw new Error("Die Adresse wurde während der Suche geändert. Bitte erneut speichern.");
+    }
+    return true;
+  } catch (error) {
+    form.dataset.saving = "";
+    disableSpinner(button);
+    sendNotif(error.message || "Die Adresssuche ist fehlgeschlagen.", "error");
+    return false;
+  }
+}
+
 function getAjaxErrorMessage(xhr, fallbackMessage) {
   const response = xhr.responseJSON;
 
@@ -505,8 +522,9 @@ $(document).ready(function () {
     $("#updateProductForm").submit();
   });
 
-  $("#updateProductForm").on("submit", function (event) {
+  $("#updateProductForm").on("submit", async function (event) {
     event.preventDefault();
+    if (this.dataset.saving) return;
     enableSpinner($("#updateProduct"));
 
     if (!updateUrl) {
@@ -566,8 +584,11 @@ $(document).ready(function () {
       formData.append("title_image", files[0], "productTitleImage");
     }
 
+    const savingForm = this;
+    if (!await prepareProductLocation(savingForm, formData, $("#updateProduct"))) return;
     $.ajax({
       url: updateUrl,
+      complete: function () { savingForm.dataset.saving = ""; },
       type: "POST",
       data: formData,
       contentType: false,
@@ -656,8 +677,9 @@ $(document).ready(function () {
   });
 });
 
-  $("#createProductForm").on("submit", function (event) {
+  $("#createProductForm").on("submit", async function (event) {
     event.preventDefault();
+    if (this.dataset.saving) return;
     enableSpinner($("#createProduct"));
 
     if (!createUrl) {
@@ -723,8 +745,14 @@ $(document).ready(function () {
       formData.append("galeryId", galeryId);
     }
 
+    const savingForm = this;
+    if (!await prepareProductLocation(savingForm, formData, $("#createProduct"))) return;
     $.ajax({
       url: createUrl,
+      complete: function (xhr) {
+        // Keep successful creation locked until its redirect to prevent duplicates.
+        if (!xhr.responseJSON?.success) savingForm.dataset.saving = "";
+      },
       type: "POST",
       data: formData,
       contentType: false,

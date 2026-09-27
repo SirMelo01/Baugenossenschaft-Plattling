@@ -511,14 +511,13 @@ def test_check_address_does_not_modify_products(monkeypatch):
 
 
 def test_cms_reports_geocoding_configuration_failure_after_creation(logged_in_client, monkeypatch):
-    from yoolink.ycms.applications.shop.geocoding import GeocodingError
-
     def denied(address):
-        raise GeocodingError("REQUEST_DENIED", "Geocoding API oder Server-Schlüssel prüfen.")
+        raise AssertionError("CMS saves must not call server geocoding")
 
     monkeypatch.setattr("yoolink.ycms.applications.shop.geocoding.geocode_address", denied)
     response = logged_in_client.post(reverse("ycms:product-create-upload"), _product_payload(
         title="Neue Immobilie 35", address="Dr.-Kiefl-Straße 35, 94447 Plattling",
+        position_geocoding_error="REQUEST_DENIED",
     ))
     assert response.status_code == 201
     data = response.json()
@@ -529,15 +528,12 @@ def test_cms_reports_geocoding_configuration_failure_after_creation(logged_in_cl
 
 
 def test_failed_reset_keeps_manual_position_but_changed_address_clears_old_pin(logged_in_client, monkeypatch):
-    from yoolink.ycms.applications.shop.geocoding import GeocodingError
-
     product = _create_product(address="Neue Straße 12, 94447 Plattling", latitude=48.78, longitude=12.88, position_manual=True)
     def denied(*args, **kwargs):
-        raise GeocodingError("REQUEST_DENIED", "Geocoding API prüfen.")
-    monkeypatch.setattr("yoolink.ycms.applications.shop.views.geocode_address", denied)
+        raise AssertionError("CMS saves must not call server geocoding")
     monkeypatch.setattr("yoolink.ycms.applications.shop.geocoding.geocode_address", denied)
     url = reverse("ycms:product-detail-update", args=[product.pk, product.slug])
-    response = logged_in_client.post(url, _product_payload(address=product.address, position_reset="true"))
+    response = logged_in_client.post(url, _product_payload(address=product.address, position_reset="true", position_geocoding_error="REQUEST_DENIED"))
     assert response.status_code == 200
     product.refresh_from_db()
     assert product.map_position == {"lat": 48.78, "lng": 12.88}
@@ -550,6 +546,7 @@ def test_failed_reset_keeps_manual_position_but_changed_address_clears_old_pin(l
     assert product.position_manual is False
 
 
+@override_settings(GOOGLE_MAPS_GEOCODING_API_KEY="")
 def test_cms_product_form_saves_typed_address_and_locates_it(logged_in_client, monkeypatch):
     """Die Anschrift wird frei eingetippt, die Koordinaten kommen beim Speichern dazu."""
     lookups = []
@@ -564,7 +561,8 @@ def test_cms_product_form_saves_typed_address_and_locates_it(logged_in_client, m
 
     first = logged_in_client.post(
         reverse("ycms:product-create-upload"),
-        _product_payload(title="Wohnung A"),
+        _product_payload(title="Wohnung A", position_geocoded="true",
+                         position_address="Schillerstr. 6b, 94447 Plattling", latitude="48.7772", longitude="12.8763"),
     )
     assert first.status_code == 201
 
@@ -581,7 +579,8 @@ def test_cms_product_form_saves_typed_address_and_locates_it(logged_in_client, m
     twin = Product.objects.get(title="Wohnung B")
     assert (twin.latitude, twin.longitude) == (48.7772, 12.8763)
     # Eine bereits verortete Anschrift wird kein zweites Mal nachgeschlagen.
-    assert lookups == ["Schillerstr. 6b, 94447 Plattling"]
+    assert lookups == []
+    assert product.position_manual is False
 
     cleared = logged_in_client.post(
         reverse("ycms:product-detail-update", args=[product.id, product.slug]),
@@ -599,13 +598,12 @@ def test_cms_pin_correction_sticks_and_moves_the_whole_house(logged_in_client, m
     monkeypatch.setattr(
         "yoolink.ycms.applications.shop.geocoding.geocode_address", lambda address: (48.7772, 12.8763)
     )
-    monkeypatch.setattr(
-        "yoolink.ycms.applications.shop.views.geocode_address", lambda address: (48.7700, 12.8700)
-    )
-
     for title in ("Wohnung A", "Wohnung B"):
         assert logged_in_client.post(
-            reverse("ycms:product-create-upload"), _product_payload(title=title)
+            reverse("ycms:product-create-upload"), _product_payload(
+                title=title, position_geocoded="true", position_address="Schillerstr. 6b, 94447 Plattling",
+                latitude="48.7772", longitude="12.8763",
+            )
         ).status_code == 201
     first = Product.objects.get(title="Wohnung A")
     update_url = reverse("ycms:product-detail-update", args=[first.id, first.slug])
@@ -634,10 +632,26 @@ def test_cms_pin_correction_sticks_and_moves_the_whole_house(logged_in_client, m
     assert (first.latitude, first.longitude) == (48.7781234, 12.8755678)
 
     # "Automatisch bestimmen" fragt den Geocoder neu - fuer das ganze Haus.
-    reset = logged_in_client.post(update_url, _product_payload(title="Wohnung A", position_reset="true"))
+    reset = logged_in_client.post(update_url, _product_payload(
+        title="Wohnung A", position_reset="true", position_geocoded="true", position_address=first.address,
+        latitude="48.7700", longitude="12.8700",
+    ))
     assert reset.json()["positionManual"] is False
     for product in Product.objects.filter(title__in=["Wohnung A", "Wohnung B"]):
         assert (product.latitude, product.longitude, product.position_manual) == (48.77, 12.87, False)
+
+
+@pytest.mark.parametrize("position_address,latitude", [
+    ("Andere Straße 12, 94447 Plattling", "48.78"),
+    ("Schillerstr. 6b, 94447 Plattling", "nan"),
+    ("Schillerstr. 6b, 94447 Plattling", "100"),
+])
+def test_cms_rejects_stale_or_invalid_browser_position(logged_in_client, position_address, latitude):
+    response = logged_in_client.post(reverse("ycms:product-create-upload"), _product_payload(
+        position_geocoded="true", position_address=position_address, latitude=latitude, longitude="12.87",
+    ))
+    assert response.status_code == 400
+    assert not Product.objects.exists()
 
 
 def test_title_image_alt_and_title_reach_the_public_pages(logged_in_client, client):

@@ -1,13 +1,11 @@
-"""Anschriften in Koordinaten uebersetzen - einmal beim Speichern, nicht bei jedem Aufruf.
+"""Koordinaten validieren/wiederverwenden und optional per Server ermitteln.
 
-Gepflegt wird eine getippte Anschrift, die Objektkarte braucht aber Koordinaten.
-Das Umrechnen kostet pro Anfrage Geld und Zeit, deshalb passiert es serverseitig
-beim Speichern im CMS und das Ergebnis bleibt am Objekt stehen. Der Browser eines
-Besuchers geocodiert nichts - sonst zahlte jeder Seitenaufruf die Adressen erneut.
+Das CMS sucht Adressen im Browser mit dem Website-Key und speichert die Position.
+coordinates_for_address(..., allow_geocoding=False) greift dort nur auf bereits
+gespeicherte Werte zu. Die oeffentliche Karte geocodiert ebenfalls nichts.
 
-Die Google Geocoding API wird mit einem eigenen Server-Key angesprochen.
-Konfigurationsfehler werden dem CMS gemeldet, statt unbemerkt auf einen anderen
-Dienst oder feste Adresszuordnungen zurueckzufallen.
+Nur der optionale Management-Befehl geocode_immobilien verwendet die hier
+implementierte REST-Suche mit einem separaten Server-Key.
 """
 
 import json
@@ -168,7 +166,7 @@ def parse_manual_position(latitude, longitude):
     return round(lat, 7), round(lng, 7)
 
 
-def coordinates_for_address(address, exclude_pk=None, previous=None):
+def coordinates_for_address(address, exclude_pk=None, previous=None, allow_geocoding=True):
     """Koordinaten fuer eine Anschrift, ohne unnoetige Anfragen.
 
     Drei Faelle kommen ohne Netzwerk aus: keine Anschrift, eine unveraenderte
@@ -204,6 +202,9 @@ def coordinates_for_address(address, exclude_pk=None, previous=None):
             return previous.latitude, previous.longitude
     if twin:
         return twin[0], twin[1]
+
+    if not allow_geocoding:
+        return None, None
 
     position = geocode_address(address)
     if position is None:
