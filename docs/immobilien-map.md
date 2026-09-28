@@ -69,3 +69,19 @@ Die Google-Antworten in den Tests sind simuliert. Die echte Kombination aus
 Website-Schlüssel, CMS-Suche, Speichern und öffentlichen Markern wird auf der
 freigegebenen Produktionsdomain geprüft. Localhost ist mit diesem Schlüssel
 nicht freigegeben.
+## Mehrere Adressen je Inserat
+
+Im CMS können unter **Weitere Adresse hinzufügen** zusätzliche Anschriften
+eingetragen und einzeln wieder entfernt werden. Jede Anschrift wird mit dem
+vorhandenen Website-Schlüssel im Browser geocodiert und erhält eigene gespeicherte
+Koordinaten. Die öffentliche Karte zeigt je Anschrift einen roten Marker; alle
+Marker eines Inserats führen zur selben Detailseite. Dort gibt es pro Adresse
+einen eigenen Routenlink. Die Suche berücksichtigt auch zusätzliche Adressen.
+
+Die bisherige erste Adresse samt manueller Pin-Korrektur bleibt erhalten.
+Fehlgeschlagene Suchen überschreiben keine bekannte Position derselben Adresse;
+bei einer geänderten Adresse werden die alten Koordinaten nicht übernommen.
+
+Beim Deployment muss `python manage.py migrate` ausgeführt werden
+(`shop.0015_productaddress`). Die Migration ergänzt eine Tabelle; bestehende
+Inserate müssen dafür nicht neu gespeichert werden.

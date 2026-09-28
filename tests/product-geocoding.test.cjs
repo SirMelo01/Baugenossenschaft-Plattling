@@ -16,7 +16,7 @@ function setup(respond) {
   const window = { google: { maps: { Geocoder: class {
     geocode(request, callback) { requests.push(request); respond(request, callback); }
   } } } };
-  vm.runInNewContext(source, { window, setTimeout, clearTimeout });
+  vm.runInNewContext(source, { window, setTimeout, clearTimeout, FormData });
   return { api: window.YooLinkProductGeocoding, requests };
 }
 
@@ -124,4 +124,21 @@ test('script loader uses the website key for the Maps JavaScript API', async () 
   window.google = { maps: { Geocoder: class {} } };
   window.yoolinkCmsGoogleMapsReady();
   assert.equal(await pending, window.google.maps);
+});
+
+test('multiple addresses have independent positions and a failed lookup does not stop the others', async () => {
+  const h = setup((request, done) => {
+    const number = request.address.match(/ (\d+),/)[1];
+    done(number === '99' ? [] : [result(number, 48.7 + Number(number) / 1000)], number === '99' ? 'ZERO_RESULTS' : 'OK');
+  });
+  const addresses = ['35', '99', '37'].map(number => `Dr.-Kiefl-Straße ${number}, 94447 Plattling`);
+  const entries = await h.api.prepareAddresses(addresses, 'existing-website-key');
+  assert.equal(h.requests.length, 3);
+  assert.equal(entries.length, 3);
+  assert.equal(entries[0].position_geocoded, true);
+  assert.equal(entries[2].position_geocoded, true);
+  assert.notEqual(entries[0].latitude, entries[2].latitude);
+  assert.equal(entries[1].position_geocoded, false);
+  assert.equal(entries[1].latitude, '');
+  entries.forEach((entry, index) => assert.equal(entry.position_address, addresses[index]));
 });

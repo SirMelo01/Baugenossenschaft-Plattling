@@ -1,0 +1,12 @@
+<div data-address-row class="rounded-xl border border-gray-200 bg-gray-50 p-3">
+  <label class="block text-sm font-semibold text-gray-700">
+    Weitere Adresse
+    <input data-additional-address type="text" value="{{ location.address|default:'' }}" maxlength="255"
+      class="mt-2 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-800 focus:border-blue-500 focus:outline-none"
+      placeholder="z.B. Schillerstr. 8, 94447 Plattling">
+  </label>
+  <div class="mt-2 flex items-center justify-between gap-3">
+    <p data-address-status role="status" class="text-xs text-gray-500">{% if location %}{% if location.latitude != None and location.longitude != None %}Position gespeichert.{% else %}Noch keine Position gefunden. Beim Speichern erneut suchen.{% endif %}{% else %}Die Position wird beim Speichern gesucht.{% endif %}</p>
+    <button type="button" data-address-remove class="rounded-lg px-2 py-1 text-xs font-semibold text-red-600 hover:bg-red-50">Entfernen</button>
+  </div>
+</div>

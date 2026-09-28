@@ -19,6 +19,7 @@ from yoolink.ycms.applications.shop.models import (
     Order,
     OrderItem,
     Product,
+    ProductAddress,
     ProductSpecification,
     ShippingAddress,
 )
@@ -32,6 +33,126 @@ from yoolink.ycms.models import (
 )
 
 pytestmark = pytest.mark.django_db
+
+
+def _additional_address(address="Weitere Straße 35, 94447 Plattling", latitude="48.78", **overrides):
+    return dict(address=address, position_address=address, position_geocoded=True,
+                latitude=latitude, longitude="12.87", **overrides)
+
+
+def test_multiple_addresses_create_edit_remove_and_legacy_save(logged_in_client):
+    addresses = [_additional_address(), _additional_address("Weitere Straße 37, 94447 Plattling", "48.79")]
+    response = logged_in_client.post(reverse("ycms:product-create-upload"), _product_payload(
+        position_geocoded="true", position_address="Schillerstr. 6b, 94447 Plattling",
+        latitude="48.77", longitude="12.86", additional_addresses=json.dumps(addresses),
+    ))
+    assert response.status_code == 201
+    product = Product.objects.get(pk=response.json()["productId"])
+    assert [item["lat"] for item in product.locations] == [48.77, 48.78, 48.79]
+    first_id = product.additional_addresses.first().pk
+    url = reverse("ycms:product-detail-update", args=[product.pk, product.slug])
+    # An old form that doesn't know about the new field must not erase addresses.
+    assert logged_in_client.post(url, _product_payload()).status_code == 200
+    assert product.additional_addresses.count() == 2
+    addresses = [_additional_address(latitude="48.781"), _additional_address("Neue Straße 12, 94447 Plattling", "48.80")]
+    response = logged_in_client.post(url, _product_payload(additional_addresses=json.dumps(addresses)))
+    assert response.status_code == 200
+    assert product.additional_addresses.first().pk == first_id
+    assert [item.address for item in product.additional_addresses.all()] == [item["address"] for item in addresses]
+    assert response.json()["locations"][1]["lat"] == 48.781
+    response = logged_in_client.post(url, _product_payload(additional_addresses="[]"))
+    assert response.status_code == 200
+    assert not product.additional_addresses.exists()
+    product.refresh_from_db()
+    assert product.address == "Schillerstr. 6b, 94447 Plattling"
+
+
+@pytest.mark.parametrize("payload", [
+    "invalid", "{}", '[null]', '[{"address": 5}]',
+    json.dumps([_additional_address(latitude="nan")]),
+    json.dumps([dict(_additional_address(), position_address="Falsche Straße 1")]),
+    json.dumps([dict(_additional_address(), position_address=None)]),
+    json.dumps([_additional_address("Schillerstr. 6b, 94447 Plattling")]),
+    json.dumps([_additional_address(), _additional_address()]),
+])
+def test_invalid_additional_addresses_do_not_partially_save(logged_in_client, payload):
+    product = _create_product(title="Unverändert")
+    location = ProductAddress.objects.create(product=product, address="Bestehende Straße 1")
+    response = logged_in_client.post(reverse("ycms:product-detail-update", args=[product.pk, product.slug]),
+                                    _product_payload(title="Geändert", additional_addresses=payload))
+    assert response.status_code == 400
+    product.refresh_from_db()
+    assert product.title == "Unverändert"
+    assert list(product.additional_addresses.values_list("pk", flat=True)) == [location.pk]
+
+
+def test_failed_additional_lookup_preserves_only_matching_address(logged_in_client):
+    product = _create_product(address="Hauptstraße 1, 94447 Plattling", latitude=48.77, longitude=12.86)
+    old = ProductAddress.objects.create(product=product, address="Weitere Straße 35, 94447 Plattling", latitude=48.78, longitude=12.87)
+    url = reverse("ycms:product-detail-update", args=[product.pk, product.slug])
+    missing = {"address": old.address, "position_geocoded": False, "position_geocoding_error": "NO_MATCH"}
+    response = logged_in_client.post(url, _product_payload(address=product.address, additional_addresses=json.dumps([missing])))
+    assert response.status_code == 200
+    old.refresh_from_db()
+    assert old.latitude == 48.78
+    assert old.address in response.json()["locationWarning"]
+    missing["address"] = "Andere Straße 99, 94447 Plattling"
+    response = logged_in_client.post(url, _product_payload(address=product.address, additional_addresses=json.dumps([missing])))
+    assert response.status_code == 200
+    new = product.additional_addresses.get()
+    assert new.latitude is None and new.longitude is None
+    assert not ProductAddress.objects.filter(pk=old.pk).exists()
+
+
+def test_multiple_addresses_public_map_routes_search_and_translation(client):
+    from django.test import RequestFactory
+    from yoolink.ycms.applications.shop.views import (
+        get_active_product_map_locations, get_public_filtered_products_queryset,
+        get_filtered_products_queryset, clone_product_translation,
+    )
+    product = _create_product(address="Hauptstraße 1, 94447 Plattling", latitude=48.77, longitude=12.86)
+    ProductAddress.objects.create(product=product, address="Nebenstraße 35, 94447 Plattling", latitude=48.78, longitude=12.87)
+    ProductAddress.objects.create(product=product, address="Nebenstraße 37, 94447 Plattling")
+    request = RequestFactory().get("/", {"q": "Nebenstraße"})
+    entries = get_active_product_map_locations(request)
+    assert len(entries) == 3
+    assert len({entry["id"] for entry in entries}) == 3
+    assert {entry["product_id"] for entry in entries} == {product.pk}
+    assert {entry["url"] for entry in entries} == {product.get_absolute_url()}
+    assert entries[2]["lat"] is None
+    assert list(get_public_filtered_products_queryset(request)) == [product]
+    assert list(get_filtered_products_queryset(request)) == [product]
+    response = client.get(product.get_absolute_url())
+    assert response.status_code == 200
+    html = response.content.decode()
+    for entry in entries:
+        assert html.count(entry["address"]) == 1
+        assert escape(entry["maps_url"]) in html
+    translation = clone_product_translation(product, "en")
+    assert translation.additional_addresses.count() == 2
+    assert translation.address_summary == product.address_summary
+    inherited = Product.objects.create(title="Inherited", original=product, language="en")
+    assert inherited.address_summary == product.address_summary
+
+
+def test_additional_address_editor_renders_existing_rows_and_empty_template(logged_in_client):
+    product = _create_product()
+    ProductAddress.objects.create(product=product, address="Nebenstraße 35, 94447 Plattling")
+    response = logged_in_client.get(reverse("ycms:product-detail", args=[product.pk, product.slug]))
+    assert response.status_code == 200
+    html = response.content.decode()
+    assert "Weitere Adresse hinzufügen" in html
+    assert html.count('value="Nebenstraße 35, 94447 Plattling"') == 1
+    assert 'data-address-template' in html
+    assert 'data-additional-address type="text" value=""' in html
+
+
+def test_product_without_primary_address_can_have_multiple_locations():
+    product = _create_product(address="")
+    ProductAddress.objects.create(product=product, address="Nebenstraße 35, 94447 Plattling", latitude=48.78, longitude=12.87)
+    assert len(product.locations) == 1
+    assert product.address_summary == "Nebenstraße 35, 94447 Plattling"
+    assert not product.has_missing_map_positions
 
 
 @pytest.fixture
@@ -374,6 +495,7 @@ def test_public_shop_map_locations_use_active_product_addresses(client):
     assert response.context["product_map_locations"] == [
         {
             "id": active.id,
+            "product_id": active.id,
             "title": "Wohnung mit Adresse",
             "address": "Schillerstr. 6b, 94447 Plattling",
             "lat": None,

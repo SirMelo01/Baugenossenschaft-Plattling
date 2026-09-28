@@ -29,7 +29,13 @@ async function prepareProductLocation(form, formData, button) {
   form.dataset.saving = "true";
   try {
     if (!window.YooLinkProductGeocoding) throw new Error("Die Adresssuche konnte nicht geladen werden. Bitte die Seite neu laden.");
+    if (!window.YooLinkProductAddresses) throw new Error("Die Adressfelder konnten nicht geladen werden. Bitte die Seite neu laden.");
+    const addressSnapshot = JSON.stringify(window.YooLinkProductAddresses.snapshot());
     await window.YooLinkProductGeocoding.prepare(formData, formConfig?.dataset.mapApiKey);
+    if (JSON.stringify(window.YooLinkProductAddresses.snapshot()) !== addressSnapshot) {
+      throw new Error("Die Adressen wurden während der Suche geändert. Bitte erneut speichern.");
+    }
+    await window.YooLinkProductAddresses.prepare(formData, formConfig?.dataset.mapApiKey);
     if (String($("#address").val() || "").trim() !== String(formData.get("address") || "").trim()) {
       throw new Error("Die Adresse wurde während der Suche geändert. Bitte erneut speichern.");
     }
@@ -604,6 +610,7 @@ $(document).ready(function () {
           sendNotif("Die Immobilie wurde erfolgreich gespeichert.", "success");
           if (response.locationWarning) sendNotif(response.locationWarning, "warning");
           $(document).trigger("cms:productSaved", [response]);
+          window.YooLinkProductAddresses.saved(response.locations);
         } else {
           sendNotif(response.error || "Speichern fehlgeschlagen.", "error");
         }

@@ -333,7 +333,7 @@ class Product(TimeStampedModel):
         ihnen selbst nichts eingetragen ist - eine Hausnummer ist in jeder Sprache
         dieselbe.
         """
-        if (self.address or "").strip():
+        if (self.address or "").strip() or (self.pk and self.additional_addresses.exists()):
             return self
         if self.original_id:
             return self.original
@@ -353,6 +353,37 @@ class Product(TimeStampedModel):
         if latitude is None or longitude is None:
             return None
         return {"lat": latitude, "lng": longitude}
+
+    @property
+    def locations(self):
+        """All addresses with their own position and route, including translations."""
+        source = self.address_source
+        entries = []
+        if source.address.strip():
+            entries.append({
+                "id": self.pk, "address": source.address.strip(),
+                "lat": source.latitude, "lng": source.longitude,
+                "manual": source.position_manual,
+            })
+        if source.pk:
+            entries.extend({
+                "id": f"{self.pk}-address-{item.pk}", "address": item.address,
+                "lat": item.latitude, "lng": item.longitude,
+                "manual": item.position_manual,
+            } for item in source.additional_addresses.all())
+        for entry in entries:
+            entry["maps_url"] = "https://www.google.com/maps/search/?" + urlencode(
+                {"api": "1", "query": entry["address"]}
+            )
+        return entries
+
+    @property
+    def address_summary(self):
+        return " · ".join(item["address"] for item in self.locations)
+
+    @property
+    def has_missing_map_positions(self):
+        return any(item["lat"] is None or item["lng"] is None for item in self.locations)
 
     @property
     def title_image_alt_text(self):
@@ -378,6 +409,24 @@ class Product(TimeStampedModel):
 
     def __str__(self):
         return self.title
+
+
+class ProductAddress(models.Model):
+    """Additional building addresses belonging to the same listing."""
+
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="additional_addresses")
+    address = models.CharField("Adresse", max_length=255)
+    latitude = models.FloatField(blank=True, null=True, editable=False)
+    longitude = models.FloatField(blank=True, null=True, editable=False)
+    position_manual = models.BooleanField(default=False, editable=False)
+    sort_order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ["sort_order", "id"]
+        constraints = [models.UniqueConstraint(fields=["product", "address"], name="unique_product_address")]
+
+    def __str__(self):
+        return self.address
 
 
 class ShippingAddress(TimeStampedModel):

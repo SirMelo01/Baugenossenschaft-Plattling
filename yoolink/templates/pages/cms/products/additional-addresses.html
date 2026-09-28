@@ -1,0 +1,14 @@
+<section data-additional-addresses class="space-y-3" aria-label="Weitere Adressen">
+  <div data-address-list class="space-y-3">
+    {% for location in product.additional_addresses.all %}
+      {% include "pages/cms/products/additional-address-row.html" %}
+    {% endfor %}
+  </div>
+  <button type="button" data-address-add class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100">
+    <i class="bi bi-plus-lg" aria-hidden="true"></i> Weitere Adresse hinzufügen
+  </button>
+  <p class="text-xs text-gray-500">Jede Adresse erhält einen eigenen Marker auf der Objektkarte und einen eigenen Routenlink. Die Positionen werden beim Speichern bestimmt.</p>
+  <template data-address-template>
+    {% include "pages/cms/products/additional-address-row.html" with location=None %}
+  </template>
+</section>

@@ -257,6 +257,8 @@
                 </div>
               </div>
 
+              {% include "pages/cms/products/additional-addresses.html" %}
+
               <div>
                 <label class="mb-2 block text-sm font-semibold text-gray-700" for="descriptionEditor">Beschreibung</label>
                 <textarea id="description" name="description" class="hidden" aria-hidden="true">{{ product.description }}</textarea>
@@ -812,6 +814,7 @@
 <script src="{% static 'js/libs/quill/quill.min.js' %}"></script>
 <script src="{% static 'js/cms/products/product-taxonomy.js' %}"></script>
 <script src="{% static 'js/cms/products/product-geocoding.js' %}"></script>
+<script src="{% static 'js/cms/products/product-addresses.js' %}"></script>
 <script src="{% static 'js/cms/products/product-detail.js' %}"></script>
 <script src="{% static 'js/cms/products/product-position.js' %}"></script>
 <script src="{% static 'js/cms/products/product-galery.js' %}"></script>

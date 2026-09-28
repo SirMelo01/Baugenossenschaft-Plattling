@@ -13,7 +13,7 @@ test('invalid coordinates are excluded', () => {
   }
 });
 
-function harness(consent = true) {
+function harness(consent = true, multipleAddresses = false) {
   const markers = [], polylines = [], mapInstances = [], popups = [];
   class Events {
     constructor() { this.events = {}; }
@@ -45,6 +45,12 @@ function harness(consent = true) {
     id, title: 'Objekt ' + id, address: `Dr.-Kiefl-Straße ${number}, 94447 Plattling`,
     lat: 48.7836862, lng: 12.8686252, url: '/immobilien/' + id,
   }));
+  if (multipleAddresses) entries.forEach((entry, index) => {
+    entry.id = index ? `1-address-${index}` : 1;
+    entry.product_id = 1;
+    entry.url = '/immobilien/1';
+    entry.lat += index / 1000;
+  });
   function element() {
     return { classList: { toggle() {}, remove() {}, add() {} },
       scrollIntoView() {}, addEventListener(name, fn) { this[name] = fn; } };
@@ -104,4 +110,16 @@ test('without consent no map is constructed', async () => {
   await new Promise(resolve => setImmediate(resolve));
   assert.equal(h.mapInstances.length, 0);
   assert.equal(h.markers.length, 0);
+});
+
+test('addresses of the same listing can each be focused at their own position', async () => {
+  const h = harness(true, true);
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(h.markers.length, h.entries.length);
+  h.buttons.forEach((button, index) => {
+    button.click();
+    assert.equal(h.popups[0].anchor, h.markers[index]);
+    assert.equal(h.mapInstances[0].center.lat, h.entries[index].lat);
+    assert.ok(h.popups[0].content.includes('/immobilien/1'));
+  });
 });

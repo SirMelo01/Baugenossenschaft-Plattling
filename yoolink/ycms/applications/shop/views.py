@@ -37,6 +37,7 @@ from yoolink.ycms.views import (
 )
 
 from .geocoding import coordinates_for_address, parse_manual_position
+from .product_addresses import prepare_additional_addresses, save_additional_addresses
 from .serializers import OrderItemSerializer, OrderSerializer
 from ...views import send_mail
 from .models import (
@@ -46,6 +47,7 @@ from .models import (
     Product,
     ProductGroup,
     ProductSpecification,
+    ProductAddress,
     Review,
     ShippingAddress,
     ShopSettings,
@@ -152,6 +154,12 @@ def clone_product_translation(original_product, language):
     )
     product.categories.set(original_product.categories.all())
     product.files.set(original_product.files.all())
+    ProductAddress.objects.bulk_create([
+        ProductAddress(product=product, address=item.address, latitude=item.latitude,
+                       longitude=item.longitude, position_manual=item.position_manual,
+                       sort_order=item.sort_order)
+        for item in original_product.additional_addresses.all()
+    ])
     ProductSpecification.objects.bulk_create(
         [
             ProductSpecification(
@@ -318,7 +326,7 @@ def serialize_product_for_search(product):
         "slug": product.slug,
         "title": product.title,
         "description": description_plain_text(product),
-        "address": product.location_address,
+        "address": product.address_summary,
         "sku": product.sku or "",
         "price_note": product.price_note or "",
         "featured": product.featured,
@@ -353,7 +361,7 @@ def serialize_public_product(product):
         "slug": product.slug,
         "title": product.title,
         "description": description_plain_text(product, max_length=140),
-        "address": product.location_address,
+        "address": product.address_summary,
         "maps_url": product.maps_url,
         "price_note": product.price_note or "",
         "featured": product.featured,
@@ -377,7 +385,7 @@ def serialize_public_product(product):
     }
 
 
-def serialize_product_location(product):
+def serialize_product_location(product, location=None):
     """Ein Eintrag fuer die Objektkarte.
 
     Die Koordinaten stehen an der Immobilie (beim Speichern im CMS ermittelt).
@@ -385,24 +393,27 @@ def serialize_product_location(product):
     trotzdem erhalten: er erscheint dann in der Liste neben der Karte, nur ohne
     Marker.
     """
-    address = product.location_address
+    if location is None:
+        location = next(iter(product.locations), None)
+    if not location:
+        return None
+    address = location["address"]
     if not address:
         return None
 
-    position = product.map_position
-
     return {
-        "id": product.id,
+        "id": location["id"],
+        "product_id": product.id,
         "title": product.title,
         "address": address,
-        "lat": position["lat"] if position else None,
-        "lng": position["lng"] if position else None,
-        "manual": bool(product.address_source.position_manual),
+        "lat": location["lat"],
+        "lng": location["lng"],
+        "manual": location["manual"],
         "url": reverse(
             "product-detail",
             kwargs={"product_id": product.id, "slug": product.slug},
         ),
-        "maps_url": product.maps_url,
+        "maps_url": location["maps_url"],
     }
 
 
@@ -410,16 +421,14 @@ def get_active_product_map_locations(request):
     language = get_active_product_language(request)
     products = (
         Product.objects.filter(is_active=True, original__isnull=True)
-        .prefetch_related("translations")
+        .prefetch_related("additional_addresses", "translations__additional_addresses")
         .order_by("-featured", "title")
     )
 
     locations = []
     for product in products:
         localized = get_localized_product(product, language, require_active=True)
-        entry = serialize_product_location(localized)
-        if entry:
-            locations.append(entry)
+        locations.extend(serialize_product_location(localized, location) for location in localized.locations)
     return locations
 
 def build_cart_items_payload(order):
@@ -654,6 +663,15 @@ def apply_product_form_data(request, product):
 
     selected_files = AnyFile.objects.filter(id__in=selected_file_ids)
 
+    try:
+        additional_addresses, address_warnings = prepare_additional_addresses(
+            request.POST.get("additional_addresses"), product, address,
+        )
+    except ValidationError as error:
+        return None, JsonResponse({"error": " ".join(error.messages)}, status=400)
+    primary_location_warning = location_warning
+    location_warning = " ".join(filter(None, [location_warning, *address_warnings]))
+
     parsed_specifications, specifications_error = parse_product_specifications(specifications_payload)
     if specifications_error:
         return None, JsonResponse({"error": specifications_error}, status=400)
@@ -690,10 +708,14 @@ def apply_product_form_data(request, product):
             product.title_image_alt = title_image_alt
             product.title_image_title = title_image_title
             product.save()
+            save_additional_addresses(product, additional_addresses)
 
             # A successful correction applies to the other units at this address.
-            if manual_position or (reset_position and latitude is not None and not location_warning):
+            if manual_position or (reset_position and latitude is not None and not primary_location_warning):
                 Product.objects.filter(address__iexact=address).exclude(pk=product.pk).update(
+                    latitude=latitude, longitude=longitude, position_manual=bool(manual_position)
+                )
+                ProductAddress.objects.filter(address__iexact=address).update(
                     latitude=latitude, longitude=longitude, position_manual=bool(manual_position)
                 )
 
@@ -768,7 +790,7 @@ def product_detail(request, product_id, slug):
     """Render the CMS product edit page."""
     product = get_object_or_404(
         Product.objects.select_related("gallery", "original", "group")
-        .prefetch_related("categories", "files", "specifications", "translations"),
+        .prefetch_related("categories", "files", "specifications", "translations", "additional_addresses"),
         id=product_id,
         slug=slug,
     )
@@ -796,7 +818,7 @@ def get_filtered_products_queryset(request):
 
     products = (
         Product.objects.select_related("gallery")
-        .prefetch_related("categories", "translations")
+        .prefetch_related("categories", "translations", "additional_addresses")
         .filter(original__isnull=True)
     )
 
@@ -805,6 +827,7 @@ def get_filtered_products_queryset(request):
             Q(title__icontains=query)
             | Q(description__icontains=query)
             | Q(address__icontains=query)
+            | Q(additional_addresses__address__icontains=query)
             | Q(categories__name__icontains=query)
         ).distinct()
 
@@ -918,6 +941,7 @@ def product_update(request, product_id, slug):
             "latitude": product.latitude,
             "longitude": product.longitude,
             "positionManual": product.position_manual,
+            "locations": product.locations,
             "locationWarning": product.location_warning,
         },
         status=200,
@@ -1110,7 +1134,7 @@ def get_public_filtered_products_queryset(request):
 
     products = (
         Product.objects.filter(is_active=True, original__isnull=True)
-        .prefetch_related("categories", "translations", "translations__categories")
+        .prefetch_related("categories", "translations", "translations__categories", "additional_addresses", "translations__additional_addresses")
         .annotate(
             effective_price_value=F("price")
         )
@@ -1121,6 +1145,7 @@ def get_public_filtered_products_queryset(request):
             Q(title__icontains=query)
             | Q(description__icontains=query)
             | Q(address__icontains=query)
+            | Q(additional_addresses__address__icontains=query)
             | Q(categories__name__icontains=query)
         ).distinct()
 
@@ -1206,7 +1231,7 @@ def build_grouped_products_context(request):
     products = (
         Product.objects.filter(is_active=True, original__isnull=True)
         .select_related("group")
-        .prefetch_related("categories", "translations", "translations__categories", "translations__group")
+        .prefetch_related("categories", "translations", "translations__categories", "translations__group", "additional_addresses", "translations__additional_addresses")
         .order_by("-featured", "title")
     )
 
@@ -1283,7 +1308,7 @@ def public_shop(request):
 def detail(request, product_id, slug):
     product = get_object_or_404(
         Product.objects.select_related("gallery", "original")
-        .prefetch_related("categories", "translations", "specifications", "gallery__images", "files"),
+        .prefetch_related("categories", "translations", "specifications", "gallery__images", "files", "additional_addresses", "original__additional_addresses", "translations__additional_addresses"),
         id=product_id,
     )
     # Canonical Slug sicherstellen: alte oder bewusst geänderte Slugs per 301 auf

@@ -124,7 +124,24 @@
     }
   }
 
-  var api = { loadMaps: loadMaps, matchingPosition: matchingPosition, prepare: prepare };
+  async function prepareAddresses(addresses, apiKey) {
+    var entries = [];
+    // Sequential requests avoid a burst of geocoding calls for one listing.
+    for (var address of addresses) {
+      var data = new FormData();
+      data.set("address", address);
+      await prepare(data, apiKey);
+      entries.push({
+        address: address, position_address: data.get("position_address"),
+        latitude: data.get("latitude"), longitude: data.get("longitude"),
+        position_geocoded: data.get("position_geocoded") === "true",
+        position_geocoding_error: data.get("position_geocoding_error")
+      });
+    }
+    return entries;
+  }
+
+  var api = { loadMaps: loadMaps, matchingPosition: matchingPosition, prepare: prepare, prepareAddresses: prepareAddresses };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.YooLinkProductGeocoding = api;
 })(typeof window !== "undefined" ? window : globalThis);
