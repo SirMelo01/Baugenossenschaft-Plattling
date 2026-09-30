@@ -609,6 +609,7 @@ $(document).ready(function () {
         if (response.success) {
           sendNotif("Die Immobilie wurde erfolgreich gespeichert.", "success");
           if (response.locationWarning) sendNotif(response.locationWarning, "warning");
+          $("#productLocationWarning").text(response.locationWarning || "").toggleClass("hidden", !response.locationWarning);
           $(document).trigger("cms:productSaved", [response]);
           window.YooLinkProductAddresses.saved(response.locations);
         } else {

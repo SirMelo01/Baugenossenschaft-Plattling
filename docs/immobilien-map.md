@@ -30,12 +30,11 @@ Quelle: [Google: Geocoding im Browser](https://developers.google.com/maps/docume
 
 Pro geöffneter Formularseite werden erfolgreiche Suchen wiederverwendet. Nach
 einem erneuten Öffnen und Speichern wird eine automatische Position neu ermittelt.
-„Automatisch bestimmen“ erzwingt eine erneute Suche auch auf derselben Formularseite.
-Ein von Hand gesetzter Pin bleibt erhalten, solange seine Adresse gleich bleibt;
-„Automatisch bestimmen“ hebt diese Korrektur beim nächsten erfolgreichen Speichern auf.
+Das CMS bietet keine Karte zum manuellen Setzen oder Verschieben von Pins mehr an.
 
 **Bereits angelegte Immobilien ohne oder mit alten Koordinaten:** im CMS öffnen
-und speichern. Bei einer manuellen Position zunächst „Automatisch bestimmen“ wählen.
+und speichern. Die erste Adresse wird auch bei früher manuell gesetzten Positionen
+beim erfolgreichen Speichern automatisch bestimmt.
 Ein Server-Befehl ist dafür nicht nötig. Es gibt keine Sonderzuordnung für bestimmte
 Hausnummern und keine fest hinterlegten Gebäudekoordinaten.
 
@@ -46,7 +45,7 @@ das im CMS angezeigt. Die Immobilie lässt sich trotzdem speichern. Eine bestehe
 Position derselben Adresse bleibt erhalten; nach einem Adresswechsel wird kein
 alter Pin für das neue Gebäude übernommen. Die Warnung bleibt nach der Weiterleitung
 für den speichernden Benutzer sichtbar. Bei nicht eindeutig ermittelbaren Adressen
-kann der Pin über „Pin prüfen / verschieben“ von Hand gesetzt werden.
+die vollständige Anschrift prüfen und erneut speichern.
 
 „Route“ übergibt eine Adresse an die Google-Maps-Website. Ein funktionierender
 Route-Link allein bestätigt weder die Freischaltung noch die Treffer der Geocoding API.
@@ -78,7 +77,7 @@ Koordinaten. Die öffentliche Karte zeigt je Anschrift einen roten Marker; alle
 Marker eines Inserats führen zur selben Detailseite. Dort gibt es pro Adresse
 einen eigenen Routenlink. Die Suche berücksichtigt auch zusätzliche Adressen.
 
-Die bisherige erste Adresse samt manueller Pin-Korrektur bleibt erhalten.
+Die bisherige erste Adresse bleibt erhalten.
 Fehlgeschlagene Suchen überschreiben keine bekannte Position derselben Adresse;
 bei einer geänderten Adresse werden die alten Koordinaten nicht übernommen.
 

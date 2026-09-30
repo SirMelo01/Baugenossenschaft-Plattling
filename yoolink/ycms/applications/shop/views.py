@@ -642,7 +642,7 @@ def apply_product_form_data(request, product):
             "MISSING_KEY": "Für die Adresssuche ist kein Google-Maps-Schlüssel hinterlegt.",
             "REQUEST_DENIED": "Google lehnt die Adresssuche ab. Bitte Geocoding API und Maps JavaScript API im Projekt und für den Website-Schlüssel freigeben sowie Domain-Beschränkung und Abrechnung prüfen.",
             "OVER_QUERY_LIMIT": "Das Google-Limit für die Adresssuche ist erreicht. Bitte später erneut speichern.",
-            "NO_MATCH": "Google hat keinen passenden Hausnummerntreffer gefunden. Bitte Straße, Hausnummer, PLZ und Ort prüfen oder den Pin von Hand setzen.",
+            "NO_MATCH": "Google hat keinen passenden Hausnummerntreffer gefunden. Bitte Straße, Hausnummer, PLZ und Ort prüfen und erneut speichern.",
         }.get(browser_error, "Die Google-Adresssuche konnte nicht abgeschlossen werden. Bitte erneut speichern.")
     else:
         latitude, longitude = coordinates_for_address(
@@ -651,8 +651,7 @@ def apply_product_form_data(request, product):
 
     if address and (latitude is None or longitude is None):
         location_warning = location_warning or (
-            "Es wurde keine Position aus der Adresssuche übertragen. Bitte die CMS-Seite neu laden und erneut speichern "
-            "oder die Position über 'Pin prüfen / verschieben' setzen."
+            "Es wurde keine Position aus der Adresssuche übertragen. Bitte die CMS-Seite neu laden und erneut speichern."
         )
         # Failed lookups must not destroy a known position for the SAME address.
         # After an address change, old coordinates belong to a different building.
@@ -804,7 +803,7 @@ def product_detail(request, product_id, slug):
             "location_warning": warning.get("message", "") if (
                 warning.get("id") == product.pk and warning.get("address") == product.address
             ) else "",
-            # Fuer den verschiebbaren Marker unter der Adresse (Position korrigieren).
+            # Website key for automatic address lookup in the CMS browser.
             "google_maps_js_api_key": settings.GOOGLE_MAPS_JS_API_KEY,
         },
     )
