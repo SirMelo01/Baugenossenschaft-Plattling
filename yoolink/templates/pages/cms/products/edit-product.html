@@ -208,22 +208,6 @@
                 />
               </div>
 
-              <div>
-                <label class="mb-2 block text-sm font-semibold text-gray-700" for="address">Adresse</label>
-                <input
-                  id="address"
-                  name="address"
-                  type="text"
-                  value="{{ product.address }}"
-                  maxlength="255"
-                  class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-800 focus:border-blue-500 focus:bg-white focus:outline-none"
-                  placeholder="z.B. Schillerstr. 6b, 94447 Plattling"
-                />
-                <p class="mt-2 text-xs text-gray-500">Die Kartenposition wird beim Speichern automatisch aus der Adresse bestimmt. Mehrere Objekte d&uuml;rfen dieselbe Adresse haben.</p>
-
-                <p id="productLocationWarning" role="status" class="mt-2 text-sm text-amber-700{% if not location_warning %} hidden{% endif %}">{{ location_warning }}</p>
-              </div>
-
               {% include "pages/cms/products/additional-addresses.html" %}
 
               <div>

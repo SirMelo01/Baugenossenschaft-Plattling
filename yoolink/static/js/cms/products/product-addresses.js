@@ -2,6 +2,8 @@
   "use strict";
   function root() { return document.querySelector("[data-additional-addresses]"); }
   function rows() { return Array.from(root()?.querySelectorAll("[data-address-row]") || []); }
+  function primaryRow() { return root()?.querySelector("[data-primary-address-row]"); }
+  function setStatus(row, text) { if (row) row.querySelector("[data-address-status]").textContent = text; }
   function addresses() { return rows().map(function (row) { return row.querySelector("input").value.trim(); }); }
 
   window.YooLinkProductAddresses = {
@@ -15,7 +17,12 @@
         if (seen.has(key)) throw new Error("Die Adresse „" + address + "“ wurde mehrfach eingetragen.");
         seen.add(key);
       });
-      rows().forEach(function (row) { row.querySelector("[data-address-status]").textContent = "Position wird gesucht …"; });
+      if (primary) {
+        setStatus(primaryRow(), formData.get("position_geocoded") === "true" ? "Position gefunden. Wird gespeichert."
+          : formData.get("position_geocoding_error") ? "Position nicht gefunden. Die Adresse wird gespeichert; eine bisherige Position bleibt erhalten."
+          : "Position gespeichert.");
+      }
+      rows().forEach(function (row) { setStatus(row, "Position wird gesucht …"); });
       var result = await window.YooLinkProductGeocoding.prepareAddresses(snapshot.filter(Boolean), apiKey);
       if (JSON.stringify(addresses()) !== JSON.stringify(snapshot)) {
         throw new Error("Die Adressen wurden während der Suche geändert. Bitte erneut speichern.");
@@ -29,7 +36,7 @@
       });
     },
     saved: function (locations) {
-      rows().forEach(function (row) {
+      [primaryRow()].concat(rows()).filter(Boolean).forEach(function (row) {
         var status = row.querySelector("[data-address-status]");
         var address = row.querySelector("input").value.trim();
         var location = (locations || []).find(function (item) { return item.address === address; });
@@ -56,8 +63,7 @@
       }
     });
     container.addEventListener("input", function (event) {
-      var row = event.target.closest("[data-address-row]");
-      if (row) row.querySelector("[data-address-status]").textContent = "Die Position wird beim Speichern gesucht.";
+      setStatus(event.target.closest("[data-address-row], [data-primary-address-row]"), "Die Position wird beim Speichern gesucht.");
     });
   });
 })();

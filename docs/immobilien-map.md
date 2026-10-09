@@ -27,10 +27,14 @@ Quelle: [Google: Geocoding im Browser](https://developers.google.com/maps/docume
    die Position. Er führt bei CMS-Speichervorgängen keine Geocoding-Anfrage aus.
 4. Die öffentliche Karte liest die gespeicherten Koordinaten und zeigt die roten
    Standardmarker. Überlappungen beim Herauszoomen sind erlaubt.
+   Jede Adresse bekommt einen eigenen Marker; die Liste neben der Karte zeigt
+   jedes Inserat aber nur einmal (erste Adresse plus Anzahl weiterer Adressen).
 
 Pro geöffneter Formularseite werden erfolgreiche Suchen wiederverwendet. Nach
 einem erneuten Öffnen und Speichern wird eine automatische Position neu ermittelt.
 Das CMS bietet keine Karte zum manuellen Setzen oder Verschieben von Pins mehr an.
+Haupt- und weitere Adressen stehen im CMS als gleich gestaltete Zeilen in einem
+gemeinsamen Block „Adressen“, jeweils mit eigenem Positionsstatus.
 
 **Bereits angelegte Immobilien ohne oder mit alten Koordinaten:** im CMS öffnen
 und speichern. Die erste Adresse wird auch bei früher manuell gesetzten Positionen

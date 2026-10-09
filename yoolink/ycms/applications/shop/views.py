@@ -431,6 +431,28 @@ def get_active_product_map_locations(request):
         locations.extend(serialize_product_location(localized, location) for location in localized.locations)
     return locations
 
+
+def group_product_map_listings(locations):
+    """Ein Eintrag pro Immobilie fuer die Liste neben der Karte.
+
+    Die Karte bekommt weiterhin jede Adresse als eigenen Marker. In der Liste
+    steht ein Inserat mit mehreren Adressen aber nur einmal: mit seiner ersten
+    Adresse, der Anzahl weiterer Adressen und einem Fokus auf den ersten
+    Marker, der eine Position hat.
+    """
+    listings = {}
+    for location in locations:
+        listing = listings.get(location["product_id"])
+        if listing is None:
+            listing = listings[location["product_id"]] = {
+                **location, "additional_count": 0, "focus_id": None,
+            }
+        else:
+            listing["additional_count"] += 1
+        if listing["focus_id"] is None and location["lat"] is not None and location["lng"] is not None:
+            listing["focus_id"] = location["id"]
+    return list(listings.values())
+
 def build_cart_items_payload(order):
     """Serialize cart items for frontend responses."""
     return [
@@ -1269,6 +1291,7 @@ def public_shop(request):
         context = get_bgp_context({"shop_settings": shop_settings, "demo_page": "immobilien"})
         context.update(build_grouped_products_context(request))
         context["product_map_locations"] = get_active_product_map_locations(request)
+        context["product_map_listings"] = group_product_map_listings(context["product_map_locations"])
         context.update(get_opening_hours())
         return render(request, "pages/shop_grouped.html", context)
 
@@ -1299,8 +1322,9 @@ def public_shop(request):
             "is_reduced": parse_bool(request.GET.get("is_reduced")) if request.GET.get("is_reduced") not in [None, ""] else False,
         },
         "demo_page": "immobilien",
-        "product_map_locations": get_active_product_map_locations(request),
     })
+    context["product_map_locations"] = get_active_product_map_locations(request)
+    context["product_map_listings"] = group_product_map_listings(context["product_map_locations"])
     context.update(get_opening_hours())
     return render(request, "pages/shop.html", context)
 

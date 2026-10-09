@@ -108,7 +108,7 @@ def test_multiple_addresses_public_map_routes_search_and_translation(client):
     from django.test import RequestFactory
     from yoolink.ycms.applications.shop.views import (
         get_active_product_map_locations, get_public_filtered_products_queryset,
-        get_filtered_products_queryset, clone_product_translation,
+        get_filtered_products_queryset, clone_product_translation, group_product_map_listings,
     )
     product = _create_product(address="Hauptstraße 1, 94447 Plattling", latitude=48.77, longitude=12.86)
     ProductAddress.objects.create(product=product, address="Nebenstraße 35, 94447 Plattling", latitude=48.78, longitude=12.87)
@@ -120,6 +120,14 @@ def test_multiple_addresses_public_map_routes_search_and_translation(client):
     assert {entry["product_id"] for entry in entries} == {product.pk}
     assert {entry["url"] for entry in entries} == {product.get_absolute_url()}
     assert entries[2]["lat"] is None
+    listings = group_product_map_listings(entries)
+    assert len(listings) == 1
+    assert listings[0]["address"] == "Hauptstraße 1, 94447 Plattling"
+    assert listings[0]["additional_count"] == 2
+    assert listings[0]["focus_id"] == product.pk
+    shop_html = client.get(reverse("products")).content.decode()
+    assert shop_html.count(f'data-map-focus="{product.pk}"') == 1
+    assert "+ 2 weitere Adressen" in shop_html
     assert list(get_public_filtered_products_queryset(request)) == [product]
     assert list(get_filtered_products_queryset(request)) == [product]
     response = client.get(product.get_absolute_url())
@@ -145,6 +153,8 @@ def test_additional_address_editor_renders_existing_rows_and_empty_template(logg
     assert html.count('value="Nebenstraße 35, 94447 Plattling"') == 1
     assert 'data-address-template' in html
     assert 'data-additional-address type="text" value=""' in html
+    assert html.count('data-primary-address-row') == 1
+    assert html.count('id="address"') == 1
 
 
 def test_product_without_primary_address_can_have_multiple_locations():

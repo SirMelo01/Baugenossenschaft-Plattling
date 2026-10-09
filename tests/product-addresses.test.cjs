@@ -10,13 +10,15 @@ function harness(addresses, lookup) {
     const input = { value }, status = { textContent: '' };
     return { input, status, querySelector(selector) { return selector === 'input' ? input : status; } };
   });
-  const root = { querySelectorAll() { return rows; } };
+  const primaryStatus = { textContent: '' };
+  const primary = { querySelector(selector) { return selector === 'input' ? { value: 'Hauptstraße 1, 94447 Plattling' } : primaryStatus; } };
+  const root = { querySelectorAll() { return rows; }, querySelector() { return primary; } };
   const document = { querySelector() { return root; }, addEventListener() {} };
   const window = { YooLinkProductGeocoding: { prepareAddresses: lookup } };
   vm.runInNewContext(source, { document, window });
   const data = new FormData();
   data.set('address', 'Hauptstraße 1, 94447 Plattling');
-  return { api: window.YooLinkProductAddresses, rows, data };
+  return { api: window.YooLinkProductAddresses, rows, data, primaryStatus };
 }
 
 test('removed and blank rows are excluded while each remaining address is submitted', async () => {
@@ -49,4 +51,13 @@ test('duplicate addresses are rejected before another geocoding request', async 
     await assert.rejects(h.api.prepare(h.data, 'key'), /mehrfach/);
     assert.equal(calls, 0);
   }
+});
+
+test('the main address row reports its position like every other address row', async () => {
+  const h = harness([], async () => []);
+  h.data.set('position_geocoded', 'true');
+  await h.api.prepare(h.data, 'key');
+  assert.equal(h.primaryStatus.textContent, 'Position gefunden. Wird gespeichert.');
+  h.api.saved([{ address: 'Hauptstraße 1, 94447 Plattling', lat: null, lng: null }]);
+  assert.match(h.primaryStatus.textContent, /Noch keine Position gefunden/);
 });

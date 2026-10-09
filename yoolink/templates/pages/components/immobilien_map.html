@@ -39,20 +39,20 @@
       <p class="mt-2 text-sm leading-6 text-gray-600">Die roten Marker zeigen die Standorte unserer Objekte. Klicken Sie auf einen Marker, um mehr zu erfahren.</p>
 
       <div class="mt-5 max-h-[20rem] space-y-3 overflow-y-auto pr-1" data-map-list>
-        {% for location in product_map_locations %}
+        {% for listing in product_map_listings %}
         <div class="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
-          <a href="{{ location.url }}" class="block truncate text-sm font-bold text-gray-900 transition hover:text-[#4B6671]">{{ location.title }}</a>
+          <a href="{{ listing.url }}" class="block truncate text-sm font-bold text-gray-900 transition hover:text-[#4B6671]">{{ listing.title }}</a>
           <span class="mt-1 flex items-start gap-2 text-xs leading-5 text-gray-500">
             <i class="bi bi-geo-alt mt-0.5 flex-shrink-0"></i>
-            <span>{{ location.address }}</span>
+            <span>{{ listing.address }}{% if listing.additional_count %} <span class="whitespace-nowrap text-gray-400">+ {{ listing.additional_count }} weitere Adresse{{ listing.additional_count|pluralize:"n" }}</span>{% endif %}</span>
           </span>
           <span class="mt-2 flex flex-wrap gap-3 text-xs font-bold text-[#4B6671]">
-            <a href="{{ location.url }}" class="inline-flex items-center gap-1 transition hover:text-[#2E434C]">Details <i class="bi bi-arrow-right"></i></a>
-            {% if location.lat %}
-            <button type="button" data-map-focus="{{ location.id }}" class="hidden items-center gap-1 transition hover:text-[#2E434C]">Auf Karte zeigen <i class="bi bi-geo"></i></button>
+            <a href="{{ listing.url }}" class="inline-flex items-center gap-1 transition hover:text-[#2E434C]">Details <i class="bi bi-arrow-right"></i></a>
+            {% if listing.focus_id %}
+            <button type="button" data-map-focus="{{ listing.focus_id }}" class="hidden items-center gap-1 transition hover:text-[#2E434C]">Auf Karte zeigen <i class="bi bi-geo"></i></button>
             {% endif %}
-            {% if location.maps_url %}
-            <a href="{{ location.maps_url }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 transition hover:text-[#2E434C]">Route <i class="bi bi-box-arrow-up-right"></i></a>
+            {% if listing.maps_url %}
+            <a href="{{ listing.maps_url }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 transition hover:text-[#2E434C]">Route <i class="bi bi-box-arrow-up-right"></i></a>
             {% endif %}
           </span>
         </div>
